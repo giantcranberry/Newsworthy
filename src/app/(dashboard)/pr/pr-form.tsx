@@ -1,37 +1,49 @@
-'use client'
+"use client";
 
-import { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Editor } from '@tinymce/tinymce-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
-import { MultiSelect } from '@/components/ui/multi-select'
-import { HelpTip } from '@/components/ui/help-tip'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Editor } from "@tinymce/tinymce-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
+import { HelpTip } from "@/components/ui/help-tip";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Loader2, Save, Send, Plus, X, Sparkles, Lightbulb, AlertCircle, Upload, FileText, Link } from 'lucide-react'
-import { toast } from 'sonner'
+} from "@/components/ui/dialog";
+import {
+  Loader2,
+  Save,
+  Send,
+  Plus,
+  X,
+  Sparkles,
+  Lightbulb,
+  AlertCircle,
+  Upload,
+  FileText,
+  Link,
+} from "lucide-react";
+import { toast } from "sonner";
 
 interface Suggestion {
-  headline: string
-  strategy: string
-  explanation: string
+  headline: string;
+  strategy: string;
+  explanation: string;
 }
 
 interface BrandableChunk {
-  chunkContent: string
-  brandability: 'High' | 'Medium' | 'Low'
-  currentIssue: string
-  recommendation: string
+  chunkContent: string;
+  brandability: "High" | "Medium" | "Low";
+  currentIssue: string;
+  recommendation: string;
 }
 
 const HELP_TEXT = {
@@ -68,191 +80,224 @@ Power tip, you can include anchor text by adding your text in brackets before th
   driveUrl: `The use of a public "drive" url is the perfect way to share files that are relevant to your news. Think about media swipe files, hi-res headshots, powerpoint files, etc. By including a drive URL you have more control of what exists in the shared drive space than by attaching those assets directly to your press release.
 
 Public Dropbox, Google Drive, Box.com, and other such services can be included in your news release to direct readers to additional information pertaining to your news.`,
-}
+};
 
 const TIMEZONES = [
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
-  { value: 'Pacific/Honolulu', label: 'Hawaii Time (HT)' },
-  { value: 'UTC', label: 'UTC' },
-]
+  { value: "America/New_York", label: "Eastern Time (ET)" },
+  { value: "America/Chicago", label: "Central Time (CT)" },
+  { value: "America/Denver", label: "Mountain Time (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+  { value: "America/Anchorage", label: "Alaska Time (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii Time (HT)" },
+  { value: "UTC", label: "UTC" },
+];
 
 interface Company {
-  id: number
-  uuid: string
-  companyName: string
-  timezone?: string | null
+  id: number;
+  uuid: string;
+  companyName: string;
+  timezone?: string | null;
   contacts: Array<{
-    id: number
-    name: string
-    email: string | null
-    phone: string | null
-  }>
+    id: number;
+    name: string;
+    email: string | null;
+    phone: string | null;
+  }>;
 }
 
 interface Category {
-  id: number
-  slug: string
-  name: string
-  parentSlug: string | null
-  parentCategory: string | null
+  id: number;
+  slug: string;
+  name: string;
+  parentSlug: string | null;
+  parentCategory: string | null;
 }
 
 interface Region {
-  id: number
-  slug: string
-  name: string
-  state: string
+  id: number;
+  slug: string;
+  name: string;
+  state: string;
 }
 
 interface PRFormProps {
-  companies: Company[]
-  categories?: Category[]
-  topCategories?: Category[]
-  regions?: Region[]
-  readOnly?: boolean
+  companies: Company[];
+  categories?: Category[];
+  topCategories?: Category[];
+  regions?: Region[];
+  readOnly?: boolean;
   initialData?: {
-    id?: number
-    uuid?: string
-    title?: string
-    abstract?: string
-    body?: string
-    pullquote?: string
-    companyId?: number
-    primaryContactId?: number | null
-    status?: string
-    location?: string
-    releaseAt?: Date | null
-    timezone?: string | null
-    videoUrl?: string | null
-    landingPage?: string | null
-    publicDrive?: string | null
-    selectedCategories?: number[]
-    selectedRegions?: number[]
-    topcat?: number | null
-  }
+    id?: number;
+    uuid?: string;
+    title?: string;
+    abstract?: string;
+    body?: string;
+    pullquote?: string;
+    companyId?: number;
+    primaryContactId?: number | null;
+    status?: string;
+    location?: string;
+    releaseAt?: Date | null;
+    timezone?: string | null;
+    videoUrl?: string | null;
+    landingPage?: string | null;
+    publicDrive?: string | null;
+    selectedCategories?: number[];
+    selectedRegions?: number[];
+    topcat?: number | null;
+  };
 }
 
 // Get minimum release date (12 hours from now)
 function getMinReleaseDate() {
-  const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000)
-  return minDate.toISOString().slice(0, 10)
+  const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000);
+  return minDate.toISOString().slice(0, 10);
 }
 
 function getMinReleaseDateTime() {
-  return new Date(Date.now() + 12 * 60 * 60 * 1000)
+  return new Date(Date.now() + 12 * 60 * 60 * 1000);
 }
 
-export function PRForm({ companies: initialCompanies, categories = [], topCategories = [], regions = [], readOnly = false, initialData }: PRFormProps) {
-  const router = useRouter()
-  const editorRef = useRef<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [dateError, setDateError] = useState<string | null>(null)
-  const [companies, setCompanies] = useState(initialCompanies)
+export function PRForm({
+  companies: initialCompanies,
+  categories = [],
+  topCategories = [],
+  regions = [],
+  readOnly = false,
+  initialData,
+}: PRFormProps) {
+  const router = useRouter();
+  const editorRef = useRef<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [companies, setCompanies] = useState(initialCompanies);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number>(
-    initialData?.companyId || initialCompanies[0]?.id || 0
-  )
-  const [showContactModal, setShowContactModal] = useState(false)
-  const [contactForm, setContactForm] = useState({ name: '', title: '', email: '', phone: '' })
-  const [contactError, setContactError] = useState('')
-  const [savingContact, setSavingContact] = useState(false)
+    initialData?.companyId || initialCompanies[0]?.id || 0,
+  );
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    title: "",
+    email: "",
+    phone: "",
+  });
+  const [contactError, setContactError] = useState("");
+  const [savingContact, setSavingContact] = useState(false);
 
   // Expert Suggestions state
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
-  const [brandableChunks, setBrandableChunks] = useState<BrandableChunk[]>([])
-  const [suggestedPullquote, setSuggestedPullquote] = useState<string | null>(null)
-  const [suggestedAbstract, setSuggestedAbstract] = useState<string | null>(null)
-  const [suggestionsError, setSuggestionsError] = useState<string | null>(null)
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [brandableChunks, setBrandableChunks] = useState<BrandableChunk[]>([]);
+  const [suggestedPullquote, setSuggestedPullquote] = useState<string | null>(
+    null,
+  );
+  const [suggestedAbstract, setSuggestedAbstract] = useState<string | null>(
+    null,
+  );
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
 
   // Document Import state
-  const [showImportDialog, setShowImportDialog] = useState(false)
-  const [isImporting, setIsImporting] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
-  const [googleDocsUrl, setGoogleDocsUrl] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [googleDocsUrl, setGoogleDocsUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // AI Draft state
-  const [showAIDraftDialog, setShowAIDraftDialog] = useState(false)
-  const [aiDraftInput, setAiDraftInput] = useState('')
-  const [aiDraftSourceUrl, setAiDraftSourceUrl] = useState('')
-  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false)
-  const [isFetchingUrl, setIsFetchingUrl] = useState(false)
-  const MIN_DRAFT_INPUT_LENGTH = 100
+  const [showAIDraftDialog, setShowAIDraftDialog] = useState(false);
+  const [aiDraftInput, setAiDraftInput] = useState("");
+  const [aiDraftSourceUrl, setAiDraftSourceUrl] = useState("");
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [isFetchingUrl, setIsFetchingUrl] = useState(false);
+  const MIN_DRAFT_INPUT_LENGTH = 100;
 
   const handleExpertSuggestions = async () => {
     if (!formData.title || !formData.body) {
-      toast.error('Please enter a headline and body content before getting suggestions')
-      return
+      toast.error(
+        "Please enter a headline and body content before getting suggestions",
+      );
+      return;
     }
 
-    setShowSuggestions(true)
-    setIsLoadingSuggestions(true)
-    setSuggestionsError(null)
-    setSuggestions([])
-    setBrandableChunks([])
-    setSuggestedPullquote(null)
-    setSuggestedAbstract(null)
+    setShowSuggestions(true);
+    setIsLoadingSuggestions(true);
+    setSuggestionsError(null);
+    setSuggestions([]);
+    setBrandableChunks([]);
+    setSuggestedPullquote(null);
+    setSuggestedAbstract(null);
 
     // Get current body content from editor
-    const currentBody = editorRef.current?.getContent() || formData.body
+    const currentBody = editorRef.current?.getContent() || formData.body;
 
     try {
-      const response = await fetch(`/api/pr/${initialData?.uuid || 'new'}/ai-suggestions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          abstract: formData.abstract,
-          body: currentBody,
-          pullquote: formData.pullquote,
-        }),
-      })
+      const response = await fetch(
+        `/api/pr/${initialData?.uuid || "new"}/ai-suggestions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: formData.title,
+            abstract: formData.abstract,
+            body: currentBody,
+            pullquote: formData.pullquote,
+          }),
+        },
+      );
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate suggestions')
+        throw new Error(data.error || "Failed to generate suggestions");
       }
 
-      setSuggestions(data.suggestions)
-      setBrandableChunks(data.brandableChunks || [])
-      setSuggestedPullquote(data.suggestedPullquote || null)
-      setSuggestedAbstract(data.suggestedAbstract || null)
+      setSuggestions(data.suggestions);
+      setBrandableChunks(data.brandableChunks || []);
+      setSuggestedPullquote(data.suggestedPullquote || null);
+      setSuggestedAbstract(data.suggestedAbstract || null);
     } catch (err) {
-      setSuggestionsError(err instanceof Error ? err.message : 'An error occurred')
+      setSuggestionsError(
+        err instanceof Error ? err.message : "An error occurred",
+      );
     } finally {
-      setIsLoadingSuggestions(false)
+      setIsLoadingSuggestions(false);
     }
-  }
+  };
 
   const handleImportFromFile = async (file: File) => {
-    setIsImporting(true)
-    setImportError(null)
+    setIsImporting(true);
+    setImportError(null);
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('categories', JSON.stringify(topCategories.map(c => ({ id: c.id, name: c.name, slug: c.slug }))))
-      formData.append('regions', JSON.stringify(regions.map(r => ({ id: r.id, name: r.name, state: r.state }))))
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "categories",
+        JSON.stringify(
+          topCategories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
+        ),
+      );
+      formData.append(
+        "regions",
+        JSON.stringify(
+          regions.map((r) => ({ id: r.id, name: r.name, state: r.state })),
+        ),
+      );
 
-      const response = await fetch('/api/pr/import-document', {
-        method: 'POST',
+      const response = await fetch("/api/pr/import-document", {
+        method: "POST",
         body: formData,
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to import document')
+        throw new Error(data.error || "Failed to import document");
       }
 
       // Apply imported data to form
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         title: data.title || prev.title,
         abstract: data.abstract || prev.abstract,
@@ -261,51 +306,61 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         location: data.location || prev.location,
         topcat: data.suggestedCategoryId?.toString() || prev.topcat,
         selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
-      }))
+      }));
 
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
-        editorRef.current.setContent(data.body)
+        editorRef.current.setContent(data.body);
       }
 
-      setShowImportDialog(false)
-      setGoogleDocsUrl('')
-      toast.success('Document imported successfully! Review and adjust the content as needed.')
+      setShowImportDialog(false);
+      setGoogleDocsUrl("");
+      toast.success(
+        "Document imported successfully! Review and adjust the content as needed.",
+      );
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'An error occurred')
+      setImportError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const handleImportFromGoogleDocs = async () => {
     if (!googleDocsUrl.trim()) {
-      setImportError('Please enter a Google Docs URL')
-      return
+      setImportError("Please enter a Google Docs URL");
+      return;
     }
 
-    setIsImporting(true)
-    setImportError(null)
+    setIsImporting(true);
+    setImportError(null);
 
     try {
-      const response = await fetch('/api/pr/import-document', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/pr/import-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: googleDocsUrl,
-          categories: topCategories.map(c => ({ id: c.id, name: c.name, slug: c.slug })),
-          regions: regions.map(r => ({ id: r.id, name: r.name, state: r.state })),
+          categories: topCategories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+          })),
+          regions: regions.map((r) => ({
+            id: r.id,
+            name: r.name,
+            state: r.state,
+          })),
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to import document')
+        throw new Error(data.error || "Failed to import document");
       }
 
       // Apply imported data to form
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         title: data.title || prev.title,
         abstract: data.abstract || prev.abstract,
@@ -314,80 +369,97 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         location: data.location || prev.location,
         topcat: data.suggestedCategoryId?.toString() || prev.topcat,
         selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
-      }))
+      }));
 
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
-        editorRef.current.setContent(data.body)
+        editorRef.current.setContent(data.body);
       }
 
-      setShowImportDialog(false)
-      setGoogleDocsUrl('')
-      toast.success('Document imported successfully! Review and adjust the content as needed.')
+      setShowImportDialog(false);
+      setGoogleDocsUrl("");
+      toast.success(
+        "Document imported successfully! Review and adjust the content as needed.",
+      );
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'An error occurred')
+      setImportError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const handleGenerateAIDraft = async () => {
-    if (aiDraftInput.trim().length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim()) {
-      setImportError(`Please provide at least ${MIN_DRAFT_INPUT_LENGTH} characters of information about your news, or provide a source URL.`)
-      return
+    if (
+      aiDraftInput.trim().length < MIN_DRAFT_INPUT_LENGTH &&
+      !aiDraftSourceUrl.trim()
+    ) {
+      setImportError(
+        `Please provide at least ${MIN_DRAFT_INPUT_LENGTH} characters of information about your news, or provide a source URL.`,
+      );
+      return;
     }
 
-    setImportError(null)
-    let sourceContent = ''
+    setImportError(null);
+    let sourceContent = "";
 
     // If URL provided, fetch it first
     if (aiDraftSourceUrl.trim()) {
-      setIsFetchingUrl(true)
+      setIsFetchingUrl(true);
       try {
-        const fetchResponse = await fetch('/api/pr/fetch-url', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const fetchResponse = await fetch("/api/pr/fetch-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: aiDraftSourceUrl.trim() }),
-        })
+        });
 
-        const fetchData = await fetchResponse.json()
+        const fetchData = await fetchResponse.json();
 
         if (!fetchResponse.ok) {
-          throw new Error(fetchData.error || 'Failed to fetch URL content')
+          throw new Error(fetchData.error || "Failed to fetch URL content");
         }
 
-        sourceContent = fetchData.content
+        sourceContent = fetchData.content;
       } catch (err) {
-        setImportError(err instanceof Error ? err.message : 'Failed to fetch URL content')
-        setIsFetchingUrl(false)
-        return
+        setImportError(
+          err instanceof Error ? err.message : "Failed to fetch URL content",
+        );
+        setIsFetchingUrl(false);
+        return;
       }
-      setIsFetchingUrl(false)
+      setIsFetchingUrl(false);
     }
 
-    setIsGeneratingDraft(true)
+    setIsGeneratingDraft(true);
 
     try {
-      const response = await fetch('/api/pr/generate-draft', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/pr/generate-draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           input: aiDraftInput,
           sourceUrl: aiDraftSourceUrl.trim() || undefined,
           sourceContent: sourceContent || undefined,
-          categories: topCategories.map(c => ({ id: c.id, name: c.name, slug: c.slug })),
-          regions: regions.map(r => ({ id: r.id, name: r.name, state: r.state })),
+          categories: topCategories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+          })),
+          regions: regions.map((r) => ({
+            id: r.id,
+            name: r.name,
+            state: r.state,
+          })),
         }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate draft')
+        throw new Error(data.error || "Failed to generate draft");
       }
 
       // Apply generated data to form
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         title: data.title || prev.title,
         abstract: data.abstract || prev.abstract,
@@ -396,140 +468,154 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         location: data.location || prev.location,
         topcat: data.suggestedCategoryId?.toString() || prev.topcat,
         selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
-      }))
+      }));
 
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
-        editorRef.current.setContent(data.body)
+        editorRef.current.setContent(data.body);
       }
 
-      setShowAIDraftDialog(false)
-      setAiDraftInput('')
-      setAiDraftSourceUrl('')
-      toast.success('Draft generated successfully! Review and adjust the content as needed.')
+      setShowAIDraftDialog(false);
+      setAiDraftInput("");
+      setAiDraftSourceUrl("");
+      toast.success(
+        "Draft generated successfully! Review and adjust the content as needed.",
+      );
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'An error occurred')
+      setImportError(err instanceof Error ? err.message : "An error occurred");
     } finally {
-      setIsGeneratingDraft(false)
+      setIsGeneratingDraft(false);
     }
-  }
+  };
 
-  const selectedCompany = companies.find(c => c.id === selectedCompanyId)
+  const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
 
   const [formData, setFormData] = useState({
-    title: initialData?.title || '',
-    abstract: initialData?.abstract || '',
-    body: initialData?.body || '',
-    pullquote: initialData?.pullquote || '',
-    location: initialData?.location || '',
+    title: initialData?.title || "",
+    abstract: initialData?.abstract || "",
+    body: initialData?.body || "",
+    pullquote: initialData?.pullquote || "",
+    location: initialData?.location || "",
     primaryContactId: initialData?.primaryContactId || null,
     releaseDate: initialData?.releaseAt
       ? new Date(initialData.releaseAt).toISOString().slice(0, 10)
       : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     releaseTime: initialData?.releaseAt
       ? new Date(initialData.releaseAt).toISOString().slice(11, 16)
-      : '09:00',
-    timezone: initialData?.timezone || selectedCompany?.timezone || 'America/New_York',
-    videoUrl: initialData?.videoUrl || '',
-    landingPage: initialData?.landingPage || '',
-    publicDrive: initialData?.publicDrive || '',
-    topcat: initialData?.topcat?.toString() || '',
+      : "09:00",
+    timezone:
+      initialData?.timezone || selectedCompany?.timezone || "America/New_York",
+    videoUrl: initialData?.videoUrl || "",
+    landingPage: initialData?.landingPage || "",
+    publicDrive: initialData?.publicDrive || "",
+    topcat: initialData?.topcat?.toString() || "",
     selectedCategories: initialData?.selectedCategories || [],
     selectedRegions: initialData?.selectedRegions || [],
-  })
+  });
 
   const handleCategoryChange = (categoryId: number) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const selected = prev.selectedCategories.includes(categoryId)
-        ? prev.selectedCategories.filter(id => id !== categoryId)
-        : [...prev.selectedCategories, categoryId]
-      return { ...prev, selectedCategories: selected }
-    })
-  }
+        ? prev.selectedCategories.filter((id) => id !== categoryId)
+        : [...prev.selectedCategories, categoryId];
+      return { ...prev, selectedCategories: selected };
+    });
+  };
 
   const handleRegionChange = (regionId: number) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const selected = prev.selectedRegions.includes(regionId)
-        ? prev.selectedRegions.filter(id => id !== regionId)
+        ? prev.selectedRegions.filter((id) => id !== regionId)
         : prev.selectedRegions.length < 5
           ? [...prev.selectedRegions, regionId]
-          : prev.selectedRegions
-      return { ...prev, selectedRegions: selected }
-    })
-  }
+          : prev.selectedRegions;
+      return { ...prev, selectedRegions: selected };
+    });
+  };
 
   const handleCreateContact = async () => {
     if (!contactForm.name.trim()) {
-      setContactError('Contact name is required')
-      return
+      setContactError("Contact name is required");
+      return;
     }
 
-    setSavingContact(true)
-    setContactError('')
+    setSavingContact(true);
+    setContactError("");
 
     try {
-      const response = await fetch(`/api/company/${selectedCompany?.uuid}/contacts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contactForm),
-      })
+      const response = await fetch(
+        `/api/company/${selectedCompany?.uuid}/contacts`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(contactForm),
+        },
+      );
 
       if (response.ok) {
-        const newContact = await response.json()
+        const newContact = await response.json();
         // Update the companies state with the new contact
-        setCompanies(prev => prev.map(c =>
-          c.id === selectedCompanyId
-            ? { ...c, contacts: [...c.contacts, newContact] }
-            : c
-        ))
+        setCompanies((prev) =>
+          prev.map((c) =>
+            c.id === selectedCompanyId
+              ? { ...c, contacts: [...c.contacts, newContact] }
+              : c,
+          ),
+        );
         // Select the new contact
-        setFormData(prev => ({ ...prev, primaryContactId: newContact.id }))
+        setFormData((prev) => ({ ...prev, primaryContactId: newContact.id }));
         // Reset and close modal
-        setContactForm({ name: '', title: '', email: '', phone: '' })
-        setShowContactModal(false)
+        setContactForm({ name: "", title: "", email: "", phone: "" });
+        setShowContactModal(false);
       } else {
-        const error = await response.json()
-        setContactError(error.error || 'Failed to create contact')
+        const error = await response.json();
+        setContactError(error.error || "Failed to create contact");
       }
     } catch (error) {
-      setContactError('An error occurred')
+      setContactError("An error occurred");
     } finally {
-      setSavingContact(false)
+      setSavingContact(false);
     }
-  }
+  };
 
-  const handleSubmit = async (action: 'save' | 'submit') => {
-    const validationErrors: string[] = []
+  const handleSubmit = async (action: "save" | "submit") => {
+    const validationErrors: string[] = [];
 
     // Validate release date is at least 12 hours from now
     if (formData.releaseDate && formData.releaseTime) {
-      const selectedDateTime = new Date(`${formData.releaseDate}T${formData.releaseTime}`)
-      const minDateTime = getMinReleaseDateTime()
+      const selectedDateTime = new Date(
+        `${formData.releaseDate}T${formData.releaseTime}`,
+      );
+      const minDateTime = getMinReleaseDateTime();
       if (selectedDateTime < minDateTime) {
-        validationErrors.push('Release date must be at least 12 hours from now')
-        setDateError('Release date must be at least 12 hours from now')
+        validationErrors.push(
+          "Release date must be at least 12 hours from now",
+        );
+        setDateError("Release date must be at least 12 hours from now");
       }
     }
 
     // Always save what we can, but show errors
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
-      const body = editorRef.current?.getContent() || formData.body
+      const body = editorRef.current?.getContent() || formData.body;
 
       // Use valid date or null if invalid
-      let releaseAt = null
+      let releaseAt = null;
       if (formData.releaseDate && formData.releaseTime) {
-        const selectedDateTime = new Date(`${formData.releaseDate}T${formData.releaseTime}`)
-        const minDateTime = getMinReleaseDateTime()
+        const selectedDateTime = new Date(
+          `${formData.releaseDate}T${formData.releaseTime}`,
+        );
+        const minDateTime = getMinReleaseDateTime();
         if (selectedDateTime >= minDateTime) {
-          releaseAt = `${formData.releaseDate}T${formData.releaseTime}`
+          releaseAt = `${formData.releaseDate}T${formData.releaseTime}`;
         }
       }
 
-      const response = await fetch('/api/pr', {
-        method: initialData?.uuid ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/pr", {
+        method: initialData?.uuid ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           body,
@@ -538,41 +624,41 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
           uuid: initialData?.uuid,
           action,
         }),
-      })
+      });
 
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
 
         // Show validation errors if any, but data was saved
         if (validationErrors.length > 0) {
-          toast.error('Please fix the following issues', {
-            description: validationErrors.join('. '),
-          })
+          toast.error("Please fix the following issues", {
+            description: validationErrors.join(". "),
+          });
           // Stay on page, don't navigate
-          return
+          return;
         }
 
-        toast.success('Release saved successfully')
+        toast.success("Release saved successfully");
 
-        if (action === 'submit') {
+        if (action === "submit") {
           // Continue to the next wizard step (logo)
-          router.push(`/pr/${data.uuid}/logo`)
+          router.push(`/pr/${data.uuid}/logo`);
         } else {
           // Save as draft - stay on edit page
-          router.push(`/pr/${data.uuid}`)
+          router.push(`/pr/${data.uuid}`);
         }
-        router.refresh()
+        router.refresh();
       } else {
-        const error = await response.json()
-        toast.error(error.message || 'Failed to save release')
+        const error = await response.json();
+        toast.error(error.message || "Failed to save release");
       }
     } catch (error) {
-      console.error('Error saving release:', error)
-      toast.error('An error occurred while saving')
+      console.error("Error saving release:", error);
+      toast.error("An error occurred while saving");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -580,7 +666,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
           <p className="text-sm text-amber-800">
-            This release cannot be edited because it has status <strong className="capitalize">{initialData?.status}</strong>.
+            This release cannot be edited because it has status{" "}
+            <strong className="capitalize">{initialData?.status}</strong>.
           </p>
         </div>
       )}
@@ -596,8 +683,12 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">Import from Document</p>
-                  <p className="text-sm text-gray-500">Upload a Word doc or Google Docs URL</p>
+                  <p className="font-medium text-gray-900">
+                    Import from Document
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Upload a Word doc or Google Docs URL
+                  </p>
                 </div>
                 <Button
                   variant="outline"
@@ -620,7 +711,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">Generate with AI</p>
-                  <p className="text-sm text-gray-500">Tell us about your news and we'll draft it</p>
+                  <p className="text-sm text-gray-500">
+                    Tell us about your news and we'll draft it
+                  </p>
                 </div>
                 <Button
                   variant="outline"
@@ -643,11 +736,11 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         accept=".doc,.docx"
         className="hidden"
         onChange={(e) => {
-          const file = e.target.files?.[0]
+          const file = e.target.files?.[0];
           if (file) {
-            handleImportFromFile(file)
+            handleImportFromFile(file);
           }
-          e.target.value = ''
+          e.target.value = "";
         }}
       />
 
@@ -660,7 +753,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               Import from Document
             </DialogTitle>
             <DialogDescription>
-              Upload a Word document or provide a Google Docs URL. We will analyze the content and auto-fill the form.
+              Upload a Word document or provide a Google Docs URL. We will
+              analyze the content and auto-fill the form.
             </DialogDescription>
           </DialogHeader>
 
@@ -684,7 +778,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 <Upload className="h-4 w-4" />
                 Choose .docx file...
               </Button>
-              <p className="text-xs text-gray-500">Supports .doc and .docx files</p>
+              <p className="text-xs text-gray-500">
+                Supports .doc and .docx files
+              </p>
             </div>
 
             <div className="relative">
@@ -718,7 +814,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">Document must be publicly shared (Anyone with the link can view)</p>
+              <p className="text-xs text-gray-500">
+                Document must be publicly shared (Anyone with the link can view)
+              </p>
             </div>
 
             {isImporting && (
@@ -740,7 +838,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               Generate Press Release with AI
             </DialogTitle>
             <DialogDescription>
-              Tell us about your news and we'll create a professional press release draft.
+              Tell us about your news and we'll create a professional press
+              release draft.
             </DialogDescription>
           </DialogHeader>
 
@@ -763,21 +862,45 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 disabled={isGeneratingDraft || isFetchingUrl}
               />
               <p className="text-xs text-gray-500">
-                Have a blog post or event page? We'll use it to help generate your press release.
+                Have a blog post or event page? We'll use it to help generate
+                your press release.
               </p>
             </div>
 
             <div className="bg-purple-50 rounded-md p-3 text-sm text-gray-600 border border-purple-100">
-              <p className="font-medium text-gray-700 mb-2">Add details about your news:</p>
+              <p className="font-medium text-gray-700 mb-2">
+                Add details about your news:
+              </p>
               <ul className="space-y-1 ml-4 list-disc">
-                <li><strong>Who</strong> - Who is involved? (company, people, partners)</li>
-                <li><strong>What</strong> - What is the news or announcement?</li>
-                <li><strong>Where</strong> - Where is this happening? (city, state/country)</li>
-                <li><strong>When</strong> - When is this happening or being announced?</li>
-                <li><strong>Why</strong> - Why is this important or newsworthy?</li>
-                <li><strong>Quote</strong> - A quote from someone at your company (optional but recommended)</li>
+                <li>
+                  <strong>Who</strong> - Who is involved? (company, people,
+                  partners)
+                </li>
+                <li>
+                  <strong>What</strong> - What is the news or announcement?
+                </li>
+                <li>
+                  <strong>Where</strong> - Where is this happening? (city,
+                  state/country)
+                </li>
+                <li>
+                  <strong>When</strong> - When is this happening or being
+                  announced?
+                </li>
+                <li>
+                  <strong>Why</strong> - Why is this important or newsworthy?
+                </li>
+                <li>
+                  <strong>Quote</strong> - A quote from someone at your company
+                  (optional but recommended)
+                </li>
               </ul>
-              <p className="mt-2 text-gray-500 italic">You can use bullet points or free-form text. {aiDraftSourceUrl.trim() ? 'This will be combined with the content from your URL.' : ''}</p>
+              <p className="mt-2 text-gray-500 italic">
+                You can use bullet points or free-form text.{" "}
+                {aiDraftSourceUrl.trim()
+                  ? "This will be combined with the content from your URL."
+                  : ""}
+              </p>
             </div>
 
             <Textarea
@@ -790,20 +913,21 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             />
 
             <div className="flex items-center justify-between">
-              <p className={`text-xs ${aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim() ? 'text-amber-600' : 'text-green-600'}`}>
+              <p
+                className={`text-xs ${aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim() ? "text-amber-600" : "text-green-600"}`}
+              >
                 {aiDraftSourceUrl.trim()
-                  ? 'URL provided - additional details optional'
-                  : `${aiDraftInput.length} / ${MIN_DRAFT_INPUT_LENGTH} minimum characters`
-                }
+                  ? "URL provided - additional details optional"
+                  : `${aiDraftInput.length} / ${MIN_DRAFT_INPUT_LENGTH} minimum characters`}
               </p>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowAIDraftDialog(false)
-                    setAiDraftInput('')
-                    setAiDraftSourceUrl('')
-                    setImportError(null)
+                    setShowAIDraftDialog(false);
+                    setAiDraftInput("");
+                    setAiDraftSourceUrl("");
+                    setImportError(null);
                   }}
                   disabled={isGeneratingDraft || isFetchingUrl}
                 >
@@ -811,7 +935,12 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 </Button>
                 <Button
                   onClick={handleGenerateAIDraft}
-                  disabled={isGeneratingDraft || isFetchingUrl || (aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim())}
+                  disabled={
+                    isGeneratingDraft ||
+                    isFetchingUrl ||
+                    (aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH &&
+                      !aiDraftSourceUrl.trim())
+                  }
                   className="gap-2"
                 >
                   {isFetchingUrl ? (
@@ -838,7 +967,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               <div className="flex items-center justify-center gap-2 py-2 text-purple-600">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm">
-                  {isFetchingUrl ? 'Fetching content from URL...' : 'Creating your press release...'}
+                  {isFetchingUrl
+                    ? "Fetching content from URL..."
+                    : "Creating your press release..."}
                 </span>
               </div>
             )}
@@ -872,7 +1003,7 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
           {selectedCompany && (
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="contact">Primary Contact</Label>
+                <Label htmlFor="contact">Primary Contact *</Label>
                 <button
                   type="button"
                   onClick={() => setShowContactModal(true)}
@@ -884,11 +1015,13 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               </div>
               <Select
                 id="contact"
-                value={formData.primaryContactId?.toString() || ''}
+                value={formData.primaryContactId?.toString() || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    primaryContactId: e.target.value ? parseInt(e.target.value) : null,
+                    primaryContactId: e.target.value
+                      ? parseInt(e.target.value)
+                      : null,
                   })
                 }
                 className="mt-1"
@@ -920,7 +1053,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             <Textarea
               id="title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="Enter your press release headline (30-180 characters)"
               className="mt-1"
               rows={2}
@@ -930,7 +1065,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               {formData.title.length}/180 characters
               {formData.title.length > 60 && (
                 <span className="text-amber-600 ml-2">
-                  Warning: Headlines over 60 characters may be truncated in search results
+                  Warning: Headlines over 60 characters may be truncated in
+                  search results
                 </span>
               )}
             </p>
@@ -944,7 +1080,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             <Textarea
               id="abstract"
               value={formData.abstract}
-              onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, abstract: e.target.value })
+              }
               placeholder="Brief summary of your press release (30-350 characters, min 12 words)"
               className="mt-1"
               rows={3}
@@ -963,7 +1101,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             <Textarea
               id="pullquote"
               value={formData.pullquote}
-              onChange={(e) => setFormData({ ...formData, pullquote: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, pullquote: e.target.value })
+              }
               placeholder="A notable quote from your release (30-350 characters)"
               className="mt-1"
               rows={2}
@@ -980,7 +1120,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               <Input
                 id="location"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
                 placeholder="e.g., NEW YORK"
                 className="mt-1"
                 maxLength={64}
@@ -991,7 +1133,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               <Select
                 id="timezone"
                 value={formData.timezone}
-                onChange={(e) => setFormData({ ...formData, timezone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, timezone: e.target.value })
+                }
                 className="mt-1"
               >
                 {TIMEZONES.map((tz) => (
@@ -1007,7 +1151,10 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             <div>
               <div className="flex justify-between items-center">
                 <Label htmlFor="releaseDate">Release Date *</Label>
-                <HelpTip title="Release Date Tips" content={HELP_TEXT.releaseDate} />
+                <HelpTip
+                  title="Release Date Tips"
+                  content={HELP_TEXT.releaseDate}
+                />
               </div>
               <Input
                 id="releaseDate"
@@ -1015,14 +1162,18 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 value={formData.releaseDate}
                 min={getMinReleaseDate()}
                 onChange={(e) => {
-                  const newDate = e.target.value
-                  setFormData({ ...formData, releaseDate: newDate })
+                  const newDate = e.target.value;
+                  setFormData({ ...formData, releaseDate: newDate });
                   // Validate the combined date/time
-                  const selectedDateTime = new Date(`${newDate}T${formData.releaseTime}`)
+                  const selectedDateTime = new Date(
+                    `${newDate}T${formData.releaseTime}`,
+                  );
                   if (selectedDateTime < getMinReleaseDateTime()) {
-                    setDateError('Release date must be at least 12 hours from now')
+                    setDateError(
+                      "Release date must be at least 12 hours from now",
+                    );
                   } else {
-                    setDateError(null)
+                    setDateError(null);
                   }
                 }}
                 className="mt-1"
@@ -1035,14 +1186,18 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 type="time"
                 value={formData.releaseTime}
                 onChange={(e) => {
-                  const newTime = e.target.value
-                  setFormData({ ...formData, releaseTime: newTime })
+                  const newTime = e.target.value;
+                  setFormData({ ...formData, releaseTime: newTime });
                   // Validate the combined date/time
-                  const selectedDateTime = new Date(`${formData.releaseDate}T${newTime}`)
+                  const selectedDateTime = new Date(
+                    `${formData.releaseDate}T${newTime}`,
+                  );
                   if (selectedDateTime < getMinReleaseDateTime()) {
-                    setDateError('Release date must be at least 12 hours from now')
+                    setDateError(
+                      "Release date must be at least 12 hours from now",
+                    );
                   } else {
-                    setDateError(null)
+                    setDateError(null);
                   }
                 }}
                 className="mt-1"
@@ -1070,7 +1225,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               <Select
                 id="topcat"
                 value={formData.topcat}
-                onChange={(e) => setFormData({ ...formData, topcat: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, topcat: e.target.value })
+                }
                 className="mt-1"
               >
                 <option value="">Select primary category...</option>
@@ -1090,9 +1247,11 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 <HelpTip title="Region Tips" content={HELP_TEXT.regions} />
               </div>
               <MultiSelect
-                options={regions.map(r => ({ value: r.id, label: r.name }))}
+                options={regions.map((r) => ({ value: r.id, label: r.name }))}
                 selected={formData.selectedRegions}
-                onChange={(selected) => setFormData({ ...formData, selectedRegions: selected })}
+                onChange={(selected) =>
+                  setFormData({ ...formData, selectedRegions: selected })
+                }
                 placeholder="Search and select regions..."
                 maxItems={5}
                 className="mt-1"
@@ -1113,22 +1272,33 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         <CardContent>
           <p className="text-xs text-gray-500 mb-2">Minimum 200 words</p>
           <Editor
-            apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
+            apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
             onInit={(evt, editor) => (editorRef.current = editor)}
             initialValue={formData.body}
             init={{
               height: 800,
               menubar: false,
               plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'charmap',
-                'searchreplace', 'visualblocks', 'code',
-                'insertdatetime', 'table', 'help', 'wordcount'
+                "advlist",
+                "autolink",
+                "lists",
+                "link",
+                "charmap",
+                "searchreplace",
+                "visualblocks",
+                "code",
+                "insertdatetime",
+                "table",
+                "help",
+                "wordcount",
               ],
-              toolbar: 'undo redo | blocks | ' +
-                'bold italic | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'link | removeformat | wordcount',
-              content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+              toolbar:
+                "undo redo | blocks | " +
+                "bold italic | alignleft aligncenter " +
+                "alignright alignjustify | bullist numlist outdent indent | " +
+                "link | removeformat | wordcount",
+              content_style:
+                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
               branding: false,
             }}
           />
@@ -1138,7 +1308,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
       {/* Additional Links */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Additional Links (Optional)</CardTitle>
+          <CardTitle className="text-base">
+            Additional Links (Optional)
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -1150,23 +1322,32 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               id="videoUrl"
               type="url"
               value={formData.videoUrl}
-              onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, videoUrl: e.target.value })
+              }
               placeholder="https://youtube.com/watch?v=..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">YouTube or other video URL</p>
+            <p className="text-xs text-gray-500 mt-1">
+              YouTube or other video URL
+            </p>
           </div>
 
           <div>
             <div className="flex justify-between items-center">
               <Label htmlFor="landingPage">Landing Page URL</Label>
-              <HelpTip title="Landing Page Tips" content={HELP_TEXT.landingPage} />
+              <HelpTip
+                title="Landing Page Tips"
+                content={HELP_TEXT.landingPage}
+              />
             </div>
             <Input
               id="landingPage"
               type="url"
               value={formData.landingPage}
-              onChange={(e) => setFormData({ ...formData, landingPage: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, landingPage: e.target.value })
+              }
               placeholder="https://yourwebsite.com/campaign"
               className="mt-1"
             />
@@ -1182,11 +1363,15 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               id="publicDrive"
               type="url"
               value={formData.publicDrive}
-              onChange={(e) => setFormData({ ...formData, publicDrive: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, publicDrive: e.target.value })
+              }
               placeholder="https://drive.google.com/..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">Dropbox, Google Drive, or Box public URL</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Dropbox, Google Drive, or Box public URL
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -1215,8 +1400,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => handleSubmit('save')}
-            disabled={isLoading || readOnly}
+            onClick={() => handleSubmit("save")}
+            disabled={isLoading || readOnly || !formData.primaryContactId}
             className="gap-2"
           >
             {isLoading ? (
@@ -1227,8 +1412,16 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
             Save Draft
           </Button>
           <Button
-            onClick={() => handleSubmit('submit')}
-            disabled={isLoading || readOnly || !formData.title || !formData.abstract || !formData.location || !!dateError}
+            onClick={() => handleSubmit("submit")}
+            disabled={
+              isLoading ||
+              readOnly ||
+              !formData.primaryContactId ||
+              !formData.title ||
+              !formData.abstract ||
+              !formData.location ||
+              !!dateError
+            }
             className="gap-2"
           >
             {isLoading ? (
@@ -1250,7 +1443,8 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               SEO/AI Optimization Suggestions
             </DialogTitle>
             <DialogDescription>
-              AI-generated recommendations to optimize your press release for search engines and AI systems
+              AI-generated recommendations to optimize your press release for
+              search engines and AI systems
             </DialogDescription>
           </DialogHeader>
 
@@ -1259,7 +1453,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
                 <p className="text-gray-600">Analyzing your press release...</p>
-                <p className="text-sm text-gray-400 mt-1">Generating expert suggestions</p>
+                <p className="text-sm text-gray-400 mt-1">
+                  Generating expert suggestions
+                </p>
               </div>
             )}
 
@@ -1270,181 +1466,249 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
               </div>
             )}
 
-            {!isLoadingSuggestions && !suggestionsError && suggestions.length > 0 && (
-              <div className="space-y-6">
-                {/* Headline Suggestions */}
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Headline Suggestions</h3>
+            {!isLoadingSuggestions &&
+              !suggestionsError &&
+              suggestions.length > 0 && (
+                <div className="space-y-6">
+                  {/* Headline Suggestions */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900">
+                      Headline Suggestions
+                    </h3>
 
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">Current Headline</p>
-                    <p className="font-medium text-gray-900">{formData.title || 'Untitled'}</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    {suggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        onClick={() => {
-                          setFormData({ ...formData, title: suggestion.headline })
-                          setShowSuggestions(false)
-                        }}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="bg-blue-100 p-2 rounded-full shrink-0">
-                            <Lightbulb className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                                {suggestion.strategy}
-                              </span>
-                              <span className="text-xs text-gray-400">Click to use</span>
-                            </div>
-                            <p className="font-medium text-gray-900">{suggestion.headline}</p>
-                            <p className="text-sm text-gray-600">{suggestion.explanation}</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Suggested Abstract */}
-                {suggestedAbstract && !formData.abstract?.trim() && (
-                  <div className="space-y-3 border-t pt-6">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Suggested Abstract</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        No abstract provided. Here's a suggested summary for your press release:
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <p className="text-xs text-gray-500 mb-1">
+                        Current Headline
+                      </p>
+                      <p className="font-medium text-gray-900">
+                        {formData.title || "Untitled"}
                       </p>
                     </div>
 
-                    <div
-                      onClick={() => {
-                        setFormData({ ...formData, abstract: suggestedAbstract })
-                        setSuggestedAbstract(null)
-                        toast.success('Abstract applied to form')
-                      }}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="bg-green-100 p-2 rounded-full shrink-0">
-                          <Lightbulb className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">Click to use</span>
-                            <span className="text-xs text-gray-400">({suggestedAbstract.length}/350 chars)</span>
-                          </div>
-                          <p className="text-sm text-gray-900">{suggestedAbstract}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Suggested Pullquote */}
-                {suggestedPullquote && !formData.pullquote?.trim() && (
-                  <div className="space-y-3 border-t pt-6">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Suggested Notable Quote</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        No pullquote provided. Here's a suggested quote from your content:
-                      </p>
-                    </div>
-
-                    <div
-                      onClick={() => {
-                        setFormData({ ...formData, pullquote: suggestedPullquote })
-                        setSuggestedPullquote(null)
-                        toast.success('Pullquote applied to form')
-                      }}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="bg-purple-100 p-2 rounded-full shrink-0">
-                          <Lightbulb className="h-4 w-4 text-purple-600" />
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">Click to use</span>
-                          </div>
-                          <p className="font-medium text-gray-900 italic">"{suggestedPullquote}"</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Brandable Chunks Analysis */}
-                {brandableChunks.length > 0 && (
-                  <div className="space-y-4 border-t pt-6">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Brandable Chunks Analysis</h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Content segments that search engines and AI will likely extract for indexing
-                      </p>
-                    </div>
-
-                    <div className="space-y-4">
-                      {brandableChunks.map((chunk, index) => (
+                    <div className="space-y-3">
+                      {suggestions.map((suggestion, index) => (
                         <div
                           key={index}
-                          className="p-4 border border-gray-200 rounded-lg"
+                          onClick={() => {
+                            setFormData({
+                              ...formData,
+                              title: suggestion.headline,
+                            });
+                            setShowSuggestions(false);
+                          }}
+                          className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
                         >
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between gap-3">
-                              <p className="text-sm font-medium text-gray-900">Chunk {index + 1}</p>
-                              <span className={`text-xs font-medium px-2 py-1 rounded shrink-0 ${
-                                chunk.brandability === 'High'
-                                  ? 'bg-green-100 text-green-700'
-                                  : chunk.brandability === 'Medium'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-red-100 text-red-700'
-                              }`}>
-                                {chunk.brandability} Brandability
-                              </span>
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full shrink-0">
+                              <Lightbulb className="h-4 w-4 text-blue-600" />
                             </div>
-
-                            <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                              <p className="text-xs font-medium text-gray-600 mb-2">Content</p>
-                              <p className="text-sm text-gray-700 whitespace-pre-wrap">{chunk.chunkContent}</p>
-                            </div>
-
-                            <div className="bg-amber-50 border border-amber-200 rounded p-3">
-                              <p className="text-xs font-medium text-amber-800 mb-1">Issue</p>
-                              <p className="text-sm text-amber-700">{chunk.currentIssue}</p>
-                            </div>
-
-                            <div className="bg-green-50 border border-green-200 rounded p-3">
-                              <p className="text-xs font-medium text-green-800 mb-1">Recommendation</p>
-                              <p className="text-sm text-green-700">{chunk.recommendation}</p>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                  {suggestion.strategy}
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                  Click to use
+                                </span>
+                              </div>
+                              <p className="font-medium text-gray-900">
+                                {suggestion.headline}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {suggestion.explanation}
+                              </p>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
 
-                <p className="text-xs text-gray-500 text-center pt-2">
-                  These suggestions are AI-generated. Review and adapt them to fit your brand voice and messaging goals.
-                </p>
-              </div>
-            )}
+                  {/* Suggested Abstract */}
+                  {suggestedAbstract && !formData.abstract?.trim() && (
+                    <div className="space-y-3 border-t pt-6">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          Suggested Abstract
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          No abstract provided. Here's a suggested summary for
+                          your press release:
+                        </p>
+                      </div>
+
+                      <div
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            abstract: suggestedAbstract,
+                          });
+                          setSuggestedAbstract(null);
+                          toast.success("Abstract applied to form");
+                        }}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="bg-green-100 p-2 rounded-full shrink-0">
+                            <Lightbulb className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400">
+                                Click to use
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                ({suggestedAbstract.length}/350 chars)
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-900">
+                              {suggestedAbstract}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Suggested Pullquote */}
+                  {suggestedPullquote && !formData.pullquote?.trim() && (
+                    <div className="space-y-3 border-t pt-6">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          Suggested Notable Quote
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          No pullquote provided. Here's a suggested quote from
+                          your content:
+                        </p>
+                      </div>
+
+                      <div
+                        onClick={() => {
+                          setFormData({
+                            ...formData,
+                            pullquote: suggestedPullquote,
+                          });
+                          setSuggestedPullquote(null);
+                          toast.success("Pullquote applied to form");
+                        }}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="bg-purple-100 p-2 rounded-full shrink-0">
+                            <Lightbulb className="h-4 w-4 text-purple-600" />
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-400">
+                                Click to use
+                              </span>
+                            </div>
+                            <p className="font-medium text-gray-900 italic">
+                              "{suggestedPullquote}"
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Brandable Chunks Analysis */}
+                  {brandableChunks.length > 0 && (
+                    <div className="space-y-4 border-t pt-6">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          Brandable Chunks Analysis
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Content segments that search engines and AI will
+                          likely extract for indexing
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        {brandableChunks.map((chunk, index) => (
+                          <div
+                            key={index}
+                            className="p-4 border border-gray-200 rounded-lg"
+                          >
+                            <div className="space-y-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-medium text-gray-900">
+                                  Chunk {index + 1}
+                                </p>
+                                <span
+                                  className={`text-xs font-medium px-2 py-1 rounded shrink-0 ${
+                                    chunk.brandability === "High"
+                                      ? "bg-green-100 text-green-700"
+                                      : chunk.brandability === "Medium"
+                                        ? "bg-amber-100 text-amber-700"
+                                        : "bg-red-100 text-red-700"
+                                  }`}
+                                >
+                                  {chunk.brandability} Brandability
+                                </span>
+                              </div>
+
+                              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                                <p className="text-xs font-medium text-gray-600 mb-2">
+                                  Content
+                                </p>
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                  {chunk.chunkContent}
+                                </p>
+                              </div>
+
+                              <div className="bg-amber-50 border border-amber-200 rounded p-3">
+                                <p className="text-xs font-medium text-amber-800 mb-1">
+                                  Issue
+                                </p>
+                                <p className="text-sm text-amber-700">
+                                  {chunk.currentIssue}
+                                </p>
+                              </div>
+
+                              <div className="bg-green-50 border border-green-200 rounded p-3">
+                                <p className="text-xs font-medium text-green-800 mb-1">
+                                  Recommendation
+                                </p>
+                                <p className="text-sm text-green-700">
+                                  {chunk.recommendation}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 text-center pt-2">
+                    These suggestions are AI-generated. Review and adapt them to
+                    fit your brand voice and messaging goals.
+                  </p>
+                </div>
+              )}
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Add Contact Modal */}
       {showContactModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowContactModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onClick={e => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setShowContactModal(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <h3 className="font-semibold text-lg">Add New Contact</h3>
-              <button onClick={() => setShowContactModal(false)} className="text-gray-400 hover:text-gray-600">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -1459,7 +1723,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 <Input
                   id="contactName"
                   value={contactForm.name}
-                  onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, name: e.target.value })
+                  }
                   placeholder="John Smith"
                   className="mt-1"
                   maxLength={64}
@@ -1470,7 +1736,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 <Input
                   id="contactTitle"
                   value={contactForm.title}
-                  onChange={(e) => setContactForm({ ...contactForm, title: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, title: e.target.value })
+                  }
                   placeholder="Director of Communications"
                   className="mt-1"
                   maxLength={32}
@@ -1482,7 +1750,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                   id="contactEmail"
                   type="email"
                   value={contactForm.email}
-                  onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, email: e.target.value })
+                  }
                   placeholder="john@company.com"
                   className="mt-1"
                   maxLength={128}
@@ -1494,7 +1764,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                   id="contactPhone"
                   type="tel"
                   value={contactForm.phone}
-                  onChange={(e) => setContactForm({ ...contactForm, phone: e.target.value })}
+                  onChange={(e) =>
+                    setContactForm({ ...contactForm, phone: e.target.value })
+                  }
                   placeholder="(555) 123-4567"
                   className="mt-1"
                   maxLength={30}
@@ -1506,9 +1778,9 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
                 type="button"
                 variant="outline"
                 onClick={() => {
-                  setShowContactModal(false)
-                  setContactForm({ name: '', title: '', email: '', phone: '' })
-                  setContactError('')
+                  setShowContactModal(false);
+                  setContactForm({ name: "", title: "", email: "", phone: "" });
+                  setContactError("");
                 }}
               >
                 Cancel
@@ -1530,5 +1802,5 @@ export function PRForm({ companies: initialCompanies, categories = [], topCatego
         </div>
       )}
     </div>
-  )
+  );
 }

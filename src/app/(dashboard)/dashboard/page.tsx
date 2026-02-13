@@ -1,46 +1,63 @@
-import { getEffectiveSession } from '@/lib/auth'
-import { db } from '@/db'
-import { releases, company, userSubscription, brandCredits } from '@/db/schema'
-import { eq, desc, and, ne, or, isNull, sql } from 'drizzle-orm'
-import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { FileText, Building2, CreditCard, TrendingUp, Plus, ArrowRight } from 'lucide-react'
+import { getEffectiveSession } from "@/lib/auth";
+import { db } from "@/db";
+import { releases, company, userSubscription, brandCredits } from "@/db/schema";
+import { eq, desc, and, ne, or, isNull, sql } from "drizzle-orm";
+import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  FileText,
+  Building2,
+  CreditCard,
+  TrendingUp,
+  Plus,
+  ArrowRight,
+} from "lucide-react";
 
 async function getCreditBalance(userId: number, companyIds: number[]) {
   // Get brand-level credits (sum across all user's companies)
-  const brandCreditResult = companyIds.length > 0
-    ? await db
-        .select({
-          balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as('balance'),
-        })
-        .from(brandCredits)
-        .where(
-          and(
-            isNull(brandCredits.prId), // Only unused credits
-            sql`${brandCredits.companyId} IN (${sql.join(companyIds.map(id => sql`${id}`), sql`, `)})`
+  const brandCreditResult =
+    companyIds.length > 0
+      ? await db
+          .select({
+            balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
+              "balance",
+            ),
+          })
+          .from(brandCredits)
+          .where(
+            sql`${brandCredits.companyId} IN (${sql.join(
+              companyIds.map((id) => sql`${id}`),
+              sql`, `,
+            )})`,
           )
-        )
-    : [{ balance: 0 }]
+      : [{ balance: 0 }];
 
   // Get user-level credits (where companyId is null)
   const userCreditResult = await db
     .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as('balance'),
+      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
+        "balance",
+      ),
     })
     .from(brandCredits)
     .where(
       and(
         eq(brandCredits.userId, userId),
         isNull(brandCredits.companyId), // User-level credits
-        isNull(brandCredits.prId) // Only unused credits
-      )
-    )
+      ),
+    );
 
-  const brandBalance = Number(brandCreditResult[0]?.balance || 0)
-  const userBalance = Number(userCreditResult[0]?.balance || 0)
+  const brandBalance = Number(brandCreditResult[0]?.balance || 0);
+  const userBalance = Number(userCreditResult[0]?.balance || 0);
 
-  return brandBalance + userBalance
+  return brandBalance + userBalance;
 }
 
 async function getDashboardData(userId: number) {
@@ -48,46 +65,46 @@ async function getDashboardData(userId: number) {
   const userReleases = await db.query.releases.findMany({
     where: and(
       eq(releases.userId, userId),
-      or(eq(releases.isDeleted, false), isNull(releases.isDeleted))
+      or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
     ),
     orderBy: desc(releases.createdAt),
     limit: 5,
     with: {
       company: true,
     },
-  })
+  });
 
   // Get user's companies
   const userCompanies = await db.query.company.findMany({
-    where: and(
-      eq(company.userId, userId),
-      eq(company.isDeleted, false)
-    ),
-  })
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+  });
 
   // Get subscription info
   const subscription = await db.query.userSubscription.findFirst({
     where: eq(userSubscription.userId, userId),
-  })
+  });
 
   // Get credit balance from brand_credits table
-  const companyIds = userCompanies.map(c => c.id)
-  const creditBalance = await getCreditBalance(userId, companyIds)
+  const companyIds = userCompanies.map((c) => c.id);
+  const creditBalance = await getCreditBalance(userId, companyIds);
 
   // Count releases by status
   const allReleases = await db.query.releases.findMany({
     where: and(
       eq(releases.userId, userId),
-      or(eq(releases.isDeleted, false), isNull(releases.isDeleted))
+      or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
     ),
-  })
+  });
 
   const stats = {
     total: allReleases.length,
-    published: allReleases.filter(r => r.status === 'sent').length,
-    drafts: allReleases.filter(r => r.status === 'draftnxt' || r.status === 'draft' || r.status === 'start').length,
-    inReview: allReleases.filter(r => r.status === 'editorial').length,
-  }
+    published: allReleases.filter((r) => r.status === "sent").length,
+    drafts: allReleases.filter(
+      (r) =>
+        r.status === "draftnxt" || r.status === "draft" || r.status === "start",
+    ).length,
+    inReview: allReleases.filter((r) => r.status === "editorial").length,
+  };
 
   return {
     releases: userReleases,
@@ -95,14 +112,15 @@ async function getDashboardData(userId: number) {
     subscription,
     creditBalance,
     stats,
-  }
+  };
 }
 
 export default async function DashboardPage() {
-  const session = await getEffectiveSession()
-  const userId = parseInt(session?.user?.id || '0')
+  const session = await getEffectiveSession();
+  const userId = parseInt(session?.user?.id || "0");
 
-  const { releases, companies, subscription, creditBalance, stats } = await getDashboardData(userId)
+  const { releases, companies, subscription, creditBalance, stats } =
+    await getDashboardData(userId);
 
   return (
     <div className="space-y-6">
@@ -110,7 +128,9 @@ export default async function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">Welcome back! Here&apos;s what&apos;s happening.</p>
+          <p className="text-gray-500">
+            Welcome back! Here&apos;s what&apos;s happening.
+          </p>
         </div>
         <Link href="/pr/create">
           <Button className="gap-2">
@@ -185,7 +205,10 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Recent Releases</CardTitle>
-              <Link href="/pr" className="text-sm text-blue-600 hover:underline">
+              <Link
+                href="/pr"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 View all
               </Link>
             </div>
@@ -213,7 +236,7 @@ export default async function DashboardPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-gray-900 truncate">
-                          {release.title || 'Untitled'}
+                          {release.title || "Untitled"}
                         </h4>
                         <p className="text-sm text-gray-500 truncate">
                           {release.company?.companyName}
@@ -221,22 +244,22 @@ export default async function DashboardPage() {
                       </div>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          release.status === 'sent'
-                            ? 'bg-green-100 text-green-800'
-                            : release.status === 'editorial'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : release.status === 'approved'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-gray-100 text-gray-800'
+                          release.status === "sent"
+                            ? "bg-green-100 text-green-800"
+                            : release.status === "editorial"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : release.status === "approved"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {release.status === 'sent'
-                          ? 'Published'
-                          : release.status === 'editorial'
-                          ? 'In Review'
-                          : release.status === 'approved'
-                          ? 'Approved'
-                          : 'Draft'}
+                        {release.status === "sent"
+                          ? "Published"
+                          : release.status === "editorial"
+                            ? "In Review"
+                            : release.status === "approved"
+                              ? "Approved"
+                              : "Draft"}
                       </span>
                     </div>
                   </Link>
@@ -255,21 +278,30 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="grid gap-3">
               <Link href="/pr/create">
-                <Button variant="outline" className="w-full justify-start gap-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                >
                   <FileText className="h-4 w-4" />
                   Create New Release
                   <ArrowRight className="ml-auto h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/company/add">
-                <Button variant="outline" className="w-full justify-start gap-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                >
                   <Building2 className="h-4 w-4" />
                   Add New Brand
                   <ArrowRight className="ml-auto h-4 w-4" />
                 </Button>
               </Link>
               <Link href="/payment/paygo">
-                <Button variant="outline" className="w-full justify-start gap-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-3"
+                >
                   <CreditCard className="h-4 w-4" />
                   Buy Credits
                   <ArrowRight className="ml-auto h-4 w-4" />
@@ -286,7 +318,10 @@ export default async function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Your Brands</CardTitle>
-              <Link href="/company" className="text-sm text-blue-600 hover:underline">
+              <Link
+                href="/company"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Manage brands
               </Link>
             </div>
@@ -311,8 +346,12 @@ export default async function DashboardPage() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{co.companyName}</p>
-                    <p className="text-xs text-gray-500 truncate">{co.website || 'No website'}</p>
+                    <p className="font-medium text-gray-900 truncate">
+                      {co.companyName}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {co.website || "No website"}
+                    </p>
                   </div>
                 </Link>
               ))}
@@ -321,5 +360,5 @@ export default async function DashboardPage() {
         </Card>
       )}
     </div>
-  )
+  );
 }

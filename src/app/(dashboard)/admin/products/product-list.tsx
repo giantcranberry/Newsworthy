@@ -1,44 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Select } from '@/components/ui/select'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Plus, Pencil, Trash2, Zap, Sparkles, Star, Crown, Rocket, Target, Globe } from 'lucide-react'
-import { ProductForm } from './product-form'
-import { cn } from '@/lib/utils'
+} from "@/components/ui/dialog";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Zap,
+  Sparkles,
+  Star,
+  Crown,
+  Rocket,
+  Target,
+  Globe,
+} from "lucide-react";
+import { ProductForm } from "./product-form";
+import { cn } from "@/lib/utils";
 
 interface Product {
-  id: number
-  shortName: string | null
-  displayName: string | null
-  description: string | null
-  icon: string | null
-  price: number
-  productType: string | null
-  isActive: boolean | null
-  label: string | null
-  partnerId: number | null
+  id: number;
+  shortName: string | null;
+  displayName: string | null;
+  description: string | null;
+  icon: string | null;
+  price: number;
+  productType: string | null;
+  isActive: boolean | null;
+  isUpgrade: boolean | null;
+  isSoloUpgrade: boolean | null;
+  label: string | null;
+  partnerId: number | null;
 }
 
 interface Partner {
-  id: number
-  company: string | null
-  handle: string | null
+  id: number;
+  company: string | null;
+  handle: string | null;
 }
 
 interface ProductListProps {
-  products: Product[]
-  partners: Partner[]
-  currentFilter: string
+  products: Product[];
+  partners: Partner[];
+  currentFilter: string;
 }
 
 // Lucide icon mapping
@@ -49,104 +62,122 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Crown,
   Rocket,
   Target,
-}
+};
 
 // Check if icon is a Font Awesome class
 function isFontAwesomeIcon(iconName: string | null): boolean {
-  if (!iconName) return false
-  const trimmed = iconName.trim()
-  return trimmed.startsWith('fa:') || trimmed.startsWith('fa-') || trimmed.startsWith('fab ') || trimmed.startsWith('fas ') || trimmed.startsWith('far ')
+  if (!iconName) return false;
+  const trimmed = iconName.trim();
+  return (
+    trimmed.startsWith("fa:") ||
+    trimmed.startsWith("fa-") ||
+    trimmed.startsWith("fab ") ||
+    trimmed.startsWith("fas ") ||
+    trimmed.startsWith("far ")
+  );
 }
 
 // Get Font Awesome class (strip "fa:" prefix if present)
 function getFontAwesomeClass(iconName: string): string {
-  const trimmed = iconName.trim()
-  if (trimmed.startsWith('fa:')) {
-    return trimmed.slice(3)
+  const trimmed = iconName.trim();
+  if (trimmed.startsWith("fa:")) {
+    return trimmed.slice(3);
   }
-  return trimmed
+  return trimmed;
 }
 
 function getLucideIconComponent(iconName: string | null) {
-  if (!iconName) return Zap
-  return ICON_MAP[iconName] || Zap
+  if (!iconName) return Zap;
+  return ICON_MAP[iconName] || Zap;
 }
 
 // Icon component that handles both Lucide and Font Awesome
-function ProductIcon({ iconName, className }: { iconName: string | null; className?: string }) {
+function ProductIcon({
+  iconName,
+  className,
+}: {
+  iconName: string | null;
+  className?: string;
+}) {
   if (isFontAwesomeIcon(iconName)) {
-    const faClass = getFontAwesomeClass(iconName!)
-    return <i className={`${faClass} ${className || ''}`} aria-hidden="true" />
+    const faClass = getFontAwesomeClass(iconName!);
+    return <i className={`${faClass} ${className || ""}`} aria-hidden="true" />;
   }
 
-  const LucideIcon = getLucideIconComponent(iconName)
-  return <LucideIcon className={className} />
+  const LucideIcon = getLucideIconComponent(iconName);
+  return <LucideIcon className={className} />;
 }
 
 function formatPrice(cents: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(cents / 100)
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(cents / 100);
 }
 
-export function ProductList({ products, partners, currentFilter }: ProductListProps) {
-  const router = useRouter()
-  const [showDialog, setShowDialog] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [isDeleting, setIsDeleting] = useState<number | null>(null)
+export function ProductList({
+  products,
+  partners,
+  currentFilter,
+}: ProductListProps) {
+  const router = useRouter();
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   const handleFilterChange = (value: string) => {
-    const params = new URLSearchParams()
-    if (value !== 'all') {
-      params.set('partner', value)
+    const params = new URLSearchParams();
+    if (value !== "all") {
+      params.set("partner", value);
     }
-    router.push(`/admin/products${params.toString() ? `?${params.toString()}` : ''}`)
-  }
+    router.push(
+      `/admin/products${params.toString() ? `?${params.toString()}` : ""}`,
+    );
+  };
 
   const handleCreate = () => {
-    setEditingProduct(null)
-    setShowDialog(true)
-  }
+    setEditingProduct(null);
+    setShowDialog(true);
+  };
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product)
-    setShowDialog(true)
-  }
+    setEditingProduct(product);
+    setShowDialog(true);
+  };
 
   const handleDelete = async (productId: number) => {
-    if (!confirm('Are you sure you want to delete this product?')) return
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
-    setIsDeleting(productId)
+    setIsDeleting(productId);
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      });
 
       if (response.ok) {
-        router.refresh()
+        router.refresh();
       } else {
-        const data = await response.json()
-        alert(data.error || 'Failed to delete product')
+        const data = await response.json();
+        alert(data.error || "Failed to delete product");
       }
     } catch (error) {
-      alert('An error occurred')
+      alert("An error occurred");
     } finally {
-      setIsDeleting(null)
+      setIsDeleting(null);
     }
-  }
+  };
 
   const handleSuccess = () => {
-    setShowDialog(false)
-    setEditingProduct(null)
-    router.refresh()
-  }
+    setShowDialog(false);
+    setEditingProduct(null);
+    router.refresh();
+  };
 
   const getPartnerName = (partnerId: number | null) => {
-    if (partnerId === null) return null
-    const partner = partners.find(p => p.id === partnerId)
-    return partner?.company || partner?.handle || `Partner #${partnerId}`
-  }
+    if (partnerId === null) return null;
+    const partner = partners.find((p) => p.id === partnerId);
+    return partner?.company || partner?.handle || `Partner #${partnerId}`;
+  };
 
   return (
     <>
@@ -181,7 +212,7 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
           ) : (
             <div className="space-y-4">
               {products.map((product) => {
-                const partnerName = getPartnerName(product.partnerId)
+                const partnerName = getPartnerName(product.partnerId);
                 return (
                   <div
                     key={product.id}
@@ -189,13 +220,20 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
                   >
                     <div className="flex items-center gap-4">
                       <div className="p-2 rounded-lg bg-blue-100 flex items-center justify-center w-10 h-10">
-                        <ProductIcon iconName={product.icon} className="h-6 w-6 text-blue-600" />
+                        <ProductIcon
+                          iconName={product.icon}
+                          className="h-6 w-6 text-blue-600"
+                        />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{product.displayName || product.shortName}</h3>
+                          <h3 className="font-medium">
+                            {product.displayName || product.shortName}
+                          </h3>
                           {product.productType && (
-                            <Badge variant="secondary">{product.productType}</Badge>
+                            <Badge variant="secondary">
+                              {product.productType}
+                            </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -210,7 +248,9 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
                             </span>
                           )}
                           {product.label && (
-                            <Badge variant="outline" className="text-xs">{product.label}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {product.label}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -218,7 +258,9 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
 
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="font-semibold">{formatPrice(product.price)}</p>
+                        <p className="font-semibold">
+                          {formatPrice(product.price)}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
@@ -240,7 +282,7 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -251,7 +293,7 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingProduct ? 'Edit Product' : 'Create Product'}
+              {editingProduct ? "Edit Product" : "Create Product"}
             </DialogTitle>
           </DialogHeader>
           <ProductForm
@@ -263,5 +305,5 @@ export function ProductList({ products, partners, currentFilter }: ProductListPr
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }
