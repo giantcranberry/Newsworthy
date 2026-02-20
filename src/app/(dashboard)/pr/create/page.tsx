@@ -122,12 +122,12 @@ export default async function CreatePRPage({
   // If no credits available, show the purchase credits banner
   if (!creditBalance.hasCredits) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             Create Press Release
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-600">
             Start a new press release for distribution
           </p>
         </div>
@@ -138,25 +138,16 @@ export default async function CreatePRPage({
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Create Press Release
-        </h1>
-        <p className="text-gray-500">
-          Start a new press release for distribution
-        </p>
-      </div>
-
-      <PRForm
-        companies={companies}
-        categories={topCategories}
-        topCategories={topCategories}
-        regions={regions}
-        initialData={
-          preselectedCompany ? { companyId: preselectedCompany.id } : undefined
-        }
-      />
-    </div>
+    <PRForm
+      companies={companies}
+      categories={topCategories}
+      topCategories={topCategories}
+      regions={regions}
+      pageTitle="Create Press Release"
+      pageDescription="Start a new press release for distribution"
+      initialData={
+        preselectedCompany ? { companyId: preselectedCompany.id } : undefined
+      }
+    />
   );
 }

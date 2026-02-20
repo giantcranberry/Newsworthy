@@ -26,7 +26,7 @@ export function BrandSearchForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 mb-4">
+    <form onSubmit={handleSubmit} className="flex gap-2">
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
@@ -37,9 +37,9 @@ export function BrandSearchForm() {
           className="pl-9"
         />
       </div>
-      <Button type="submit">Search</Button>
+      <Button type="submit" className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">Search</Button>
       {searchParams.get('q') && (
-        <Button type="button" variant="outline" onClick={handleClear}>
+        <Button type="button" variant="outline" onClick={handleClear} className="cursor-pointer">
           <X className="h-4 w-4" />
         </Button>
       )}

@@ -4,8 +4,7 @@ import { company, users } from '@/db/schema'
 import { desc, ilike, eq, sql } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Building2, ExternalLink, Archive } from 'lucide-react'
 import { BrandSearchForm } from './search-form'
 
@@ -66,46 +65,40 @@ export default async function AdminBrandsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/admin">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Brand Management</h1>
-          <p className="text-gray-500">View and manage all brands</p>
-        </div>
+      <Link
+        href="/admin"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Admin
+      </Link>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Brand Management</h1>
+        <p className="text-gray-600">View and manage all brands ({totalCount})</p>
       </div>
+
+      <BrandSearchForm />
 
       {/* Brands Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>
-            {searchQuery ? `Search Results (${totalCount})` : `All Brands (${totalCount})`}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BrandSearchForm />
-
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="py-3 px-4 font-medium text-gray-500">ID</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Brand</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Website</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Location</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Owner</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Status</th>
-                  <th className="py-3 px-4 font-medium text-gray-500">Actions</th>
+                <tr className="border-b text-left">
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-16">ID</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Brand</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 max-w-[240px]">Website</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Location</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Owner</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-24">Status</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-40">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {brands.map((brand) => (
-                  <tr key={brand.id} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm">{brand.id}</td>
+                  <tr key={brand.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                    <td className="py-3 px-4 text-sm text-gray-600">{brand.id}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {brand.logoUrl ? (
@@ -119,16 +112,16 @@ export default async function AdminBrandsPage({
                             <Building2 className="h-4 w-4 text-gray-400" />
                           </div>
                         )}
-                        <span className="text-sm font-medium">{brand.companyName}</span>
+                        <span className="text-sm font-medium text-gray-900">{brand.companyName}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm">
+                    <td className="py-3 px-4 text-sm max-w-[240px] truncate">
                       {brand.website ? (
                         <a
                           href={brand.website.startsWith('http') ? brand.website : `https://${brand.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                          className="text-gray-600 hover:text-cyan-800 flex items-center gap-1"
                         >
                           {brand.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                           <ExternalLink className="h-3 w-3" />
@@ -137,16 +130,16 @@ export default async function AdminBrandsPage({
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
+                    <td className="py-3 px-4 text-sm text-gray-600">
                       {brand.city && brand.state
                         ? `${brand.city}, ${brand.state}`
                         : brand.city || brand.state || '—'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500">
+                    <td className="py-3 px-4 text-sm text-gray-600">
                       {brand.ownerEmail ? (
                         <Link
                           href={`/admin/users/${brand.userId}`}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-gray-600 hover:text-cyan-800"
                         >
                           {brand.ownerEmail}
                         </Link>
@@ -155,35 +148,33 @@ export default async function AdminBrandsPage({
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex gap-1">
-                        {brand.isDeleted ? (
-                          <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">
-                            Deleted
-                          </span>
-                        ) : brand.isArchived ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-                            <Archive className="h-3 w-3" />
-                            Archived
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-                            Active
-                          </span>
-                        )}
-                      </div>
+                      {brand.isDeleted ? (
+                        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          Deleted
+                        </span>
+                      ) : brand.isArchived ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          <Archive className="h-3 w-3" />
+                          Archived
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                          Active
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-2">
                         <Link href={`/admin/brands/${brand.uuid}`}>
-                          <Button variant="outline" size="sm">
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                             View
-                          </Button>
+                          </button>
                         </Link>
                         {!brand.isDeleted && (
                           <Link href={`/company/${brand.uuid}`}>
-                            <Button variant="outline" size="sm">
+                            <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                               Edit
-                            </Button>
+                            </button>
                           </Link>
                         )}
                       </div>
@@ -192,7 +183,7 @@ export default async function AdminBrandsPage({
                 ))}
                 {brands.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-sm text-gray-500">
+                    <td colSpan={7} className="py-8 text-center text-sm text-gray-600">
                       {searchQuery ? 'No brands found matching your search.' : 'No brands found.'}
                     </td>
                   </tr>

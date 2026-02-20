@@ -108,10 +108,10 @@ export default async function PressReleasesPage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Press Releases</h1>
-          <p className="text-gray-500">Manage your press releases</p>
+          <p className="text-gray-600">Manage your press releases</p>
         </div>
         <Link href="/pr/create">
-          <Button className="gap-2">
+          <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
             <Plus className="h-4 w-4" />
             New Release
           </Button>
@@ -121,40 +121,32 @@ export default async function PressReleasesPage({
       {/* Filters */}
       <div className="flex gap-2">
         <Link href="/pr">
-          <Button
-            variant={!filter ? "outline" : "ghost"}
-            size="sm"
-            className={!filter ? "bg-white" : ""}
-          >
+          <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            !filter ? "bg-cyan-800/10 text-cyan-800" : "text-gray-700 hover:bg-gray-100"
+          }`}>
             All ({counts.all})
-          </Button>
+          </button>
         </Link>
         <Link href="/pr?filter=drafts">
-          <Button
-            variant={filter === "drafts" ? "outline" : "ghost"}
-            size="sm"
-            className={filter === "drafts" ? "bg-white" : ""}
-          >
+          <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            filter === "drafts" ? "bg-gray-200 text-gray-800" : "text-gray-700 hover:bg-gray-100"
+          }`}>
             Drafts ({counts.drafts})
-          </Button>
+          </button>
         </Link>
         <Link href="/pr?filter=review">
-          <Button
-            variant={filter === "review" ? "outline" : "ghost"}
-            size="sm"
-            className={filter === "review" ? "bg-white" : ""}
-          >
+          <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            filter === "review" ? "bg-yellow-100 text-yellow-800" : "text-gray-700 hover:bg-gray-100"
+          }`}>
             In Review ({counts.review})
-          </Button>
+          </button>
         </Link>
         <Link href="/pr?filter=published">
-          <Button
-            variant={filter === "published" ? "outline" : "ghost"}
-            size="sm"
-            className={filter === "published" ? "bg-white" : ""}
-          >
+          <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            filter === "published" ? "bg-green-100 text-green-800" : "text-gray-700 hover:bg-gray-100"
+          }`}>
             Published ({counts.published})
-          </Button>
+          </button>
         </Link>
       </div>
 
@@ -162,17 +154,17 @@ export default async function PressReleasesPage({
       {userReleases.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <FileText className="mx-auto h-12 w-12 text-gray-300" />
+            <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
               {filter ? `No ${filter} releases` : "No press releases yet"}
             </h3>
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-gray-600">
               {filter
                 ? "Try a different filter or create a new release."
                 : "Get started by creating your first press release."}
             </p>
             <Link href="/pr/create">
-              <Button className="mt-6 gap-2">
+              <Button className="mt-6 gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
                 <Plus className="h-4 w-4" />
                 Create Release
               </Button>
@@ -183,40 +175,69 @@ export default async function PressReleasesPage({
         <div className="space-y-4">
           {userReleases.map((release) => (
             <Card key={release.id} className="overflow-hidden">
-              <div className="flex flex-col sm:flex-row">
+              <div className={`flex flex-col sm:flex-row ${release.status === "sent" ? "group" : ""}`}>
                 {/* Banner */}
                 {release.banner?.url || release.primaryImage?.url ? (
                   <>
-                    <div className="sm:hidden w-full aspect-[1200/630] bg-gray-100">
-                      <img
-                        src={(() => {
-                          const url =
-                            release.banner?.url || release.primaryImage!.url;
-                          return url.includes("cdn.filestac")
-                            ? url.replace(/RESIZE/i, "resize=width:1200")
-                            : url;
-                        })()}
-                        alt={release.title || ""}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <div className="hidden sm:block w-56 flex-shrink-0 bg-gray-100">
-                      <img
-                        src={(() => {
-                          const url =
-                            release.banner?.url || release.primaryImage!.url;
-                          return url.includes("cdn.filestac")
-                            ? url.replace(/RESIZE/i, "resize=width:1200")
-                            : url;
-                        })()}
-                        alt={release.title || ""}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
+                    {release.status === "sent" && release.releaseAt ? (
+                      <>
+                        <Link
+                          href={`https://www.newsworthy.ai/news/${release.releaseAt.getFullYear()}${String(release.releaseAt.getMonth() + 1).padStart(2, "0")}${String(release.releaseAt.getDate()).padStart(2, "0")}${release.id}/${release.slug}`}
+                          target="_blank"
+                          className="sm:hidden w-full cursor-pointer"
+                        >
+                          <img
+                            src={(() => {
+                              const url = release.banner?.url || release.primaryImage!.url;
+                              return url.includes("cdn.filestac") ? url.replace(/RESIZE/i, "resize=width:1200") : url;
+                            })()}
+                            alt={release.title || ""}
+                            className="w-full"
+                          />
+                        </Link>
+                        <Link
+                          href={`https://www.newsworthy.ai/news/${release.releaseAt.getFullYear()}${String(release.releaseAt.getMonth() + 1).padStart(2, "0")}${String(release.releaseAt.getDate()).padStart(2, "0")}${release.id}/${release.slug}`}
+                          target="_blank"
+                          className="hidden sm:block w-48 flex-shrink-0 pt-6 pl-4 self-start cursor-pointer"
+                        >
+                          <img
+                            src={(() => {
+                              const url = release.banner?.url || release.primaryImage!.url;
+                              return url.includes("cdn.filestac") ? url.replace(/RESIZE/i, "resize=width:1200") : url;
+                            })()}
+                            alt={release.title || ""}
+                            className="w-full rounded"
+                          />
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <div className="sm:hidden w-full">
+                          <img
+                            src={(() => {
+                              const url = release.banner?.url || release.primaryImage!.url;
+                              return url.includes("cdn.filestac") ? url.replace(/RESIZE/i, "resize=width:1200") : url;
+                            })()}
+                            alt={release.title || ""}
+                            className="w-full"
+                          />
+                        </div>
+                        <div className="hidden sm:block w-48 flex-shrink-0 pt-6 pl-4 self-start">
+                          <img
+                            src={(() => {
+                              const url = release.banner?.url || release.primaryImage!.url;
+                              return url.includes("cdn.filestac") ? url.replace(/RESIZE/i, "resize=width:1200") : url;
+                            })()}
+                            alt={release.title || ""}
+                            className="w-full rounded"
+                          />
+                        </div>
+                      </>
+                    )}
                   </>
                 ) : (
-                  <div className="hidden sm:flex w-56 flex-shrink-0 bg-gray-100 items-center justify-center">
-                    <FileText className="h-12 w-12 text-gray-300" />
+                  <div className="hidden sm:flex w-48 flex-shrink-0 pt-6 pl-4 self-start items-center justify-center">
+                    <FileText className="h-12 w-12 text-gray-400" />
                   </div>
                 )}
 
@@ -233,17 +254,17 @@ export default async function PressReleasesPage({
                           {getStatusLabel(release.status)}
                         </span>
                         {release.distribution && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-600">
                             {release.distribution}
                           </span>
                         )}
                       </div>
-                      <Link href={`/pr/${release.uuid}`}>
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 truncate">
+                      <Link href={`/pr/${release.uuid}`} className="cursor-pointer">
+                        <h3 className="text-lg font-semibold text-gray-900 hover:text-cyan-800 group-hover:text-cyan-800 truncate">
                           {release.title || "Untitled Release"}
                         </h3>
                       </Link>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         {release.company?.companyName}
                       </p>
                       {release.abstract && (
@@ -266,14 +287,15 @@ export default async function PressReleasesPage({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       {!["approved", "sent", "editorial"].includes(
                         release.status,
                       ) && (
                         <Link href={`/pr/${release.uuid}`}>
-                          <Button variant="ghost" size="icon" title="Edit">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                            <Edit className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
                         </Link>
                       )}
                       {release.status === "editorial" && (
@@ -291,9 +313,10 @@ export default async function PressReleasesPage({
                           ).padStart(2, "0")}${release.id}/${release.slug}`}
                           target="_blank"
                         >
-                          <Button variant="ghost" size="icon" title="View">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                            <Eye className="h-3.5 w-3.5" />
+                            View
+                          </button>
                         </Link>
                       )}
                       {!["approved", "sent", "editorial"].includes(

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Editor } from "@tinymce/tinymce-react";
+import dynamic from "next/dynamic";
+
+const Editor = dynamic(
+  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
+  { ssr: false, loading: () => <div className="h-[800px] bg-gray-50 rounded border border-gray-200 animate-pulse" /> },
+);
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { HelpTip } from "@/components/ui/help-tip";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -126,6 +131,8 @@ interface PRFormProps {
   topCategories?: Category[];
   regions?: Region[];
   readOnly?: boolean;
+  pageTitle?: string;
+  pageDescription?: string;
   initialData?: {
     id?: number;
     uuid?: string;
@@ -164,6 +171,8 @@ export function PRForm({
   topCategories = [],
   regions = [],
   readOnly = false,
+  pageTitle = "Press Release",
+  pageDescription,
   initialData,
 }: PRFormProps) {
   const router = useRouter();
@@ -661,7 +670,73 @@ export function PRForm({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="-mt-6 space-y-8">
+      {/* Sticky Action Bar */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{pageTitle}</h1>
+            {pageDescription && (
+              <p className="text-sm text-gray-600 mt-0.5">{pageDescription}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isLoading}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            {initialData?.uuid && (
+              <Button
+                variant="outline"
+                onClick={handleExpertSuggestions}
+                disabled={isLoading}
+                className="cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4" />
+                Expert Suggestions
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => handleSubmit("save")}
+              disabled={isLoading || readOnly || !formData.primaryContactId}
+              className="gap-2 cursor-pointer"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Save Draft
+            </Button>
+            <Button
+              onClick={() => handleSubmit("submit")}
+              disabled={
+                isLoading ||
+                readOnly ||
+                !formData.primaryContactId ||
+                !formData.title ||
+                !formData.abstract ||
+                !formData.location ||
+                !!dateError
+              }
+              className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Save & Continue
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {readOnly && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
@@ -676,7 +751,7 @@ export function PRForm({
       {!readOnly && !initialData?.uuid && (
         <div className="grid md:grid-cols-2 gap-4">
           {/* Import from Document */}
-          <Card className="border-dashed border-2 border-blue-200 bg-blue-50/50">
+          <Card className="border border-blue-200/60 bg-blue-50/30">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -686,24 +761,24 @@ export function PRForm({
                   <p className="font-medium text-gray-900">
                     Import from Document
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     Upload a Word doc or Google Docs URL
                   </p>
                 </div>
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => setShowImportDialog(true)}
-                  className="gap-2"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
                 >
                   <Upload className="h-4 w-4" />
                   Import
-                </Button>
+                </button>
               </div>
             </CardContent>
           </Card>
 
           {/* Generate with AI */}
-          <Card className="border-dashed border-2 border-purple-200 bg-purple-50/50">
+          <Card className="border border-purple-200/60 bg-purple-50/30">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
@@ -711,18 +786,18 @@ export function PRForm({
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">Generate with AI</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     Tell us about your news and we'll draft it
                   </p>
                 </div>
-                <Button
-                  variant="outline"
+                <button
+                  type="button"
                   onClick={() => setShowAIDraftDialog(true)}
-                  className="gap-2"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-purple-600 text-white hover:bg-purple-700 cursor-pointer"
                 >
                   <Sparkles className="h-4 w-4" />
                   Generate
-                </Button>
+                </button>
               </div>
             </CardContent>
           </Card>
@@ -771,14 +846,14 @@ export function PRForm({
               <Label>Upload Word Document</Label>
               <Button
                 variant="outline"
-                className="w-full justify-start gap-2"
+                className="w-full justify-start gap-2 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isImporting}
               >
                 <Upload className="h-4 w-4" />
                 Choose .docx file...
               </Button>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Supports .doc and .docx files
               </p>
             </div>
@@ -788,7 +863,7 @@ export function PRForm({
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-500">or</span>
+                <span className="bg-white px-2 text-gray-600">or</span>
               </div>
             </div>
 
@@ -814,7 +889,7 @@ export function PRForm({
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Document must be publicly shared (Anyone with the link can view)
               </p>
             </div>
@@ -861,7 +936,7 @@ export function PRForm({
                 onChange={(e) => setAiDraftSourceUrl(e.target.value)}
                 disabled={isGeneratingDraft || isFetchingUrl}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Have a blog post or event page? We'll use it to help generate
                 your press release.
               </p>
@@ -895,7 +970,7 @@ export function PRForm({
                   (optional but recommended)
                 </li>
               </ul>
-              <p className="mt-2 text-gray-500 italic">
+              <p className="mt-2 text-gray-600 italic">
                 You can use bullet points or free-form text.{" "}
                 {aiDraftSourceUrl.trim()
                   ? "This will be combined with the content from your URL."
@@ -941,7 +1016,7 @@ export function PRForm({
                     (aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH &&
                       !aiDraftSourceUrl.trim())
                   }
-                  className="gap-2"
+                  className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
                 >
                   {isFetchingUrl ? (
                     <>
@@ -977,12 +1052,15 @@ export function PRForm({
         </DialogContent>
       </Dialog>
 
-      {/* Company Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Brand & Contact</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Unified Form Container */}
+      <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+
+      {/* Brand & Contact */}
+      <div className="p-6 space-y-5">
+        <div>
+          <h3 className="font-medium text-gray-900">Brand & Contact</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Select your brand and press contact</p>
+        </div>
           <div>
             <Label htmlFor="company">Select Brand *</Label>
             <Select
@@ -1007,7 +1085,7 @@ export function PRForm({
                 <button
                   type="button"
                   onClick={() => setShowContactModal(true)}
-                  className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                  className="inline-flex items-center gap-1 text-xs text-cyan-800 hover:text-cyan-800 cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Contact
@@ -1036,15 +1114,14 @@ export function PRForm({
               <HelpTip title="Contact Tips" content={HELP_TEXT.contact} />
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Release Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Release Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-6 space-y-5">
+        <div>
+          <h3 className="font-medium text-gray-900">Release Details</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Set your headline, summary, and schedule</p>
+        </div>
           <div>
             <div className="flex justify-between items-center">
               <Label htmlFor="title">Headline *</Label>
@@ -1061,7 +1138,7 @@ export function PRForm({
               rows={2}
               maxLength={180}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-600">
               {formData.title.length}/180 characters
               {formData.title.length > 60 && (
                 <span className="text-amber-600 ml-2">
@@ -1088,7 +1165,7 @@ export function PRForm({
               rows={3}
               maxLength={350}
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-gray-600">
               {formData.abstract.length}/350 characters
             </p>
           </div>
@@ -1207,15 +1284,14 @@ export function PRForm({
           {dateError && (
             <p className="text-sm text-red-600 mt-1">{dateError}</p>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Categories & Regions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Categories & Regions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-6 space-y-5">
+        <div>
+          <h3 className="font-medium text-gray-900">Categories & Regions</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Choose relevant topics and target markets</p>
+        </div>
           {topCategories.length > 0 && (
             <div>
               <div className="flex justify-between items-center">
@@ -1258,19 +1334,18 @@ export function PRForm({
               />
             </div>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Body Content */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-base">Content *</CardTitle>
-            <HelpTip title="Content Tips" content={HELP_TEXT.body} />
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="font-medium text-gray-900">Content *</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Write or paste your press release body</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <p className="text-xs text-gray-500 mb-2">Minimum 200 words</p>
+          <HelpTip title="Content Tips" content={HELP_TEXT.body} />
+        </div>
+          <p className="text-xs text-gray-600 mb-2">Minimum 200 words</p>
           <Editor
             apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
             onInit={(evt, editor) => (editorRef.current = editor)}
@@ -1302,17 +1377,14 @@ export function PRForm({
               branding: false,
             }}
           />
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Additional Links */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">
-            Additional Links (Optional)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-6 space-y-5">
+        <div>
+          <h3 className="font-medium text-gray-900">Additional Links</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Add video, landing page, or media kit URLs</p>
+        </div>
           <div>
             <div className="flex justify-between items-center">
               <Label htmlFor="videoUrl">Video URL</Label>
@@ -1328,7 +1400,7 @@ export function PRForm({
               placeholder="https://youtube.com/watch?v=..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               YouTube or other video URL
             </p>
           </div>
@@ -1351,7 +1423,7 @@ export function PRForm({
               placeholder="https://yourwebsite.com/campaign"
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">Must include https://</p>
+            <p className="text-xs text-gray-600 mt-1">Must include https://</p>
           </div>
 
           <div>
@@ -1369,69 +1441,12 @@ export function PRForm({
               placeholder="https://drive.google.com/..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               Dropbox, Google Drive, or Box public URL
             </p>
           </div>
-        </CardContent>
-      </Card>
+      </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          {initialData?.uuid && (
-            <Button
-              variant="outline"
-              onClick={handleExpertSuggestions}
-              disabled={isLoading}
-            >
-              <Sparkles className="h-4 w-4" />
-              Expert Suggestions
-            </Button>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => handleSubmit("save")}
-            disabled={isLoading || readOnly || !formData.primaryContactId}
-            className="gap-2"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Save Draft
-          </Button>
-          <Button
-            onClick={() => handleSubmit("submit")}
-            disabled={
-              isLoading ||
-              readOnly ||
-              !formData.primaryContactId ||
-              !formData.title ||
-              !formData.abstract ||
-              !formData.location ||
-              !!dateError
-            }
-            className="gap-2"
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-            Save & Continue
-          </Button>
-        </div>
       </div>
 
       {/* Expert Suggestions Dialog */}
@@ -1439,7 +1454,7 @@ export function PRForm({
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
+              <Sparkles className="h-5 w-5 text-cyan-700" />
               SEO/AI Optimization Suggestions
             </DialogTitle>
             <DialogDescription>
@@ -1451,9 +1466,9 @@ export function PRForm({
           <div className="space-y-4 py-4">
             {isLoadingSuggestions && (
               <div className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-700 mb-4" />
                 <p className="text-gray-600">Analyzing your press release...</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-gray-600 mt-1">
                   Generating expert suggestions
                 </p>
               </div>
@@ -1477,7 +1492,7 @@ export function PRForm({
                     </h3>
 
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-500 mb-1">
+                      <p className="text-xs text-gray-600 mb-1">
                         Current Headline
                       </p>
                       <p className="font-medium text-gray-900">
@@ -1496,18 +1511,18 @@ export function PRForm({
                             });
                             setShowSuggestions(false);
                           }}
-                          className="p-4 border border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+                          className="p-4 border border-gray-200 rounded-lg hover:border-cyan-600 hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-blue-100 p-2 rounded-full shrink-0">
-                              <Lightbulb className="h-4 w-4 text-blue-600" />
+                            <div className="bg-cyan-800/10 p-2 rounded-full shrink-0">
+                              <Lightbulb className="h-4 w-4 text-cyan-700" />
                             </div>
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                <span className="text-xs font-medium px-2 py-0.5 bg-cyan-800/10 text-cyan-800 rounded">
                                   {suggestion.strategy}
                                 </span>
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-gray-600">
                                   Click to use
                                 </span>
                               </div>
@@ -1531,7 +1546,7 @@ export function PRForm({
                         <h3 className="font-semibold text-gray-900">
                           Suggested Abstract
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           No abstract provided. Here's a suggested summary for
                           your press release:
                         </p>
@@ -1554,10 +1569,10 @@ export function PRForm({
                           </div>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-600">
                                 Click to use
                               </span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-600">
                                 ({suggestedAbstract.length}/350 chars)
                               </span>
                             </div>
@@ -1577,7 +1592,7 @@ export function PRForm({
                         <h3 className="font-semibold text-gray-900">
                           Suggested Notable Quote
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           No pullquote provided. Here's a suggested quote from
                           your content:
                         </p>
@@ -1600,7 +1615,7 @@ export function PRForm({
                           </div>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-gray-600">
                                 Click to use
                               </span>
                             </div>
@@ -1620,7 +1635,7 @@ export function PRForm({
                         <h3 className="font-semibold text-gray-900">
                           Brandable Chunks Analysis
                         </h3>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           Content segments that search engines and AI will
                           likely extract for indexing
                         </p>
@@ -1683,7 +1698,7 @@ export function PRForm({
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-500 text-center pt-2">
+                  <p className="text-xs text-gray-600 text-center pt-2">
                     These suggestions are AI-generated. Review and adapt them to
                     fit your brand voice and messaging goals.
                   </p>
@@ -1704,10 +1719,10 @@ export function PRForm({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h3 className="font-semibold text-lg">Add New Contact</h3>
+              <h3 className="font-semibold text-lg text-gray-900">Add New Contact</h3>
               <button
                 onClick={() => setShowContactModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-500 hover:text-gray-700 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1789,6 +1804,7 @@ export function PRForm({
                 type="button"
                 onClick={handleCreateContact}
                 disabled={savingContact}
+                className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
               >
                 {savingContact ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

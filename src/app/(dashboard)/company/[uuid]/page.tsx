@@ -50,38 +50,34 @@ export default async function CompanyDetailPage({
   const contacts = await getContacts(co.id)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Brand</h1>
-        <p className="text-gray-500">{co.companyName}</p>
-        <RssFeedLink companyUuid={co.uuid} />
-      </div>
-
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
-
-      <CompanyForm
-        initialData={{
-          uuid: co.uuid,
-          companyName: co.companyName,
-          website: co.website || '',
-          logoUrl: co.logoUrl || '',
-          addr1: co.addr1 || '',
-          addr2: co.addr2 || '',
-          city: co.city || '',
-          state: co.state || '',
-          postalCode: co.postalCode || '',
-          countryCode: co.countryCode || 'US',
-          phone: co.phone || '',
-          email: co.email || '',
-        }}
-        contacts={contacts.map((c) => ({
-          uuid: c.uuid || '',
-          name: c.name,
-          title: c.title || '',
-          email: c.email || '',
-          phone: c.phone || '',
-        }))}
-      />
-    </div>
+    <CompanyForm
+      initialData={{
+        uuid: co.uuid,
+        companyName: co.companyName,
+        website: co.website || '',
+        logoUrl: co.logoUrl || '',
+        addr1: co.addr1 || '',
+        addr2: co.addr2 || '',
+        city: co.city || '',
+        state: co.state || '',
+        postalCode: co.postalCode || '',
+        countryCode: co.countryCode || 'US',
+        phone: co.phone || '',
+        email: co.email || '',
+      }}
+      contacts={contacts.map((c) => ({
+        uuid: c.uuid || '',
+        name: c.name,
+        title: c.title || '',
+        email: c.email || '',
+        phone: c.phone || '',
+      }))}
+      headerExtra={
+        <>
+          <RssFeedLink companyUuid={co.uuid} />
+          <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+        </>
+      }
+    />
   )
 }

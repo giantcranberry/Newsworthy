@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import {
   Dialog,
@@ -25,7 +24,6 @@ import {
   Globe,
 } from "lucide-react";
 import { ProductForm } from "./product-form";
-import { cn } from "@/lib/utils";
 
 interface Product {
   id: number;
@@ -181,113 +179,112 @@ export function ProductList({
 
   return (
     <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-4">
-            <CardTitle>Products</CardTitle>
-            <Select
-              value={currentFilter}
-              onChange={(e) => handleFilterChange(e.target.value)}
-              className="w-48"
-            >
-              <option value="all">All Products</option>
-              <option value="global">Global (All Accounts)</option>
-              {partners.map((partner) => (
-                <option key={partner.id} value={partner.id.toString()}>
-                  {partner.company || partner.handle}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <Button onClick={handleCreate}>
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No products found. Create your first upgrade product.
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {products.map((product) => {
-                const partnerName = getPartnerName(product.partnerId);
-                return (
-                  <div
-                    key={product.id}
-                    className="flex items-center justify-between p-4 rounded-lg border bg-white"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="p-2 rounded-lg bg-blue-100 flex items-center justify-center w-10 h-10">
+      {/* Filter & Add */}
+      <div className="flex items-center justify-between">
+        <Select
+          value={currentFilter}
+          onChange={(e) => handleFilterChange(e.target.value)}
+          className="w-48"
+        >
+          <option value="all">All Products</option>
+          <option value="global">Global (All Accounts)</option>
+          {partners.map((partner) => (
+            <option key={partner.id} value={partner.id.toString()}>
+              {partner.company || partner.handle}
+            </option>
+          ))}
+        </Select>
+        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+          <Plus className="h-4 w-4" />
+          Add Product
+        </Button>
+      </div>
+
+      {/* Product List */}
+      {products.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <Zap className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No products found</h3>
+            <p className="mt-2 text-gray-600">Create your first upgrade product.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {products.map((product) => {
+            const partnerName = getPartnerName(product.partnerId);
+            return (
+              <Card key={product.id} className="overflow-hidden">
+                <div className="flex-1 min-w-0 p-4 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="p-2 rounded-lg bg-cyan-800/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
                         <ProductIcon
                           iconName={product.icon}
-                          className="h-6 w-6 text-blue-600"
+                          className="h-5 w-5 text-cyan-800"
                         />
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium">
+                          <h3 className="font-semibold text-gray-900">
                             {product.displayName || product.shortName}
                           </h3>
                           {product.productType && (
-                            <Badge variant="secondary">
+                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                               {product.productType}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           {product.partnerId === null ? (
-                            <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-green-800">
                               <Globe className="h-3 w-3" />
                               All Accounts
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-600">
                               {partnerName}
                             </span>
                           )}
                           {product.label && (
-                            <Badge variant="outline" className="text-xs">
+                            <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600">
                               {product.label}
-                            </Badge>
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-semibold">
-                          {formatPrice(product.price)}
-                        </p>
-                      </div>
+                    <div className="flex items-center gap-4 flex-shrink-0">
+                      <p className="font-semibold text-gray-900">
+                        {formatPrice(product.price)}
+                      </p>
+                      <div className="h-6 w-px bg-gray-200" />
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button
                           onClick={() => handleEdit(product)}
+                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
                         >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                          <Pencil className="h-3.5 w-3.5" />
+                          Edit
+                        </button>
+                        <button
                           onClick={() => handleDelete(product.id)}
                           disabled={isDeleting === product.id}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-700"
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

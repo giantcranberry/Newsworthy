@@ -4,9 +4,9 @@ import { partners } from '@/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus, Settings } from 'lucide-react'
+import { ArrowLeft, Plus } from 'lucide-react'
+import { PartnerList } from './partner-list'
 
 async function getPartners() {
   const allPartners = await db
@@ -33,92 +33,38 @@ export default async function AdminPartnersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      <Link
+        href="/admin"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Admin
+      </Link>
+
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
-            <p className="text-gray-500">Manage partner accounts and settings</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
+          <p className="text-gray-600">Manage partner accounts and settings</p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+          <Plus className="h-4 w-4" />
           Add Partner
         </Button>
       </div>
 
-      {/* Partners Grid */}
-      {allPartners.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-gray-500">No partners found</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {allPartners.map((partner) => (
-            <Card key={partner.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  {partner.logo ? (
-                    <img
-                      src={partner.logo}
-                      alt={partner.company || ''}
-                      className="h-12 w-12 rounded object-contain bg-gray-100"
-                    />
-                  ) : (
-                    <div className="h-12 w-12 rounded bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
-                      {partner.company?.[0] || '?'}
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">
-                      {partner.company || partner.brandName || 'Unnamed Partner'}
-                    </h3>
-                    {partner.handle && (
-                      <p className="text-sm text-gray-500">@{partner.handle}</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        partner.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {partner.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                      {partner.partnerType && (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
-                          {partner.partnerType}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t">
-                  <div className="text-sm text-gray-500 space-y-1">
-                    {partner.contactEmail && (
-                      <p>Contact: {partner.contactEmail}</p>
-                    )}
-                    {partner.basePrice !== null && partner.basePrice !== undefined && (
-                      <p>Base Price: ${(partner.basePrice / 100).toFixed(2)}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <Button variant="outline" className="w-full" size="sm">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Manage
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <PartnerList
+        partners={allPartners.map((p) => ({
+          id: p.id,
+          company: p.company,
+          brandName: p.brandName,
+          handle: p.handle,
+          logo: p.logo,
+          isActive: p.isActive,
+          partnerType: p.partnerType,
+          contactEmail: p.contactEmail,
+          basePrice: p.basePrice,
+        }))}
+      />
     </div>
   )
 }

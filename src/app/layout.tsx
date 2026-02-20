@@ -20,12 +20,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <script
-          src="https://kit.fontawesome.com/1343955540.js"
+          src="https://kit.fontawesome.com/adf47b9acf.js"
           crossOrigin="anonymous"
           async
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className} suppressHydrationWarning>
         <Providers>{children}</Providers>
         <Toaster position="top-center" richColors />
       </body>

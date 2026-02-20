@@ -108,7 +108,7 @@ export function MultiSelect({
     <div id="multiselect-dropdown" style={dropdownStyle} className="bg-white border border-gray-200 rounded-md shadow-lg">
       <div className="max-h-64 overflow-y-auto">
         {filteredOptions.length === 0 ? (
-          <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
+          <div className="px-3 py-2 text-sm text-gray-600">No results found</div>
         ) : (
           filteredOptions.map(opt => {
             const isSelected = selected.includes(opt.value)
@@ -119,7 +119,7 @@ export function MultiSelect({
                 onClick={() => !isDisabled && toggleOption(opt.value)}
                 className={`px-3 py-2 text-sm cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-blue-50 text-blue-800'
+                    ? 'bg-gray-50 text-cyan-800'
                     : isDisabled
                       ? 'text-gray-300 cursor-not-allowed'
                       : 'hover:bg-gray-50'
@@ -139,7 +139,7 @@ export function MultiSelect({
         )}
       </div>
       {maxItems && (
-        <div className="px-3 py-2 text-xs text-gray-500 border-t border-gray-100">
+        <div className="px-3 py-2 text-xs text-gray-600 border-t border-gray-100">
           {selected.length}/{maxItems} selected
         </div>
       )}
@@ -153,17 +153,17 @@ export function MultiSelect({
           setIsOpen(true)
           inputRef.current?.focus()
         }}
-        className="min-h-[38px] w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm shadow-sm cursor-text flex items-center gap-2"
+        className="min-h-[38px] w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 cursor-text flex items-center gap-2"
       >
         <div className="flex-1 flex flex-wrap gap-1 items-center">
           {selectedOptions.map(opt => (
             <span
               key={opt.value}
-              className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs"
+              className="inline-flex items-center gap-1 bg-cyan-800/10 text-cyan-800 px-2 py-0.5 rounded text-xs"
             >
               {opt.label}
               <X
-                className="h-3 w-3 cursor-pointer hover:text-blue-600"
+                className="h-3 w-3 cursor-pointer hover:text-cyan-800"
                 onClick={(e) => removeOption(opt.value, e)}
               />
             </span>
@@ -182,7 +182,7 @@ export function MultiSelect({
             className="flex-1 min-w-[60px] outline-none bg-transparent text-sm"
           />
         </div>
-        <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && mounted && createPortal(dropdown, document.body)}

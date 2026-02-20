@@ -162,23 +162,6 @@ export default async function PRDetailPage({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {["editorial", "approved", "sent"].includes(release.status || "")
-              ? "View"
-              : "Edit"}{" "}
-            Press Release
-          </h1>
-          <p className="text-gray-500">
-            Status:{" "}
-            <span className="font-medium capitalize">
-              {release.status?.replace("_", " ")}
-            </span>
-          </p>
-        </div>
-      </div>
-
       <WizardNav
         releaseUuid={uuid}
         currentStep={1}
@@ -205,6 +188,8 @@ export default async function PRDetailPage({
         readOnly={["editorial", "approved", "sent"].includes(
           release.status || "",
         )}
+        pageTitle={`${["editorial", "approved", "sent"].includes(release.status || "") ? "View" : "Edit"} Press Release`}
+        pageDescription={`Status: ${release.status?.replace("_", " ")}`}
         initialData={{
           id: release.id,
           uuid: release.uuid,

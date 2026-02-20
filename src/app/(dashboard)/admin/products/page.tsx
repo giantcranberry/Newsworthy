@@ -3,6 +3,8 @@ import { db } from '@/db'
 import { products, partners } from '@/db/schema'
 import { eq, and, desc, isNull, or } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 import { ProductList } from './product-list'
 
 async function getPartners() {
@@ -80,9 +82,17 @@ export default async function AdminProductsPage({
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/admin"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Admin
+      </Link>
+
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Upgrade Products</h1>
-        <p className="text-gray-500">Manage press release upgrade products</p>
+        <p className="text-gray-600">Manage press release upgrade products</p>
       </div>
 
       <ProductList

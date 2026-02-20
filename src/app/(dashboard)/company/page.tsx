@@ -3,9 +3,9 @@ import { db } from "@/db";
 import { company, brandCredits } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Plus, Edit, ExternalLink, CreditCard } from "lucide-react";
+import { Plus } from "lucide-react";
+import { CompanyList } from "./company-list";
 
 async function getUserCompanies(userId: number) {
   return await db.query.company.findMany({
@@ -55,125 +55,42 @@ export default async function CompaniesPage() {
   const companyIds = companies.map((c) => c.id);
   const creditsByCompany = await getBrandCredits(companyIds);
 
+  // Convert Map to plain object for client component
+  const creditsRecord: Record<number, number> = {};
+  for (const [key, value] of creditsByCompany) {
+    creditsRecord[key] = value;
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Brands</h1>
-          <p className="text-gray-500">
+          <p className="text-gray-600">
             Manage your company and brand profiles
           </p>
         </div>
         <Link href="/company/add">
-          <Button className="gap-2">
+          <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
             <Plus className="h-4 w-4" />
             Add Brand
           </Button>
         </Link>
       </div>
 
-      {/* Companies Grid */}
-      {companies.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <Building2 className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              No brands yet
-            </h3>
-            <p className="mt-2 text-gray-500">
-              Add your first brand to start creating press releases.
-            </p>
-            <Link href="/company/add">
-              <Button className="mt-6 gap-2">
-                <Plus className="h-4 w-4" />
-                Add Brand
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {companies.map((co) => (
-            <Card key={co.id} className="overflow-hidden">
-              <CardContent className="p-0">
-                {/* Logo Header */}
-                <div className="flex items-center justify-center h-32 bg-gray-100">
-                  {co.logoUrl ? (
-                    <img
-                      src={co.logoUrl}
-                      alt={co.companyName}
-                      className="max-h-20 max-w-[80%] object-contain"
-                    />
-                  ) : (
-                    <Building2 className="h-16 w-16 text-gray-300" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="p-4">
-                  <Link href={`/company/${co.uuid}`}>
-                    <h3 className="font-semibold text-gray-900 hover:text-blue-600">
-                      {co.companyName}
-                    </h3>
-                  </Link>
-                  {co.website && (
-                    <a
-                      href={
-                        co.website.startsWith("http")
-                          ? co.website
-                          : `https://${co.website}`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-1 text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1"
-                    >
-                      {co.website.replace(/^https?:\/\//, "")}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                  {co.city && co.state && (
-                    <p className="mt-1 text-sm text-gray-500">
-                      {co.city}, {co.state}
-                    </p>
-                  )}
-
-                  {/* Credits Badge */}
-                  <div className="mt-3 flex items-center gap-1.5 text-sm">
-                    <CreditCard className="h-4 w-4 text-gray-400" />
-                    <span
-                      className={`font-medium ${(creditsByCompany.get(co.id) || 0) > 0 ? "text-green-600" : "text-gray-500"}`}
-                    >
-                      {creditsByCompany.get(co.id) || 0} credits
-                    </span>
-                  </div>
-
-                  <div className="mt-4 flex gap-2">
-                    <Link href={`/company/${co.uuid}`} className="flex-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full gap-2"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Edit
-                      </Button>
-                    </Link>
-                    <Link
-                      href={`/pr/create?company=${co.uuid}`}
-                      className="flex-1"
-                    >
-                      <Button size="sm" className="w-full">
-                        New Release
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <CompanyList
+        companies={companies.map((co) => ({
+          id: co.id,
+          uuid: co.uuid!,
+          companyName: co.companyName,
+          logoUrl: co.logoUrl,
+          website: co.website,
+          city: co.city,
+          state: co.state,
+        }))}
+        creditsByCompany={creditsRecord}
+      />
     </div>
   );
 }

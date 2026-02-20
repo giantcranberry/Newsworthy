@@ -1,202 +1,317 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import {
-  LayoutDashboard,
-  FileText,
-  Building2,
-  Users,
-  ShoppingCart,
-  Settings,
-  Database,
-  Megaphone,
-  ClipboardCheck,
-  CreditCard,
-  ChevronDown,
-  LogOut,
-  User,
-} from 'lucide-react'
 import { signOut, useSession } from 'next-auth/react'
 import { useState } from 'react'
 
-interface NavItem {
+interface NavChild {
   title: string
   href: string
-  icon: React.ComponentType<{ className?: string }>
-  children?: NavItem[]
+  icon: string
+}
+
+interface NavGroup {
+  title: string
+  href: string
+  icon: string
+  children: NavChild[]
   roles?: string[]
 }
 
-const navItems: NavItem[] = [
+interface NavLink {
+  title: string
+  href: string
+  icon: string
+  roles?: string[]
+}
+
+interface NavSection {
+  label: string
+  items: (NavGroup | NavLink)[]
+}
+
+function isNavGroup(item: NavGroup | NavLink): item is NavGroup {
+  return 'children' in item && item.children !== undefined
+}
+
+const navSections: NavSection[] = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    title: 'Press Releases',
-    href: '/pr',
-    icon: FileText,
-    children: [
-      { title: 'All Releases', href: '/pr', icon: FileText },
-      { title: 'Create New', href: '/pr/create', icon: FileText },
-      { title: 'Drafts', href: '/pr/drafts', icon: FileText },
+    label: '',
+    items: [
+      {
+        title: 'Dashboard',
+        href: '/dashboard',
+        icon: 'fa-light fa-grid-2',
+      },
     ],
   },
   {
-    title: 'Brands',
-    href: '/company',
-    icon: Building2,
-    children: [
-      { title: 'All Brands', href: '/company', icon: Building2 },
-      { title: 'Add Brand', href: '/company/add', icon: Building2 },
+    label: 'Content',
+    items: [
+      {
+        title: 'Press Releases',
+        href: '/pr',
+        icon: 'fa-light fa-newspaper',
+        children: [
+          { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
+          { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus' },
+          { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen' },
+        ],
+      },
+      {
+        title: 'Brands',
+        href: '/company',
+        icon: 'fa-light fa-flag',
+        children: [
+          { title: 'All Brands', href: '/company', icon: 'fa-light fa-flag' },
+          { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag' },
+        ],
+      },
     ],
   },
   {
-    title: 'Editorial',
-    href: '/editorial',
-    icon: ClipboardCheck,
-    roles: ['editor', 'admin', 'staff'],
-    children: [
-      { title: 'Queue', href: '/editorial/queue', icon: ClipboardCheck },
-      { title: 'Enhanced Queue', href: '/editorial/queue-enhanced', icon: ClipboardCheck },
+    label: 'Editorial',
+    items: [
+      {
+        title: 'Editorial',
+        href: '/editorial',
+        icon: 'fa-light fa-clipboard-check',
+        roles: ['editor', 'admin', 'staff'],
+        children: [
+          { title: 'Queue', href: '/editorial/queue', icon: 'fa-light fa-clipboard-list' },
+          { title: 'Enhanced Queue', href: '/editorial/queue-enhanced', icon: 'fa-light fa-clipboard-list-check' },
+        ],
+      },
     ],
   },
   {
-    title: 'Admin',
-    href: '/admin',
-    icon: Settings,
-    roles: ['admin'],
-    children: [
-      { title: 'Users', href: '/admin/users', icon: Users },
-      { title: 'Brands', href: '/admin/brands', icon: Building2 },
-      { title: 'Partners', href: '/admin/partners', icon: Building2 },
-      { title: 'Products', href: '/admin/products', icon: CreditCard },
-      { title: 'Categories', href: '/admin/categories', icon: Database },
+    label: 'Admin',
+    items: [
+      {
+        title: 'Admin',
+        href: '/admin',
+        icon: 'fa-light fa-gear',
+        roles: ['admin'],
+        children: [
+          { title: 'Users', href: '/admin/users', icon: 'fa-light fa-users' },
+          { title: 'Brands', href: '/admin/brands', icon: 'fa-light fa-flag' },
+          { title: 'Partners', href: '/admin/partners', icon: 'fa-light fa-handshake' },
+          { title: 'Products', href: '/admin/products', icon: 'fa-light fa-credit-card' },
+          { title: 'Categories', href: '/admin/categories', icon: 'fa-light fa-tags' },
+        ],
+      },
     ],
   },
 ]
 
-function NavItemComponent({ item, isChild = false }: { item: NavItem; isChild?: boolean }) {
-  const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
-  const { data: session } = useSession()
-
-  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-  const hasChildren = item.children && item.children.length > 0
-
-  // Check role-based access
-  if (item.roles) {
-    const userRoles: string[] = []
-    if ((session?.user as any)?.isAdmin) userRoles.push('admin')
-    if ((session?.user as any)?.isEditor) userRoles.push('editor')
-    if ((session?.user as any)?.isStaff) userRoles.push('staff')
-
-    if (!item.roles.some((role) => userRoles.includes(role))) {
-      return null
-    }
-  }
-
-  const Icon = item.icon
-
-  if (hasChildren) {
-    return (
-      <div>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={cn(
-            'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
-            isActive
-              ? 'bg-gray-100 text-gray-900'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-          )}
-        >
-          <span className="flex items-center gap-3">
-            <Icon className="h-5 w-5" />
-            {item.title}
-          </span>
-          <ChevronDown
-            className={cn('h-4 w-4 transition-transform', isOpen && 'rotate-180')}
-          />
-        </button>
-        {isOpen && (
-          <div className="ml-6 mt-1 space-y-1">
-            {item.children?.map((child) => (
-              <NavItemComponent key={child.href} item={child} isChild />
-            ))}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <Link
-      href={item.href}
-      className={cn(
-        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-        isActive
-          ? 'bg-gray-100 text-gray-900 font-medium'
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-        isChild && 'text-sm'
-      )}
-    >
-      {!isChild && <Icon className="h-5 w-5" />}
-      {item.title}
-    </Link>
-  )
+function FaIcon({ icon, className }: { icon: string; className?: string }) {
+  return <i className={cn(icon, className)} aria-hidden="true" />
 }
 
 export function Sidebar() {
+  const pathname = usePathname()
   const { data: session } = useSession()
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+
+  const isActive = (path: string) => {
+    if (path === '/dashboard') return pathname === path
+    return pathname === path || pathname.startsWith(path + '/')
+  }
+
+  const isChildActive = (child: NavChild, siblings: NavChild[]) => {
+    if (pathname === child.href) return true
+    // Only use startsWith if no sibling matches more specifically
+    if (pathname.startsWith(child.href + '/')) {
+      const hasBetterMatch = siblings.some(
+        (s) => s.href !== child.href && (pathname === s.href || pathname.startsWith(s.href + '/'))
+        && s.href.length > child.href.length
+      )
+      return !hasBetterMatch
+    }
+    return false
+  }
+
+  const hasActiveChild = (item: NavGroup) => {
+    return item.children.some((child) => isChildActive(child, item.children))
+  }
+
+  const isGroupExpanded = (key: string, item: NavGroup): boolean => {
+    if (expandedGroups[key] !== undefined) return expandedGroups[key]
+    return hasActiveChild(item)
+  }
+
+  const toggleGroup = (key: string, item: NavGroup) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [key]: !isGroupExpanded(key, item),
+    }))
+  }
+
+  const getUserRoles = (): string[] => {
+    const roles: string[] = []
+    if ((session?.user as any)?.isAdmin) roles.push('admin')
+    if ((session?.user as any)?.isEditor) roles.push('editor')
+    if ((session?.user as any)?.isStaff) roles.push('staff')
+    return roles
+  }
+
+  const hasAccess = (roles?: string[]) => {
+    if (!roles) return true
+    const userRoles = getUserRoles()
+    return roles.some((role) => userRoles.includes(role))
+  }
+
+  const renderNavLink = (href: string, label: string, icon: string, active: boolean) => (
+    <Link
+      href={href}
+      className={cn(
+        'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
+        active
+          ? 'bg-cyan-800/10 text-cyan-800 font-semibold'
+          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+      )}
+    >
+      <FaIcon icon={icon} className="w-5 text-center text-base flex-shrink-0" />
+      <span>{label}</span>
+    </Link>
+  )
 
   return (
-    <div className="flex h-full w-64 flex-col border-r border-gray-100 bg-white">
+    <div className="flex h-full w-60 flex-col border-r border-slate-200 bg-white">
       {/* Logo */}
-      <div className="flex h-16 items-center border-b border-gray-100 px-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <Megaphone className="h-8 w-8 text-blue-600" />
-          <span className="text-xl font-bold">Newsworthy</span>
+      <div className="flex h-16 items-center border-b border-slate-200 px-6">
+        <Link href="/dashboard">
+          <Image src="/logo.svg" alt="Newsworthy" width={225} height={42} priority />
         </Link>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-1">
-          {navItems.map((item) => (
-            <NavItemComponent key={item.href} item={item} />
-          ))}
-        </div>
+      <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+        {navSections.map((section) => {
+          const visibleItems = section.items.filter((item) => hasAccess(item.roles))
+          if (visibleItems.length === 0) return null
+
+          return (
+            <div key={section.label || 'main'}>
+              {section.label && (
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                  {section.label}
+                </h3>
+              )}
+              <div className="space-y-1">
+                {visibleItems.map((item) => {
+                  if (!isNavGroup(item)) {
+                    return (
+                      <div key={item.href}>
+                        {renderNavLink(
+                          item.href,
+                          item.title,
+                          item.icon,
+                          isActive(item.href)
+                        )}
+                      </div>
+                    )
+                  }
+
+                  const groupKey = item.href
+                  const isExpanded = isGroupExpanded(groupKey, item)
+                  const activeChild = hasActiveChild(item)
+                  const submenuId = `submenu-${groupKey}`
+
+                  return (
+                    <div key={groupKey}>
+                      <button
+                        onClick={() => toggleGroup(groupKey, item)}
+                        className={cn(
+                          'flex items-center justify-between w-full px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
+                          activeChild
+                            ? 'text-cyan-800 bg-gray-50'
+                            : 'text-gray-700 hover:bg-gray-100'
+                        )}
+                        aria-expanded={isExpanded}
+                        aria-controls={submenuId}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FaIcon icon={item.icon} className="w-5 text-center text-base" />
+                          <span>{item.title}</span>
+                        </div>
+                        <i
+                          className={cn(
+                            'fa-solid fa-chevron-down text-[10px] transition-transform duration-200',
+                            isExpanded ? 'rotate-180' : ''
+                          )}
+                          aria-hidden="true"
+                        />
+                      </button>
+
+                      <div
+                        id={submenuId}
+                        role="region"
+                        aria-hidden={!isExpanded}
+                        className={cn(
+                          'overflow-hidden transition-all duration-200',
+                          isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                        )}
+                      >
+                        <div className="ml-4 pl-3 border-l border-slate-200 mt-1 space-y-1">
+                          {item.children.map((child) => {
+                            return (
+                              <Link
+                                key={child.href}
+                                href={child.href}
+                                className={cn(
+                                  'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer',
+                                  isChildActive(child, item.children)
+                                    ? 'bg-cyan-800/10 text-cyan-800 font-semibold'
+                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                )}
+                                tabIndex={isExpanded ? 0 : -1}
+                              >
+                                <FaIcon icon={child.icon} className="w-5 text-center text-base" />
+                                <span>{child.title}</span>
+                              </Link>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
       </nav>
 
       {/* User section */}
-      <div className="border-t border-gray-100 p-4">
+      <div className="border-t border-slate-200 p-4">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-            <User className="h-5 w-5 text-gray-600" />
+            <i className="fa-light fa-circle-user text-xl text-gray-600" aria-hidden="true" />
           </div>
           <div className="flex-1 truncate">
             <p className="text-sm font-medium text-gray-900 truncate">
               {session?.user?.name || session?.user?.email}
             </p>
-            <p className="text-xs text-gray-500 truncate">{session?.user?.email}</p>
+            <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
           </div>
         </div>
         <div className="mt-2 space-y-1">
           <Link
             href="/profile"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
           >
-            <Settings className="h-4 w-4" />
+            <FaIcon icon="fa-light fa-gear" className="w-5 text-center text-base" />
             Settings
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
           >
-            <LogOut className="h-4 w-4" />
+            <FaIcon icon="fa-light fa-right-from-bracket" className="w-5 text-center text-base" />
             Sign out
           </button>
         </div>
