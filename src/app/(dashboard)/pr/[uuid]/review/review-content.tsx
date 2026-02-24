@@ -14,7 +14,6 @@ import {
   Sparkles,
   Loader2,
   Lightbulb,
-  ChevronLeft,
   AlertTriangle,
   Info,
   Calendar,
@@ -37,6 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { WizardHeader } from "@/components/pr-wizard/wizard-header";
 
 interface Suggestion {
   headline: string;
@@ -92,6 +92,7 @@ interface ReviewContentProps {
     shareWithList: boolean;
     distribution: string | null;
   };
+  children?: React.ReactNode;
 }
 
 interface ValidationItem {
@@ -117,6 +118,7 @@ export function ReviewContent({
   banner,
   images,
   stats,
+  children,
 }: ReviewContentProps) {
   const router = useRouter();
 
@@ -503,6 +505,17 @@ export function ReviewContent({
 
   return (
     <div className="space-y-6">
+      <WizardHeader
+        title="Review"
+        description="Review your press release before finalizing"
+        releaseUuid={releaseUuid}
+        currentStep={6}
+        onSubmit={handleContinue}
+        canProceed={requiredComplete}
+        submitLabel="Continue to Finalize"
+      />
+      {children}
+
       {/* Completion Checklist */}
       <Card>
         <CardHeader>
@@ -520,7 +533,7 @@ export function ReviewContent({
                 className={cn(
                   "flex items-center justify-between p-3 rounded-lg border",
                   item.completed
-                    ? "bg-green-50 border-green-200"
+                    ? "bg-emerald-50 border-emerald-200"
                     : "bg-red-50 border-red-200",
                 )}
               >
@@ -528,20 +541,20 @@ export function ReviewContent({
                   <div
                     className={cn(
                       "p-1.5 rounded-full",
-                      item.completed ? "bg-green-100" : "bg-red-100",
+                      item.completed ? "bg-emerald-100" : "bg-red-100",
                     )}
                   >
                     <Icon
                       className={cn(
                         "h-4 w-4",
-                        item.completed ? "text-green-600" : "text-red-600",
+                        item.completed ? "text-emerald-600" : "text-red-600",
                       )}
                     />
                   </div>
                   <span
                     className={cn(
                       "font-medium",
-                      item.completed ? "text-green-900" : "text-red-900",
+                      item.completed ? "text-emerald-900" : "text-red-900",
                     )}
                   >
                     {item.label}
@@ -549,13 +562,13 @@ export function ReviewContent({
                 </div>
                 <div className="flex items-center gap-2">
                   {item.completed ? (
-                    <Check className="h-5 w-5 text-green-600" />
+                    <Check className="h-5 w-5 text-emerald-600" />
                   ) : (
                     <>
                       <X className="h-5 w-5 text-red-600" />
                       <button
                         onClick={() => router.push(item.editPath!)}
-                        className="text-sm text-blue-600 hover:underline"
+                        className="text-sm text-cyan-700 hover:underline"
                       >
                         Complete
                       </button>
@@ -890,10 +903,10 @@ export function ReviewContent({
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-green-600 uppercase tracking-wide mb-1">
+                              <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">
                                 Suggested
                               </p>
-                              <p className="text-sm text-gray-700 bg-green-50 p-2 rounded border-l-2 border-green-300">
+                              <p className="text-sm text-gray-700 bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
                                 {improvement.improvedText}
                               </p>
                             </div>
@@ -949,10 +962,10 @@ export function ReviewContent({
                                         </p>
                                       </div>
                                       <div>
-                                        <p className="text-xs font-medium text-green-600 mb-1">
+                                        <p className="text-xs font-medium text-emerald-600 mb-1">
                                           With:
                                         </p>
-                                        <p className="text-sm bg-green-50 p-2 rounded border-l-2 border-green-300">
+                                        <p className="text-sm bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
                                           {improvement.improvedText}
                                         </p>
                                       </div>
@@ -1009,7 +1022,7 @@ export function ReviewContent({
                             className={cn(
                               "text-xs font-medium px-2 py-0.5 rounded",
                               chunk.brandability === "High"
-                                ? "bg-green-100 text-green-700"
+                                ? "bg-emerald-100 text-emerald-700"
                                 : chunk.brandability === "Medium"
                                   ? "bg-amber-100 text-amber-700"
                                   : "bg-red-100 text-red-700",
@@ -1061,21 +1074,6 @@ export function ReviewContent({
           ) : null}
         </CardContent>
       </Card>
-
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-        <Button
-          variant="outline"
-          onClick={() => router.push(`/pr/${releaseUuid}/upgrades`)}
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Back
-        </Button>
-
-        <Button onClick={handleContinue} disabled={!requiredComplete}>
-          Continue to Finalize
-        </Button>
-      </div>
 
       {/* Warning if not complete */}
       {!requiredComplete && (

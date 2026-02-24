@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Flag, Loader2, Check, AlertCircle, Sparkles, Lightbulb } from 'lucide-react'
+import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 
 interface Suggestion {
   headline: string
@@ -25,12 +26,14 @@ interface FinalizeContentProps {
   releaseUuid: string
   releaseTitle: string
   distribution: string | null
+  children?: React.ReactNode
 }
 
 export function FinalizeContent({
   releaseUuid,
   releaseTitle,
   distribution,
+  children,
 }: FinalizeContentProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -122,6 +125,15 @@ export function FinalizeContent({
 
   return (
     <div className="space-y-6">
+      <WizardHeader
+        title="Finalize"
+        description="Submit your press release for distribution"
+        releaseUuid={releaseUuid}
+        currentStep={7}
+        hideNext
+      />
+      {children}
+
       {error && (
         <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
           <AlertCircle className="h-5 w-5" />
@@ -145,10 +157,10 @@ export function FinalizeContent({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-            <p className="text-sm text-gray-500">Press Release</p>
+            <p className="text-sm text-gray-600">Press Release</p>
             <p className="font-medium text-gray-900">{releaseTitle}</p>
-            <p className="text-sm text-gray-500 mt-2">Distribution</p>
-            <p className="text-sm font-medium">
+            <p className="text-sm text-gray-600 mt-2">Distribution</p>
+            <p className="text-sm font-medium text-gray-900">
               {distribution === 'premium' && 'Premium Distribution'}
               {distribution === 'yahoo' && 'Yahoo Finance Distribution'}
               {distribution === 'standard' && 'Standard Distribution'}
@@ -162,6 +174,7 @@ export function FinalizeContent({
                 id="confirm"
                 checked={confirmed}
                 onCheckedChange={(checked) => setConfirmed(checked === true)}
+                className="data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white"
               />
               <Label htmlFor="confirm" className="text-sm text-gray-700 leading-relaxed cursor-pointer">
                 I confirm that I have reviewed my press release and all information is accurate.
@@ -174,7 +187,7 @@ export function FinalizeContent({
             <Button
               onClick={handleSubmit}
               disabled={!confirmed || isSubmitting}
-              className="flex-1"
+              className={`flex-1 ${confirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (
@@ -220,7 +233,7 @@ export function FinalizeContent({
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
                 <p className="text-gray-600">Analyzing your press release...</p>
-                <p className="text-sm text-gray-400 mt-1">Generating expert suggestions</p>
+                <p className="text-sm text-gray-600 mt-1">Generating expert suggestions</p>
               </div>
             )}
 
@@ -234,7 +247,7 @@ export function FinalizeContent({
             {!isLoadingSuggestions && !suggestionsError && suggestions.length > 0 && (
               <div className="space-y-4">
                 <div className="p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-1">Current Headline</p>
+                  <p className="text-xs text-gray-600 mb-1">Current Headline</p>
                   <p className="font-medium text-gray-900">{releaseTitle}</p>
                 </div>
 
@@ -262,7 +275,7 @@ export function FinalizeContent({
                   ))}
                 </div>
 
-                <p className="text-xs text-gray-500 text-center pt-2">
+                <p className="text-xs text-gray-600 text-center pt-2">
                   These suggestions are AI-generated. Review and adapt them to fit your brand voice and messaging goals.
                 </p>
               </div>

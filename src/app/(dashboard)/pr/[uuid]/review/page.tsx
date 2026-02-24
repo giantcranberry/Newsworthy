@@ -90,64 +90,49 @@ export default async function ReviewPage({
   ])
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Review</h1>
-        <p className="text-gray-500">
-          Review your press release before finalizing
-        </p>
-      </div>
-
+    <ReviewContent
+      releaseUuid={uuid}
+      release={{
+        title: release.title,
+        abstract: release.abstract,
+        body: release.body,
+        pullquote: release.pullquote,
+        location: release.location,
+        releaseAt: release.releaseAt,
+        videoUrl: release.videoUrl,
+        landingPage: release.landingPage,
+      }}
+      company={{
+        logoUrl: release.company?.logoUrl || null,
+        companyName: release.company?.companyName || null,
+      }}
+      contact={{
+        name: release.primaryContact?.name || null,
+        email: release.primaryContact?.email || null,
+      }}
+      banner={release.banner ? {
+        url: release.banner.url,
+      } : null}
+      images={release.releaseImages?.map(ri => ({
+        id: ri.image.id,
+        url: ri.image.url,
+        caption: ri.image.caption,
+      })) || []}
+      stats={{
+        categoryCount,
+        regionCount,
+        listCount,
+        shareWithList: options?.advocacy || false,
+        distribution: release.distribution || null,
+      }}
+    >
       <WizardNav
         releaseUuid={uuid}
         currentStep={6}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
       />
-
-      <ReviewContent
-        releaseUuid={uuid}
-        release={{
-          title: release.title,
-          abstract: release.abstract,
-          body: release.body,
-          pullquote: release.pullquote,
-          location: release.location,
-          releaseAt: release.releaseAt,
-          videoUrl: release.videoUrl,
-          landingPage: release.landingPage,
-        }}
-        company={{
-          logoUrl: release.company?.logoUrl || null,
-          companyName: release.company?.companyName || null,
-        }}
-        contact={{
-          name: release.primaryContact?.name || null,
-          email: release.primaryContact?.email || null,
-        }}
-        banner={release.banner ? {
-          url: release.banner.url,
-        } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        })) || []}
-        stats={{
-          categoryCount,
-          regionCount,
-          listCount,
-          shareWithList: options?.advocacy || false,
-          distribution: release.distribution || null,
-        }}
-      />
-    </div>
+    </ReviewContent>
   )
 }

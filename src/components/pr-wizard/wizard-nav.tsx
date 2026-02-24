@@ -1,10 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { FileText, Image, ImageIcon, Share2, Sparkles, ClipboardCheck, Flag, Check, Eye } from 'lucide-react'
-import { PreviewDialog } from './preview-dialog'
+import { FileText, Image, ImageIcon, Share2, Sparkles, ClipboardCheck, Flag, Check } from 'lucide-react'
 
 interface WizardStep {
   id: number
@@ -45,25 +43,12 @@ interface ReleaseOptions {
   advocacy?: boolean | null
 }
 
-interface Banner {
-  url: string
-  caption?: string | null
-}
-
-interface NewsImage {
-  id: number
-  url: string
-  caption?: string | null
-}
-
 interface WizardNavProps {
   releaseUuid: string
   currentStep: number
   release?: Release
   company?: Company
   releaseOptions?: ReleaseOptions
-  banner?: Banner | null
-  images?: NewsImage[]
 }
 
 function getStepStatus(
@@ -114,13 +99,8 @@ export function WizardNav({
   release,
   company,
   releaseOptions,
-  banner,
-  images,
 }: WizardNavProps) {
-  const [showPreview, setShowPreview] = useState(false)
-
   return (
-    <>
       <nav aria-label="Progress" className="mb-8">
         <ol className="flex items-center">
           {STEPS.map((step, stepIdx) => {
@@ -128,34 +108,24 @@ export function WizardNav({
             const isComplete = isStepComplete(step, release, company, releaseOptions)
             const Icon = step.icon
             const href = step.path ? `/pr/${releaseUuid}${step.path}` : `/pr/${releaseUuid}`
-            const isFinalizeStep = step.id === 7
+
+            // Detect transition line: this step is completed and the next is current
+            const nextStep = stepIdx < STEPS.length - 1 ? STEPS[stepIdx + 1] : null
+            const nextStatus = nextStep ? getStepStatus(nextStep, currentStep, release, company, releaseOptions) : null
+            const isTransitionLine = status === 'completed' && nextStatus === 'current'
 
             return (
               <li
                 key={step.id}
                 className={cn('relative', stepIdx !== STEPS.length - 1 && 'flex-1')}
               >
-                {/* Preview icon above Finalize step */}
-                {isFinalizeStep && (
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2">
-                    <button
-                      onClick={() => setShowPreview(true)}
-                      className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors"
-                      title="Preview"
-                      aria-label="Preview press release"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
-
                 <div className="flex items-center">
                   <Link
                     href={href}
                     className={cn(
                       'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
-                      status === 'completed' && 'bg-green-600 text-white hover:bg-green-700',
-                      status === 'current' && 'bg-blue-600 text-white',
+                      status === 'completed' && 'bg-emerald-600 text-white hover:bg-emerald-700',
+                      status === 'current' && 'bg-cyan-700 text-white wizard-step-current',
                       status === 'upcoming' && !step.optional && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400',
                       status === 'upcoming' && step.optional && 'border-2 border-dashed border-gray-300 bg-white text-gray-400 hover:border-gray-400'
                     )}
@@ -171,8 +141,10 @@ export function WizardNav({
                   {stepIdx !== STEPS.length - 1 && (
                     <div
                       className={cn(
-                        'ml-4 h-0.5 w-full',
-                        status === 'completed' ? 'bg-green-600' : 'bg-gray-200'
+                        'h-0.5 w-full',
+                        isTransitionLine && 'wizard-gradient-line',
+                        !isTransitionLine && status === 'completed' && 'bg-emerald-600',
+                        !isTransitionLine && status !== 'completed' && 'bg-gray-200'
                       )}
                       aria-hidden="true"
                     />
@@ -181,9 +153,9 @@ export function WizardNav({
 
                 <span
                   className={cn(
-                    'absolute -bottom-6 left-0 whitespace-nowrap text-xs font-medium',
-                    status === 'current' && 'text-blue-600',
-                    status === 'completed' && 'text-green-600',
+                    'absolute -bottom-6 left-5 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
+                    status === 'current' && 'text-cyan-700',
+                    status === 'completed' && 'text-emerald-600',
                     status === 'upcoming' && 'text-gray-500'
                   )}
                 >
@@ -196,16 +168,6 @@ export function WizardNav({
         </ol>
         <p className="mt-10 text-xs text-gray-400">* Optional step</p>
       </nav>
-
-      <PreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        release={release}
-        company={company}
-        banner={banner}
-        images={images}
-      />
-    </>
   )
 }
 

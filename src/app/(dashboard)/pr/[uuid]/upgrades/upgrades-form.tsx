@@ -7,8 +7,9 @@ import { Elements } from '@stripe/react-stripe-js'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { WizardActions } from '@/components/pr-wizard/wizard-actions'
+import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { PaymentForm } from '@/components/stripe/payment-form'
-import { CreditCard, Zap, Check, Loader2, Sparkles, AlertCircle, Star, Crown, Rocket, Target, Plus, X, ShoppingCart } from 'lucide-react'
+import { CreditCard, Zap, Check, Loader2, Sparkles, AlertCircle, Star, Crown, Rocket, Target, Plus, X, ShoppingCart, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getStripePublishableKey } from '@/lib/stripe-client'
 
@@ -19,6 +20,7 @@ interface UpgradesFormProps {
   paymentSuccess?: boolean
   paymentCanceled?: boolean
   sessionId?: string | null
+  children?: React.ReactNode
 }
 
 interface Product {
@@ -65,10 +67,10 @@ function getLucideIconComponent(iconName: string | null) {
 }
 
 // Icon component that handles both Lucide and Font Awesome
-function ProductIcon({ iconName, className }: { iconName: string | null; className?: string }) {
+function ProductIcon({ iconName, className, faSize }: { iconName: string | null; className?: string; faSize?: string }) {
   if (isFontAwesomeIcon(iconName)) {
     const faClass = getFontAwesomeClass(iconName!)
-    return <i className={`${faClass} ${className || ''}`} aria-hidden="true" />
+    return <i className={`${faClass} ${faSize || 'text-xl'} ${className || ''}`} aria-hidden="true" />
   }
 
   const LucideIcon = getLucideIconComponent(iconName)
@@ -85,6 +87,7 @@ export function UpgradesForm({
   creditBalance: initialCreditBalance,
   paymentSuccess: initialPaymentSuccess,
   paymentCanceled,
+  children,
 }: UpgradesFormProps) {
   const router = useRouter()
 
@@ -352,6 +355,23 @@ export function UpgradesForm({
 
   return (
     <div className="space-y-6">
+      <WizardHeader
+        title="Upgrades"
+        description="Expand your reach with premium news distribution"
+        releaseUuid={releaseUuid}
+        currentStep={5}
+        isLoading={isLoading}
+        onSubmit={handleContinue}
+        submitLabel={
+          selectedProducts.size > 0
+            ? `Pay ${formatPrice(cartTotal)}`
+            : purchasedProducts.size > 0
+              ? "Continue"
+              : "Skip Upgrades"
+        }
+      />
+      {children}
+
       {/* Payment Status Messages */}
       {paymentSuccess && (
         <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg">
@@ -385,8 +405,9 @@ export function UpgradesForm({
       {/* Product Cards */}
       {hasProducts && (
         <>
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-blue-800 text-sm">
+          <div className="flex items-start gap-3 p-4 bg-cyan-700/5 border border-cyan-600 rounded-lg">
+            <Info className="h-5 w-5 text-cyan-700 mt-0.5 flex-shrink-0" />
+            <p className="text-cyan-800 text-sm">
               Your Newsworthy.ai distribution already includes hundreds of distribution endpoints, full distribution / amplification via Newsramp.com, and SEO / AI optimization. We are pleased to offer the following distribution upgrade options to suit your needs.
             </p>
           </div>
@@ -410,6 +431,12 @@ export function UpgradesForm({
               (hasSelectedSoloUpgrade && !product.isSoloUpgrade)
             )
 
+            const isYahoo = product.type === 'yahoo'
+            const accentRing = isYahoo ? 'ring-2 ring-[#7d2eff]' : 'ring-2 ring-cyan-700'
+            const accentBg = isYahoo ? 'bg-[#7d2eff]' : 'bg-cyan-700'
+            const accentIconBg = isYahoo ? 'bg-[#7d2eff]/10' : 'bg-cyan-100'
+            const accentIconText = isYahoo ? 'text-[#7d2eff]' : 'text-cyan-700'
+
             return (
               <Card
                 key={product.type}
@@ -418,7 +445,7 @@ export function UpgradesForm({
                   isPurchased && 'ring-2 ring-emerald-500 bg-emerald-50',
                   isSelected && !isPurchased && 'ring-2 ring-green-500 bg-green-50',
                   isDisabled && 'opacity-50',
-                  product.label && !isSelected && !isPurchased && 'ring-2 ring-blue-500'
+                  product.label && !isSelected && !isPurchased && accentRing
                 )}
               >
                 {isPurchased && (
@@ -439,7 +466,7 @@ export function UpgradesForm({
                 )}
                 {product.label && !isSelected && !isPurchased && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-blue-500 text-white text-xs px-3 py-1 rounded-full">
+                    <span className={cn(accentBg, "text-white text-xs px-3 py-1 rounded-full")}>
                       {product.label}
                     </span>
                   </div>
@@ -447,12 +474,12 @@ export function UpgradesForm({
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className={cn(
-                      "p-2 rounded-lg flex items-center justify-center w-10 h-10",
-                      isPurchased ? "bg-emerald-100" : isSelected ? "bg-green-100" : "bg-blue-100"
+                      "p-2 rounded-lg flex items-center justify-center w-12 h-12",
+                      isPurchased ? "bg-emerald-100" : isSelected ? "bg-green-100" : isYahoo ? accentIconBg : "bg-cyan-400/10"
                     )}>
-                      <ProductIcon iconName={product.icon} className={cn(
-                        "h-6 w-6",
-                        isPurchased ? "text-emerald-600" : isSelected ? "text-green-600" : "text-blue-600"
+                      <ProductIcon iconName={product.icon} faSize={isYahoo ? "text-3xl" : undefined} className={cn(
+                        "h-8 w-8",
+                        isPurchased ? "text-emerald-600" : isSelected ? "text-green-600" : accentIconText
                       )} />
                     </div>
                     <div className="text-right">
@@ -463,7 +490,7 @@ export function UpgradesForm({
                         </>
                       ) : (
                         <>
-                          <span className="text-2xl font-bold">{product.priceDisplay}</span>
+                          <span className="text-3xl font-bold text-gray-900">{product.priceDisplay}</span>
                           <p className="text-xs text-gray-500">one-time</p>
                         </>
                       )}
@@ -471,7 +498,10 @@ export function UpgradesForm({
                   </div>
                   <CardTitle className="text-lg">{product.name}</CardTitle>
                   {product.description && (
-                    <CardDescription dangerouslySetInnerHTML={{ __html: product.description }} />
+                    <div className={cn(
+                      "prose prose-sm prose-gray max-w-none text-muted-foreground [&_ul]:columns-2 [&_ul]:gap-x-4 [&_li]:break-inside-avoid",
+                      isYahoo ? "[&_li]:marker:text-[#7d2eff]" : "[&_li]:marker:text-cyan-700"
+                    )} dangerouslySetInnerHTML={{ __html: product.description }} />
                   )}
                   {product.isSoloUpgrade && !isPurchased && (
                     <p className="text-xs text-amber-600 mt-1">
@@ -481,10 +511,10 @@ export function UpgradesForm({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {hasCredits && !isPurchased && (
-                    <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className={cn("p-3 rounded-lg", isYahoo ? "bg-[#7d2eff]/10" : "bg-cyan-50")}>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Available credits</span>
-                        <span className="font-medium">{credits}</span>
+                        <span className={cn(isYahoo ? "text-[#7d2eff]" : "text-cyan-800", "font-medium")}>Available credits</span>
+                        <span className={cn("font-bold", isYahoo ? "text-[#7d2eff]" : "text-cyan-800")}>{credits}</span>
                       </div>
                     </div>
                   )}
@@ -503,7 +533,9 @@ export function UpgradesForm({
                       variant={isSelected ? 'outline' : 'default'}
                       className={cn(
                         "w-full",
-                        isSelected && "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        isSelected && "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700",
+                        !isSelected && isYahoo && "bg-[#7d2eff] hover:bg-[#6a27d6]",
+                        !isSelected && !isYahoo && "bg-cyan-800 hover:bg-cyan-900"
                       )}
                       onClick={() => toggleProduct(product.type)}
                       disabled={isLoading || isDisabled}
@@ -587,20 +619,6 @@ export function UpgradesForm({
         </Card>
       )}
 
-      {/* Continue/Checkout section */}
-      <WizardActions
-        releaseUuid={releaseUuid}
-        currentStep={5}
-        isLoading={isLoading}
-        onSubmit={handleContinue}
-        submitLabel={
-          selectedProducts.size > 0
-            ? `Pay ${formatPrice(cartTotal)}`
-            : purchasedProducts.size > 0
-              ? "Continue"
-              : "Skip Upgrades"
-        }
-      />
     </div>
   )
 }

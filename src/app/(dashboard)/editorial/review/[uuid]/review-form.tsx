@@ -115,27 +115,25 @@ export function ReviewForm({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/editorial/queue">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Queue
-            </Button>
-          </Link>
+      <div className="space-y-3">
+        <Link href="/editorial/queue" className="inline-flex items-center text-sm text-cyan-800 hover:text-cyan-900 font-medium">
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back to Queue
+        </Link>
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Review Release</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Review Release</h1>
             <p className="text-gray-500">#{release.id}</p>
           </div>
+          {!isCheckedOut && !isCheckedOutByOther && (
+            <Button onClick={handleCheckout} className="bg-cyan-800 text-white hover:bg-cyan-900">Check Out for Review</Button>
+          )}
+          {isCheckedOutByOther && (
+            <span className="text-sm text-amber-600">
+              Checked out by {queue.editorName}
+            </span>
+          )}
         </div>
-        {!isCheckedOut && !isCheckedOutByOther && (
-          <Button onClick={handleCheckout}>Check Out for Review</Button>
-        )}
-        {isCheckedOutByOther && (
-          <span className="text-sm text-amber-600">
-            Checked out by {queue.editorName}
-          </span>
-        )}
       </div>
 
       {/* Metadata */}
@@ -143,47 +141,75 @@ export function ReviewForm({
         <CardHeader>
           <CardTitle>Release Information</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <Building2 className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-500">Company:</span>
-              <span className="font-medium">{company.companyName}</span>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Building2 className="h-3.5 w-3.5" />
+                Company
+              </div>
+              <p className="text-sm font-medium text-gray-700">{company.companyName}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <User className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-500">Author:</span>
-              <span className="font-medium">{user.email}</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <User className="h-3.5 w-3.5" />
+                Author
+              </div>
+              <p className="text-sm font-medium text-gray-700">{user.email}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-500">Submitted:</span>
-              <span className="font-medium">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Calendar className="h-3.5 w-3.5" />
+                Submitted
+              </div>
+              <p className="text-sm font-medium text-gray-700">
                 {queue.submitted ? new Date(queue.submitted).toLocaleDateString() : 'N/A'}
-              </span>
+              </p>
             </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Calendar className="h-4 w-4 text-gray-400" />
-              <span className="text-gray-500">Release Date:</span>
-              <span className="font-medium">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                <Calendar className="h-3.5 w-3.5" />
+                Release Date
+              </div>
+              <p className="text-sm font-medium text-gray-700">
                 {release.releaseAt ? new Date(release.releaseAt).toLocaleDateString() : 'Immediate'}
-              </span>
+              </p>
             </div>
-            {categoryNames.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <Tag className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500">Category:</span>
-                <span className="font-medium">{categoryNames.join(', ')}</span>
-              </div>
-            )}
-            {regionNames.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-500">Region:</span>
-                <span className="font-medium">{regionNames.join(', ')}</span>
-              </div>
-            )}
           </div>
+          {(categoryNames.length > 0 || regionNames.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+              {categoryNames.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Tag className="h-3.5 w-3.5" />
+                    Category
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {categoryNames.map((name) => (
+                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {regionNames.length > 0 && (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <MapPin className="h-3.5 w-3.5" />
+                    Region
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {regionNames.map((name) => (
+                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -192,13 +218,13 @@ export function ReviewForm({
         <CardHeader>
           <CardTitle>{release.title || 'Untitled Release'}</CardTitle>
           {release.abstract && (
-            <CardDescription className="text-base">{release.abstract}</CardDescription>
+            <CardDescription className="text-base text-gray-700">{release.abstract}</CardDescription>
           )}
         </CardHeader>
         <CardContent>
           {release.body ? (
             <div
-              className="prose prose-sm max-w-none"
+              className="prose prose-sm prose-gray max-w-none prose-a:text-cyan-800"
               dangerouslySetInnerHTML={{ __html: release.body }}
             />
           ) : (
@@ -222,7 +248,7 @@ export function ReviewForm({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Add notes for the author or internal reference..."
-                className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-gray-700 placeholder:text-gray-400 placeholder:text-xs"
               />
             </div>
 
@@ -230,7 +256,7 @@ export function ReviewForm({
               <Button
                 onClick={() => handleAction('approve')}
                 disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
               >
                 {isLoading && action === 'approve' ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -243,7 +269,7 @@ export function ReviewForm({
               <Button
                 onClick={() => handleAction('reject')}
                 disabled={isLoading}
-                variant="destructive"
+                className="bg-red-600 text-white hover:bg-red-700"
               >
                 {isLoading && action === 'reject' ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

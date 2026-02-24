@@ -83,39 +83,25 @@ export default async function FinalizePage({
   }))
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Finalize</h1>
-        <p className="text-gray-500">
-          Submit your press release for distribution
-        </p>
-      </div>
-
-      <WizardNav
-        releaseUuid={uuid}
-        currentStep={7}
-        release={release}
-        company={release.company || undefined}
-        releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
-      />
-
-      <ApprovalSection
-        releaseUuid={uuid}
-        approvals={serializedApprovals}
-        priorApprovers={priorApprovers.filter((p) => p.email)}
-      />
-
+    <div className="space-y-6">
       <FinalizeContent
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
         distribution={release.distribution}
-      />
+      >
+        <WizardNav
+          releaseUuid={uuid}
+          currentStep={7}
+          release={release}
+          company={release.company || undefined}
+          releaseOptions={options || undefined}
+        />
+        <ApprovalSection
+          releaseUuid={uuid}
+          approvals={serializedApprovals}
+          priorApprovers={priorApprovers.filter((p) => p.email)}
+        />
+      </FinalizeContent>
     </div>
   )
 }

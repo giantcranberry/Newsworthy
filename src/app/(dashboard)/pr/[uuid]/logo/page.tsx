@@ -50,33 +50,18 @@ export default async function LogoPage({
   const options = release.id ? await getReleaseOptions(release.id) : null
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Brand Logo</h1>
-        <p className="text-gray-500">
-          Logo for {release.company?.companyName}
-        </p>
-      </div>
-
+    <LogoForm
+      releaseUuid={uuid}
+      currentLogoUrl={release.company?.logoUrl || null}
+      companyName={release.company?.companyName || ''}
+    >
       <WizardNav
         releaseUuid={uuid}
         currentStep={2}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
       />
-
-      <LogoForm
-        releaseUuid={uuid}
-        currentLogoUrl={release.company?.logoUrl || null}
-        companyName={release.company?.companyName || ''}
-      />
-    </div>
+    </LogoForm>
   )
 }

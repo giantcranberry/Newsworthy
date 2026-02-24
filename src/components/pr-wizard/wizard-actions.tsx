@@ -103,6 +103,7 @@ export function WizardActions({
           type={onSubmit ? 'button' : 'submit'}
           onClick={onSubmit ? handleNext : undefined}
           disabled={isLoading || !canProceed}
+          className="bg-cyan-800 text-white hover:bg-cyan-900 disabled:opacity-50"
         >
           {isLoading ? (
             <>

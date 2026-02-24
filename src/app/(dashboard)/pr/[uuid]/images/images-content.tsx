@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import {
@@ -20,13 +20,13 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ImageCropper } from '@/components/image-cropper'
-import { WizardActions } from '@/components/pr-wizard/wizard-actions'
+import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import {
   ImageIcon,
   X,
@@ -77,6 +77,7 @@ interface ImagesContentProps {
   banner: BannerRecord | null
   releaseTitle: string
   bannerLibrary: BannerRecord[]
+  children?: React.ReactNode
 }
 
 function resizedUrl(url: string) {
@@ -262,6 +263,7 @@ export function ImagesContent({
   banner,
   releaseTitle,
   bannerLibrary,
+  children,
 }: ImagesContentProps) {
   const router = useRouter()
 
@@ -277,6 +279,13 @@ export function ImagesContent({
   const [pendingPreview, setPendingPreview] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newCredits, setNewCredits] = useState('')
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState('social-banner')
+
+  // Dropzone state
+  const [isDragOverImage, setIsDragOverImage] = useState(false)
+  const [isDragOverBanner, setIsDragOverBanner] = useState(false)
 
   // Social Banner state
   const bannerFileInputRef = useRef<HTMLInputElement>(null)
@@ -309,12 +318,7 @@ export function ImagesContent({
   )
 
   // News Images handlers
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    e.target.value = ''
-
+  const processImageFile = useCallback((file: File) => {
     if (file.size > 5 * 1024 * 1024) {
       setImageError('Image must be under 5MB')
       return
@@ -330,7 +334,34 @@ export function ImagesContent({
     setPendingPreview(URL.createObjectURL(file))
     setNewTitle('')
     setNewCredits('')
+  }, [])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    processImageFile(file)
   }
+
+  const handleImageDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverImage(true)
+  }, [])
+
+  const handleImageDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverImage(false)
+  }, [])
+
+  const handleImageDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverImage(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) processImageFile(file)
+  }, [processImageFile])
 
   const handleMetadataSubmit = async () => {
     if (!pendingFile) return
@@ -488,10 +519,7 @@ export function ImagesContent({
   }
 
   // Social Banner handlers
-  const handleBannerFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const processBannerFile = useCallback((file: File) => {
     setBannerError(null)
 
     if (file.size > 10 * 1024 * 1024) {
@@ -522,9 +550,34 @@ export function ImagesContent({
       img.src = dataUrl
     }
     reader.readAsDataURL(file)
+  }, [])
 
+  const handleBannerFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
     e.target.value = ''
+    processBannerFile(file)
   }
+
+  const handleBannerDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverBanner(true)
+  }, [])
+
+  const handleBannerDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverBanner(false)
+  }, [])
+
+  const handleBannerDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOverBanner(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) processBannerFile(file)
+  }, [processBannerFile])
 
   const handleCropComplete = (croppedFile: File, croppedPreview: string) => {
     setBannerFile(croppedFile)
@@ -630,6 +683,16 @@ export function ImagesContent({
 
   return (
     <div className="space-y-6">
+      <WizardHeader
+        title="Images"
+        description="Add news images and social media banner for your press release"
+        releaseUuid={releaseUuid}
+        currentStep={3}
+        isLoading={isLoadingBanner}
+        onSubmit={handleContinue}
+        canProceed={!!displayBanner}
+      />
+      {children}
       <input
         ref={newsImageFileInputRef}
         type="file"
@@ -654,19 +717,35 @@ export function ImagesContent({
         />
       )}
 
-      <Tabs defaultValue="social-banner" className="w-full">
-        <TabsList className="w-full">
-          <TabsTrigger value="social-banner" className="flex-1">
-            <Share2 className="h-4 w-4 mr-2" />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex w-full rounded-lg bg-gray-100 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab('social-banner')}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'social-banner'
+                ? 'bg-cyan-700 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Share2 className="h-4 w-4" />
             Social Banner
-            <span className="text-red-500 ml-0.5">*</span>
-          </TabsTrigger>
-          <TabsTrigger value="news-images" className="flex-1">
-            <ImageIcon className="h-4 w-4 mr-2" />
+            <span className={activeTab === 'social-banner' ? 'text-red-300' : 'text-red-400'}>*</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('news-images')}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+              activeTab === 'news-images'
+                ? 'bg-cyan-700 text-white shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <ImageIcon className="h-4 w-4" />
             News Images
-            <span className="text-gray-400 ml-1 text-xs">(Optional)</span>
-          </TabsTrigger>
-        </TabsList>
+            <span className={`text-xs ${activeTab === 'news-images' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
+          </button>
+        </div>
 
         <TabsContent value="news-images" className="mt-6">
           <Card>
@@ -690,26 +769,6 @@ export function ImagesContent({
                       {showImageLibrary ? 'Hide Library' : 'Image Library'}
                     </Button>
                   )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="ml-5"
-                    onClick={() => newsImageFileInputRef.current?.click()}
-                    disabled={isUploadingImage}
-                  >
-                    {isUploadingImage ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="h-4 w-4" />
-                        Upload Image
-                      </>
-                    )}
-                  </Button>
                 </div>
               </div>
             </CardHeader>
@@ -802,7 +861,7 @@ export function ImagesContent({
                 </div>
               )}
 
-              {releaseImages.length > 0 ? (
+              {releaseImages.length > 0 && (
                 <DndContext
                   sensors={sensors}
                   collisionDetection={closestCenter}
@@ -830,15 +889,28 @@ export function ImagesContent({
                     </div>
                   </SortableContext>
                 </DndContext>
-              ) : (
+              )}
+
+              {!pendingFile && (
                 <div
-                  className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-gray-300 transition-colors"
                   onClick={() => newsImageFileInputRef.current?.click()}
+                  onDragOver={handleImageDragOver}
+                  onDragLeave={handleImageDragLeave}
+                  onDrop={handleImageDrop}
+                  className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                    isDragOverImage
+                      ? 'border-cyan-700 bg-cyan-50'
+                      : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                  }`}
                 >
-                  <ImageIcon className="h-12 w-12 mb-3" />
-                  <p className="text-sm font-medium text-gray-500">No images added yet</p>
+                  <div className="rounded-full bg-gray-100 p-3 mb-3">
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Drop an image here, or <span className="text-cyan-700">browse</span>
+                  </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    Click to upload or use the Image Library button above
+                    JPEG, PNG, or WebP up to 5MB
                   </p>
                 </div>
               )}
@@ -872,56 +944,38 @@ export function ImagesContent({
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {displayBanner ? (
-                  <div className="relative w-full" style={{ aspectRatio: '1200/630' }}>
-                    <div className="absolute inset-0 border rounded-lg overflow-hidden bg-gray-50">
-                      <Image
-                        src={displayBanner}
-                        alt="Social media banner"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                      {bannerPreview && (
-                        <div className="absolute top-3 right-3">
-                          <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                            <Check className="h-3 w-3" />
-                            New
-                          </span>
-                        </div>
-                      )}
-                      {isLoadingBanner && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                        </div>
-                      )}
+              {displayBanner && (
+                <div className="relative rounded-lg overflow-hidden border bg-gray-50" style={{ aspectRatio: '1200/630' }}>
+                  <Image
+                    src={displayBanner}
+                    alt="Social media banner"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  {bannerPreview && (
+                    <div className="absolute top-3 right-3">
+                      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+                        <Check className="h-3 w-3" />
+                        New
+                      </span>
                     </div>
-                  </div>
-                ) : (
-                  <div
-                    className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 text-gray-400"
-                    style={{ aspectRatio: '1200/630' }}
-                  >
-                    <Share2 className="h-12 w-12 mb-2" />
-                    <p className="text-sm">1200 x 630 pixels</p>
-                  </div>
-                )}
+                  )}
+                  {isLoadingBanner && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+                    </div>
+                  )}
+                </div>
+              )}
 
+              {displayBanner && (
                 <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => bannerFileInputRef.current?.click()}
-                    disabled={isLoadingBanner}
-                  >
-                    <Upload className="h-4 w-4" />
-                    {displayBanner ? 'Replace Banner' : 'Upload Banner'}
-                  </Button>
                   {availableLibraryBanners.length > 0 && (
                     <Button
                       type="button"
                       variant="outline"
+                      size="sm"
                       onClick={() => setShowBannerLibrary(!showBannerLibrary)}
                       disabled={isLoadingBanner}
                     >
@@ -934,58 +988,92 @@ export function ImagesContent({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={handleRecrop}
+                      onClick={() => handleRecrop()}
                       disabled={isLoadingBanner}
                     >
                       <Crop className="h-4 w-4" />
                       Re-crop
                     </Button>
                   )}
-                  {displayBanner && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRemoveBanner}
-                      className="text-gray-500"
-                      disabled={isLoadingBanner}
-                    >
-                      <X className="h-4 w-4" />
-                      Remove
-                    </Button>
-                  )}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveBanner()}
+                    className="text-gray-500"
+                    disabled={isLoadingBanner}
+                  >
+                    <X className="h-4 w-4" />
+                    Remove
+                  </Button>
                 </div>
+              )}
 
-                {showBannerLibrary && availableLibraryBanners.length > 0 && (
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your banner library</h4>
-                    <div className="grid grid-cols-3 gap-3">
-                      {availableLibraryBanners.map((b) => (
-                        <button
-                          key={b.id}
-                          type="button"
-                          onClick={() => handleSelectFromBannerLibrary(b)}
-                          disabled={isLoadingBanner}
-                          className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-blue-400 transition-colors"
-                          style={{ aspectRatio: '1200/630' }}
-                        >
-                          <Image
-                            src={resizedUrl(b.url)}
-                            alt={b.title || 'Banner image'}
-                            fill
-                            className="object-cover"
-                          />
-                          {b.title && (
-                            <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
-                              <p className="text-xs text-white truncate">{b.title}</p>
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <div
+                onClick={() => bannerFileInputRef.current?.click()}
+                onDragOver={handleBannerDragOver}
+                onDragLeave={handleBannerDragLeave}
+                onDrop={handleBannerDrop}
+                className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                  isDragOverBanner
+                    ? 'border-cyan-700 bg-cyan-50'
+                    : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                }`}
+              >
+                <div className="rounded-full bg-gray-100 p-3 mb-3">
+                  <Upload className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-sm font-medium text-gray-700">
+                  {displayBanner ? 'Drop a new banner here, or ' : 'Drop your banner here, or '}
+                  <span className="text-cyan-700">browse</span>
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  PNG, JPEG, or WebP up to 10MB &middot; 1200 x 630px recommended
+                </p>
               </div>
+
+              {availableLibraryBanners.length > 0 && !displayBanner && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBannerLibrary(!showBannerLibrary)}
+                  disabled={isLoadingBanner}
+                >
+                  <Library className="h-4 w-4" />
+                  {showBannerLibrary ? 'Hide Library' : 'Banner Library'}
+                </Button>
+              )}
+
+              {showBannerLibrary && availableLibraryBanners.length > 0 && (
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your banner library</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {availableLibraryBanners.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => handleSelectFromBannerLibrary(b)}
+                        disabled={isLoadingBanner}
+                        className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                        style={{ aspectRatio: '1200/630' }}
+                      >
+                        <Image
+                          src={resizedUrl(b.url)}
+                          alt={b.title || 'Banner image'}
+                          fill
+                          className="object-cover"
+                        />
+                        {b.title && (
+                          <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
+                            <p className="text-xs text-white truncate">{b.title}</p>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {displayBanner && (
                 <div className="space-y-4 pt-4 border-t">
@@ -1022,13 +1110,6 @@ export function ImagesContent({
         </TabsContent>
       </Tabs>
 
-      <WizardActions
-        releaseUuid={releaseUuid}
-        currentStep={3}
-        isLoading={isLoadingBanner}
-        onSubmit={handleContinue}
-        canProceed={!!displayBanner}
-      />
     </div>
   )
 }

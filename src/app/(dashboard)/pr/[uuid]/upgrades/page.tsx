@@ -79,36 +79,21 @@ export default async function UpgradesPage({
   const creditBalance = await getCreditBalance(userId, release.companyId)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Upgrades</h1>
-        <p className="text-gray-500">
-          Expand your reach with premium news distribution
-        </p>
-      </div>
-
+    <UpgradesForm
+      releaseUuid={uuid}
+      distribution={release.distribution || null}
+      creditBalance={creditBalance}
+      paymentSuccess={success === 'true'}
+      paymentCanceled={canceled === 'true'}
+      sessionId={session_id || null}
+    >
       <WizardNav
         releaseUuid={uuid}
         currentStep={5}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
       />
-
-      <UpgradesForm
-        releaseUuid={uuid}
-        distribution={release.distribution || null}
-        creditBalance={creditBalance}
-        paymentSuccess={success === 'true'}
-        paymentCanceled={canceled === 'true'}
-        sessionId={session_id || null}
-      />
-    </div>
+    </UpgradesForm>
   )
 }

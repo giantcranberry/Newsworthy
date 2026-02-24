@@ -71,35 +71,20 @@ export default async function SharePage({
   const listCount = await getListCount(release.companyId)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Share with My List</h1>
-        <p className="text-gray-500">
-          Share this release with your subscribers
-        </p>
-      </div>
-
+    <ShareForm
+      releaseUuid={uuid}
+      companyUuid={release.company?.uuid || ''}
+      shareWithList={options?.advocacy || false}
+      companyName={release.company?.companyName || ''}
+      listCount={listCount}
+    >
       <WizardNav
         releaseUuid={uuid}
         currentStep={4}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages?.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
       />
-
-      <ShareForm
-        releaseUuid={uuid}
-        companyUuid={release.company?.uuid || ''}
-        shareWithList={options?.advocacy || false}
-        companyName={release.company?.companyName || ''}
-        listCount={listCount}
-      />
-    </div>
+    </ShareForm>
   )
 }

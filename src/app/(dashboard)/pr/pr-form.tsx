@@ -133,6 +133,7 @@ interface PRFormProps {
   readOnly?: boolean;
   pageTitle?: string;
   pageDescription?: string;
+  children?: React.ReactNode;
   initialData?: {
     id?: number;
     uuid?: string;
@@ -173,6 +174,7 @@ export function PRForm({
   readOnly = false,
   pageTitle = "Press Release",
   pageDescription,
+  children,
   initialData,
 }: PRFormProps) {
   const router = useRouter();
@@ -670,14 +672,14 @@ export function PRForm({
   };
 
   return (
-    <div className="-mt-6 space-y-8">
+    <div className="-mt-6">
       {/* Sticky Action Bar */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{pageTitle}</h1>
+            <h1 className="text-2xl font-bold text-gray-800 truncate">{pageTitle}</h1>
             {pageDescription && (
-              <p className="text-sm text-gray-600 mt-0.5">{pageDescription}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{pageDescription}</p>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -736,6 +738,9 @@ export function PRForm({
           </div>
         </div>
       </div>
+
+      <div className="max-w-4xl space-y-8 mt-8">
+      {children}
 
       {readOnly && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-2">
@@ -1817,6 +1822,7 @@ export function PRForm({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

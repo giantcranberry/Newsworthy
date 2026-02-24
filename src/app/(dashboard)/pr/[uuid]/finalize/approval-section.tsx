@@ -209,7 +209,7 @@ export function ApprovalSection({
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-gray-700">Approval History</h3>
             {/* Legend */}
-            <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+            <div className="flex flex-wrap gap-4 text-xs text-gray-600">
               <span className="flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Approved
               </span>
@@ -243,12 +243,12 @@ export function ApprovalSection({
                         <span className="text-sm font-medium">
                           {approval.emailTo || 'Unknown'}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-gray-600">
                           {approval.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-600">
                           {formatDate(approval.requestedAt)}
                         </span>
                         {isPending && (
@@ -280,12 +280,12 @@ export function ApprovalSection({
                       </div>
                     )}
                     {approval.notes && (
-                      <p className="text-xs text-gray-500 ml-6">
+                      <p className="text-xs text-gray-600 ml-6">
                         Notes: {approval.notes}
                       </p>
                     )}
                     {approval.signedAt && (
-                      <div className="ml-6 text-xs text-gray-500 space-y-0.5">
+                      <div className="ml-6 text-xs text-gray-600 space-y-0.5">
                         {approval.signature && (
                           <p>Signature: {approval.signature}</p>
                         )}
@@ -322,7 +322,7 @@ export function ApprovalSection({
                         onChange={() => handleAnswer(q.id, 'yes')}
                         className="h-4 w-4 text-blue-600 border-gray-300"
                       />
-                      <span className="text-sm">Yes</span>
+                      <span className="text-sm text-gray-900">Yes</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -333,7 +333,7 @@ export function ApprovalSection({
                         onChange={() => handleAnswer(q.id, 'no')}
                         className="h-4 w-4 text-blue-600 border-gray-300"
                       />
-                      <span className="text-sm">No</span>
+                      <span className="text-sm text-gray-900">No</span>
                     </label>
                   </div>
                 </div>
@@ -449,7 +449,7 @@ export function ApprovalSection({
             </div>
 
             {/* Warning */}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               The approval link will give the recipient access to view the full
               press release content. Only send to trusted stakeholders.
             </p>

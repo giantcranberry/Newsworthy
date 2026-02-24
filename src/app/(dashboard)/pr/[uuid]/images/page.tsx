@@ -84,36 +84,21 @@ export default async function ImagesPage({
   }))
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Images</h1>
-        <p className="text-gray-500">
-          Add news images and social media banner for your press release
-        </p>
-      </div>
-
+    <ImagesContent
+      releaseUuid={uuid}
+      releaseImages={formReleaseImages}
+      imageLibrary={imageLibrary}
+      banner={release.banner || null}
+      releaseTitle={release.title || ''}
+      bannerLibrary={bannerLibrary}
+    >
       <WizardNav
         releaseUuid={uuid}
         currentStep={3}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}
-        banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-        images={release.releaseImages.map(ri => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
       />
-
-      <ImagesContent
-        releaseUuid={uuid}
-        releaseImages={formReleaseImages}
-        imageLibrary={imageLibrary}
-        banner={release.banner || null}
-        releaseTitle={release.title || ''}
-        bannerLibrary={bannerLibrary}
-      />
-    </div>
+    </ImagesContent>
   )
 }

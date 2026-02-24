@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { WizardActions } from '@/components/pr-wizard/wizard-actions'
+import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { Share2, X, Check, Users, Plus, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,6 +16,7 @@ interface ShareFormProps {
   shareWithList: boolean
   companyName: string
   listCount: number
+  children?: React.ReactNode
 }
 
 export function ShareForm({
@@ -24,6 +25,7 @@ export function ShareForm({
   shareWithList: initialShareWithList,
   companyName,
   listCount: initialListCount,
+  children,
 }: ShareFormProps) {
   const router = useRouter()
   const [shareWithList, setShareWithList] = useState(initialShareWithList)
@@ -98,6 +100,17 @@ export function ShareForm({
 
   return (
     <div className="space-y-6">
+      <WizardHeader
+        title="Share with My List"
+        description="Share this release with your subscribers"
+        releaseUuid={releaseUuid}
+        currentStep={4}
+        isLoading={isLoading}
+        onSubmit={handleSubmit}
+        canProceed={true}
+      />
+      {children}
+
       {/* Add to My List Card */}
       <Card>
         <CardHeader>
@@ -208,25 +221,25 @@ export function ShareForm({
               className={cn(
                 'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
                 shareWithList
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-emerald-600 bg-emerald-50'
                   : 'border-gray-200 hover:border-gray-300',
                 listCount === 0 && 'opacity-50 cursor-not-allowed'
               )}
             >
               {shareWithList && (
                 <div className="absolute top-3 right-3">
-                  <div className="bg-blue-500 text-white p-1 rounded-full">
+                  <div className="bg-emerald-600 text-white p-1 rounded-full">
                     <Check className="h-3 w-3" />
                   </div>
                 </div>
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                shareWithList ? 'bg-blue-100' : 'bg-gray-100'
+                shareWithList ? 'bg-emerald-100' : 'bg-gray-100'
               )}>
                 <Share2 className={cn(
                   'h-6 w-6',
-                  shareWithList ? 'text-blue-600' : 'text-gray-500'
+                  shareWithList ? 'text-emerald-600' : 'text-gray-500'
                 )} />
               </div>
               <h3 className="font-medium text-gray-900 mb-1">
@@ -247,24 +260,24 @@ export function ShareForm({
               className={cn(
                 'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
                 !shareWithList
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-emerald-600 bg-emerald-50'
                   : 'border-gray-200 hover:border-gray-300'
               )}
             >
               {!shareWithList && (
                 <div className="absolute top-3 right-3">
-                  <div className="bg-blue-500 text-white p-1 rounded-full">
+                  <div className="bg-emerald-600 text-white p-1 rounded-full">
                     <Check className="h-3 w-3" />
                   </div>
                 </div>
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                !shareWithList ? 'bg-blue-100' : 'bg-gray-100'
+                !shareWithList ? 'bg-emerald-100' : 'bg-gray-100'
               )}>
                 <X className={cn(
                   'h-6 w-6',
-                  !shareWithList ? 'text-blue-600' : 'text-gray-500'
+                  !shareWithList ? 'text-emerald-600' : 'text-gray-500'
                 )} />
               </div>
               <h3 className="font-medium text-gray-900 mb-1">
@@ -289,13 +302,6 @@ export function ShareForm({
         </CardContent>
       </Card>
 
-      <WizardActions
-        releaseUuid={releaseUuid}
-        currentStep={4}
-        isLoading={isLoading}
-        onSubmit={handleSubmit}
-        canProceed={true}
-      />
     </div>
   )
 }

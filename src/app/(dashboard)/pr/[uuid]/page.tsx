@@ -124,71 +124,17 @@ export default async function PRDetailPage({
 
   const showWizardComplete = wizard === "complete";
 
+  const isReadOnly = ["editorial", "approved", "sent"].includes(release.status || "");
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {showWizardComplete && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h3 className="font-medium text-green-800">Wizard Complete!</h3>
-          <p className="text-sm text-green-700 mt-1">
-            Your press release is ready. You can continue editing below or
-            submit for review.
-          </p>
-        </div>
-      )}
-
-      {submitted === "true" && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="font-medium text-blue-800">Submitted for Review</h3>
-          <p className="text-sm text-blue-700 mt-1">
-            Your press release has been submitted to our editorial team for
-            review.
-          </p>
-        </div>
-      )}
-
-      {isEditorial && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
-          <div>
-            <h3 className="font-medium text-amber-800">In Editorial Review</h3>
-            <p className="text-sm text-amber-700 mt-1">
-              {canRetract
-                ? "This release is awaiting editorial review. You can retract it to make changes."
-                : "This release is currently being reviewed by an editor and cannot be edited."}
-            </p>
-          </div>
-          {canRetract && (
-            <RetractReleaseButton uuid={release.uuid!} title={release.title} />
-          )}
-        </div>
-      )}
-
-      <WizardNav
-        releaseUuid={uuid}
-        currentStep={1}
-        release={release}
-        company={release.company || undefined}
-        releaseOptions={options || undefined}
-        banner={
-          release.banner
-            ? { url: release.banner.url, caption: release.banner.caption }
-            : null
-        }
-        images={release.releaseImages?.map((ri) => ({
-          id: ri.image.id,
-          url: ri.image.url,
-          caption: ri.image.caption,
-        }))}
-      />
-
+    <div className="space-y-6">
       <PRForm
         companies={companies}
         categories={categories}
         topCategories={topCategories}
         regions={regions}
-        readOnly={["editorial", "approved", "sent"].includes(
-          release.status || "",
-        )}
-        pageTitle={`${["editorial", "approved", "sent"].includes(release.status || "") ? "View" : "Edit"} Press Release`}
+        readOnly={isReadOnly}
+        pageTitle={`${isReadOnly ? "View" : "Edit"} Press Release`}
         pageDescription={`Status: ${release.status?.replace("_", " ")}`}
         initialData={{
           id: release.id,
@@ -210,7 +156,53 @@ export default async function PRDetailPage({
           selectedRegions,
           topcat,
         }}
-      />
+      >
+        <div className="space-y-4">
+          {showWizardComplete && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <h3 className="font-medium text-green-800">Wizard Complete!</h3>
+              <p className="text-sm text-green-700 mt-1">
+                Your press release is ready. You can continue editing below or
+                submit for review.
+              </p>
+            </div>
+          )}
+
+          {submitted === "true" && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-medium text-blue-800">Submitted for Review</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Your press release has been submitted to our editorial team for
+                review.
+              </p>
+            </div>
+          )}
+
+          {isEditorial && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-amber-800">In Editorial Review</h3>
+                <p className="text-sm text-amber-700 mt-1">
+                  {canRetract
+                    ? "This release is awaiting editorial review. You can retract it to make changes."
+                    : "This release is currently being reviewed by an editor and cannot be edited."}
+                </p>
+              </div>
+              {canRetract && (
+                <RetractReleaseButton uuid={release.uuid!} title={release.title} />
+              )}
+            </div>
+          )}
+
+          <WizardNav
+            releaseUuid={uuid}
+            currentStep={1}
+            release={release}
+            company={release.company || undefined}
+            releaseOptions={options || undefined}
+          />
+        </div>
+      </PRForm>
     </div>
   );
 }
