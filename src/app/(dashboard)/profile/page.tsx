@@ -1,10 +1,14 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { userProfiles, userSubscription } from '@/db/schema'
+import { users, userProfiles, userSubscription } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProfileForm } from './profile-form'
 
 async function getUserProfile(userId: number) {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+  })
+
   const profile = await db.query.userProfiles.findFirst({
     where: eq(userProfiles.userId, userId),
   })
@@ -13,18 +17,19 @@ async function getUserProfile(userId: number) {
     where: eq(userSubscription.userId, userId),
   })
 
-  return { profile, subscription }
+  return { user, profile, subscription }
 }
 
 export default async function ProfilePage() {
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
 
-  const { profile, subscription } = await getUserProfile(userId)
+  const { user, profile, subscription } = await getUserProfile(userId)
 
   return (
     <ProfileForm
       email={session?.user?.email || ''}
+      hasPassword={!!user?.passwordHash}
       initialData={{
         firstName: profile?.firstName || '',
         lastName: profile?.lastName || '',

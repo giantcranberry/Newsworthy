@@ -1,175 +1,127 @@
-import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { db } from "@/db";
-import {
-  cartSessions,
-  cartTransactions,
-  userSubscription,
-  cartItems,
-} from "@/db/schema";
-import { eq } from "drizzle-orm";
-import Stripe from "stripe";
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY is not set");
-  return new Stripe(key, { apiVersion: "2025-12-15.clover" });
-}
-
-function getWebhookSecret() {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) throw new Error("STRIPE_WEBHOOK_SECRET is not set");
-  return secret;
-}
+import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
+import { db } from '@/db'
+import { carts, products, brandCredits, payfile } from '@/db/schema'
+import { eq, and, isNull } from 'drizzle-orm'
+import { getStripe, getWebhookSecret } from '@/lib/stripe'
+import type Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
-  const stripe = getStripe();
-  const webhookSecret = getWebhookSecret();
-  const body = await request.text();
-  const headersList = await headers();
-  const signature = headersList.get("stripe-signature");
+  const stripe = await getStripe()
+  const webhookSecret = await getWebhookSecret()
+  const body = await request.text()
+  const headersList = await headers()
+  const signature = headersList.get('stripe-signature')
 
   if (!signature) {
-    return NextResponse.json({ error: "No signature" }, { status: 400 });
+    return NextResponse.json({ error: 'No signature' }, { status: 400 })
   }
 
-  let event: Stripe.Event;
+  let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
-    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+    console.error('Webhook signature verification failed:', err)
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        const paymentIntentId = paymentIntent.id
+        const metadata = paymentIntent.metadata || {}
+        const cartUuid = metadata.cart_uuid
+        const partnerId = parseInt(metadata.partner_id || '1')
 
-        const userId = parseInt(session.metadata?.userId || "0");
-        const cartSessionId = parseInt(session.metadata?.cartSessionId || "0");
-        const productId = parseInt(session.metadata?.productId || "0");
+        console.log(`[Webhook] payment_intent.succeeded: ${paymentIntentId}`)
 
-        if (cartSessionId) {
-          // Update cart session
-          await db
-            .update(cartSessions)
-            .set({
-              status: "completed",
-              completedAt: new Date(),
-              stripePaymentIntentId: session.payment_intent as string,
+        // Atomic claim: only fulfill items not yet fulfilled.
+        // UPDATE ... WHERE fulfilledAt IS NULL prevents double-crediting
+        // if Stripe delivers the webhook more than once.
+        const claimed = await db
+          .update(carts)
+          .set({ fulfilledAt: new Date(), paidAt: new Date() })
+          .where(
+            and(
+              eq(carts.paymentIntent, paymentIntentId),
+              isNull(carts.fulfilledAt),
+            ),
+          )
+          .returning()
+
+        if (claimed.length === 0) {
+          console.log('[Webhook] Already fulfilled or no cart items for:', paymentIntentId)
+          break
+        }
+
+        const userId = claimed[0].userId
+        if (!userId) break
+
+        // Create BrandCredits for each claimed item
+        for (const item of claimed) {
+          if (!item.productId) continue
+
+          const product = await db.query.products.findFirst({
+            where: eq(products.id, item.productId),
+          })
+
+          if (product) {
+            await db.insert(brandCredits).values({
+              userId,
+              companyId: item.companyId || null,
+              credits: product.productCredits || 1,
+              productType: product.productType || 'pr',
+              notes: `Purchase: ${product.shortName || product.displayName}`,
+              createdAt: new Date(),
             })
-            .where(eq(cartSessions.id, cartSessionId));
-
-          // Record transaction
-          await db.insert(cartTransactions).values({
-            sessionId: cartSessionId,
-            transactionType: "payment",
-            status: "succeeded",
-            amount: session.amount_total || 0,
-            currency: session.currency || "usd",
-            stripePaymentIntentId: session.payment_intent as string,
-            customerEmail: session.customer_email || undefined,
-            processedAt: new Date(),
-          });
-
-          // Get cart items to determine credits to add
-          const items = await db.query.cartItems.findMany({
-            where: eq(cartItems.sessionId, cartSessionId),
-          });
-
-          // Add credits to user subscription
-          for (const item of items) {
-            if (item.productCredits && userId) {
-              // Get current subscription
-              const sub = await db.query.userSubscription.findFirst({
-                where: eq(userSubscription.userId, userId),
-              });
-
-              if (sub) {
-                const updates: Record<string, number> = {};
-
-                if (
-                  item.productType === "pr" ||
-                  item.productType === "credits"
-                ) {
-                  updates.remainingPr =
-                    (sub.remainingPr || 0) + item.productCredits;
-                } else if (item.productType === "enhanced") {
-                  updates.remainingPluspr =
-                    (sub.remainingPluspr || 0) + item.productCredits;
-                } else if (item.productType === "newsdb") {
-                  updates.newsdbCredits =
-                    (sub.newsdbCredits || 0) + item.productCredits;
-                }
-
-                if (Object.keys(updates).length > 0) {
-                  await db
-                    .update(userSubscription)
-                    .set(updates)
-                    .where(eq(userSubscription.userId, userId));
-                }
-              } else {
-                // Create subscription record
-                const newSub: Record<string, number | null> = {
-                  userId,
-                  remainingPr: 0,
-                  remainingPluspr: 0,
-                  newsdbCredits: 0,
-                };
-
-                if (
-                  item.productType === "pr" ||
-                  item.productType === "credits"
-                ) {
-                  newSub.remainingPr = item.productCredits;
-                } else if (item.productType === "enhanced") {
-                  newSub.remainingPluspr = item.productCredits;
-                } else if (item.productType === "newsdb") {
-                  newSub.newsdbCredits = item.productCredits;
-                }
-
-                await db.insert(userSubscription).values(newSub as any);
-              }
-            }
           }
         }
-        break;
+
+        // Create payfile record for receipt tracking
+        let receiptUrl: string | null = null
+        const latestChargeId = paymentIntent.latest_charge
+        if (latestChargeId && typeof latestChargeId === 'string') {
+          try {
+            const charge = await stripe.charges.retrieve(latestChargeId)
+            receiptUrl = charge.receipt_url || null
+          } catch (err) {
+            console.error('[Webhook] Error fetching charge:', err)
+          }
+        }
+
+        await db.insert(payfile).values({
+          userId,
+          partnerId,
+          cartUuid: cartUuid || claimed[0].cartUuid,
+          stripeIntent: paymentIntentId,
+          stripeCustomer: typeof paymentIntent.customer === 'string'
+            ? paymentIntent.customer
+            : null,
+          stripeCharge: typeof latestChargeId === 'string' ? latestChargeId : null,
+          amount: paymentIntent.amount,
+          receiptUrl,
+          createdAt: new Date(),
+        })
+
+        console.log(`[Webhook] Fulfilled ${claimed.length} cart items for user ${userId}`)
+        break
       }
 
-      case "payment_intent.payment_failed": {
-        const paymentIntent = event.data.object as Stripe.PaymentIntent;
-
-        // Find and update cart session
-        const cartSession = await db.query.cartSessions.findFirst({
-          where: eq(cartSessions.stripePaymentIntentId, paymentIntent.id),
-        });
-
-        if (cartSession) {
-          await db.insert(cartTransactions).values({
-            sessionId: cartSession.id,
-            transactionType: "payment",
-            status: "failed",
-            amount: paymentIntent.amount,
-            currency: paymentIntent.currency,
-            stripePaymentIntentId: paymentIntent.id,
-            errorCode: paymentIntent.last_payment_error?.code || undefined,
-            errorMessage:
-              paymentIntent.last_payment_error?.message || undefined,
-            processedAt: new Date(),
-          });
-        }
-        break;
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent
+        console.error(
+          `[Webhook] Payment failed: ${paymentIntent.id}`,
+          paymentIntent.last_payment_error?.message,
+        )
+        break
       }
     }
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Error processing webhook:", error);
-    return NextResponse.json(
-      { error: "Webhook handler failed" },
-      { status: 500 },
-    );
+    console.error('Error processing webhook:', error)
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
 }

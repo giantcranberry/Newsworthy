@@ -5,17 +5,12 @@ import { eq, and, sql, isNull, or } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
-
 // Get the correct Stripe secret key based on environment
 function getStripeSecretKey(host: string): string | undefined {
-  // Use sandbox keys for localhost and vercel.app domains
   const isSandbox = host.includes('localhost') || host.includes('vercel.app')
-
   if (isSandbox) {
     return process.env.STRIPE_SECRET_SANDBOX
   }
-
-  // Production (newsworthy.ai)
   return process.env.STRIPE_SECRET
 }
 

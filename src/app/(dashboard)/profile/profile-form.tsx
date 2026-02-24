@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Save, CreditCard } from 'lucide-react'
+import { Loader2, Save, CreditCard, Lock, Eye, EyeOff } from 'lucide-react'
 
 interface ProfileFormProps {
   email: string
+  hasPassword: boolean
   initialData: {
     firstName: string
     lastName: string
@@ -31,7 +32,7 @@ interface ProfileFormProps {
   }
 }
 
-export function ProfileForm({ email, initialData, subscription }: ProfileFormProps) {
+export function ProfileForm({ email, hasPassword, initialData, subscription }: ProfileFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState(initialData)
@@ -199,6 +200,9 @@ export function ProfileForm({ email, initialData, subscription }: ProfileFormPro
         </CardContent>
       </Card>
 
+      {/* Password */}
+      <PasswordSection hasPassword={hasPassword} />
+
       {/* Address */}
       <Card>
         <CardHeader>
@@ -275,5 +279,159 @@ export function ProfileForm({ email, initialData, subscription }: ProfileFormPro
         </CardContent>
       </Card>
     </form>
+  )
+}
+
+function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: hasPassword ? currentPassword : undefined,
+          newPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update password')
+      }
+
+      setSuccess('Password updated successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Lock className="h-5 w-5" />
+          {hasPassword ? 'Change Password' : 'Set Password'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {!hasPassword && (
+          <p className="text-sm text-gray-600 mb-4">
+            Your account was created with Google or LinkedIn. Set a password to also sign in with email.
+          </p>
+        )}
+
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+          )}
+          {success && (
+            <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">{success}</div>
+          )}
+
+          {hasPassword && (
+            <div>
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <div className="relative mt-1">
+                <Input
+                  id="currentPassword"
+                  type={showCurrent ? 'text' : 'password'}
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  tabIndex={-1}
+                >
+                  {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="newPassword">New Password</Label>
+            <div className="relative mt-1">
+              <Input
+                id="newPassword"
+                type={showNew ? 'text' : 'password'}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+                minLength={8}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                tabIndex={-1}
+              >
+                {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="mt-1"
+            />
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isLoading}
+            className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Saving...
+              </>
+            ) : (
+              hasPassword ? 'Change Password' : 'Set Password'
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

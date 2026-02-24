@@ -146,61 +146,69 @@ export default async function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Releases
-            </CardTitle>
-            <FaIcon icon={faNewspaper} className="h-6 w-6 text-cyan-700" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
-            <p className="text-xs text-gray-600">
-              {stats.published} published, {stats.drafts} drafts
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/pr">
+          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Total Releases
+              </CardTitle>
+              <FaIcon icon={faNewspaper} className="h-6 w-6 text-cyan-700" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+              <p className="text-xs text-gray-600">
+                {stats.published} published, {stats.drafts} drafts
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Brands
-            </CardTitle>
-            <FaIcon icon={faFlag} className="h-6 w-6 text-indigo-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{companies.length}</div>
-            <p className="text-xs text-gray-600">Active brand profiles</p>
-          </CardContent>
-        </Card>
+        <Link href="/company">
+          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Brands
+              </CardTitle>
+              <FaIcon icon={faFlag} className="h-6 w-6 text-indigo-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{companies.length}</div>
+              <p className="text-xs text-gray-600">Active brand profiles</p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              PR Credits
-            </CardTitle>
-            <FaIcon icon={faCoins} className="h-6 w-6 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{creditBalance}</div>
-            <p className="text-xs text-gray-600">
-              Available press release credits
-            </p>
-          </CardContent>
-        </Card>
+        <Link href="/payment/paygo">
+          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                PR Credits
+              </CardTitle>
+              <FaIcon icon={faCoins} className="h-6 w-6 text-amber-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{creditBalance}</div>
+              <p className="text-xs text-gray-600">
+                Available press release credits
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              In Review
-            </CardTitle>
-            <FaIcon icon={faClipboardCheck} className="h-6 w-6 text-rose-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{stats.inReview}</div>
-            <p className="text-xs text-gray-600">Pending editorial review</p>
-          </CardContent>
-        </Card>
+        <Link href="/pr?filter=review">
+          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                In Review
+              </CardTitle>
+              <FaIcon icon={faClipboardCheck} className="h-6 w-6 text-rose-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-gray-900">{stats.inReview}</div>
+              <p className="text-xs text-gray-600">Pending editorial review</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

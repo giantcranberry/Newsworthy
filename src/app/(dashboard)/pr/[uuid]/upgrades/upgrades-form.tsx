@@ -10,18 +10,7 @@ import { WizardActions } from '@/components/pr-wizard/wizard-actions'
 import { PaymentForm } from '@/components/stripe/payment-form'
 import { CreditCard, Zap, Check, Loader2, Sparkles, AlertCircle, Star, Crown, Rocket, Target, Plus, X, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-// Get the correct Stripe publishable key based on environment
-function getStripePublishableKey(): string {
-  const host = typeof window !== 'undefined' ? window.location.host : ''
-  const isSandbox = host.includes('localhost') || host.includes('vercel.app')
-
-  if (isSandbox) {
-    return process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY_SANDBOX || ''
-  }
-
-  return process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-}
+import { getStripePublishableKey } from '@/lib/stripe-client'
 
 interface UpgradesFormProps {
   releaseUuid: string

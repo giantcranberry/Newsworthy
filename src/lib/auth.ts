@@ -8,6 +8,7 @@ import { cookies } from 'next/headers'
 import { db } from '@/db'
 import { users, userProfiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { addPersonToFolk } from '@/lib/folk'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
 export const IMPERSONATE_ADMIN_COOKIE = 'impersonate_admin_id'
@@ -129,8 +130,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: '/login',
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
+        // For OAuth providers, the user.id is the provider's ID, not our DB ID.
+        // Look up the actual database user by email.
+        if (account?.provider === 'google' || account?.provider === 'linkedin') {
+          const email = user.email?.toLowerCase()
+          if (email) {
+            const dbUser = await db.query.users.findFirst({
+              where: eq(users.email, email),
+            })
+            if (dbUser) {
+              token.id = dbUser.id.toString()
+              token.isAdmin = dbUser.isAdmin
+              token.isEditor = dbUser.isEditor
+              token.isStaff = dbUser.isStaff
+              token.partnerId = dbUser.partnerId
+              return token
+            }
+          }
+        }
+        // Credentials provider already returns the correct DB id
         token.id = user.id as string
         token.isAdmin = (user as any).isAdmin
         token.isEditor = (user as any).isEditor
@@ -171,10 +191,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           if (newUser && user.name) {
             const nameParts = user.name.split(' ')
+            const firstName = nameParts[0] || ''
+            const lastName = nameParts.slice(1).join(' ') || ''
             await db.insert(userProfiles).values({
               userId: newUser.id,
-              firstName: nameParts[0] || '',
-              lastName: nameParts.slice(1).join(' ') || '',
+              firstName,
+              lastName,
+            })
+
+            // Add to Folk CRM (non-blocking)
+            addPersonToFolk({
+              email,
+              firstName: firstName || undefined,
+              lastName: lastName || undefined,
             })
           }
         }

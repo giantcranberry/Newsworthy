@@ -315,6 +315,38 @@ This email was sent from Newsworthy on behalf of ${requestorName}. If you believ
   })
 }
 
+export async function sendVerificationEmail(email: string, token: string, name: string) {
+  const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Verify your email - Newsworthy</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+          <h1 style="color: #1a1a1a; margin-bottom: 20px;">Verify your email</h1>
+          <p>Hi ${name},</p>
+          <p style="margin-bottom: 20px;">Thanks for signing up for Newsworthy! Please verify your email address by clicking the button below.</p>
+          <a href="${verifyLink}" style="display: inline-block; background-color: #155e75; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Verify Email</a>
+          <p style="margin-top: 20px; font-size: 14px; color: #666;">If you didn't create an account, you can safely ignore this email.</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #999;">This link expires in 24 hours.</p>
+        </div>
+      </body>
+    </html>
+  `
+
+  await sendEmail({
+    to: email,
+    subject: 'Verify your email - Newsworthy',
+    html,
+    text: `Verify your email\n\nHi ${name},\n\nThanks for signing up for Newsworthy! Please verify your email by clicking this link:\n\n${verifyLink}\n\nThis link expires in 24 hours.`,
+  })
+}
+
 export async function sendWelcomeEmail(email: string, name: string) {
   const html = `
     <!DOCTYPE html>

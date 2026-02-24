@@ -15,57 +15,39 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Look up token without any filters to diagnose issues
-    const tokenRecord = await db.query.verify.findFirst({
-      where: eq(verify.uuid, token),
+    // Find the verification record (valid for 24 hours)
+    const verifyRecord = await db.query.verify.findFirst({
+      where: and(
+        eq(verify.uuid, token),
+        eq(verify.verified, false),
+        gt(verify.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000))
+      ),
     })
 
-    console.log('[Magic Link] Token debug:', {
-      token,
-      found: !!tokenRecord,
-      verified: tokenRecord?.verified,
-      createdAt: tokenRecord?.createdAt,
-      ageMs: tokenRecord?.createdAt ? Date.now() - new Date(tokenRecord.createdAt).getTime() : 'no record',
-      now: new Date().toISOString(),
-    })
-
-    if (!tokenRecord) {
-      return NextResponse.redirect(new URL('/login?error=invalid_link', request.url))
-    }
-
-    if (tokenRecord.verified) {
+    if (!verifyRecord) {
       return NextResponse.redirect(new URL('/login?error=expired_link', request.url))
     }
 
-    const verifyRecord = tokenRecord
-
-    // Find or create user
-    let user = await db.query.users.findFirst({
+    // Find user
+    const user = await db.query.users.findFirst({
       where: eq(users.email, email.toLowerCase()),
     })
 
     if (!user) {
-      // Create new user for magic link sign in
-      const [newUser] = await db.insert(users).values({
-        email: email.toLowerCase(),
-        emailVerified: true,
-        regMethod: 'magic',
-        partnerId: 1,
-      }).returning()
-      user = newUser
-    } else {
-      // Update email verified
-      await db.update(users)
-        .set({ emailVerified: true })
-        .where(eq(users.id, user.id))
+      return NextResponse.redirect(new URL('/login?error=invalid_link', request.url))
     }
+
+    // Mark email as verified
+    await db.update(users)
+      .set({ emailVerified: true })
+      .where(eq(users.id, user.id))
 
     // Mark verification as used
     await db.update(verify)
       .set({ verified: true, verifiedBy: 'email' })
       .where(eq(verify.id, verifyRecord.id))
 
-    // Create session token
+    // Create session token so user is logged in immediately
     const sessionToken = await encode({
       token: {
         id: user.id.toString(),
@@ -79,19 +61,18 @@ export async function GET(request: NextRequest) {
       salt: 'authjs.session-token',
     })
 
-    // Set cookie and redirect
     const cookieStore = await cookies()
     cookieStore.set('authjs.session-token', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24 hours
+      maxAge: 24 * 60 * 60,
       path: '/',
     })
 
     return NextResponse.redirect(new URL('/dashboard', request.url))
   } catch (error) {
-    console.error('Magic link error:', error)
+    console.error('Email verification error:', error)
     return NextResponse.redirect(new URL('/login?error=server_error', request.url))
   }
 }
