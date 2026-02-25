@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { carts, products, company } from '@/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { carts, products, company, companyMembers, users } from '@/db/schema'
+import { eq, and, isNull, inArray } from 'drizzle-orm'
 import { CartReview } from './cart-review'
 
 async function getCartItems(cartUuid: string, userId: number) {
@@ -42,9 +42,31 @@ async function getCartItems(cartUuid: string, userId: number) {
 }
 
 async function getUserCompanies(userId: number) {
-  return db.query.company.findMany({
+  // Owned companies
+  const owned = await db.query.company.findMany({
     where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
   })
+
+  // Team companies where user is brand_admin (can purchase credits)
+  const memberships = await db
+    .select({ companyId: companyMembers.companyId })
+    .from(companyMembers)
+    .where(and(
+      eq(companyMembers.userId, userId),
+      eq(companyMembers.role, 'brand_admin'),
+    ))
+
+  const ownedIds = new Set(owned.map((c) => c.id))
+  const sharedIds = memberships.map((m) => m.companyId).filter((id) => !ownedIds.has(id))
+
+  let shared: typeof owned = []
+  if (sharedIds.length > 0) {
+    shared = await db.query.company.findMany({
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+    })
+  }
+
+  return [...owned, ...shared]
 }
 
 export default async function CartPage({
@@ -66,10 +88,13 @@ export default async function CartPage({
 
   const userId = parseInt(session.user.id)
 
-  const [items, companies] = await Promise.all([
+  const [items, companies, user] = await Promise.all([
     getCartItems(cartUuid, userId),
     getUserCompanies(userId),
+    db.query.users.findFirst({ where: eq(users.id, userId) }),
   ])
+
+  const isAgency = user?.isAgency ?? false
 
   if (items.length === 0) {
     redirect('/payment/paygo')
@@ -88,6 +113,7 @@ export default async function CartPage({
       }))}
       total={total}
       userEmail={session.user.email || ''}
+      isAgency={isAgency}
     />
   )
 }

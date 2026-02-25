@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, json } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
 import { company } from './company'
@@ -116,15 +116,39 @@ export const payfile = pgTable('payfile', {
   paidVia: varchar('paid_via', { length: 12 }),
 })
 
+export type PaymentLinkProduct = {
+  stripe_price: string
+  product_id: number
+  name: string
+  price: number
+  credits: number
+  product_type: string
+}
+
 export const paymentLinks = pgTable('payment_links', {
   id: serial('id').primaryKey(),
-  uuid: varchar('uuid', { length: 36 }).unique().notNull(),
-  userId: integer('user_id'),
-  productId: integer('product_id'),
-  description: text('description'),
-  isActive: boolean('is_active').default(true),
-  createdAt: timestamp('created_at').defaultNow(),
+  token: varchar('token', { length: 64 }).unique().notNull(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  companyId: integer('company_id').notNull().references(() => company.id),
+  productsJson: json('products_json').notNull().$type<PaymentLinkProduct[]>(),
+  cartTotal: integer('cart_total').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  expiresAt: timestamp('expires_at'),
+  usedAt: timestamp('used_at'),
+  clientEmail: varchar('client_email', { length: 255 }),
+  paymentIntent: varchar('payment_intent', { length: 128 }),
 })
+
+export const paymentLinksRelations = relations(paymentLinks, ({ one }) => ({
+  user: one(users, {
+    fields: [paymentLinks.userId],
+    references: [users.id],
+  }),
+  company: one(company, {
+    fields: [paymentLinks.companyId],
+    references: [company.id],
+  }),
+}))
 
 // Relations
 export const cartSessionsRelations = relations(cartSessions, ({ one, many }) => ({

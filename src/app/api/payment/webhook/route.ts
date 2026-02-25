@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { db } from '@/db'
-import { carts, products, brandCredits, payfile } from '@/db/schema'
+import { carts, products, brandCredits, payfile, paymentLinks } from '@/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import type { PaymentLinkProduct } from '@/db/schema/payment'
 import { getStripe, getWebhookSecret } from '@/lib/stripe'
 import type Stripe from 'stripe'
 
@@ -36,6 +37,12 @@ export async function POST(request: NextRequest) {
         const partnerId = parseInt(metadata.partner_id || '1')
 
         console.log(`[Webhook] payment_intent.succeeded: ${paymentIntentId}`)
+
+        // Check if this is a guest payment link
+        if (metadata.payment_link_token) {
+          await handleGuestPayment(stripe, paymentIntent, metadata)
+          break
+        }
 
         // Atomic claim: only fulfill items not yet fulfilled.
         // UPDATE ... WHERE fulfilledAt IS NULL prevents double-crediting
@@ -124,4 +131,75 @@ export async function POST(request: NextRequest) {
     console.error('Error processing webhook:', error)
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
   }
+}
+
+async function handleGuestPayment(
+  stripe: Stripe,
+  paymentIntent: Stripe.PaymentIntent,
+  metadata: Record<string, string>,
+) {
+  const token = metadata.payment_link_token
+  const agencyUserId = parseInt(metadata.user_id)
+  const companyId = parseInt(metadata.company_id)
+
+  console.log(`[Webhook] Guest payment for link token: ${token}`)
+
+  // Atomic claim: only fulfill if not yet used
+  const [claimedLink] = await db
+    .update(paymentLinks)
+    .set({ usedAt: new Date() })
+    .where(
+      and(
+        eq(paymentLinks.token, token),
+        isNull(paymentLinks.usedAt),
+      ),
+    )
+    .returning()
+
+  if (!claimedLink) {
+    console.log('[Webhook] Guest payment link already used or not found:', token)
+    return
+  }
+
+  const products_list = claimedLink.productsJson as PaymentLinkProduct[]
+
+  // Create brand credits for each product — credits go to the agency user
+  for (const product of products_list) {
+    await db.insert(brandCredits).values({
+      userId: agencyUserId,
+      companyId,
+      credits: product.credits || 1,
+      productType: product.product_type || 'pr',
+      notes: `Guest purchase: ${product.name}`,
+      createdAt: new Date(),
+    })
+  }
+
+  // Create payfile record
+  let receiptUrl: string | null = null
+  const latestChargeId = paymentIntent.latest_charge
+  if (latestChargeId && typeof latestChargeId === 'string') {
+    try {
+      const charge = await stripe.charges.retrieve(latestChargeId)
+      receiptUrl = charge.receipt_url || null
+    } catch (err) {
+      console.error('[Webhook] Error fetching charge for guest payment:', err)
+    }
+  }
+
+  await db.insert(payfile).values({
+    userId: agencyUserId,
+    partnerId: 1,
+    stripeIntent: paymentIntent.id,
+    stripeCustomer: typeof paymentIntent.customer === 'string'
+      ? paymentIntent.customer
+      : null,
+    stripeCharge: typeof latestChargeId === 'string' ? latestChargeId : null,
+    amount: paymentIntent.amount,
+    receiptUrl,
+    paidVia: 'guest_link',
+    createdAt: new Date(),
+  })
+
+  console.log(`[Webhook] Guest payment fulfilled for agency user ${agencyUserId}, link ${token}`)
 }

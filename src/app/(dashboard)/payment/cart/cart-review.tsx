@@ -7,7 +7,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
-import { ShoppingCart, Loader2, Lock, ArrowLeft, CreditCard } from 'lucide-react'
+import { ShoppingCart, Loader2, Lock, ArrowLeft, CreditCard, LinkIcon, Copy, Check } from 'lucide-react'
 import Link from 'next/link'
 import { getStripePublishableKey } from '@/lib/stripe-client'
 
@@ -34,14 +34,21 @@ interface CartReviewProps {
   companies: Company[]
   total: number
   userEmail: string
+  isAgency: boolean
 }
 
-export function CartReview({ cartUuid, items, companies, total, userEmail }: CartReviewProps) {
+export function CartReview({ cartUuid, items, companies, total, userEmail, isAgency }: CartReviewProps) {
   const router = useRouter()
-  const [companyId, setCompanyId] = useState<string>('')
+  const [companyId, setCompanyId] = useState<string>(
+    companies.length === 1 ? companies[0].id.toString() : ''
+  )
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null)
+  const [linkLoading, setLinkLoading] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   const stripePromise = loadStripe(getStripePublishableKey())
 
@@ -72,6 +79,42 @@ export function CartReview({ cartUuid, items, companies, total, userEmail }: Car
       setError('Failed to initialize payment. Please try again.')
       setLoading(false)
     }
+  }
+
+  const handleGenerateLink = async () => {
+    setLinkLoading(true)
+    setLinkError(null)
+
+    try {
+      const res = await fetch('/api/payment/generate-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartUuid,
+          companyId: companyId ? parseInt(companyId) : null,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.error) {
+        setLinkError(data.error)
+        setLinkLoading(false)
+        return
+      }
+
+      setGeneratedLink(`${window.location.origin}${data.url}`)
+      setLinkLoading(false)
+    } catch {
+      setLinkError('Failed to generate payment link. Please try again.')
+      setLinkLoading(false)
+    }
+  }
+
+  const handleCopyLink = async () => {
+    if (!generatedLink) return
+    await navigator.clipboard.writeText(generatedLink)
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2000)
   }
 
   return (
@@ -135,7 +178,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail }: Car
           <CardHeader>
             <CardTitle>Allocate Credits To</CardTitle>
             <CardDescription>
-              Select a brand profile to receive the credits, or leave blank to add to your account
+              Select where these credits should be applied
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -143,13 +186,17 @@ export function CartReview({ cartUuid, items, companies, total, userEmail }: Car
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
             >
-              <option value="0">My Account (no specific brand)</option>
+              <option value="">Select a destination...</option>
+              <option value="0">My Personal Account</option>
               {companies.map((co) => (
                 <option key={co.id} value={co.id.toString()}>
                   {co.companyName}
                 </option>
               ))}
             </Select>
+            {companyId === '' && (
+              <p className="text-sm text-amber-600 mt-2">Please select where to allocate these credits before proceeding.</p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -162,7 +209,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail }: Car
           )}
           <Button
             onClick={handleProceedToPayment}
-            disabled={loading}
+            disabled={loading || (companies.length > 0 && companyId === '')}
             className="w-full bg-cyan-800 text-white hover:bg-cyan-900"
             size="lg"
           >
@@ -182,6 +229,66 @@ export function CartReview({ cartUuid, items, companies, total, userEmail }: Car
             <Lock className="h-3 w-3" />
             Payments secured by Stripe
           </div>
+
+          {/* Agency: Generate Payment Link for Client */}
+          {isAgency && (
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-sm text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              {!generatedLink ? (
+                <>
+                  {linkError && (
+                    <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{linkError}</div>
+                  )}
+                  <Button
+                    onClick={handleGenerateLink}
+                    disabled={linkLoading || (companies.length > 0 && companyId === '')}
+                    variant="outline"
+                    className="w-full"
+                    size="lg"
+                  >
+                    {linkLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Generating link...
+                      </>
+                    ) : (
+                      <>
+                        <LinkIcon className="h-4 w-4 mr-2" />
+                        Generate Payment Link for Client
+                      </>
+                    )}
+                  </Button>
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700">Payment link generated — share with your client:</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 min-w-0 p-3 bg-gray-50 border rounded-lg">
+                      <p className="text-sm text-gray-600 truncate">{generatedLink}</p>
+                    </div>
+                    <Button
+                      onClick={handleCopyLink}
+                      variant="outline"
+                      size="sm"
+                      className="shrink-0"
+                    >
+                      {linkCopied ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-400">Link expires in 7 days</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <Elements
