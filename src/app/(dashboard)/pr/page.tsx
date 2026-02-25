@@ -1,18 +1,24 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
 import { releases } from "@/db/schema";
-import { eq, desc, and, or, isNull, ne } from "drizzle-orm";
+import { eq, desc, and, or, isNull, ne, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Plus, Eye, Edit } from "lucide-react";
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
+import { getUserCompanyIds } from "@/lib/team-auth";
 
 async function getUserReleases(userId: number) {
-  return await db.query.releases.findMany({
+  const companyIds = await getUserCompanyIds(userId);
+
+  const results = await db.query.releases.findMany({
     where: and(
-      eq(releases.userId, userId),
+      or(
+        eq(releases.userId, userId),
+        companyIds.length > 0 ? inArray(releases.companyId, companyIds) : undefined,
+      ),
       or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
     ),
     orderBy: desc(releases.createdAt),
@@ -22,6 +28,15 @@ async function getUserReleases(userId: number) {
       banner: true,
     },
   });
+
+  // Get company IDs where user can edit (collaborator+)
+  const editableCompanyIds = new Set(await getUserCompanyIds(userId, 'collaborator'));
+
+  return results.map((r) => ({
+    ...r,
+    // User can edit if they own the release or have collaborator+ on the company
+    canEdit: r.userId === userId || (r.companyId ? editableCompanyIds.has(r.companyId) : false),
+  }));
 }
 
 function getStatusColor(status: string) {
@@ -71,6 +86,7 @@ export default async function PressReleasesPage({
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
   const allReleases = await getUserReleases(userId);
+  const canCreate = allReleases.some((r) => r.canEdit) || (await getUserCompanyIds(userId, 'collaborator')).length > 0;
 
   // Filter releases based on query param
   const userReleases = filter
@@ -110,12 +126,14 @@ export default async function PressReleasesPage({
           <h1 className="text-2xl font-bold text-gray-900">Press Releases</h1>
           <p className="text-gray-600">Manage your press releases</p>
         </div>
-        <Link href="/pr/create">
-          <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
-            <Plus className="h-4 w-4" />
-            New Release
-          </Button>
-        </Link>
+        {canCreate && (
+          <Link href="/pr/create">
+            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+              <Plus className="h-4 w-4" />
+              New Release
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Filters */}
@@ -163,12 +181,14 @@ export default async function PressReleasesPage({
                 ? "Try a different filter or create a new release."
                 : "Get started by creating your first press release."}
             </p>
-            <Link href="/pr/create">
-              <Button className="mt-6 gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
-                <Plus className="h-4 w-4" />
-                Create Release
-              </Button>
-            </Link>
+            {canCreate && (
+              <Link href="/pr/create">
+                <Button className="mt-6 gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+                  <Plus className="h-4 w-4" />
+                  Create Release
+                </Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       ) : (
@@ -288,7 +308,7 @@ export default async function PressReleasesPage({
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {!["approved", "sent", "editorial"].includes(
+                      {release.canEdit && !["approved", "sent", "editorial"].includes(
                         release.status,
                       ) && (
                         <Link href={`/pr/${release.uuid}`}>
@@ -298,7 +318,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.status === "editorial" && (
+                      {release.canEdit && release.status === "editorial" && (
                         <RetractReleaseButton
                           uuid={release.uuid!}
                           title={release.title}
@@ -319,7 +339,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {!["approved", "sent", "editorial"].includes(
+                      {release.canEdit && !["approved", "sent", "editorial"].includes(
                         release.status,
                       ) && (
                         <DeleteReleaseButton

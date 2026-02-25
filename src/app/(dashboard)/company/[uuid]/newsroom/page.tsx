@@ -1,21 +1,8 @@
 import { getEffectiveSession } from '@/lib/auth'
-import { db } from '@/db'
-import { company } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
 import { NewsroomForm } from './newsroom-form'
-
-async function getCompany(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 export default async function NewsroomPage({
   params,
@@ -28,8 +15,10 @@ export default async function NewsroomPage({
   const userId = parseInt(session?.user?.id || '0')
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await getCompany(uuid, userId, isAdmin)
-  if (!co) notFound()
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
+  if (!access) notFound()
+  const co = access.company
+  const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -41,6 +30,7 @@ export default async function NewsroomPage({
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
 
       <NewsroomForm
+        readOnly={isReadOnly}
         companyUuid={co.uuid}
         initialData={{
           nrUri: co.nrUri || '',

@@ -24,12 +24,27 @@ interface Company {
   state: string | null;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  owner: "Owner",
+  brand_admin: "Brand Admin",
+  collaborator: "Collaborator",
+  client: "Client",
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  owner: "bg-amber-100 text-amber-800",
+  brand_admin: "bg-purple-100 text-purple-800",
+  collaborator: "bg-blue-100 text-blue-800",
+  client: "bg-gray-100 text-gray-700",
+};
+
 interface CompanyListProps {
   companies: Company[];
   creditsByCompany: Record<number, number>;
+  rolesByCompany: Record<number, string>;
 }
 
-export function CompanyList({ companies, creditsByCompany }: CompanyListProps) {
+export function CompanyList({ companies, creditsByCompany, rolesByCompany }: CompanyListProps) {
   const [layout, setLayout] = useState<"grid" | "list">("grid");
 
   if (companies.length === 0) {
@@ -107,6 +122,11 @@ export function CompanyList({ companies, creditsByCompany }: CompanyListProps) {
                       {co.companyName}
                     </h3>
                   </Link>
+                  {rolesByCompany[co.id] && (
+                    <span className={`mt-1 inline-flex items-center self-start rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[rolesByCompany[co.id]] || ROLE_COLORS.client}`}>
+                      {ROLE_LABELS[rolesByCompany[co.id]] || rolesByCompany[co.id]}
+                    </span>
+                  )}
                   {co.website && (
                     <a
                       href={
@@ -183,11 +203,18 @@ export function CompanyList({ companies, creditsByCompany }: CompanyListProps) {
                 <div className="flex-1 min-w-0 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <Link href={`/company/${co.uuid}`} className="cursor-pointer">
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-cyan-800 truncate">
-                          {co.companyName}
-                        </h3>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/company/${co.uuid}`} className="cursor-pointer">
+                          <h3 className="text-lg font-semibold text-gray-900 hover:text-cyan-800 truncate">
+                            {co.companyName}
+                          </h3>
+                        </Link>
+                        {rolesByCompany[co.id] && (
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${ROLE_COLORS[rolesByCompany[co.id]] || ROLE_COLORS.client}`}>
+                            {ROLE_LABELS[rolesByCompany[co.id]] || rolesByCompany[co.id]}
+                          </span>
+                        )}
+                      </div>
                       {co.website && (
                         <a
                           href={

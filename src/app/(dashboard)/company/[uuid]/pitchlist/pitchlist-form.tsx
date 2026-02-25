@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 
 interface PitchListFormProps {
+  readOnly?: boolean
   companyUuid: string
   companyName: string
   totalContacts: number
@@ -44,6 +45,7 @@ const emptyContactForm = {
 }
 
 export function PitchListForm({
+  readOnly,
   companyUuid,
   companyName,
   totalContacts,
@@ -156,7 +158,7 @@ export function PitchListForm({
       </Card>
 
       {/* Add Contacts Section */}
-      <Card>
+      {!readOnly && <Card>
         <CardHeader className="bg-blue-50 border-b rounded-t-lg">
           <CardTitle className="text-base flex items-center gap-2">
             <Upload className="h-4 w-4" />
@@ -228,7 +230,7 @@ export function PitchListForm({
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Manage Contacts */}
       <Card>

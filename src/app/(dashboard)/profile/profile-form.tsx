@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Save, CreditCard, Lock, Eye, EyeOff } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Loader2, Save, CreditCard, Lock, Eye, EyeOff, Building2 } from 'lucide-react'
 
 interface ProfileFormProps {
   email: string
   hasPassword: boolean
+  isAgency: boolean
   initialData: {
     firstName: string
     lastName: string
@@ -30,12 +32,14 @@ interface ProfileFormProps {
     remainingPluspr: number
     newsdbCredits: number
   }
+  canPurchase?: boolean
 }
 
-export function ProfileForm({ email, hasPassword, initialData, subscription }: ProfileFormProps) {
+export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, initialData, subscription, canPurchase = true }: ProfileFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState(initialData)
+  const [isAgency, setIsAgency] = useState(initialIsAgency)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +49,7 @@ export function ProfileForm({ email, hasPassword, initialData, subscription }: P
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, isAgency }),
       })
 
       if (response.ok) {
@@ -99,41 +103,43 @@ export function ProfileForm({ email, hasPassword, initialData, subscription }: P
       </div>
 
       {/* Subscription Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Subscription</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
-                {subscription.remainingPr}
-              </p>
-              <p className="text-sm text-gray-600">PR Credits</p>
+      {canPurchase && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">
+                  {subscription.remainingPr}
+                </p>
+                <p className="text-sm text-gray-600">PR Credits</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">
+                  {subscription.remainingPluspr}
+                </p>
+                <p className="text-sm text-gray-600">Enhanced Credits</p>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900">
+                  {subscription.newsdbCredits}
+                </p>
+                <p className="text-sm text-gray-600">NewsDB Credits</p>
+              </div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
-                {subscription.remainingPluspr}
-              </p>
-              <p className="text-sm text-gray-600">Enhanced Credits</p>
+            <div className="mt-4">
+              <Link href="/payment/paygo">
+                <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Buy More Credits
+                </button>
+              </Link>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
-                {subscription.newsdbCredits}
-              </p>
-              <p className="text-sm text-gray-600">NewsDB Credits</p>
-            </div>
-          </div>
-          <div className="mt-4">
-            <Link href="/payment/paygo">
-              <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
-                <CreditCard className="h-3.5 w-3.5" />
-                Buy More Credits
-              </button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Profile Information */}
       <Card>
@@ -196,6 +202,30 @@ export function ProfileForm({ email, hasPassword, initialData, subscription }: P
                 className="mt-1"
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Agency Features */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Agency Features
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-gray-900">Enable Agency Features</p>
+              <p className="text-sm text-gray-500">
+                Enables Team Logins, Client Pay, Client Reporting Login, Advanced Agency Features
+              </p>
+            </div>
+            <Switch
+              checked={isAgency}
+              onCheckedChange={setIsAgency}
+            />
           </div>
         </CardContent>
       </Card>

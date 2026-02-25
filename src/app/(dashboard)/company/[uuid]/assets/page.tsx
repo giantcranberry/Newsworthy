@@ -1,21 +1,11 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, images, banners } from '@/db/schema'
+import { images, banners } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
 import { AssetsForm } from './assets-form'
-
-async function getCompany(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 async function getImages(companyId: number, userId: number, page: number, filter: string, isAdmin = false) {
   const perPage = 24
@@ -156,8 +146,10 @@ export default async function AssetsPage({
   const userId = parseInt(session?.user?.id || '0')
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await getCompany(uuid, userId, isAdmin)
-  if (!co) notFound()
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
+  if (!access) notFound()
+  const co = access.company
+  const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   const [imageData, counts] = await Promise.all([
     getImages(co.id, userId, page, filter, isAdmin),
@@ -174,6 +166,7 @@ export default async function AssetsPage({
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
 
       <AssetsForm
+        readOnly={isReadOnly}
         companyUuid={co.uuid}
         images={imageData.items}
         totalImages={imageData.total}

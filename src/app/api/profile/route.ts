@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { userProfiles } from '@/db/schema'
+import { users, userProfiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function PUT(request: NextRequest) {
@@ -26,6 +26,7 @@ export async function PUT(request: NextRequest) {
       state,
       postalCode,
       countryCode,
+      isAgency,
     } = body
 
     // Check if profile exists
@@ -66,6 +67,13 @@ export async function PUT(request: NextRequest) {
         postalCode,
         countryCode,
       })
+    }
+
+    // Update agency flag on users table
+    if (typeof isAgency === 'boolean') {
+      await db.update(users)
+        .set({ isAgency })
+        .where(eq(users.id, userId))
     }
 
     return NextResponse.json({ success: true })

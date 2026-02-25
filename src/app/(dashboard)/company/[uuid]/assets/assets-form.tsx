@@ -54,6 +54,7 @@ interface ImageAsset {
 }
 
 interface AssetsFormProps {
+  readOnly?: boolean
   companyUuid: string
   images: ImageAsset[]
   totalImages: number
@@ -120,6 +121,7 @@ function ImageCredits({ image }: { image: ImageAsset }) {
 }
 
 export function AssetsForm({
+  readOnly,
   companyUuid,
   images,
   totalImages,
@@ -448,7 +450,7 @@ export function AssetsForm({
       </div>
 
       {/* Upload Section */}
-      <Card>
+      {!readOnly && <Card>
         <CardHeader className="bg-blue-50 border-b rounded-t-lg">
           <CardTitle className="text-base flex items-center gap-2">
             <Upload className="h-4 w-4 text-blue-600" />
@@ -663,7 +665,7 @@ export function AssetsForm({
             </TabsContent>
           </Tabs>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Image Grid */}
       <Card>
@@ -695,20 +697,24 @@ export function AssetsForm({
                         >
                           <Eye className="h-4 w-4" />
                         </button>
-                        <button
-                          onClick={() => openEdit(img)}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 shadow-sm"
-                          title="Edit"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => openDelete(img)}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 shadow-sm"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={() => openEdit(img)}
+                            className="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 shadow-sm"
+                            title="Edit"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
+                        {!readOnly && (
+                          <button
+                            onClick={() => openDelete(img)}
+                            className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 shadow-sm"
+                            title="Delete"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                     <div className="p-2">

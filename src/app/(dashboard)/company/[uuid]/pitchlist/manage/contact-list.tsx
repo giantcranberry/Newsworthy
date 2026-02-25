@@ -60,6 +60,7 @@ interface Contact {
 }
 
 interface ContactListProps {
+  readOnly?: boolean
   companyUuid: string
   contacts: Contact[]
   stats: {
@@ -93,6 +94,7 @@ function getStatus(c: Contact) {
 }
 
 export function ContactList({
+  readOnly,
   companyUuid,
   contacts,
   stats,
@@ -393,7 +395,7 @@ export function ContactList({
       </div>
 
       {/* Bulk action bar */}
-      {someSelected && (
+      {!readOnly && someSelected && (
         <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
           <span className="text-sm font-medium text-red-800">
             {selected.size} contact{selected.size !== 1 ? 's' : ''} selected
@@ -459,13 +461,15 @@ export function ContactList({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left">
-                      <th className="pb-2 pr-2 w-8">
-                        <Checkbox
-                          checked={allOnPageSelected}
-                          onCheckedChange={toggleSelectAll}
-                          aria-label="Select all on this page"
-                        />
-                      </th>
+                      {!readOnly && (
+                        <th className="pb-2 pr-2 w-8">
+                          <Checkbox
+                            checked={allOnPageSelected}
+                            onCheckedChange={toggleSelectAll}
+                            aria-label="Select all on this page"
+                          />
+                        </th>
+                      )}
                       <th className="pb-2 pr-4 font-medium text-gray-500">Contact</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Publication</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Added</th>
@@ -479,15 +483,17 @@ export function ContactList({
                       const isSelected = c.uuid ? selected.has(c.uuid) : false
                       return (
                         <tr key={c.id} className={`border-b last:border-0 ${isSelected ? 'bg-red-50/50' : ''}`}>
-                          <td className="py-2 pr-2">
-                            {c.uuid && (
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={() => toggleSelect(c.uuid!)}
-                                aria-label={`Select ${c.email}`}
-                              />
-                            )}
-                          </td>
+                          {!readOnly && (
+                            <td className="py-2 pr-2">
+                              {c.uuid && (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelect(c.uuid!)}
+                                  aria-label={`Select ${c.email}`}
+                                />
+                              )}
+                            </td>
+                          )}
                           <td className="py-2 pr-4">
                             {(c.firstName || c.lastName) && (
                               <>
@@ -529,20 +535,24 @@ export function ContactList({
                               >
                                 <Eye className="h-4 w-4" />
                               </button>
-                              <button
-                                onClick={() => openEdit(c)}
-                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                title="Edit contact"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => openDelete(c)}
-                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                title="Remove contact"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
+                              {!readOnly && (
+                                <button
+                                  onClick={() => openEdit(c)}
+                                  className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                  title="Edit contact"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                              )}
+                              {!readOnly && (
+                                <button
+                                  onClick={() => openDelete(c)}
+                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  title="Remove contact"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -764,7 +774,7 @@ export function ContactList({
             <Button variant="outline" onClick={() => setShowViewModal(false)}>
               Close
             </Button>
-            {viewContact && (
+            {!readOnly && viewContact && (
               <Button onClick={() => { setShowViewModal(false); openEdit(viewContact) }}>
                 <Pencil className="h-4 w-4" />
                 Edit Contact

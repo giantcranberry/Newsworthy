@@ -15,6 +15,7 @@
 - Never drop tables or databases
 
 ## Patterns That Work
+- For read-only forms: use `<fieldset disabled={readOnly}>` to natively disable all inputs without touching each one. Hide action buttons (save, delete, add) with `{!readOnly && ...}`. For list components, hide checkboxes and edit/delete action columns.
 - Stripe clients must be lazily initialized (inside a function, not at module scope) to avoid build errors when env vars are missing during static page collection
 - Credit balance checks should use net balance (SUM of all credits including negative deductions) not filter by `prId IS NULL`
 - Flex children that contain truncated text or nested flex layouts need `min-w-0` to prevent overflow — especially inside cards with `overflow-hidden` which silently clips content

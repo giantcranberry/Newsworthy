@@ -29,6 +29,7 @@ export const users = pgTable('users', {
   timezone: varchar('timezone', { length: 48 }),
   regMethod: varchar('reg_method', { length: 10 }).default('email'),
   flashMsg: boolean('flash_msg').default(false),
+  isAgency: boolean('is_agency').default(false).notNull(),
 })
 
 export const userProfiles = pgTable('user_profiles', {

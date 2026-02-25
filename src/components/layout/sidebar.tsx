@@ -11,6 +11,7 @@ interface NavChild {
   title: string
   href: string
   icon: string
+  requiresCreate?: boolean
 }
 
 interface NavGroup {
@@ -57,8 +58,8 @@ const navSections: NavSection[] = [
         icon: 'fa-light fa-newspaper',
         children: [
           { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
-          { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus' },
-          { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen' },
+          { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus', requiresCreate: true },
+          { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen', requiresCreate: true },
         ],
       },
       {
@@ -67,7 +68,7 @@ const navSections: NavSection[] = [
         icon: 'fa-light fa-flag',
         children: [
           { title: 'All Brands', href: '/company', icon: 'fa-light fa-flag' },
-          { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag' },
+          { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag', requiresCreate: true },
         ],
       },
     ],
@@ -111,7 +112,7 @@ function FaIcon({ icon, className }: { icon: string; className?: string }) {
   return <i className={cn(icon, className)} aria-hidden="true" />
 }
 
-export function Sidebar() {
+export function Sidebar({ canCreateContent = true }: { canCreateContent?: boolean }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
@@ -257,7 +258,7 @@ export function Sidebar() {
                         )}
                       >
                         <div className="ml-4 pl-3 border-l border-slate-200 mt-1 space-y-1">
-                          {item.children.map((child) => {
+                          {item.children.filter((child) => !child.requiresCreate || canCreateContent).map((child) => {
                             return (
                               <Link
                                 key={child.href}

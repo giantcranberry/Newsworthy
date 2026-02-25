@@ -44,11 +44,12 @@ interface NewsroomFormData {
 }
 
 interface NewsroomFormProps {
+  readOnly?: boolean
   companyUuid: string
   initialData: NewsroomFormData
 }
 
-export function NewsroomForm({ companyUuid, initialData }: NewsroomFormProps) {
+export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFormProps) {
   const router = useRouter()
   const editorRef = useRef<any>(null)
   const [formData, setFormData] = useState<NewsroomFormData>(initialData)
@@ -131,7 +132,7 @@ export function NewsroomForm({ companyUuid, initialData }: NewsroomFormProps) {
     : null
 
   return (
-    <div className="space-y-6">
+    <fieldset disabled={readOnly} className="space-y-6">
       {error && (
         <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
@@ -509,20 +510,22 @@ export function NewsroomForm({ companyUuid, initialData }: NewsroomFormProps) {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
-        <Button
-          onClick={handleSave}
-          disabled={isSaving || slugStatus === 'taken' || formData.nrUri.length < 3}
-          size="lg"
-        >
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          Save Newsroom Settings
-        </Button>
-      </div>
-    </div>
+      {!readOnly && (
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || slugStatus === 'taken' || formData.nrUri.length < 3}
+            size="lg"
+          >
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save Newsroom Settings
+          </Button>
+        </div>
+      )}
+    </fieldset>
   )
 }

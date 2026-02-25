@@ -1,25 +1,12 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, contact } from '@/db/schema'
+import { contact, users } from '@/db/schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyForm } from '../company-form'
 import { CompanyNav } from '@/components/company/company-nav'
 import { RssFeedLink } from '@/components/company/rss-feed-link'
-
-async function getCompany(uuid: string, userId: number, isAdmin: boolean) {
-  if (isAdmin) {
-    return db.query.company.findFirst({
-      where: eq(company.uuid, uuid),
-    })
-  }
-  return db.query.company.findFirst({
-    where: and(
-      eq(company.uuid, uuid),
-      eq(company.userId, userId)
-    ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 async function getContacts(companyId: number) {
   return db
@@ -41,16 +28,26 @@ export default async function CompanyDetailPage({
   const userId = parseInt(session?.user?.id || '0')
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await getCompany(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     notFound()
   }
 
+  const co = access.company
   const contacts = await getContacts(co.id)
+
+  // Check if the owner is an agency user
+  const owner = await db.query.users.findFirst({
+    where: eq(users.id, co.userId),
+    columns: { isAgency: true },
+  })
+  const isAgency = !!owner?.isAgency
+  const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   return (
     <CompanyForm
+      readOnly={isReadOnly}
       initialData={{
         uuid: co.uuid,
         companyName: co.companyName,
@@ -72,6 +69,7 @@ export default async function CompanyDetailPage({
         email: c.email || '',
         phone: c.phone || '',
       }))}
+      isAgency={isAgency}
       headerExtra={
         <>
           <RssFeedLink companyUuid={co.uuid} />

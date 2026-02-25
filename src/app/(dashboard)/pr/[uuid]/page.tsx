@@ -3,6 +3,7 @@ import { db } from "@/db";
 import {
   releases,
   company,
+  companyMembers,
   releaseOptions,
   releaseImages,
   category,
@@ -11,15 +12,22 @@ import {
   releaseRegions,
   queue,
 } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
-import { notFound } from "next/navigation";
+import { eq, and, asc, or, inArray } from "drizzle-orm";
+import { notFound, redirect } from "next/navigation";
 import { PRForm } from "../pr-form";
 import { WizardNav } from "@/components/pr-wizard/wizard-nav";
 import { RetractReleaseButton } from "../retract-release-button";
+import { getUserCompanyIds, hasMinRole } from "@/lib/team-auth";
 
-async function getRelease(uuid: string, userId: number) {
+async function getRelease(uuid: string, userId: number, companyIds: number[]) {
   const release = await db.query.releases.findFirst({
-    where: and(eq(releases.uuid, uuid), eq(releases.userId, userId)),
+    where: and(
+      eq(releases.uuid, uuid),
+      or(
+        eq(releases.userId, userId),
+        companyIds.length > 0 ? inArray(releases.companyId, companyIds) : undefined,
+      ),
+    ),
     with: {
       company: true,
       primaryContact: true,
@@ -36,12 +44,32 @@ async function getRelease(uuid: string, userId: number) {
 }
 
 async function getUserCompanies(userId: number) {
-  return await db.query.company.findMany({
+  const owned = await db.query.company.findMany({
     where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
-    with: {
-      contacts: true,
-    },
+    with: { contacts: true },
   });
+
+  // Include team companies where user has collaborator+ role
+  const memberships = await db
+    .select({ companyId: companyMembers.companyId, role: companyMembers.role })
+    .from(companyMembers)
+    .where(eq(companyMembers.userId, userId));
+
+  const ownedIds = new Set(owned.map((c) => c.id));
+  const sharedIds = memberships
+    .filter((m) => m.role !== 'client')
+    .map((m) => m.companyId)
+    .filter((id) => !ownedIds.has(id));
+
+  let shared: typeof owned = [];
+  if (sharedIds.length > 0) {
+    shared = await db.query.company.findMany({
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+      with: { contacts: true },
+    });
+  }
+
+  return [...owned, ...shared];
 }
 
 async function getReleaseOptions(prId: number) {
@@ -86,8 +114,10 @@ export default async function PRDetailPage({
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
 
+  const companyIds = await getUserCompanyIds(userId);
+
   const [release, companies, categories, regions] = await Promise.all([
-    getRelease(uuid, userId),
+    getRelease(uuid, userId, companyIds),
     getUserCompanies(userId),
     getCategories(),
     getRegions(),
@@ -98,6 +128,14 @@ export default async function PRDetailPage({
 
   if (!release) {
     notFound();
+  }
+
+  // Published releases — redirect to the live URL
+  if (release.status === "sent" && release.releaseAt) {
+    const y = release.releaseAt.getFullYear();
+    const m = String(release.releaseAt.getMonth() + 1).padStart(2, "0");
+    const d = String(release.releaseAt.getDate()).padStart(2, "0");
+    redirect(`https://www.newsworthy.ai/news/${y}${m}${d}${release.id}/${release.slug}`);
   }
 
   const [options, allSelectedCategories, selectedRegions, queueEntry] =
@@ -124,7 +162,14 @@ export default async function PRDetailPage({
 
   const showWizardComplete = wizard === "complete";
 
-  const isReadOnly = ["editorial", "approved", "sent"].includes(release.status || "");
+  // Check if user is client-only for this release's company
+  let isClientOnly = false;
+  if (release.companyId && release.userId !== userId) {
+    const editableIds = await getUserCompanyIds(userId, 'collaborator');
+    isClientOnly = !editableIds.includes(release.companyId);
+  }
+
+  const isReadOnly = isClientOnly || ["editorial", "approved", "sent"].includes(release.status || "");
 
   return (
     <div className="space-y-6">

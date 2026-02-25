@@ -14,7 +14,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Loader2, Save, Upload, UserPlus, Pencil, Trash2, Users, X } from 'lucide-react'
+import { Loader2, Save, Upload, UserPlus, Pencil, Trash2, Users, X, Info } from 'lucide-react'
+import { TeamSection } from '@/components/company/team-section'
 
 interface ContactData {
   uuid: string
@@ -43,9 +44,12 @@ interface CompanyFormProps {
   pageTitle?: string
   pageDescription?: string
   headerExtra?: React.ReactNode
+  isAgency?: boolean
+  notice?: string
+  readOnly?: boolean
 }
 
-export function CompanyForm({ initialData, contacts: initialContacts = [], pageTitle, pageDescription, headerExtra }: CompanyFormProps) {
+export function CompanyForm({ initialData, contacts: initialContacts = [], pageTitle, pageDescription, headerExtra, isAgency, notice, readOnly }: CompanyFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
@@ -82,6 +86,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (readOnly) return
     setIsLoading(true)
 
     try {
@@ -307,31 +312,40 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
               <p className="text-sm text-gray-600 mt-0.5">{description}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={isLoading}
-              className="cursor-pointer"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || !formData.companyName}
-              className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {initialData?.uuid ? 'Save Changes' : 'Create Brand'}
-            </Button>
-          </div>
+          {!readOnly && (
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isLoading}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading || !formData.companyName}
+                className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {initialData?.uuid ? 'Save Changes' : 'Create Brand'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
+
+      {notice && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 p-3">
+          <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-800">{notice}</p>
+        </div>
+      )}
 
       {headerExtra}
 
@@ -349,6 +363,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
               onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
               placeholder="Your company name"
               required
+              disabled={readOnly}
               className="mt-1"
             />
           </div>
@@ -360,12 +375,24 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://example.com"
+              disabled={readOnly}
               className="mt-1"
             />
           </div>
 
           <div>
             <Label>Logo</Label>
+            {readOnly ? (
+              formData.logoUrl ? (
+                <div className="mt-1 h-32 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center p-3">
+                  <img src={formData.logoUrl} alt="Logo" className="max-h-20 w-auto object-contain" />
+                </div>
+              ) : (
+                <div className="mt-1 h-32 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center">
+                  <p className="text-xs text-gray-400">No logo</p>
+                </div>
+              )
+            ) : (
             <label
               className="relative mt-1 block cursor-pointer group"
               onDragEnter={handleDragEnter}
@@ -432,6 +459,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 )}
               </div>
             </label>
+            )}
             {logoError && (
               <p className="text-sm text-red-600 mt-1">{logoError}</p>
             )}
@@ -454,6 +482,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 placeholder="contact@example.com"
+                disabled={readOnly}
                 className="mt-1"
               />
             </div>
@@ -464,6 +493,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                 placeholder="(555) 123-4567"
+                disabled={readOnly}
                 className="mt-1"
               />
             </div>
@@ -480,10 +510,12 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 <Users className="h-5 w-5 text-gray-400" />
                 Media Contacts
               </CardTitle>
-              <Button type="button" variant="outline" size="sm" onClick={openAddContact}>
-                <UserPlus className="h-4 w-4" />
-                Add Contact
-              </Button>
+              {!readOnly && (
+                <Button type="button" variant="outline" size="sm" onClick={openAddContact}>
+                  <UserPlus className="h-4 w-4" />
+                  Add Contact
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -496,7 +528,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                       <th className="pb-2 pr-4 font-medium text-gray-500">Title</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Email</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Phone</th>
-                      <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>
+                      {!readOnly && <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -506,26 +538,28 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                         <td className="py-2 pr-4 text-gray-600">{c.title || '—'}</td>
                         <td className="py-2 pr-4 text-gray-600">{c.email || '—'}</td>
                         <td className="py-2 pr-4 text-gray-600">{c.phone || '—'}</td>
-                        <td className="py-2 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            <button
-                              type="button"
-                              onClick={() => openEditContact(c)}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                              title="Edit contact"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => { setDeletingContact(c); setDeleteContactError(null); setShowDeleteContactModal(true) }}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                              title="Remove contact"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
+                        {!readOnly && (
+                          <td className="py-2 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => openEditContact(c)}
+                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                title="Edit contact"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setDeletingContact(c); setDeleteContactError(null); setShowDeleteContactModal(true) }}
+                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                title="Remove contact"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -538,6 +572,11 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Team Section (Agency only) */}
+      {isAgency && initialData?.uuid && (
+        <TeamSection companyUuid={initialData.uuid} />
       )}
 
       {/* Add/Edit Contact Modal */}
@@ -663,6 +702,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
               value={formData.addr1}
               onChange={(e) => setFormData({ ...formData, addr1: e.target.value })}
               placeholder="123 Main Street"
+              disabled={readOnly}
               className="mt-1"
             />
           </div>
@@ -674,6 +714,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
               value={formData.addr2}
               onChange={(e) => setFormData({ ...formData, addr2: e.target.value })}
               placeholder="Suite 100"
+              disabled={readOnly}
               className="mt-1"
             />
           </div>
@@ -685,6 +726,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 id="city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                disabled={readOnly}
                 className="mt-1"
               />
             </div>
@@ -695,6 +737,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 value={formData.state}
                 onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                 maxLength={2}
+                disabled={readOnly}
                 className="mt-1"
               />
             </div>
@@ -707,6 +750,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 id="postalCode"
                 value={formData.postalCode}
                 onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                disabled={readOnly}
                 className="mt-1"
               />
             </div>
@@ -716,7 +760,8 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
                 id="countryCode"
                 value={formData.countryCode}
                 onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                disabled={readOnly}
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
               >
                 <option value="US">United States</option>
                 <option value="CA">Canada</option>

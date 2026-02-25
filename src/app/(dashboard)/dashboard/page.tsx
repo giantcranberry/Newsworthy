@@ -1,7 +1,8 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases, company, userSubscription, brandCredits } from "@/db/schema";
-import { eq, desc, and, ne, or, isNull, sql } from "drizzle-orm";
+import { releases, company, userSubscription, brandCredits, companyMembers, companyInvites } from "@/db/schema";
+import { eq, desc, and, ne, or, isNull, sql, inArray, gt } from "drizzle-orm";
+import { getUserCompanyIds } from "@/lib/team-auth";
 import Link from "next/link";
 import {
   Card,
@@ -23,16 +24,72 @@ import { faCoins } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faNewspaper } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faBuilding } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faClipboardCheck } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
+import { CreditsCard } from "./credits-card";
+import { PendingInvites } from "./pending-invites";
 
-async function getCreditBalance(userId: number, companyIds: number[]) {
-  // Get brand-level credits (sum across all user's companies)
-  const brandCreditResult =
+interface CreditsByType {
+  pr: number
+  yahoo: number
+  enhanced: number
+  concierge: number
+}
+
+interface BrandCreditsBreakdown {
+  companyId: number
+  companyName: string
+  credits: CreditsByType
+}
+
+interface AllCredits {
+  personal: CreditsByType
+  brands: BrandCreditsBreakdown[]
+  totalPr: number
+}
+
+function sumCredits(rows: { productType: string | null; balance: number }[]): CreditsByType {
+  const totals: Record<string, number> = {};
+  for (const row of rows) {
+    const key = row.productType || 'pr';
+    totals[key] = (totals[key] || 0) + Number(row.balance);
+  }
+  return {
+    pr: (totals['pr'] || 0) + (totals['credits'] || 0),
+    yahoo: totals['yahoo'] || 0,
+    enhanced: totals['enhanced'] || 0,
+    concierge: totals['concierge'] || 0,
+  };
+}
+
+async function getAllCredits(
+  userId: number,
+  companies: { id: number; companyName: string }[]
+): Promise<AllCredits> {
+  // Get user-level credits (where companyId is null)
+  const userResult = await db
+    .select({
+      productType: brandCredits.productType,
+      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as("balance"),
+    })
+    .from(brandCredits)
+    .where(
+      and(
+        eq(brandCredits.userId, userId),
+        isNull(brandCredits.companyId),
+      ),
+    )
+    .groupBy(brandCredits.productType);
+
+  const personal = sumCredits(userResult);
+
+  // Get brand-level credits grouped by company and type
+  const companyIds = companies.map((c) => c.id);
+  const brandResult =
     companyIds.length > 0
       ? await db
           .select({
-            balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
-              "balance",
-            ),
+            companyId: brandCredits.companyId,
+            productType: brandCredits.productType,
+            balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as("balance"),
           })
           .from(brandCredits)
           .where(
@@ -41,34 +98,83 @@ async function getCreditBalance(userId: number, companyIds: number[]) {
               sql`, `,
             )})`,
           )
-      : [{ balance: 0 }];
+          .groupBy(brandCredits.companyId, brandCredits.productType)
+      : [];
 
-  // Get user-level credits (where companyId is null)
-  const userCreditResult = await db
+  // Group by company
+  const byCompany = new Map<number, { productType: string | null; balance: number }[]>();
+  for (const row of brandResult) {
+    if (row.companyId === null) continue;
+    const list = byCompany.get(row.companyId) || [];
+    list.push({ productType: row.productType, balance: row.balance });
+    byCompany.set(row.companyId, list);
+  }
+
+  const brands: BrandCreditsBreakdown[] = [];
+  for (const co of companies) {
+    const rows = byCompany.get(co.id);
+    if (!rows) continue;
+    const credits = sumCredits(rows);
+    if (credits.pr > 0 || credits.yahoo > 0 || credits.enhanced > 0 || credits.concierge > 0) {
+      brands.push({ companyId: co.id, companyName: co.companyName, credits });
+    }
+  }
+
+  const totalPr = personal.pr + brands.reduce((sum, b) => sum + b.credits.pr, 0);
+
+  return { personal, brands, totalPr };
+}
+
+async function getPendingInvites(email: string) {
+  return db
     .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
-        "balance",
-      ),
+      id: companyInvites.id,
+      token: companyInvites.token,
+      role: companyInvites.role,
+      companyName: company.companyName,
+      companyLogo: company.logoUrl,
     })
-    .from(brandCredits)
-    .where(
-      and(
-        eq(brandCredits.userId, userId),
-        isNull(brandCredits.companyId), // User-level credits
-      ),
-    );
-
-  const brandBalance = Number(brandCreditResult[0]?.balance || 0);
-  const userBalance = Number(userCreditResult[0]?.balance || 0);
-
-  return brandBalance + userBalance;
+    .from(companyInvites)
+    .innerJoin(company, eq(company.id, companyInvites.companyId))
+    .where(and(
+      eq(companyInvites.email, email),
+      isNull(companyInvites.acceptedAt),
+      gt(companyInvites.expiresAt, new Date()),
+    ))
 }
 
 async function getDashboardData(userId: number) {
-  // Get user's releases
+  // Get user's owned companies (need this first for release queries)
+  const ownedCompanies = await db.query.company.findMany({
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+  });
+
+  // Get team member companies
+  const memberships = await db
+    .select({ companyId: companyMembers.companyId })
+    .from(companyMembers)
+    .where(eq(companyMembers.userId, userId));
+
+  const ownedIds = new Set(ownedCompanies.map((c) => c.id));
+  const sharedIds = memberships.map((m) => m.companyId).filter((id) => !ownedIds.has(id));
+
+  let sharedCompanies: typeof ownedCompanies = [];
+  if (sharedIds.length > 0) {
+    sharedCompanies = await db.query.company.findMany({
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+    });
+  }
+
+  const userCompanies = [...ownedCompanies, ...sharedCompanies];
+  const allCompanyIds = userCompanies.map((c) => c.id);
+
+  // Get user's releases (owned + team companies)
   const userReleases = await db.query.releases.findMany({
     where: and(
-      eq(releases.userId, userId),
+      or(
+        eq(releases.userId, userId),
+        allCompanyIds.length > 0 ? inArray(releases.companyId, allCompanyIds) : undefined,
+      ),
       or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
     ),
     orderBy: desc(releases.createdAt),
@@ -78,24 +184,21 @@ async function getDashboardData(userId: number) {
     },
   });
 
-  // Get user's companies
-  const userCompanies = await db.query.company.findMany({
-    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
-  });
-
   // Get subscription info
   const subscription = await db.query.userSubscription.findFirst({
     where: eq(userSubscription.userId, userId),
   });
 
-  // Get credit balance from brand_credits table
-  const companyIds = userCompanies.map((c) => c.id);
-  const creditBalance = await getCreditBalance(userId, companyIds);
+  // Get credit balances by type from brand_credits table
+  const allCredits = await getAllCredits(userId, userCompanies.map(c => ({ id: c.id, companyName: c.companyName })));
 
-  // Count releases by status
+  // Count releases by status (owned + team companies)
   const allReleases = await db.query.releases.findMany({
     where: and(
-      eq(releases.userId, userId),
+      or(
+        eq(releases.userId, userId),
+        allCompanyIds.length > 0 ? inArray(releases.companyId, allCompanyIds) : undefined,
+      ),
       or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
     ),
   });
@@ -114,7 +217,7 @@ async function getDashboardData(userId: number) {
     releases: userReleases,
     companies: userCompanies,
     subscription,
-    creditBalance,
+    allCredits,
     stats,
   };
 }
@@ -123,11 +226,29 @@ export default async function DashboardPage() {
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
 
-  const { releases, companies, subscription, creditBalance, stats } =
+  const { releases, companies, subscription, allCredits, stats } =
     await getDashboardData(userId);
+
+  const userEmail = session?.user?.email?.toLowerCase() || '';
+  const pendingInvites = await getPendingInvites(userEmail);
+
+  // Check if user can create content (owns companies or has collaborator+ role)
+  const editableIds = await getUserCompanyIds(userId, 'collaborator');
+  const canCreate = editableIds.length > 0;
 
   return (
     <div className="space-y-6">
+      {/* Pending Invites */}
+      {pendingInvites.length > 0 && (
+        <PendingInvites invites={pendingInvites.map(inv => ({
+          id: inv.id,
+          token: inv.token,
+          role: inv.role,
+          companyName: inv.companyName,
+          companyLogo: inv.companyLogo,
+        }))} />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -136,12 +257,14 @@ export default async function DashboardPage() {
             Welcome back! Here&apos;s what&apos;s happening.
           </p>
         </div>
-        <Link href="/pr/create">
-          <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900">
-            <Plus className="h-4 w-4" />
-            New Release
-          </Button>
-        </Link>
+        {canCreate && (
+          <Link href="/pr/create">
+            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900">
+              <Plus className="h-4 w-4" />
+              New Release
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Stats Grid */}
@@ -178,22 +301,7 @@ export default async function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/payment/paygo">
-          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                PR Credits
-              </CardTitle>
-              <FaIcon icon={faCoins} className="h-6 w-6 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{creditBalance}</div>
-              <p className="text-xs text-gray-600">
-                Available press release credits
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <CreditsCard allCredits={allCredits} canPurchase={canCreate} />
 
         <Link href="/pr?filter=review">
           <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
@@ -231,11 +339,13 @@ export default async function DashboardPage() {
               <div className="py-8 text-center">
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
                 <p className="mt-2 text-sm text-gray-600">No releases yet</p>
-                <Link href="/pr/create">
-                  <Button variant="outline" size="sm" className="mt-4">
-                    Create your first release
-                  </Button>
-                </Link>
+                {canCreate && (
+                  <Link href="/pr/create">
+                    <Button variant="outline" size="sm" className="mt-4">
+                      Create your first release
+                    </Button>
+                  </Link>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -282,37 +392,39 @@ export default async function DashboardPage() {
         </Card>
 
         {/* Quick Actions */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and actions</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <div className="grid h-full grid-cols-3 gap-3">
-              <Link
-                href="/pr/create"
-                className="flex flex-col items-center justify-center gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
-              >
-                <FaIcon icon={faFilePlus} className="h-8 w-8 text-cyan-700" />
-                <span className="text-sm font-semibold text-cyan-700">New Release</span>
-              </Link>
-              <Link
-                href="/company/add"
-                className="flex flex-col items-center justify-center gap-3 rounded-xl border border-indigo-500 bg-indigo-500/10 p-4 text-center transition-colors hover:bg-indigo-500/20 cursor-pointer"
-              >
-                <FaIcon icon={faFlag} className="h-8 w-8 text-indigo-500" />
-                <span className="text-sm font-semibold text-indigo-500">Add Brand</span>
-              </Link>
-              <Link
-                href="/payment/paygo"
-                className="flex flex-col items-center justify-center gap-3 rounded-xl border border-amber-500 bg-amber-500/10 p-4 text-center transition-colors hover:bg-amber-500/20 cursor-pointer"
-              >
-                <FaIcon icon={faCoins} className="h-8 w-8 text-amber-500" />
-                <span className="text-sm font-semibold text-amber-500">Buy Credits</span>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        {canCreate && (
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks and actions</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1">
+              <div className="grid h-full grid-cols-3 gap-3">
+                <Link
+                  href="/pr/create"
+                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
+                >
+                  <FaIcon icon={faFilePlus} className="h-8 w-8 text-cyan-700" />
+                  <span className="text-sm font-semibold text-cyan-700">New Release</span>
+                </Link>
+                <Link
+                  href="/company/add"
+                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-indigo-500 bg-indigo-500/10 p-4 text-center transition-colors hover:bg-indigo-500/20 cursor-pointer"
+                >
+                  <FaIcon icon={faFlag} className="h-8 w-8 text-indigo-500" />
+                  <span className="text-sm font-semibold text-indigo-500">Add Brand</span>
+                </Link>
+                <Link
+                  href="/payment/paygo"
+                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-amber-500 bg-amber-500/10 p-4 text-center transition-colors hover:bg-amber-500/20 cursor-pointer"
+                >
+                  <FaIcon icon={faCoins} className="h-8 w-8 text-amber-500" />
+                  <span className="text-sm font-semibold text-amber-500">Buy Credits</span>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Brands Section */}

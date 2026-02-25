@@ -1,25 +1,15 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, advocacyGroups, advocates } from '@/db/schema'
+import { advocacyGroups, advocates } from '@/db/schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { randomUUID } from 'crypto'
 import { CompanyNav } from '@/components/company/company-nav'
 import { ShareListForm } from './advocacy-form'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 const DEFAULT_INVITE_MSG =
   'You have been added to our Share List. As a member, you will be notified via email when we distribute a new press release — with an invitation to share the news with your social networks.'
-
-async function getCompany(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
 
 async function getOrCreateGroup(companyId: number, userId: number, companyName: string) {
   let group = await db.query.advocacyGroups.findFirst({
@@ -63,8 +53,10 @@ export default async function ShareListPage({
   const userId = parseInt(session?.user?.id || '0')
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await getCompany(uuid, userId, isAdmin)
-  if (!co) notFound()
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
+  if (!access) notFound()
+  const co = access.company
+  const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   const group = await getOrCreateGroup(co.id, userId, co.companyName)
   const totalSubscribers = await getTotalSubscribers(group.id)
@@ -79,6 +71,7 @@ export default async function ShareListPage({
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
 
       <ShareListForm
+        readOnly={isReadOnly}
         companyUuid={co.uuid}
         companyName={co.companyName}
         group={{

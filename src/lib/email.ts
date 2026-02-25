@@ -347,6 +347,59 @@ export async function sendVerificationEmail(email: string, token: string, name: 
   })
 }
 
+export async function sendTeamInviteEmail({
+  to,
+  inviterName,
+  companyName,
+  role,
+  token,
+}: {
+  to: string
+  inviterName: string
+  companyName: string
+  role: string
+  token: string
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const inviteLink = `${appUrl}/invite/${token}`
+
+  const roleLabels: Record<string, string> = {
+    brand_admin: 'Brand Admin',
+    collaborator: 'Collaborator',
+    client: 'Client',
+  }
+  const roleLabel = roleLabels[role] || role
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>You've been invited to join a team - Newsworthy</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+          <h1 style="color: #1a1a1a; margin-bottom: 20px;">You've been invited to a team</h1>
+          <p style="margin-bottom: 20px;">
+            <strong>${inviterName}</strong> has invited you to join <strong>${companyName}</strong> on Newsworthy as a <strong>${roleLabel}</strong>.
+          </p>
+          <a href="${inviteLink}" style="display: inline-block; background-color: #155e75; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Accept Invitation</a>
+          <p style="margin-top: 20px; font-size: 14px; color: #666;">This invitation expires in 7 days. If you don't have an account, you'll be able to create one.</p>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #999;">This email was sent from Newsworthy on behalf of ${inviterName}. If you believe this was sent in error, you can safely ignore it.</p>
+        </div>
+      </body>
+    </html>
+  `
+
+  await sendEmail({
+    to,
+    subject: `You've been invited to join ${companyName} on Newsworthy`,
+    html,
+    text: `You've been invited to a team\n\n${inviterName} has invited you to join ${companyName} on Newsworthy as a ${roleLabel}.\n\nAccept the invitation: ${inviteLink}\n\nThis invitation expires in 7 days.`,
+  })
+}
+
 export async function sendWelcomeEmail(email: string, name: string) {
   const html = `
     <!DOCTYPE html>

@@ -1,19 +1,11 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, advocacyGroups, advocates } from '@/db/schema'
+import { advocacyGroups, advocates } from '@/db/schema'
 import { eq, and, desc, sql, isNotNull, isNull, ilike } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
 import { AdvocateList } from './advocate-list'
-
-async function getCompany(uuid: string, userId: number) {
-  return db.query.company.findFirst({
-    where: and(
-      eq(company.uuid, uuid),
-      eq(company.userId, userId)
-    ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 async function getGroup(companyId: number) {
   return db.query.advocacyGroups.findFirst({
@@ -104,9 +96,12 @@ export default async function ManageAdvocatesPage({
 
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
+  const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await getCompany(uuid, userId)
-  if (!co) notFound()
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
+  if (!access) notFound()
+  const co = access.company
+  const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   const group = await getGroup(co.id)
   if (!group) notFound()
@@ -123,6 +118,7 @@ export default async function ManageAdvocatesPage({
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
 
       <AdvocateList
+        readOnly={isReadOnly}
         companyUuid={co.uuid}
         advocates={data.items}
         stats={data.stats}

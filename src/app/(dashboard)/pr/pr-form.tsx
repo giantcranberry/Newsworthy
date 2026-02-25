@@ -134,6 +134,7 @@ interface PRFormProps {
   pageTitle?: string;
   pageDescription?: string;
   children?: React.ReactNode;
+  creditsByCompany?: Record<number, number>;
   initialData?: {
     id?: number;
     uuid?: string;
@@ -175,6 +176,7 @@ export function PRForm({
   pageTitle = "Press Release",
   pageDescription,
   children,
+  creditsByCompany = {},
   initialData,
 }: PRFormProps) {
   const router = useRouter();
@@ -182,9 +184,15 @@ export function PRForm({
   const [isLoading, setIsLoading] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
   const [companies, setCompanies] = useState(initialCompanies);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(
-    initialData?.companyId || initialCompanies[0]?.id || 0,
-  );
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number>(() => {
+    if (initialData?.companyId) return initialData.companyId;
+    // Auto-select first company with credits
+    if (Object.keys(creditsByCompany).length > 0) {
+      const withCredits = initialCompanies.find((c) => (creditsByCompany[c.id] || 0) > 0);
+      if (withCredits) return withCredits.id;
+    }
+    return initialCompanies[0]?.id || 0;
+  });
   const [showContactModal, setShowContactModal] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -1075,11 +1083,15 @@ export function PRForm({
               className="mt-1"
               disabled={readOnly}
             >
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {company.companyName}
-                </option>
-              ))}
+              {companies.map((company) => {
+                const credits = creditsByCompany[company.id];
+                const hasCredits = credits === undefined || credits > 0;
+                return (
+                  <option key={company.id} value={company.id} disabled={!hasCredits}>
+                    {company.companyName}{credits !== undefined ? ` (${credits} credit${credits !== 1 ? 's' : ''})` : ''}
+                  </option>
+                );
+              })}
             </Select>
           </div>
 

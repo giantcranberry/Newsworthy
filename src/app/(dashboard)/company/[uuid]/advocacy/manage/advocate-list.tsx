@@ -44,6 +44,7 @@ interface Subscriber {
 }
 
 interface SubscriberListProps {
+  readOnly?: boolean
   companyUuid: string
   advocates: Subscriber[]
   stats: {
@@ -77,6 +78,7 @@ function getStatus(a: Subscriber) {
 }
 
 export function AdvocateList({
+  readOnly,
   companyUuid,
   advocates,
   stats,
@@ -352,7 +354,7 @@ export function AdvocateList({
       </div>
 
       {/* Bulk action bar */}
-      {someSelected && (
+      {!readOnly && someSelected && (
         <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
           <span className="text-sm font-medium text-red-800">
             {selected.size} subscriber{selected.size !== 1 ? 's' : ''} selected
@@ -418,18 +420,20 @@ export function AdvocateList({
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left">
-                      <th className="pb-2 pr-2 w-8">
-                        <Checkbox
-                          checked={allOnPageSelected}
-                          onCheckedChange={toggleSelectAll}
-                          aria-label="Select all on this page"
-                        />
-                      </th>
+                      {!readOnly && (
+                        <th className="pb-2 pr-2 w-8">
+                          <Checkbox
+                            checked={allOnPageSelected}
+                            onCheckedChange={toggleSelectAll}
+                            aria-label="Select all on this page"
+                          />
+                        </th>
+                      )}
                       <th className="pb-2 pr-4 font-medium text-gray-500">Subscriber</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Member Since</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Last Open</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500">Status</th>
-                      <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>
+                      {!readOnly && <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -438,13 +442,15 @@ export function AdvocateList({
                       const isSelected = selected.has(a.id)
                       return (
                         <tr key={a.id} className={`border-b last:border-0 ${isSelected ? 'bg-red-50/50' : ''}`}>
-                          <td className="py-2 pr-2">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleSelect(a.id)}
-                              aria-label={`Select ${a.email}`}
-                            />
-                          </td>
+                          {!readOnly && (
+                            <td className="py-2 pr-2">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleSelect(a.id)}
+                                aria-label={`Select ${a.email}`}
+                              />
+                            </td>
+                          )}
                           <td className="py-2 pr-4">
                             {(a.firstName || a.lastName) && (
                               <>
@@ -475,24 +481,26 @@ export function AdvocateList({
                               </span>
                             )}
                           </td>
-                          <td className="py-2 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => openEdit(a)}
-                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                                title="Edit subscriber"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={() => openDelete(a)}
-                                className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                                title="Remove subscriber"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </td>
+                          {!readOnly && (
+                            <td className="py-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <button
+                                  onClick={() => openEdit(a)}
+                                  className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                  title="Edit subscriber"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </button>
+                                <button
+                                  onClick={() => openDelete(a)}
+                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  title="Remove subscriber"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       )
                     })}

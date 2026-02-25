@@ -8,9 +8,10 @@ import { Input } from '@/components/ui/input'
 
 interface HeaderProps {
   onMenuClick?: () => void
+  canCreateContent?: boolean
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const { data: session } = useSession()
 
   return (
@@ -39,29 +40,35 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
-        {/* Quick create */}
-        <Link href="/pr/create">
-          <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Release</span>
-          </Button>
-        </Link>
+        {canCreateContent && (
+          <>
+            {/* Quick create */}
+            <Link href="/pr/create">
+              <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Release</span>
+              </Button>
+            </Link>
 
-        {/* Credits */}
-        <Link href="/payment/paygo">
-          <Button variant="outline" size="sm" className="gap-2 text-gray-700">
-            <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">Buy Credits</span>
-          </Button>
-        </Link>
+            {/* Credits */}
+            <Link href="/payment/paygo">
+              <Button variant="outline" size="sm" className="gap-2 text-gray-700">
+                <CreditCard className="h-4 w-4" />
+                <span className="hidden sm:inline">Buy Credits</span>
+              </Button>
+            </Link>
+          </>
+        )}
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative text-gray-700">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-            3
-          </span>
-        </Button>
+        {canCreateContent && (
+          <Button variant="ghost" size="icon" className="relative text-gray-700">
+            <Bell className="h-5 w-5" />
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
+              3
+            </span>
+          </Button>
+        )}
       </div>
     </header>
   )

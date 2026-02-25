@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 
 interface ShareListFormProps {
+  readOnly?: boolean
   companyUuid: string
   companyName: string
   group: {
@@ -29,6 +30,7 @@ interface ShareListFormProps {
 }
 
 export function ShareListForm({
+  readOnly,
   companyUuid,
   companyName,
   group,
@@ -138,7 +140,7 @@ export function ShareListForm({
       </Card>
 
       {/* Step 1: Customize Welcome Email */}
-      <Card>
+      {!readOnly && <Card>
         <CardHeader className="bg-blue-50 border-b rounded-t-lg">
           <CardTitle className="text-base flex items-center gap-2">
             <Mail className="h-4 w-4" />
@@ -190,10 +192,10 @@ export function ShareListForm({
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Step 2: Add Subscribers */}
-      <Card>
+      {!readOnly && <Card>
         <CardHeader className="bg-blue-50 border-b rounded-t-lg">
           <CardTitle className="text-base flex items-center gap-2">
             <UserPlus className="h-4 w-4" />
@@ -246,7 +248,7 @@ export function ShareListForm({
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Manage Subscribers */}
       <Card>

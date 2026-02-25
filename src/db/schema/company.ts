@@ -1,6 +1,7 @@
 import { pgTable, serial, varchar, text, boolean, timestamp, integer, jsonb } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
+import { companyMembers, companyInvites } from './team'
 
 export const company = pgTable('company', {
   id: serial('id').primaryKey(),
@@ -143,6 +144,8 @@ export const companyRelations = relations(company, ({ one, many }) => ({
   images: many(images),
   banners: many(banners),
   socials: many(socials),
+  members: many(companyMembers),
+  invites: many(companyInvites),
 }))
 
 export const contactRelations = relations(contact, ({ one }) => ({

@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { users, userProfiles, userSubscription } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProfileForm } from './profile-form'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 async function getUserProfile(userId: number) {
   const user = await db.query.users.findFirst({
@@ -25,6 +26,8 @@ export default async function ProfilePage() {
   const userId = parseInt(session?.user?.id || '0')
 
   const { user, profile, subscription } = await getUserProfile(userId)
+  const editableIds = await getUserCompanyIds(userId, 'collaborator')
+  const canPurchase = editableIds.length > 0
 
   return (
     <ProfileForm
@@ -43,11 +46,13 @@ export default async function ProfilePage() {
         postalCode: profile?.postalCode || '',
         countryCode: profile?.countryCode || 'US',
       }}
+      isAgency={user?.isAgency || false}
       subscription={{
         remainingPr: subscription?.remainingPr || 0,
         remainingPluspr: subscription?.remainingPluspr || 0,
         newsdbCredits: subscription?.newsdbCredits || 0,
       }}
+      canPurchase={canPurchase}
     />
   )
 }

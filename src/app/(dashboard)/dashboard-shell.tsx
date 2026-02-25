@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/header'
 import { ImpersonationBanner } from '@/components/layout/impersonation-banner'
 import { cn } from '@/lib/utils'
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({ children, canCreateContent = true }: { children: React.ReactNode; canCreateContent?: boolean }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -26,13 +26,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <Sidebar />
+        <Sidebar canCreateContent={canCreateContent} />
       </aside>
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <ImpersonationBanner />
-        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <Header onMenuClick={() => setSidebarOpen(true)} canCreateContent={canCreateContent} />
         <main className="flex-1 overflow-y-auto">
           <div className="p-6">{children}</div>
         </main>

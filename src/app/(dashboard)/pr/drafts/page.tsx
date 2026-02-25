@@ -7,11 +7,18 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FileText, Plus, Edit } from 'lucide-react'
 import { DeleteReleaseButton } from '../delete-release-button'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 async function getDraftReleases(userId: number) {
+  // Only collaborator+ can edit drafts — exclude client-only companies
+  const companyIds = await getUserCompanyIds(userId, 'collaborator')
+
   return await db.query.releases.findMany({
     where: and(
-      eq(releases.userId, userId),
+      or(
+        eq(releases.userId, userId),
+        companyIds.length > 0 ? inArray(releases.companyId, companyIds) : undefined,
+      ),
       or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
       inArray(releases.status, ['start', 'draft', 'draftnxt'])
     ),
