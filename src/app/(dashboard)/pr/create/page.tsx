@@ -197,6 +197,7 @@ export default async function CreatePRPage({
       creditsByCompany={creditMap}
       pageTitle="Create Press Release"
       pageDescription="Start a new press release for distribution"
+      showPreview
       initialData={
         preselectedCompany ? { companyId: preselectedCompany.id } : undefined
       }

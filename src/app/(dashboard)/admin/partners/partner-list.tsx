@@ -27,7 +27,7 @@ interface PartnerListProps {
 }
 
 export function PartnerList({ partners }: PartnerListProps) {
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
+  const [layout, setLayout] = useState<"grid" | "list">("list");
 
   if (partners.length === 0) {
     return (

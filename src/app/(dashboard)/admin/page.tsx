@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Users, FileText, Building2, Briefcase, Settings, Package } from 'lucide-react'
 
 async function getAdminStats() {
@@ -59,7 +60,7 @@ export default async function AdminPage() {
                 <Users className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.users}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
                 <p className="text-sm text-gray-500">Users</p>
               </div>
             </div>
@@ -73,7 +74,7 @@ export default async function AdminPage() {
                 <FileText className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.releases}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.releases}</p>
                 <p className="text-sm text-gray-500">Releases</p>
               </div>
             </div>
@@ -87,7 +88,7 @@ export default async function AdminPage() {
                 <Building2 className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.companies}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.companies}</p>
                 <p className="text-sm text-gray-500">Companies</p>
               </div>
             </div>
@@ -101,7 +102,7 @@ export default async function AdminPage() {
                 <Briefcase className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{stats.partners}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.partners}</p>
                 <p className="text-sm text-gray-500">Partners</p>
               </div>
             </div>
@@ -145,9 +146,7 @@ export default async function AdminPage() {
                 <FileText className="h-6 w-6" />
                 Review Queue
                 {stats.pendingReleases > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {stats.pendingReleases}
-                  </span>
+                  <Badge className="absolute top-2 right-2 bg-red-500 text-white">{stats.pendingReleases}</Badge>
                 )}
               </Button>
             </Link>
@@ -169,7 +168,7 @@ export default async function AdminPage() {
                 </p>
               </div>
               <Link href="/editorial/queue">
-                <Button>Review Now</Button>
+                <Button className="bg-amber-900 hover:bg-amber-950 text-white">Review Now</Button>
               </Link>
             </div>
           </CardContent>

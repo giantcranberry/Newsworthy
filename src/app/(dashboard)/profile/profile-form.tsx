@@ -380,7 +380,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
           </p>
         )}
 
-        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+        <div className="space-y-4">
           {error && (
             <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
           )}
@@ -397,7 +397,6 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
                 />
                 <button
                   type="button"
@@ -420,8 +419,6 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="At least 8 characters"
-                minLength={8}
-                required
               />
               <button
                 type="button"
@@ -441,13 +438,13 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              required
               className="mt-1"
             />
           </div>
 
           <Button
-            type="submit"
+            type="button"
+            onClick={handlePasswordSubmit}
             disabled={isLoading}
             className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
           >
@@ -460,7 +457,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
               hasPassword ? 'Change Password' : 'Set Password'
             )}
           </Button>
-        </form>
+        </div>
       </CardContent>
     </Card>
   )

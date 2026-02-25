@@ -8,6 +8,7 @@ export interface PreviewPanelProps {
     title?: string | null
     abstract?: string | null
     body?: string | null
+    pullquote?: string | null
     location?: string | null
     videoUrl?: string | null
   }
@@ -16,8 +17,9 @@ export interface PreviewPanelProps {
     companyName?: string | null
   }
   banner?: { url: string; caption?: string | null } | null
-  images?: { id: number; url: string; caption?: string | null }[]
+  images?: { id: number; url: string; title?: string | null; caption?: string | null; imgCredits?: string | null }[]
   compact?: boolean
+  deviceMode?: 'desktop' | 'tablet' | 'mobile'
 }
 
 export function formatDate() {
@@ -50,16 +52,30 @@ export function PreviewPanel({
   banner,
   images,
   compact = false,
+  deviceMode = 'desktop',
 }: PreviewPanelProps) {
   const videoEmbedUrl = release?.videoUrl ? getYouTubeEmbedUrl(release.videoUrl) : null
 
   return (
     <div className="bg-white">
+      {/* Hero Banner */}
+      {banner && (
+        <div className="relative w-full aspect-[1200/630] overflow-hidden bg-gray-100">
+          <Image
+            src={banner.url}
+            alt={banner.caption || 'Social banner'}
+            fill
+            className="object-cover"
+            unoptimized
+          />
+        </div>
+      )}
+
       <article className={cn('flex flex-col', compact ? 'px-4 py-4 gap-3' : 'px-6 py-6 gap-5')}>
         {/* Title */}
         <h1 className={cn(
           'font-serif font-medium text-gray-900',
-          compact ? 'text-lg leading-snug' : 'text-2xl lg:text-4xl'
+          compact ? 'text-2xl leading-snug' : 'text-2xl lg:text-4xl'
         )}>
           {release?.title || 'Untitled Press Release'}
         </h1>
@@ -97,10 +113,52 @@ export function PreviewPanel({
             </p>
           </div>
 
+          {/* Image + pullquote: floated right on desktop/tablet, stacked full-width on mobile */}
+          {((images && images.length > 0) || release?.pullquote) && (
+            <div className={cn(
+              deviceMode === 'mobile'
+                ? 'w-full mb-4'
+                : 'float-right ml-5 mb-4',
+              deviceMode === 'mobile'
+                ? ''
+                : compact ? 'w-[55%] max-w-[250px]' : 'w-[50%] max-w-[350px]'
+            )}>
+              {images && images.length > 0 && images.map((img) => (
+                <figure key={img.id} className="mb-2">
+                  <Image
+                    src={img.url}
+                    alt={img.caption || img.title || 'News image'}
+                    width={deviceMode === 'mobile' ? 400 : compact ? 200 : 300}
+                    height={deviceMode === 'mobile' ? 300 : compact ? 150 : 225}
+                    className="rounded-lg w-full h-auto"
+                    style={{ objectFit: 'contain' }}
+                    unoptimized
+                  />
+                  {(img.caption || img.title || img.imgCredits) && (
+                    <figcaption className="text-xs text-gray-500 mt-1.5 space-y-0.5">
+                      {(img.caption || img.title) && <p>{img.caption || img.title}</p>}
+                      {img.imgCredits && <p className="italic">Photo: {img.imgCredits}</p>}
+                    </figcaption>
+                  )}
+                </figure>
+              ))}
+              {release?.pullquote && (
+                <blockquote className={cn(
+                  'border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700',
+                  deviceMode === 'mobile'
+                    ? 'pl-4 py-3 text-sm'
+                    : compact ? 'pl-3 py-2 text-xs' : 'pl-4 py-3 text-sm'
+                )}>
+                  <p>&ldquo;{release.pullquote}&rdquo;</p>
+                </blockquote>
+              )}
+            </div>
+          )}
+
           {/* Body content */}
           <div
             className={cn(
-              'article max-w-none prose prose-gray prose-p:text-gray-800 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-blue-600 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-blockquote:text-gray-600',
+              'article max-w-none prose prose-gray prose-p:text-gray-800 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-blockquote:text-gray-600',
               compact
                 ? 'prose-sm prose-h2:text-base'
                 : 'prose-p:text-base prose-h2:text-xl'
@@ -108,32 +166,6 @@ export function PreviewPanel({
             dangerouslySetInnerHTML={{ __html: release?.body || '<p>No content provided.</p>' }}
           />
         </div>
-
-        {/* News Images */}
-        {images && images.length > 0 && (
-          <div className="space-y-4">
-            {images.map((img) => (
-              <figure key={img.id} className="flex flex-col items-center">
-                <div className={cn('relative w-full', compact ? 'max-w-xs' : 'max-w-md')}>
-                  <Image
-                    src={img.url}
-                    alt={img.caption || 'News image'}
-                    width={compact ? 280 : 400}
-                    height={compact ? 210 : 300}
-                    className="rounded-lg mx-auto"
-                    style={{ maxHeight: compact ? '30vh' : '50vh', width: 'auto', height: 'auto', objectFit: 'contain' }}
-                    unoptimized
-                  />
-                </div>
-                {img.caption && (
-                  <figcaption className="text-center text-sm text-gray-500 mt-2">
-                    {img.caption}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
-          </div>
-        )}
 
         {/* Company info section */}
         <div className={cn(compact ? 'my-3' : 'my-5')}>
@@ -168,27 +200,6 @@ export function PreviewPanel({
           </div>
         </div>
 
-        {/* Social Banner preview */}
-        {banner && (
-          <div className="pt-5 border-t">
-            <p className="text-sm text-gray-500 mb-3">Social Share Image</p>
-            <div className={cn(
-              'relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 border',
-              compact ? 'max-w-xs' : 'max-w-lg'
-            )}>
-              <Image
-                src={banner.url}
-                alt={banner.caption || 'Social banner'}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-            {banner.caption && (
-              <p className="text-sm text-gray-500 mt-2 text-center">{banner.caption}</p>
-            )}
-          </div>
-        )}
       </article>
 
       {/* Footer */}
