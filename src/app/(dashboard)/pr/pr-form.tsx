@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -35,8 +35,30 @@ import {
   Upload,
   FileText,
   Link,
+  Monitor,
+  Tablet,
+  Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { PreviewPanel } from "@/components/pr-wizard/preview-panel";
+import { ResizeHandle } from "@/components/ui/resize-handle";
+
+const PREVIEW_MIN_WIDTH = 300;
+const PREVIEW_MAX_WIDTH = 900;
+const PREVIEW_DEFAULT_WIDTH = 500;
+
+function widthToDevice(width: number): 'desktop' | 'tablet' | 'mobile' {
+  if (width <= 430) return 'mobile';
+  if (width <= 768) return 'tablet';
+  return 'desktop';
+}
+
+const DEVICE_SNAP_WIDTHS: Record<string, number> = {
+  desktop: PREVIEW_MAX_WIDTH,
+  tablet: 768,
+  mobile: 375,
+};
 
 interface Suggestion {
   headline: string;
@@ -101,6 +123,7 @@ interface Company {
   id: number;
   uuid: string;
   companyName: string;
+  logoUrl?: string | null;
   timezone?: string | null;
   contacts: Array<{
     id: number;
@@ -135,6 +158,7 @@ interface PRFormProps {
   pageDescription?: string;
   children?: React.ReactNode;
   creditsByCompany?: Record<number, number>;
+  showPreview?: boolean;
   initialData?: {
     id?: number;
     uuid?: string;
@@ -177,10 +201,21 @@ export function PRForm({
   pageDescription,
   children,
   creditsByCompany = {},
+  showPreview = false,
   initialData,
 }: PRFormProps) {
   const router = useRouter();
   const editorRef = useRef<any>(null);
+  const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH);
+  const previewDevice = useMemo(() => widthToDevice(previewWidth), [previewWidth]);
+
+  const handlePreviewResize = useCallback((delta: number) => {
+    setPreviewWidth(prev => Math.min(PREVIEW_MAX_WIDTH, Math.max(PREVIEW_MIN_WIDTH, prev + delta)));
+  }, []);
+
+  const handleDeviceClick = useCallback((mode: 'desktop' | 'tablet' | 'mobile') => {
+    setPreviewWidth(Math.min(PREVIEW_MAX_WIDTH, Math.max(PREVIEW_MIN_WIDTH, DEVICE_SNAP_WIDTHS[mode])));
+  }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [dateError, setDateError] = useState<string | null>(null);
   const [companies, setCompanies] = useState(initialCompanies);
@@ -680,14 +715,15 @@ export function PRForm({
   };
 
   return (
-    <div className="-mt-6">
+    <div className={showPreview ? "flex gap-6" : ""}>
+    <div className={showPreview ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
       {/* Sticky Action Bar */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-800 truncate">{pageTitle}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{pageTitle}</h1>
             {pageDescription && (
-              <p className="text-sm text-gray-500 mt-0.5">{pageDescription}</p>
+              <p className="text-sm text-gray-600 mt-0.5">{pageDescription}</p>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -747,7 +783,7 @@ export function PRForm({
         </div>
       </div>
 
-      <div className="max-w-4xl space-y-8 mt-8">
+      <div className="space-y-8 mt-8">
       {children}
 
       {readOnly && (
@@ -1072,7 +1108,7 @@ export function PRForm({
       <div className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Brand & Contact</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Select your brand and press contact</p>
+          <p className="text-sm text-gray-600 mt-0.5">Select your brand and press contact</p>
         </div>
           <div>
             <Label htmlFor="company">Select Brand *</Label>
@@ -1137,7 +1173,7 @@ export function PRForm({
       <div className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Release Details</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Set your headline, summary, and schedule</p>
+          <p className="text-sm text-gray-600 mt-0.5">Set your headline, summary, and schedule</p>
         </div>
           <div>
             <div className="flex justify-between items-center">
@@ -1205,7 +1241,7 @@ export function PRForm({
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
                 <Label htmlFor="location">Location (Dateline) *</Label>
@@ -1241,7 +1277,7 @@ export function PRForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
                 <Label htmlFor="releaseDate">Release Date *</Label>
@@ -1307,7 +1343,7 @@ export function PRForm({
       <div className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Categories & Regions</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Choose relevant topics and target markets</p>
+          <p className="text-sm text-gray-600 mt-0.5">Choose relevant topics and target markets</p>
         </div>
           {topCategories.length > 0 && (
             <div>
@@ -1358,7 +1394,7 @@ export function PRForm({
         <div className="flex justify-between items-center">
           <div>
             <h3 className="font-medium text-gray-900">Content *</h3>
-            <p className="text-sm text-gray-500 mt-0.5">Write or paste your press release body</p>
+            <p className="text-sm text-gray-600 mt-0.5">Write or paste your press release body</p>
           </div>
           <HelpTip title="Content Tips" content={HELP_TEXT.body} />
         </div>
@@ -1400,7 +1436,7 @@ export function PRForm({
       <div className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Additional Links</h3>
-          <p className="text-sm text-gray-500 mt-0.5">Add video, landing page, or media kit URLs</p>
+          <p className="text-sm text-gray-600 mt-0.5">Add video, landing page, or media kit URLs</p>
         </div>
           <div>
             <div className="flex justify-between items-center">
@@ -1835,6 +1871,66 @@ export function PRForm({
         </div>
       )}
       </div>
+    </div>
+
+    {/* Live Preview Sidebar */}
+    {showPreview && (
+      <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: previewWidth }}>
+        <div className="sticky top-0 h-screen flex">
+          <ResizeHandle onResize={handlePreviewResize} />
+          <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Live Preview</h3>
+              <p className="text-xs text-gray-600 mt-0.5">See how your press release will appear once published</p>
+            </div>
+            <div className="inline-flex items-center rounded-md border border-gray-300 bg-white shrink-0">
+              {([
+                { mode: 'desktop' as const, icon: Monitor, label: 'Desktop' },
+                { mode: 'tablet' as const, icon: Tablet, label: 'Tablet' },
+                { mode: 'mobile' as const, icon: Smartphone, label: 'Mobile' },
+              ]).map(({ mode, icon: Icon, label }, i) => (
+                <button
+                  key={mode}
+                  onClick={() => handleDeviceClick(mode)}
+                  title={label}
+                  className={cn(
+                    'inline-flex items-center px-2 py-1.5 cursor-pointer transition-colors',
+                    i === 0 && 'rounded-l-md',
+                    i === 2 && 'rounded-r-md',
+                    i > 0 && 'border-l border-gray-300',
+                    previewDevice === mode
+                      ? 'bg-cyan-800/10 text-cyan-800'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <PreviewPanel
+              release={{
+                title: formData.title,
+                abstract: formData.abstract,
+                body: formData.body,
+                pullquote: formData.pullquote,
+                location: formData.location,
+                videoUrl: formData.videoUrl,
+              }}
+              company={selectedCompany ? {
+                logoUrl: selectedCompany.logoUrl,
+                companyName: selectedCompany.companyName,
+              } : undefined}
+              compact
+              deviceMode={previewDevice}
+            />
+          </div>
+          </div>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -45,7 +45,7 @@ interface CompanyListProps {
 }
 
 export function CompanyList({ companies, creditsByCompany, rolesByCompany }: CompanyListProps) {
-  const [layout, setLayout] = useState<"grid" | "list">("grid");
+  const [layout, setLayout] = useState<"grid" | "list">("list");
 
   if (companies.length === 0) {
     return (

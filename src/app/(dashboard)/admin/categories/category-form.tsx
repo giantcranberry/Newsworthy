@@ -4,6 +4,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  SelectRoot,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 
 interface Category {
@@ -158,19 +165,22 @@ export function CategoryForm({ category, parentOptions, onSuccess, onCancel }: C
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="parentCategory">Parent Category</Label>
-          <select
-            id="parentCategory"
-            value={formData.parentCategory}
-            onChange={(e) => handleChange('parentCategory', e.target.value)}
-            className="flex h-9 w-full rounded-md border border-gray-300 bg-white px-3 py-1 text-sm"
+          <SelectRoot
+            value={formData.parentCategory || '_none'}
+            onValueChange={(value) => handleChange('parentCategory', value === '_none' ? '' : value)}
           >
-            <option value="">None</option>
-            {parentOptions
-              .filter(name => name !== category?.name)
-              .map((name) => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-          </select>
+            <SelectTrigger id="parentCategory">
+              <SelectValue placeholder="None" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">None</SelectItem>
+              {parentOptions
+                .filter(name => name !== category?.name)
+                .map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+            </SelectContent>
+          </SelectRoot>
         </div>
 
         <div className="space-y-2">

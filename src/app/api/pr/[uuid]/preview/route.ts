@@ -21,12 +21,16 @@ export async function GET(
       title: releases.title,
       abstract: releases.abstract,
       body: releases.body,
+      pullquote: releases.pullquote,
       location: releases.location,
       videoUrl: releases.videoUrl,
       companyName: company.companyName,
       logoUrl: company.logoUrl,
       bannerUrl: banners.url,
       primaryImageUrl: images.url,
+      primaryImageTitle: images.title,
+      primaryImageCaption: images.caption,
+      primaryImageCredits: images.imgCredits,
     })
     .from(releases)
     .leftJoin(company, eq(releases.companyId, company.id))
