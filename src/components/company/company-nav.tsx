@@ -31,8 +31,15 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
   const pathname = usePathname()
   const basePath = `/company/${companyUuid}`
 
+  const activeIndex = NAV_ITEMS.findIndex((item) => {
+    const fullHref = `${basePath}${item.href}`
+    return item.href === ''
+      ? pathname === basePath
+      : pathname === fullHref || pathname.startsWith(fullHref + '/')
+  })
+
   return (
-    <nav aria-label="Brand navigation" className="mb-8">
+    <nav aria-label="Brand navigation" className="mb-14">
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/company"
@@ -45,10 +52,12 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
       <ol className="flex items-center">
         {NAV_ITEMS.map((item, idx) => {
           const fullHref = `${basePath}${item.href}`
-          const isActive = item.href === ''
-            ? pathname === basePath
-            : pathname === fullHref
+          const isCurrent = idx === activeIndex
+          const isVisited = activeIndex >= 0 && idx < activeIndex
           const Icon = item.icon
+
+          // Detect transition line: this step is visited and the next is current
+          const isTransitionLine = isVisited && idx + 1 === activeIndex
 
           return (
             <li
@@ -60,9 +69,9 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
                   href={fullHref}
                   className={cn(
                     'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'border-2 border-gray-300 bg-white text-gray-500 hover:border-blue-400 hover:text-blue-500'
+                    isCurrent && 'bg-cyan-700 text-white wizard-step-current',
+                    isVisited && 'bg-emerald-600 text-white hover:bg-emerald-700',
+                    !isCurrent && !isVisited && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400'
                   )}
                   title={item.label}
                 >
@@ -71,7 +80,12 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
 
                 {idx !== NAV_ITEMS.length - 1 && (
                   <div
-                    className="ml-4 h-0.5 w-full bg-gray-200"
+                    className={cn(
+                      'h-0.5 w-full',
+                      isTransitionLine && 'wizard-gradient-line',
+                      !isTransitionLine && isVisited && 'bg-emerald-600',
+                      !isTransitionLine && !isVisited && 'bg-gray-200'
+                    )}
                     aria-hidden="true"
                   />
                 )}
@@ -79,8 +93,10 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
 
               <span
                 className={cn(
-                  'absolute -bottom-6 left-0 whitespace-nowrap text-xs font-medium',
-                  isActive ? 'text-blue-600' : 'text-gray-500'
+                  'absolute -bottom-6 left-5 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
+                  isCurrent && 'text-cyan-700',
+                  isVisited && 'text-emerald-600',
+                  !isCurrent && !isVisited && 'text-gray-500'
                 )}
               >
                 {item.label}

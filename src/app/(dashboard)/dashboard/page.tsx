@@ -24,6 +24,7 @@ import { faCoins } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faNewspaper } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faBuilding } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faClipboardCheck } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
+import { faChartBar } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { CreditsCard } from "./credits-card";
 import { PendingInvites } from "./pending-invites";
 
@@ -250,9 +251,9 @@ export default async function DashboardPage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600">
             Welcome back! Here&apos;s what&apos;s happening.
           </p>
@@ -268,7 +269,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Link href="/pr">
           <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -278,7 +279,7 @@ export default async function DashboardPage() {
               <FaIcon icon={faNewspaper} className="h-6 w-6 text-cyan-700" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats.total}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.total}</div>
               <p className="text-xs text-gray-600">
                 {stats.published} published, {stats.drafts} drafts
               </p>
@@ -295,7 +296,7 @@ export default async function DashboardPage() {
               <FaIcon icon={faFlag} className="h-6 w-6 text-indigo-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{companies.length}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{companies.length}</div>
               <p className="text-xs text-gray-600">Active brand profiles</p>
             </CardContent>
           </Card>
@@ -312,19 +313,61 @@ export default async function DashboardPage() {
               <FaIcon icon={faClipboardCheck} className="h-6 w-6 text-rose-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-gray-900">{stats.inReview}</div>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.inReview}</div>
               <p className="text-xs text-gray-600">Pending editorial review</p>
             </CardContent>
           </Card>
         </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent Releases */}
+      {/* Quick Actions */}
+      {canCreate && (
         <Card>
           <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common tasks and actions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Link
+                href="/pr/create"
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-3 sm:p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
+              >
+                <FaIcon icon={faFilePlus} className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-700" />
+                <span className="text-sm font-semibold text-cyan-700">New Release</span>
+              </Link>
+              <Link
+                href="/company/add"
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-indigo-500 bg-indigo-500/10 p-3 sm:p-4 text-center transition-colors hover:bg-indigo-500/20 cursor-pointer"
+              >
+                <FaIcon icon={faFlag} className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-500" />
+                <span className="text-sm font-semibold text-indigo-500">Add Brand</span>
+              </Link>
+              <Link
+                href="/pr/reports"
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-emerald-600 bg-emerald-600/10 p-3 sm:p-4 text-center transition-colors hover:bg-emerald-600/20 cursor-pointer"
+              >
+                <FaIcon icon={faChartBar} className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
+                <span className="text-sm font-semibold text-emerald-600">Reports</span>
+              </Link>
+              <Link
+                href="/payment/paygo"
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-amber-500 bg-amber-500/10 p-3 sm:p-4 text-center transition-colors hover:bg-amber-500/20 cursor-pointer"
+              >
+                <FaIcon icon={faCoins} className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500" />
+                <span className="text-sm font-semibold text-amber-500">Buy Credits</span>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+        {/* Recent Releases */}
+        <Card>
+          <CardHeader className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <CardTitle>Recent Releases</CardTitle>
+              <CardTitle className="text-base sm:text-lg">Recent Releases</CardTitle>
               <Link
                 href="/pr"
                 className="text-sm text-cyan-800 hover:underline cursor-pointer"
@@ -334,7 +377,7 @@ export default async function DashboardPage() {
             </div>
             <CardDescription>Your latest press releases</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {releases.length === 0 ? (
               <div className="py-8 text-center">
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
@@ -348,24 +391,24 @@ export default async function DashboardPage() {
                 )}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {releases.map((release) => (
                   <Link
                     key={release.id}
                     href={`/pr/${release.uuid}`}
-                    className="block rounded-lg border p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="block rounded-lg border p-3 hover:bg-gray-50 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900 truncate">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
                           {release.title || "Untitled"}
                         </h4>
-                        <p className="text-sm text-gray-600 truncate">
+                        <p className="text-xs text-gray-600 truncate">
                           {release.company?.companyName}
                         </p>
                       </div>
                       <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
                           release.status === "sent"
                             ? "bg-green-100 text-green-800"
                             : release.status === "review"
@@ -391,88 +434,53 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        {canCreate && (
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks and actions</CardDescription>
+        {/* Your Brands */}
+        {companies.length > 0 && (
+          <Card>
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-base sm:text-lg">Your Brands</CardTitle>
+                <Link href="/company">
+                  <Button variant="outline" size="sm" className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-gray-900 text-xs sm:text-sm">
+                    Manage Brands
+                  </Button>
+                </Link>
+              </div>
             </CardHeader>
-            <CardContent className="flex-1">
-              <div className="grid h-full grid-cols-3 gap-3">
-                <Link
-                  href="/pr/create"
-                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
-                >
-                  <FaIcon icon={faFilePlus} className="h-8 w-8 text-cyan-700" />
-                  <span className="text-sm font-semibold text-cyan-700">New Release</span>
-                </Link>
-                <Link
-                  href="/company/add"
-                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-indigo-500 bg-indigo-500/10 p-4 text-center transition-colors hover:bg-indigo-500/20 cursor-pointer"
-                >
-                  <FaIcon icon={faFlag} className="h-8 w-8 text-indigo-500" />
-                  <span className="text-sm font-semibold text-indigo-500">Add Brand</span>
-                </Link>
-                <Link
-                  href="/payment/paygo"
-                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-amber-500 bg-amber-500/10 p-4 text-center transition-colors hover:bg-amber-500/20 cursor-pointer"
-                >
-                  <FaIcon icon={faCoins} className="h-8 w-8 text-amber-500" />
-                  <span className="text-sm font-semibold text-amber-500">Buy Credits</span>
-                </Link>
+            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+              <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-3">
+                {companies.slice(0, 6).map((co) => (
+                  <Link
+                    key={co.id}
+                    href={`/company/${co.uuid}`}
+                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100 cursor-pointer sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:p-4 sm:text-center"
+                  >
+                    {co.logoUrl ? (
+                      <img
+                        src={co.logoUrl}
+                        alt={co.companyName}
+                        className="h-10 w-10 rounded-full object-cover shrink-0 sm:h-12 sm:w-12"
+                      />
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 shrink-0 sm:h-12 sm:w-12">
+                        <FaIcon icon={faFlag} className="h-5 w-5 text-gray-500 sm:h-6 sm:w-6" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1 sm:w-full sm:flex-initial">
+                      <p className="text-sm font-semibold text-gray-900 truncate">
+                        {co.companyName}
+                      </p>
+                      <p className="text-xs text-gray-600 truncate">
+                        {co.website || "No website"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </CardContent>
           </Card>
         )}
       </div>
-
-      {/* Brands Section */}
-      {companies.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Your Brands</CardTitle>
-              <Link href="/company">
-                <Button variant="outline" size="sm" className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-gray-900">
-                  Manage Brands
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {companies.slice(0, 6).map((co) => (
-                <Link
-                  key={co.id}
-                  href={`/company/${co.uuid}`}
-                  className="flex flex-col items-center justify-center gap-3 rounded-xl border border-gray-200 bg-gray-50/50 p-4 text-center transition-colors hover:bg-gray-100 cursor-pointer"
-                >
-                  {co.logoUrl ? (
-                    <img
-                      src={co.logoUrl}
-                      alt={co.companyName}
-                      className="h-12 w-12 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-                      <FaIcon icon={faFlag} className="h-6 w-6 text-gray-500" />
-                    </div>
-                  )}
-                  <div className="min-w-0 w-full">
-                    <p className="font-semibold text-gray-900 truncate">
-                      {co.companyName}
-                    </p>
-                    <p className="text-xs text-gray-600 truncate">
-                      {co.website || "No website"}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

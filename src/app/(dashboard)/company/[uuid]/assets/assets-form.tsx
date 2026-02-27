@@ -16,7 +16,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
 import {
   Upload,
   Loader2,
@@ -142,6 +142,8 @@ export function AssetsForm({
   const [uploadTitle, setUploadTitle] = useState('')
   const [uploadCredits, setUploadCredits] = useState('')
   const [isUploading, setIsUploading] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [activeUploadTab, setActiveUploadTab] = useState<'upload' | 'unsplash'>('upload')
 
   // Edit state
   const [showEditModal, setShowEditModal] = useState(false)
@@ -173,26 +175,7 @@ export function AssetsForm({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    setError(null)
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File too large. Maximum size is 5MB.')
-      return
-    }
-
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp']
-    if (!validTypes.includes(file.type)) {
-      setError('Invalid file type. Please upload JPEG, PNG, or WebP.')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPendingPreview(reader.result as string)
-      setPendingFile(file)
-    }
-    reader.readAsDataURL(file)
+    processFile(file)
     e.target.value = ''
   }
 
@@ -201,6 +184,42 @@ export function AssetsForm({
     setPendingPreview(null)
     setUploadTitle('')
     setUploadCredits('')
+  }
+
+  const processFile = (file: File) => {
+    setError(null)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File too large. Maximum size is 5MB.')
+      return
+    }
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+      setError('Invalid file type. Please upload JPEG, PNG, or WebP.')
+      return
+    }
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPendingPreview(reader.result as string)
+      setPendingFile(file)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) processFile(file)
   }
 
   const searchUnsplash = useCallback(async (query: string, page: number = 1) => {
@@ -430,9 +449,9 @@ export function AssetsForm({
       {/* Filter Cards */}
       <div className="grid grid-cols-2 gap-4">
         <Link href={`/company/${companyUuid}/assets?filter=news`}>
-          <Card className={`cursor-pointer transition-colors ${filter === 'news' ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50'}`}>
+          <Card className={`cursor-pointer transition-colors ${filter === 'news' ? 'ring-2 ring-cyan-700' : 'hover:bg-gray-50'}`}>
             <CardContent className="pt-4 pb-4 text-center">
-              <Newspaper className="h-5 w-5 text-blue-500 mx-auto mb-1" />
+              <Newspaper className="h-5 w-5 text-cyan-700 mx-auto mb-1" />
               <p className="text-2xl font-bold text-gray-900">{counts.news}</p>
               <p className="text-xs text-gray-500">News Images</p>
             </CardContent>
@@ -451,9 +470,9 @@ export function AssetsForm({
 
       {/* Upload Section */}
       {!readOnly && <Card>
-        <CardHeader className="bg-blue-50 border-b rounded-t-lg">
+        <CardHeader className="bg-cyan-700/10 border-b rounded-t-lg">
           <CardTitle className="text-base flex items-center gap-2">
-            <Upload className="h-4 w-4 text-blue-600" />
+            <Upload className="h-4 w-4 text-cyan-700" />
             Upload Image
           </CardTitle>
         </CardHeader>
@@ -463,17 +482,33 @@ export function AssetsForm({
             JPEG, PNG, or WebP up to 5MB. Images are automatically optimized.
           </p>
 
-          <Tabs defaultValue="upload" onValueChange={() => { handleCancelUpload(); setSelectedPhoto(null); setUnsplashQuery(''); setUnsplashResults([]); setUnsplashError(null) }}>
-            <TabsList>
-              <TabsTrigger value="upload">
-                <Upload className="h-3.5 w-3.5" />
+          <Tabs value={activeUploadTab} onValueChange={(v) => { setActiveUploadTab(v as 'upload' | 'unsplash'); handleCancelUpload(); setSelectedPhoto(null); setUnsplashQuery(''); setUnsplashResults([]); setUnsplashError(null) }}>
+            <div className="flex w-full rounded-lg bg-gray-100 p-1">
+              <button
+                type="button"
+                onClick={() => { setActiveUploadTab('upload'); handleCancelUpload(); setSelectedPhoto(null); setUnsplashQuery(''); setUnsplashResults([]); setUnsplashError(null) }}
+                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                  activeUploadTab === 'upload'
+                    ? 'bg-cyan-700 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Upload className="h-4 w-4" />
                 Upload File
-              </TabsTrigger>
-              <TabsTrigger value="unsplash">
-                <Search className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveUploadTab('unsplash'); handleCancelUpload() }}
+                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                  activeUploadTab === 'unsplash'
+                    ? 'bg-cyan-700 text-white shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Search className="h-4 w-4" />
                 Search Unsplash
-              </TabsTrigger>
-            </TabsList>
+              </button>
+            </div>
 
             <TabsContent value="upload" className="mt-4">
               <input
@@ -533,10 +568,27 @@ export function AssetsForm({
                   </div>
                 </div>
               ) : (
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
-                  <ImageIcon className="h-4 w-4" />
-                  Choose File
-                </Button>
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                    isDragOver
+                      ? 'border-cyan-700 bg-cyan-50'
+                      : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                  }`}
+                >
+                  <div className="rounded-full bg-gray-100 p-3 mb-3">
+                    <Upload className="h-6 w-6 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Drop an image here, or <span className="text-cyan-700">browse</span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    JPEG, PNG, or WebP up to 5MB
+                  </p>
+                </div>
               )}
             </TabsContent>
 
@@ -617,7 +669,7 @@ export function AssetsForm({
                           <button
                             key={photo.id}
                             onClick={() => handleSelectPhoto(photo)}
-                            className="group relative rounded-lg overflow-hidden border bg-gray-50 hover:ring-2 hover:ring-blue-500 transition-all text-left"
+                            className="group relative rounded-lg overflow-hidden border bg-gray-50 hover:ring-2 hover:ring-cyan-700 transition-all text-left"
                           >
                             <div className="aspect-[4/3] relative">
                               <Image
@@ -700,7 +752,7 @@ export function AssetsForm({
                         {!readOnly && (
                           <button
                             onClick={() => openEdit(img)}
-                            className="p-2 bg-white rounded-full text-gray-700 hover:text-blue-600 shadow-sm"
+                            className="p-2 bg-white rounded-full text-gray-700 hover:text-cyan-700 shadow-sm"
                             title="Edit"
                           >
                             <Pencil className="h-4 w-4" />

@@ -75,7 +75,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
             <FaIcon icon={faCoins} className="h-6 w-6 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">{allCredits.totalPr}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{allCredits.totalPr}</div>
             <p className="text-xs text-gray-600">Click to see all credits</p>
           </CardContent>
         </Card>
