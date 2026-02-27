@@ -29,8 +29,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Only allow deletion of releases not in approved/sent/editorial status
-    const protectedStatuses = ['approved', 'sent', 'editorial']
+    // Only allow deletion of releases not in approved/sent/review status
+    const protectedStatuses = ['approved', 'sent', 'review']
     if (release.status && protectedStatuses.includes(release.status)) {
       return NextResponse.json(
         { error: `Cannot delete release with status "${release.status}"` },

@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, FileText, Building2, Briefcase, Settings, Package } from 'lucide-react'
+import { PRLookup } from './pr-lookup'
+import { SalesStats } from './sales-stats'
 
 async function getAdminStats() {
   const [userCount] = await db.select({ count: count() }).from(users)
@@ -19,7 +21,7 @@ async function getAdminStats() {
   const pendingReleases = await db
     .select({ count: count() })
     .from(releases)
-    .where(eq(releases.status, 'editorial'))
+    .where(eq(releases.status, 'review'))
 
   return {
     users: userCount.count,
@@ -50,6 +52,12 @@ export default async function AdminPage() {
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
         <p className="text-gray-500">Manage users, content, and settings</p>
       </div>
+
+      {/* PR Lookup */}
+      <PRLookup />
+
+      {/* Sales Stats */}
+      <SalesStats />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

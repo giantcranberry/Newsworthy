@@ -265,7 +265,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Prevent edits to releases in certain statuses
-    const lockedStatuses = ["editorial", "approved", "published"];
+    const lockedStatuses = ["review", "approved", "published"];
     if (
       existingRelease.status &&
       lockedStatuses.includes(existingRelease.status)
@@ -279,7 +279,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const slug = title ? createSlug(title) : existingRelease.slug;
-    // Status remains unchanged during wizard steps - only finalize route sets to 'editorial'
+    // Status remains unchanged during wizard steps - only finalize route sets to 'review'
     const status = existingRelease.status;
 
     // Update release

@@ -31,6 +31,9 @@ interface NewsroomFormData {
   xUrl: string
   youtubeUrl: string
   instagramUrl: string
+  facebookUrl: string
+  tiktokUrl: string
+  podcastFeedUrl: string
   blogUrl: string
   googleDriveUrl: string
   dropboxUrl: string
@@ -278,7 +281,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
+              <Label htmlFor="linkedinUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-linkedin text-[#0A66C2]" aria-hidden="true" />
+                LinkedIn
+              </Label>
               <Input
                 id="linkedinUrl"
                 type="url"
@@ -289,7 +295,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
               />
             </div>
             <div>
-              <Label htmlFor="xUrl">X (Twitter) URL</Label>
+              <Label htmlFor="xUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-x-twitter" aria-hidden="true" />
+                X (Twitter)
+              </Label>
               <Input
                 id="xUrl"
                 type="url"
@@ -300,7 +309,38 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
               />
             </div>
             <div>
-              <Label htmlFor="youtubeUrl">YouTube URL</Label>
+              <Label htmlFor="facebookUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-facebook text-[#1877F2]" aria-hidden="true" />
+                Facebook
+              </Label>
+              <Input
+                id="facebookUrl"
+                type="url"
+                value={formData.facebookUrl}
+                onChange={(e) => updateField('facebookUrl', e.target.value)}
+                placeholder="https://facebook.com/..."
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="instagramUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-instagram text-[#E4405F]" aria-hidden="true" />
+                Instagram
+              </Label>
+              <Input
+                id="instagramUrl"
+                type="url"
+                value={formData.instagramUrl}
+                onChange={(e) => updateField('instagramUrl', e.target.value)}
+                placeholder="https://instagram.com/..."
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="youtubeUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-youtube text-[#FF0000]" aria-hidden="true" />
+                YouTube
+              </Label>
               <Input
                 id="youtubeUrl"
                 type="url"
@@ -311,19 +351,39 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
               />
             </div>
             <div>
-              <Label htmlFor="instagramUrl">Instagram URL</Label>
+              <Label htmlFor="tiktokUrl" className="inline-flex items-center gap-1.5">
+                <i className="fa-brands fa-tiktok" aria-hidden="true" />
+                TikTok
+              </Label>
               <Input
-                id="instagramUrl"
+                id="tiktokUrl"
                 type="url"
-                value={formData.instagramUrl}
-                onChange={(e) => updateField('instagramUrl', e.target.value)}
-                placeholder="https://instagram.com/..."
+                value={formData.tiktokUrl}
+                onChange={(e) => updateField('tiktokUrl', e.target.value)}
+                placeholder="https://tiktok.com/@..."
                 className="mt-1"
               />
             </div>
           </div>
           <div>
-            <Label htmlFor="blogUrl">Blog URL</Label>
+            <Label htmlFor="podcastFeedUrl" className="inline-flex items-center gap-1.5">
+              <i className="fa-solid fa-podcast text-[#9933CC]" aria-hidden="true" />
+              Podcast Feed
+            </Label>
+            <Input
+              id="podcastFeedUrl"
+              type="url"
+              value={formData.podcastFeedUrl}
+              onChange={(e) => updateField('podcastFeedUrl', e.target.value)}
+              placeholder="https://feeds.example.com/podcast.xml"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="blogUrl" className="inline-flex items-center gap-1.5">
+              <i className="fa-solid fa-blog text-[#FF5722]" aria-hidden="true" />
+              Blog
+            </Label>
             <Input
               id="blogUrl"
               type="url"
@@ -334,7 +394,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
             />
           </div>
           <div>
-            <Label htmlFor="website">Website URL</Label>
+            <Label htmlFor="website" className="inline-flex items-center gap-1.5">
+              <i className="fa-solid fa-globe text-gray-500" aria-hidden="true" />
+              Website
+            </Label>
             <Input
               id="website"
               type="url"
@@ -360,7 +423,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
             Link to public folders containing press kits, logos, and other media assets.
           </p>
           <div>
-            <Label htmlFor="googleDriveUrl">Google Drive Public Folder URL</Label>
+            <Label htmlFor="googleDriveUrl" className="inline-flex items-center gap-1.5">
+              <i className="fa-brands fa-google-drive text-[#4285F4]" aria-hidden="true" />
+              Google Drive Public Folder
+            </Label>
             <Input
               id="googleDriveUrl"
               type="url"
@@ -371,7 +437,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
             />
           </div>
           <div>
-            <Label htmlFor="dropboxUrl">Dropbox Public Folder URL</Label>
+            <Label htmlFor="dropboxUrl" className="inline-flex items-center gap-1.5">
+              <i className="fa-brands fa-dropbox text-[#0061FF]" aria-hidden="true" />
+              Dropbox Public Folder
+            </Label>
             <Input
               id="dropboxUrl"
               type="url"
@@ -382,7 +451,10 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
             />
           </div>
           <div>
-            <Label htmlFor="boxUrl">Box Public Folder URL</Label>
+            <Label htmlFor="boxUrl" className="inline-flex items-center gap-1.5">
+              <i className="fa-solid fa-box text-[#0061D5]" aria-hidden="true" />
+              Box Public Folder
+            </Label>
             <Input
               id="boxUrl"
               type="url"

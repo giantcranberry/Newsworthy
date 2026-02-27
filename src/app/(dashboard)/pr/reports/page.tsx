@@ -1,0 +1,164 @@
+import { getEffectiveSession } from '@/lib/auth'
+import { db } from '@/db'
+import { releases } from '@/db/schema'
+import { eq, desc, and, or, inArray } from 'drizzle-orm'
+import { getUserCompanyIds } from '@/lib/team-auth'
+import { reportReady } from '@/services/report'
+import Link from 'next/link'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { BarChart3, ExternalLink } from 'lucide-react'
+
+const PER_PAGE = 20
+
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>
+}) {
+  const { page: pageParam } = await searchParams
+  const page = Math.max(1, parseInt(pageParam || '1'))
+  const session = await getEffectiveSession()
+  const userId = parseInt(session?.user?.id || '0')
+  if (!userId) return <p>Unauthorized</p>
+
+  const companyIds = await getUserCompanyIds(userId)
+
+  const sentReleases = await db.query.releases.findMany({
+    where: and(
+      eq(releases.status, 'sent'),
+      or(
+        eq(releases.userId, userId),
+        companyIds.length > 0 ? inArray(releases.companyId, companyIds) : undefined,
+      ),
+    ),
+    orderBy: desc(releases.releasedAt),
+    with: { company: true },
+  })
+
+  const total = sentReleases.length
+  const totalPages = Math.ceil(total / PER_PAGE)
+  const paginated = sentReleases.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+        <p className="text-gray-600">View clipping reports for your published releases</p>
+      </div>
+
+      {paginated.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center">
+            <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No Published Releases Yet</h3>
+            <p className="mt-2 text-gray-600">Once your releases are published, reports will appear here.</p>
+            <Link href="/pr/create">
+              <Button className="mt-6 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+                Create a Release
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Date Released
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Press Release Title
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Reports
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {paginated.map((r) => {
+                  const ready = reportReady(r.releasedAt)
+                  return (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                        {r.releasedAt
+                          ? new Date(r.releasedAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })
+                          : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                        <div className="max-w-lg truncate">{r.title || 'Untitled'}</div>
+                        {r.company?.companyName && (
+                          <div className="text-xs text-gray-500 mt-0.5">{r.company.companyName}</div>
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                        {ready ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <Link href={`/pr/clips/${r.uuid}`}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 cursor-pointer"
+                              >
+                                <BarChart3 className="h-3.5 w-3.5" />
+                                Full Report
+                              </Button>
+                            </Link>
+                            <Link
+                              href={`/pr/clipsreport/${r.uuid}`}
+                              target="_blank"
+                            >
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 cursor-pointer"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                                Shareable
+                              </Button>
+                            </Link>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">Reports available soon</span>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              {page > 1 && (
+                <Link href={`/pr/reports?page=${page - 1}`}>
+                  <Button variant="outline" size="sm" className="cursor-pointer">
+                    Previous
+                  </Button>
+                </Link>
+              )}
+              <span className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+              {page < totalPages && (
+                <Link href={`/pr/reports?page=${page + 1}`}>
+                  <Button variant="outline" size="sm" className="cursor-pointer">
+                    Next
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}

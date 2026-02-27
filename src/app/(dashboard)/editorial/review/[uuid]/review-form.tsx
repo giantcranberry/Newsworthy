@@ -4,10 +4,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Tag, MapPin } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Tag, MapPin, Hand, RotateCcw } from 'lucide-react'
 
 interface ReviewFormProps {
   release: {
@@ -19,12 +18,16 @@ interface ReviewFormProps {
     status: string | null
     releaseAt: Date | null
     createdAt: Date | null
+    distribution: string | null
+    score: number | null
+    isFeatured: boolean | null
   }
   queue: {
     id: number
     submitted: Date | null
     editorId: number | null
     editorName: string | null
+    checkedout: Date | null
   }
   company: {
     id: number
@@ -38,6 +41,7 @@ interface ReviewFormProps {
   regionNames: (string | null)[]
   editorId: number
   editorName: string
+  releaseNotes: { id: number; note: string | null; fromName: string | null; createdAt: Date | null }[]
 }
 
 export function ReviewForm({
@@ -49,15 +53,19 @@ export function ReviewForm({
   regionNames,
   editorId,
   editorName,
+  releaseNotes,
 }: ReviewFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [action, setAction] = useState<'approve' | 'reject' | null>(null)
+  const [action, setAction] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
+  const [score, setScore] = useState(release.score?.toString() || '4')
+  const [distribution, setDistribution] = useState(release.distribution || 'standard')
+  const [feature, setFeature] = useState(release.isFeatured || false)
 
   const handleCheckout = async () => {
     try {
-      const response = await fetch(`/api/editorial/checkout`, {
+      const response = await fetch('/api/editorial/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -75,12 +83,45 @@ export function ReviewForm({
     }
   }
 
-  const handleAction = async (actionType: 'approve' | 'reject') => {
+  const handleDisown = async () => {
+    setIsLoading(true)
+    setAction('disown')
+    try {
+      const response = await fetch('/api/editorial/disown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queueId: queue.id,
+          releaseId: release.id,
+          editorId,
+          editorName,
+          notes: notes || undefined,
+        }),
+      })
+
+      if (response.ok) {
+        router.push('/editorial/queue')
+        router.refresh()
+      }
+    } catch (error) {
+      console.error('Error disowning:', error)
+    } finally {
+      setIsLoading(false)
+      setAction(null)
+    }
+  }
+
+  const handleAction = async (actionType: 'approve' | 'hold' | 'reject') => {
+    if (actionType === 'hold' && (!notes || !notes.trim())) {
+      alert('Notes are required when placing a release on editorial hold.')
+      return
+    }
+
     setIsLoading(true)
     setAction(actionType)
 
     try {
-      const response = await fetch(`/api/editorial/review`, {
+      const response = await fetch('/api/editorial/review', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,6 +131,9 @@ export function ReviewForm({
           notes,
           editorId,
           editorName,
+          score: actionType === 'approve' ? score : undefined,
+          distribution: actionType === 'approve' ? distribution : undefined,
+          feature: actionType === 'approve' ? feature : undefined,
         }),
       })
 
@@ -102,7 +146,7 @@ export function ReviewForm({
       }
     } catch (error) {
       console.error(`Error ${actionType}ing release:`, error)
-      alert(`An error occurred while ${actionType}ing the release`)
+      alert(`An error occurred while processing the release`)
     } finally {
       setIsLoading(false)
       setAction(null)
@@ -111,6 +155,7 @@ export function ReviewForm({
 
   const isCheckedOut = queue.editorId === editorId
   const isCheckedOutByOther = queue.editorId && queue.editorId !== editorId
+  const canAct = isCheckedOut || (!queue.editorId)
 
   return (
     <>
@@ -125,14 +170,26 @@ export function ReviewForm({
             <h1 className="text-2xl font-bold text-gray-800">Review Release</h1>
             <p className="text-gray-500">#{release.id}</p>
           </div>
-          {!isCheckedOut && !isCheckedOutByOther && (
-            <Button onClick={handleCheckout} className="bg-cyan-800 text-white hover:bg-cyan-900">Check Out for Review</Button>
-          )}
-          {isCheckedOutByOther && (
-            <span className="text-sm text-amber-600">
-              Checked out by {queue.editorName}
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            <Link href={`/editorial/edit/${release.id}`}>
+              <Button variant="outline">Edit Release</Button>
+            </Link>
+            {!isCheckedOut && !isCheckedOutByOther && (
+              <Button onClick={handleCheckout} className="bg-cyan-800 text-white hover:bg-cyan-900">
+                Check Out for Review
+              </Button>
+            )}
+            {isCheckedOutByOther && (
+              <span className="text-sm text-amber-600">
+                Checked out by {queue.editorName}
+              </span>
+            )}
+            {isCheckedOut && (
+              <span className="text-sm text-green-700 font-medium">
+                Checked out by you
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -182,7 +239,7 @@ export function ReviewForm({
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs text-gray-500">
                     <Tag className="h-3.5 w-3.5" />
-                    Category
+                    Categories
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {categoryNames.map((name) => (
@@ -197,7 +254,7 @@ export function ReviewForm({
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-1.5 text-xs text-gray-500">
                     <MapPin className="h-3.5 w-3.5" />
-                    Region
+                    Regions
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {regionNames.map((name) => (
@@ -212,6 +269,25 @@ export function ReviewForm({
           )}
         </CardContent>
       </Card>
+
+      {/* Staff Notes */}
+      {releaseNotes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Staff Notes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {releaseNotes.map((rn) => (
+              <div key={rn.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                <p className="text-sm text-gray-700">{rn.note}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {rn.fromName} &mdash; {rn.createdAt ? new Date(rn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
+                </p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Content Preview */}
       <Card>
@@ -234,53 +310,139 @@ export function ReviewForm({
       </Card>
 
       {/* Review Actions */}
-      {(isCheckedOut || (!queue.editorId)) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Review Decision</CardTitle>
-            <CardDescription>Approve or reject this press release</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="notes">Editor Notes (optional)</Label>
-              <textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add notes for the author or internal reference..."
-                className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-gray-700 placeholder:text-gray-400 placeholder:text-xs"
-              />
-            </div>
+      {canAct && (
+        <>
+          {/* Approval Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Approve Release</CardTitle>
+              <CardDescription>Set editorial score and distribution before approving</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="score">Editorial Score</Label>
+                  <select
+                    id="score"
+                    value={score}
+                    onChange={(e) => setScore(e.target.value)}
+                    className="mt-1 w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                  >
+                    <option value="5">5 - Exceptional</option>
+                    <option value="4">4 - Average</option>
+                    <option value="3">3 - Secondary Distribution</option>
+                    <option value="2">2 - No Network Distribution</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="distribution">Distribution</Label>
+                  <select
+                    id="distribution"
+                    value={distribution}
+                    onChange={(e) => setDistribution(e.target.value)}
+                    className="mt-1 w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                  >
+                    <option value="standard">Standard</option>
+                    <option value="yahoo">Yahoo</option>
+                    <option value="enhanced">Enhanced</option>
+                  </select>
+                </div>
+                <div className="flex items-end">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={feature}
+                      onChange={(e) => setFeature(e.target.checked)}
+                      className="rounded border-gray-300 text-cyan-800 focus:ring-cyan-700"
+                    />
+                    <span className="text-sm text-gray-700">Feature Release</span>
+                  </label>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-4 pt-4">
-              <Button
-                onClick={() => handleAction('approve')}
-                disabled={isLoading}
-                className="bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                {isLoading && action === 'approve' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                Approve Release
-              </Button>
+              <div>
+                <Label htmlFor="notes">Editor Notes (optional)</Label>
+                <textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Add notes for the author or internal reference..."
+                  className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm text-gray-700 placeholder:text-gray-400"
+                />
+              </div>
 
-              <Button
-                onClick={() => handleAction('reject')}
-                disabled={isLoading}
-                className="bg-red-600 text-white hover:bg-red-700"
-              >
-                {isLoading && action === 'reject' ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <XCircle className="h-4 w-4 mr-2" />
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  onClick={() => handleAction('approve')}
+                  disabled={isLoading}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  {isLoading && action === 'approve' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Approve Release
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Hold / Reject / Disown Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Other Actions</CardTitle>
+              <CardDescription>Hold, reject, or return this release to the queue</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Button
+                  onClick={() => handleAction('hold')}
+                  disabled={isLoading}
+                  className="bg-amber-600 text-white hover:bg-amber-700"
+                >
+                  {isLoading && action === 'hold' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Hand className="h-4 w-4 mr-2" />
+                  )}
+                  Editorial Hold
+                </Button>
+
+                <Button
+                  onClick={() => handleAction('reject')}
+                  disabled={isLoading}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  {isLoading && action === 'reject' ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <XCircle className="h-4 w-4 mr-2" />
+                  )}
+                  Reject / Return to Draft
+                </Button>
+
+                {isCheckedOut && (
+                  <Button
+                    onClick={handleDisown}
+                    disabled={isLoading}
+                    variant="outline"
+                  >
+                    {isLoading && action === 'disown' ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                    )}
+                    Disown / Return to Queue
+                  </Button>
                 )}
-                Reject / Return
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+              <p className="text-xs text-gray-500">
+                <strong>Hold:</strong> Places the release on editorial hold (requires notes). <strong>Reject:</strong> Returns to draft status. <strong>Disown:</strong> Removes your checkout so another editor can claim it.
+              </p>
+            </CardContent>
+          </Card>
+        </>
       )}
     </>
   )

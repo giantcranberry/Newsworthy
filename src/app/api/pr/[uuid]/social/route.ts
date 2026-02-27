@@ -6,6 +6,22 @@ import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { uploadPRImage, deletePRImage } from '@/services/s3'
 
+function isEditorialUser(session: any): boolean {
+  const user = session?.user
+  return !!(user && ((user as any).isEditor || (user as any).isAdmin))
+}
+
+async function getRelease(uuid: string, userId: number, editorial: boolean, withBanner: boolean = false) {
+  const where = editorial
+    ? eq(releases.uuid, uuid)
+    : and(eq(releases.uuid, uuid), eq(releases.userId, userId))
+
+  if (withBanner) {
+    return db.query.releases.findFirst({ where, with: { banner: true } })
+  }
+  return db.query.releases.findFirst({ where })
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> }
@@ -18,19 +34,17 @@ export async function POST(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
-      with: { banner: true },
-    })
+    const release = await getRelease(uuid, userId, editorial, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
     }
+
+    // Use the release owner's userId for banner records
+    const bannerOwnerId = release.userId
 
     const contentType = request.headers.get('content-type') || ''
 
@@ -42,10 +56,7 @@ export async function POST(
       }
 
       const existingBanner = await db.query.banners.findFirst({
-        where: and(
-          eq(banners.id, bannerId),
-          eq(banners.userId, userId),
-        ),
+        where: eq(banners.id, bannerId),
       })
 
       if (!existingBanner) {
@@ -82,7 +93,7 @@ export async function POST(
     // Create the banner record
     const [banner] = await db.insert(banners).values({
       uuid: randomUUID(),
-      userId,
+      userId: bannerOwnerId,
       companyId: release.companyId,
       url,
       title: title || null,
@@ -117,14 +128,10 @@ export async function PUT(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
-    })
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -162,17 +169,10 @@ export async function GET(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
-      with: {
-        banner: true,
-      },
-    })
+    const release = await getRelease(uuid, userId, editorial, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -199,15 +199,10 @@ export async function DELETE(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
-      with: { banner: true },
-    })
+    const release = await getRelease(uuid, userId, editorial, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })

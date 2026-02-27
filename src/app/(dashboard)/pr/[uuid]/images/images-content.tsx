@@ -40,6 +40,7 @@ import {
   Check,
   Info,
   Crop,
+  Search,
 } from 'lucide-react'
 
 interface ImageRecord {
@@ -69,6 +70,17 @@ interface BannerRecord {
   width?: number | null
   height?: number | null
 }
+
+interface UnsplashPhoto {
+  id: string
+  urls: { small: string; regular: string }
+  alt_description: string | null
+  user: { name: string; links: { html: string } }
+  width: number
+  height: number
+}
+
+type ImageSourceTab = 'unsplash' | 'library' | null
 
 interface ImagesContentProps {
   releaseUuid: string
@@ -270,7 +282,7 @@ export function ImagesContent({
   // News Images state
   const newsImageFileInputRef = useRef<HTMLInputElement>(null)
   const [releaseImages, setReleaseImages] = useState<ReleaseImageRecord[]>(initialImages)
-  const [showImageLibrary, setShowImageLibrary] = useState(false)
+  // showImageLibrary replaced by newsSource === 'library'
   const [imageError, setImageError] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [deletingId, setDeletingId] = useState<number | null>(null)
@@ -283,6 +295,20 @@ export function ImagesContent({
   // Tab state
   const [activeTab, setActiveTab] = useState('social-banner')
 
+  // Source selector state (null = default dropzone visible)
+  const [newsSource, setNewsSource] = useState<ImageSourceTab>(null)
+  const [bannerSource, setBannerSource] = useState<ImageSourceTab>(null)
+
+  // Unsplash state - news images
+  const [newsUnsplashQuery, setNewsUnsplashQuery] = useState('')
+  const [newsUnsplashResults, setNewsUnsplashResults] = useState<UnsplashPhoto[]>([])
+  const [newsUnsplashLoading, setNewsUnsplashLoading] = useState(false)
+
+  // Unsplash state - banner
+  const [bannerUnsplashQuery, setBannerUnsplashQuery] = useState('')
+  const [bannerUnsplashResults, setBannerUnsplashResults] = useState<UnsplashPhoto[]>([])
+  const [bannerUnsplashLoading, setBannerUnsplashLoading] = useState(false)
+
   // Dropzone state
   const [isDragOverImage, setIsDragOverImage] = useState(false)
   const [isDragOverBanner, setIsDragOverBanner] = useState(false)
@@ -294,7 +320,7 @@ export function ImagesContent({
   const [bannerPreview, setBannerPreview] = useState<string | null>(null)
   const [cropperImageSrc, setCropperImageSrc] = useState<string | null>(null)
   const [showCropper, setShowCropper] = useState(false)
-  const [showBannerLibrary, setShowBannerLibrary] = useState(false)
+  // showBannerLibrary replaced by bannerSource === 'library'
   const [bannerFormData, setBannerFormData] = useState({
     title: banner?.title || releaseTitle || '',
     imgCredits: banner?.imgCredits || '',
@@ -518,6 +544,105 @@ export function ImagesContent({
     }
   }
 
+  // Unsplash handlers
+  const searchUnsplash = async (query: string, target: 'news' | 'banner') => {
+    if (!query.trim()) return
+
+    if (target === 'news') {
+      setNewsUnsplashLoading(true)
+    } else {
+      setBannerUnsplashLoading(true)
+    }
+
+    try {
+      const res = await fetch(`/api/unsplash?q=${encodeURIComponent(query)}`)
+      const data = await res.json()
+
+      if (data.error) throw new Error(data.error)
+
+      if (target === 'news') {
+        setNewsUnsplashResults(data.results || [])
+      } else {
+        setBannerUnsplashResults(data.results || [])
+      }
+    } catch {
+      if (target === 'news') {
+        setImageError('Failed to search Unsplash')
+      } else {
+        setBannerError('Failed to search Unsplash')
+      }
+    } finally {
+      if (target === 'news') {
+        setNewsUnsplashLoading(false)
+      } else {
+        setBannerUnsplashLoading(false)
+      }
+    }
+  }
+
+  const handleSelectUnsplashNews = async (photo: UnsplashPhoto) => {
+    setIsUploadingImage(true)
+    setImageError(null)
+
+    try {
+      // Fetch image as blob
+      const res = await fetch(photo.urls.regular)
+      const blob = await res.blob()
+      const file = new File([blob], `unsplash-${photo.id}.jpg`, { type: 'image/jpeg' })
+
+      // Upload via the existing FormData path
+      const formData = new FormData()
+      formData.append('image', file)
+      formData.append('title', photo.alt_description || 'Unsplash photo')
+      formData.append('imgCredits', `Photo by ${photo.user.name} on Unsplash`)
+
+      const response = await fetch(`/api/pr/${releaseUuid}/image`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to add image')
+      }
+
+      const data = await response.json()
+      setReleaseImages((prev) => [...prev, data.releaseImage])
+      setNewsSource(null)
+    } catch (err) {
+      setImageError(err instanceof Error ? err.message : 'Failed to add Unsplash image')
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  const handleSelectUnsplashBanner = async (photo: UnsplashPhoto) => {
+    setBannerError(null)
+
+    try {
+      // Fetch image as data URL for the cropper
+      const res = await fetch(photo.urls.regular)
+      const blob = await res.blob()
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string
+        // Unsplash images won't be exactly 1200x630, so always open cropper
+        setCropperImageSrc(dataUrl)
+        setShowCropper(true)
+        // Pre-fill banner credits
+        setBannerFormData((prev) => ({
+          ...prev,
+          imgCredits: `Photo by ${photo.user.name} on Unsplash`,
+        }))
+        setBannerSource(null)
+      }
+      reader.readAsDataURL(blob)
+    } catch {
+      setBannerError('Failed to load Unsplash image')
+    }
+  }
+
   // Social Banner handlers
   const processBannerFile = useCallback((file: File) => {
     setBannerError(null)
@@ -626,7 +751,7 @@ export function ImagesContent({
         title: libraryBanner.title || releaseTitle || '',
         imgCredits: libraryBanner.imgCredits || '',
       })
-      setShowBannerLibrary(false)
+      setBannerSource(null)
     } catch (err) {
       setBannerError(err instanceof Error ? err.message : 'Failed to select banner')
     } finally {
@@ -750,26 +875,11 @@ export function ImagesContent({
         <TabsContent value="news-images" className="mt-6">
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base">News Images</CardTitle>
-                  <CardDescription className="inline-flex items-center flex-wrap gap-x-1">
-                    Add images for your press release. The first image is the primary image. You can drag images using the grip icon <GripVertical className="h-4 w-4 inline-block align-text-bottom" /> in the lower left of each image to reorder your images.
-                  </CardDescription>
-                </div>
-                <div className="flex items-center gap-2">
-                  {availableLibraryImages.length > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowImageLibrary(!showImageLibrary)}
-                    >
-                      <Library className="h-4 w-4" />
-                      {showImageLibrary ? 'Hide Library' : 'Image Library'}
-                    </Button>
-                  )}
-                </div>
+              <div>
+                <CardTitle className="text-base">News Images</CardTitle>
+                <CardDescription className="inline-flex items-center flex-wrap gap-x-1">
+                  Add images for your press release. The first image is the primary image. You can drag images using the grip icon <GripVertical className="h-4 w-4 inline-block align-text-bottom" /> in the lower left of each image to reorder your images.
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -837,27 +947,166 @@ export function ImagesContent({
                 </div>
               )}
 
-              {showImageLibrary && availableLibraryImages.length > 0 && (
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your library</h4>
-                  <div className="grid grid-cols-4 gap-3">
-                    {availableLibraryImages.map((img) => (
-                      <button
-                        key={img.id}
-                        type="button"
-                        onClick={() => handleSelectFromImageLibrary(img)}
-                        disabled={isUploadingImage}
-                        className="relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-gray-300 transition-colors"
-                      >
-                        <Image
-                          src={resizedUrl(img.url)}
-                          alt={img.title || 'Library image'}
-                          fill
-                          className="object-cover"
-                        />
-                      </button>
-                    ))}
+              {/* Upload dropzone — always visible */}
+              {!pendingFile && (
+                <div
+                  onClick={() => newsImageFileInputRef.current?.click()}
+                  onDragOver={handleImageDragOver}
+                  onDragLeave={handleImageDragLeave}
+                  onDrop={handleImageDrop}
+                  className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                    isDragOverImage
+                      ? 'border-cyan-700 bg-cyan-50'
+                      : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                  }`}
+                >
+                  <div className="rounded-full bg-gray-100 p-3 mb-3">
+                    <Upload className="h-6 w-6 text-gray-400" />
                   </div>
+                  <p className="text-sm font-medium text-gray-700">
+                    Drop an image here, or <span className="text-cyan-700">browse</span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    JPEG, PNG, or WebP up to 5MB
+                  </p>
+                </div>
+              )}
+
+              {/* Unsplash / Brand Assets toggle */}
+              {!pendingFile && (
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={newsSource === 'unsplash' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNewsSource(newsSource === 'unsplash' ? null : 'unsplash')}
+                    className={newsSource === 'unsplash' ? 'bg-cyan-700 hover:bg-cyan-800' : ''}
+                  >
+                    <Search className="h-4 w-4" />
+                    Unsplash
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={newsSource === 'library' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setNewsSource(newsSource === 'library' ? null : 'library')}
+                    className={newsSource === 'library' ? 'bg-cyan-700 hover:bg-cyan-800' : ''}
+                  >
+                    <Library className="h-4 w-4" />
+                    Brand Assets
+                  </Button>
+                </div>
+              )}
+
+              {/* Unsplash search */}
+              {newsSource === 'unsplash' && !pendingFile && (
+                <div className="space-y-4">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      searchUnsplash(newsUnsplashQuery, 'news')
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={newsUnsplashQuery}
+                      onChange={(e) => setNewsUnsplashQuery(e.target.value)}
+                      placeholder="Search Unsplash photos..."
+                      className="flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={newsUnsplashLoading || !newsUnsplashQuery.trim()}
+                    >
+                      {newsUnsplashLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </form>
+
+                  {isUploadingImage && (
+                    <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Adding image...
+                    </div>
+                  )}
+
+                  {newsUnsplashResults.length > 0 && !isUploadingImage && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {newsUnsplashResults.map((photo) => (
+                        <button
+                          key={photo.id}
+                          type="button"
+                          onClick={() => handleSelectUnsplashNews(photo)}
+                          disabled={isUploadingImage}
+                          className="group relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                        >
+                          <Image
+                            src={photo.urls.small}
+                            alt={photo.alt_description || 'Unsplash photo'}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-xs text-white truncate">
+                              by {photo.user.name}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {newsUnsplashResults.length === 0 && !newsUnsplashLoading && newsUnsplashQuery && (
+                    <p className="text-sm text-gray-400 text-center py-6">
+                      No results. Try a different search term.
+                    </p>
+                  )}
+
+                  <p className="text-xs text-gray-400">
+                    Photos provided by{' '}
+                    <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer" className="underline">
+                      Unsplash
+                    </a>
+                  </p>
+                </div>
+              )}
+
+              {/* Brand asset library */}
+              {newsSource === 'library' && !pendingFile && (
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  {availableLibraryImages.length > 0 ? (
+                    <>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your brand assets</h4>
+                      <div className="grid grid-cols-4 gap-3">
+                        {availableLibraryImages.map((img) => (
+                          <button
+                            key={img.id}
+                            type="button"
+                            onClick={() => handleSelectFromImageLibrary(img)}
+                            disabled={isUploadingImage}
+                            className="relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                          >
+                            <Image
+                              src={resizedUrl(img.url)}
+                              alt={img.title || 'Library image'}
+                              fill
+                              className="object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-6">
+                      No unused images in your brand library.
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -889,30 +1138,6 @@ export function ImagesContent({
                     </div>
                   </SortableContext>
                 </DndContext>
-              )}
-
-              {!pendingFile && (
-                <div
-                  onClick={() => newsImageFileInputRef.current?.click()}
-                  onDragOver={handleImageDragOver}
-                  onDragLeave={handleImageDragLeave}
-                  onDrop={handleImageDrop}
-                  className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    isDragOverImage
-                      ? 'border-cyan-700 bg-cyan-50'
-                      : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
-                  }`}
-                >
-                  <div className="rounded-full bg-gray-100 p-3 mb-3">
-                    <Upload className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Drop an image here, or <span className="text-cyan-700">browse</span>
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    JPEG, PNG, or WebP up to 5MB
-                  </p>
-                </div>
               )}
             </CardContent>
           </Card>
@@ -971,18 +1196,6 @@ export function ImagesContent({
 
               {displayBanner && (
                 <div className="flex items-center gap-2">
-                  {availableLibraryBanners.length > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowBannerLibrary(!showBannerLibrary)}
-                      disabled={isLoadingBanner}
-                    >
-                      <Library className="h-4 w-4" />
-                      {showBannerLibrary ? 'Hide Library' : 'Banner Library'}
-                    </Button>
-                  )}
                   {bannerPreview && (
                     <Button
                       type="button"
@@ -1009,6 +1222,7 @@ export function ImagesContent({
                 </div>
               )}
 
+              {/* Upload dropzone — always visible */}
               <div
                 onClick={() => bannerFileInputRef.current?.click()}
                 onDragOver={handleBannerDragOver}
@@ -1032,46 +1246,139 @@ export function ImagesContent({
                 </p>
               </div>
 
-              {availableLibraryBanners.length > 0 && !displayBanner && (
+              {/* Unsplash / Brand Assets toggle */}
+              <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant={bannerSource === 'unsplash' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setShowBannerLibrary(!showBannerLibrary)}
-                  disabled={isLoadingBanner}
+                  onClick={() => setBannerSource(bannerSource === 'unsplash' ? null : 'unsplash')}
+                  className={bannerSource === 'unsplash' ? 'bg-cyan-700 hover:bg-cyan-800' : ''}
+                >
+                  <Search className="h-4 w-4" />
+                  Unsplash
+                </Button>
+                <Button
+                  type="button"
+                  variant={bannerSource === 'library' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setBannerSource(bannerSource === 'library' ? null : 'library')}
+                  className={bannerSource === 'library' ? 'bg-cyan-700 hover:bg-cyan-800' : ''}
                 >
                   <Library className="h-4 w-4" />
-                  {showBannerLibrary ? 'Hide Library' : 'Banner Library'}
+                  Brand Assets
                 </Button>
+              </div>
+
+              {/* Unsplash search */}
+              {bannerSource === 'unsplash' && (
+                <div className="space-y-4">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      searchUnsplash(bannerUnsplashQuery, 'banner')
+                    }}
+                    className="flex gap-2"
+                  >
+                    <Input
+                      value={bannerUnsplashQuery}
+                      onChange={(e) => setBannerUnsplashQuery(e.target.value)}
+                      placeholder="Search Unsplash photos..."
+                      className="flex-1"
+                      autoFocus
+                    />
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={bannerUnsplashLoading || !bannerUnsplashQuery.trim()}
+                    >
+                      {bannerUnsplashLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </form>
+
+                  {bannerUnsplashResults.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {bannerUnsplashResults.map((photo) => (
+                        <button
+                          key={photo.id}
+                          type="button"
+                          onClick={() => handleSelectUnsplashBanner(photo)}
+                          className="group relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                          style={{ aspectRatio: '1200/630' }}
+                        >
+                          <Image
+                            src={photo.urls.small}
+                            alt={photo.alt_description || 'Unsplash photo'}
+                            fill
+                            className="object-cover"
+                            unoptimized
+                          />
+                          <div className="absolute bottom-0 inset-x-0 bg-black/60 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-xs text-white truncate">
+                              by {photo.user.name}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {bannerUnsplashResults.length === 0 && !bannerUnsplashLoading && bannerUnsplashQuery && (
+                    <p className="text-sm text-gray-400 text-center py-6">
+                      No results. Try a different search term.
+                    </p>
+                  )}
+
+                  <p className="text-xs text-gray-400">
+                    Photos provided by{' '}
+                    <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer" className="underline">
+                      Unsplash
+                    </a>
+                    . Images will be cropped to 1200 x 630px.
+                  </p>
+                </div>
               )}
 
-              {showBannerLibrary && availableLibraryBanners.length > 0 && (
+              {/* Brand asset library */}
+              {bannerSource === 'library' && (
                 <div className="border rounded-lg p-4 bg-gray-50">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your banner library</h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    {availableLibraryBanners.map((b) => (
-                      <button
-                        key={b.id}
-                        type="button"
-                        onClick={() => handleSelectFromBannerLibrary(b)}
-                        disabled={isLoadingBanner}
-                        className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
-                        style={{ aspectRatio: '1200/630' }}
-                      >
-                        <Image
-                          src={resizedUrl(b.url)}
-                          alt={b.title || 'Banner image'}
-                          fill
-                          className="object-cover"
-                        />
-                        {b.title && (
-                          <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
-                            <p className="text-xs text-white truncate">{b.title}</p>
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                  {availableLibraryBanners.length > 0 ? (
+                    <>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your banner library</h4>
+                      <div className="grid grid-cols-3 gap-3">
+                        {availableLibraryBanners.map((b) => (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => handleSelectFromBannerLibrary(b)}
+                            disabled={isLoadingBanner}
+                            className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                            style={{ aspectRatio: '1200/630' }}
+                          >
+                            <Image
+                              src={resizedUrl(b.url)}
+                              alt={b.title || 'Banner image'}
+                              fill
+                              className="object-cover"
+                            />
+                            {b.title && (
+                              <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
+                                <p className="text-xs text-white truncate">{b.title}</p>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-6">
+                      No banners in your brand library.
+                    </p>
+                  )}
                 </div>
               )}
 

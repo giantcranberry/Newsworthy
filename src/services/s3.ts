@@ -63,6 +63,37 @@ export async function uploadLogo(
 }
 
 /**
+ * Upload a partner logo
+ */
+export async function uploadPartnerLogo(
+  file: Buffer,
+  partnerId: number,
+  mimeType: string
+): Promise<string> {
+  const processedImage = await sharp(file)
+    .resize(400, 400, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .png()
+    .toBuffer()
+
+  const filename = `logos/partner-${partnerId}-${Date.now()}.png`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: processedImage,
+      ContentType: 'image/png',
+      ACL: 'public-read',
+    })
+  )
+
+  return `${CDN_BASE_URL}/${filename}`
+}
+
+/**
  * Delete a logo from S3
  */
 export async function deleteLogo(urlOrFilename: string): Promise<void> {

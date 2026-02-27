@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { company, contact, users, releases } from '@/db/schema'
+import { company, contact, users, releases, companyMembers } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -47,6 +47,19 @@ async function getBrandContacts(companyId: number) {
     )
 }
 
+async function getTeamMembers(companyId: number) {
+  return db.query.companyMembers.findMany({
+    where: eq(companyMembers.companyId, companyId),
+    with: {
+      user: {
+        with: {
+          profile: true,
+        },
+      },
+    },
+  })
+}
+
 async function getBrandReleases(companyId: number) {
   return db
     .select({
@@ -83,10 +96,11 @@ export default async function AdminBrandDetailPage({
     notFound()
   }
 
-  const [owner, contacts, brandReleases] = await Promise.all([
+  const [owner, contacts, brandReleases, teamMembers] = await Promise.all([
     getBrandOwner(brand.userId),
     getBrandContacts(brand.id),
     getBrandReleases(brand.id),
+    getTeamMembers(brand.id),
   ])
 
   return (
@@ -282,6 +296,59 @@ export default async function AdminBrandDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Team Members */}
+          {teamMembers.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Members ({teamMembers.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="divide-y divide-gray-100">
+                  {teamMembers.map((member) => {
+                    const name = member.user.profile?.firstName || member.user.profile?.lastName
+                      ? [member.user.profile.firstName, member.user.profile.lastName].filter(Boolean).join(' ')
+                      : null
+                    const roleLabel = member.role === 'brand_admin' ? 'Brand Admin'
+                      : member.role === 'collaborator' ? 'Collaborator'
+                      : member.role === 'client' ? 'Client'
+                      : member.role
+                    const roleColor = member.role === 'brand_admin' ? 'bg-purple-100 text-purple-700'
+                      : member.role === 'client' ? 'bg-amber-100 text-amber-700'
+                      : 'bg-cyan-100 text-cyan-700'
+
+                    return (
+                      <div key={member.id} className="py-2.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <User className="h-3.5 w-3.5 text-gray-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {name || member.user.email}
+                            </p>
+                            <p className="text-xs text-gray-600 truncate">
+                              {name ? member.user.email : `ID ${member.user.id}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${roleColor}`}>
+                            {roleLabel}
+                          </span>
+                          <Link href={`/admin/users/${member.user.id}`}>
+                            <Button variant="outline" size="sm" className="text-xs">
+                              View
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Contacts */}
           <Card>

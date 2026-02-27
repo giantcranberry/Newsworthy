@@ -28,10 +28,10 @@ interface AllCredits {
 }
 
 const CREDIT_LABELS: { key: keyof CreditsByType; label: string }[] = [
-  { key: 'pr', label: 'Press Release' },
-  { key: 'yahoo', label: 'Yahoo Finance' },
-  { key: 'enhanced', label: 'Enhanced' },
-  { key: 'concierge', label: 'Concierge' },
+  { key: 'pr', label: 'Press Release Credits' },
+  { key: 'yahoo', label: 'Yahoo News Credits' },
+  { key: 'enhanced', label: 'Enhanced Distribution Credits' },
+  { key: 'concierge', label: 'Concierge DFY Credits' },
 ]
 
 function hasAnyCredits(credits: CreditsByType) {
@@ -91,7 +91,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
             <div className="p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <User className="h-3.5 w-3.5 text-gray-400" />
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Personal</p>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{allCredits.brands.length > 1 ? 'My Account / Unallocated' : 'My Account'}</p>
               </div>
               <div className="space-y-1.5">
                 <CreditRows credits={allCredits.personal} />
@@ -123,11 +123,11 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
         {canPurchase && (
           <div className="p-3 border-t">
             <Link
-              href="/payment/paygo"
+              href="/credits/manage"
               className="text-xs text-cyan-700 hover:text-cyan-900 font-medium"
               onClick={() => setOpen(false)}
             >
-              Purchase credits
+              Manage/Purchase Credits
             </Link>
           </div>
         )}

@@ -1,26 +1,48 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { category } from '@/db/schema'
-import { asc, eq, ilike, or } from 'drizzle-orm'
+import { category, circuits, circuitCategories } from '@/db/schema'
+import { and, asc, eq, ilike, or, sql } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { CategoryList } from './category-list'
 
 async function getCategories(search: string | null) {
-  const query = db.select().from(category).orderBy(asc(category.name))
-
-  if (search) {
-    return query.where(
-      or(
+  const baseWhere = search
+    ? or(
         ilike(category.name, `%${search}%`),
-        ilike(category.slug, `%${search}%`),
-        ilike(category.circuit, `%${search}%`)
+        ilike(category.slug, `%${search}%`)
       )
-    )
+    : undefined
+
+  const cats = await db
+    .select()
+    .from(category)
+    .where(baseWhere)
+    .orderBy(asc(category.name))
+
+  // Get circuit assignments for all categories
+  const assignments = await db
+    .select({
+      categoryId: circuitCategories.categoryId,
+      circuitId: circuits.id,
+      circuitName: circuits.name,
+    })
+    .from(circuitCategories)
+    .innerJoin(circuits, eq(circuitCategories.circuitId, circuits.id))
+
+  const assignmentMap = new Map<number, { id: number; name: string }[]>()
+  for (const a of assignments) {
+    if (!assignmentMap.has(a.categoryId)) {
+      assignmentMap.set(a.categoryId, [])
+    }
+    assignmentMap.get(a.categoryId)!.push({ id: a.circuitId, name: a.circuitName })
   }
 
-  return query
+  return cats.map(c => ({
+    ...c,
+    circuits: assignmentMap.get(c.id) || [],
+  }))
 }
 
 export default async function AdminCategoriesPage({
@@ -36,10 +58,20 @@ export default async function AdminCategoriesPage({
   }
 
   const { search } = await searchParams
-  const categories = await getCategories(search || null)
-
-  // Get unique circuits for filter
-  const circuits = [...new Set(categories.map(c => c.circuit).filter(Boolean))] as string[]
+  const [categories, allCircuits] = await Promise.all([
+    getCategories(search || null),
+    db
+      .select({
+        id: circuits.id,
+        name: circuits.name,
+        count: sql<number>`(
+          SELECT count(*) FROM circuit_categories
+          WHERE circuit_categories.circuit_id = ${circuits.id}
+        )`.as('count'),
+      })
+      .from(circuits)
+      .orderBy(asc(circuits.name)),
+  ])
 
   // Get unique parent categories for the form dropdown
   const parentOptions = [...new Set(categories.map(c => c.name))].sort()
@@ -61,7 +93,8 @@ export default async function AdminCategoriesPage({
 
       <CategoryList
         categories={categories}
-        circuits={circuits}
+        circuits={allCircuits.map(c => ({ id: c.id, name: c.name }))}
+        circuitsWithCounts={allCircuits.map(c => ({ id: c.id, name: c.name, count: Number(c.count) }))}
         parentOptions={parentOptions}
         currentSearch={search || ''}
       />

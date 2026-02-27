@@ -32,16 +32,16 @@ export async function POST(
     }
 
     // Check if already submitted
-    if (release.status === 'editorial' || release.status === 'approved' || release.status === 'published' || release.status === 'sent') {
+    if (release.status === 'review' || release.status === 'approved' || release.status === 'published' || release.status === 'sent') {
       return NextResponse.json(
         { error: 'Release has already been submitted' },
         { status: 400 }
       )
     }
 
-    // Update status to editorial
+    // Update status to review (matches Flask editorial queue filter)
     await db.update(releases)
-      .set({ status: 'editorial' })
+      .set({ status: 'review' })
       .where(eq(releases.id, release.id))
 
     // Create or update queue entry

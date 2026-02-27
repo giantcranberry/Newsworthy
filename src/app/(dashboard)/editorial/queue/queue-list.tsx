@@ -1,0 +1,225 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+
+interface QueueItem {
+  queueId: number
+  queueUuid: string
+  releaseId: number
+  releaseUuid: string
+  title: string | null
+  abstract: string | null
+  distribution: string | null
+  companyName: string | null
+  userEmail: string
+  submitted: string | null
+  releaseAt: string | null
+  timezone: string | null
+  checkedout: string | null
+  editorId: number | null
+  editorName: string | null
+}
+
+function DistributionBadge({ distribution }: { distribution: string | null }) {
+  if (distribution === 'yahoo') {
+    return (
+      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-purple-700 text-white">
+        YAHOO
+      </span>
+    )
+  }
+  if (distribution === 'enhanced') {
+    return (
+      <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-blue-900 text-white">
+        ENHANCED
+      </span>
+    )
+  }
+  return (
+    <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-gray-500 text-white">
+      STANDARD
+    </span>
+  )
+}
+
+function formatDate(iso: string | null) {
+  if (!iso) return 'N/A'
+  return new Date(iso).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+export function QueueList({
+  items,
+  currentUserId,
+  currentUserName,
+}: {
+  items: QueueItem[]
+  currentUserId: number
+  currentUserName: string
+}) {
+  const router = useRouter()
+  const [loading, setLoading] = useState<Record<string, boolean>>({})
+
+  const handleCheckout = async (item: QueueItem) => {
+    setLoading((prev) => ({ ...prev, [`checkout-${item.queueId}`]: true }))
+    try {
+      const res = await fetch('/api/editorial/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queueId: item.queueId,
+          editorId: currentUserId,
+          editorName: currentUserName,
+        }),
+      })
+      if (res.ok) router.refresh()
+    } catch (e) {
+      console.error('Checkout failed:', e)
+    } finally {
+      setLoading((prev) => ({ ...prev, [`checkout-${item.queueId}`]: false }))
+    }
+  }
+
+  const handleDisown = async (item: QueueItem) => {
+    setLoading((prev) => ({ ...prev, [`disown-${item.queueId}`]: true }))
+    try {
+      const res = await fetch('/api/editorial/disown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queueId: item.queueId,
+          releaseId: item.releaseId,
+          editorId: currentUserId,
+          editorName: currentUserName,
+        }),
+      })
+      if (res.ok) router.refresh()
+    } catch (e) {
+      console.error('Disown failed:', e)
+    } finally {
+      setLoading((prev) => ({ ...prev, [`disown-${item.queueId}`]: false }))
+    }
+  }
+
+  const handleCapture = async (item: QueueItem) => {
+    setLoading((prev) => ({ ...prev, [`capture-${item.queueId}`]: true }))
+    try {
+      const res = await fetch('/api/editorial/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          queueId: item.queueId,
+          editorId: currentUserId,
+          editorName: currentUserName,
+        }),
+      })
+      if (res.ok) router.refresh()
+    } catch (e) {
+      console.error('Capture failed:', e)
+    } finally {
+      setLoading((prev) => ({ ...prev, [`capture-${item.queueId}`]: false }))
+    }
+  }
+
+  const isCheckedOutByMe = (item: QueueItem) => item.editorId === currentUserId
+  const isCheckedOutByOther = (item: QueueItem) => item.editorId !== null && item.editorId !== currentUserId
+  const isNotCheckedOut = (item: QueueItem) => !item.editorId
+
+  return (
+    <div className="space-y-3">
+      {items.map((item) => (
+        <Card key={item.queueId} className="overflow-hidden">
+          <div className="p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <Link href={`/editorial/review/${item.releaseUuid}`}>
+                    <h3 className="text-base font-semibold text-gray-900 hover:text-cyan-800 cursor-pointer">
+                      {item.title || 'Untitled Release'}
+                    </h3>
+                  </Link>
+                  <DistributionBadge distribution={item.distribution} />
+                </div>
+
+                <p className="text-sm text-gray-600">
+                  {item.companyName} &mdash; {item.userEmail}
+                </p>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  Submitted {formatDate(item.submitted)}
+                  {' / '}
+                  For Release {formatDate(item.releaseAt)}
+                </p>
+
+                {/* Checkout Status */}
+                {item.checkedout && item.editorId && (
+                  <p className="text-xs mt-1">
+                    <span className="text-amber-700 font-semibold">CHECKED OUT</span>
+                    {' '}
+                    <span className="text-gray-500">
+                      {formatDate(item.checkedout)} <em>({item.editorName})</em>
+                    </span>
+                  </p>
+                )}
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  {isCheckedOutByMe(item) && (
+                    <>
+                      <Link href={`/editorial/edit/${item.releaseId}`}>
+                        <Button size="sm" className="bg-cyan-800 text-white hover:bg-cyan-900 text-xs h-7">
+                          Edit / Approve
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs h-7"
+                        onClick={() => handleDisown(item)}
+                        disabled={loading[`disown-${item.queueId}`]}
+                      >
+                        {loading[`disown-${item.queueId}`] ? 'Releasing...' : 'Disown'}
+                      </Button>
+                    </>
+                  )}
+
+                  {isCheckedOutByOther(item) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-7"
+                      onClick={() => handleCapture(item)}
+                      disabled={loading[`capture-${item.queueId}`]}
+                    >
+                      {loading[`capture-${item.queueId}`] ? 'Capturing...' : 'Capture'}
+                    </Button>
+                  )}
+
+                  {isNotCheckedOut(item) && (
+                    <Button
+                      size="sm"
+                      className="bg-cyan-800 text-white hover:bg-cyan-900 text-xs h-7"
+                      onClick={() => handleCheckout(item)}
+                      disabled={loading[`checkout-${item.queueId}`]}
+                    >
+                      {loading[`checkout-${item.queueId}`] ? 'Checking out...' : 'Checkout'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  )
+}

@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { category } from '@/db/schema'
+import { category, circuitCategories } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 
@@ -24,7 +24,7 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { name, slug, description, circuit, parentSlug, parentCategory } = body
+    const { name, slug, description, circuitIds, parentSlug, parentCategory } = body
 
     if (!name || !slug) {
       return NextResponse.json(
@@ -39,7 +39,6 @@ export async function PUT(
         name,
         slug,
         description: description || null,
-        circuit: circuit || null,
         parentSlug: parentSlug || null,
         parentCategory: parentCategory || null,
       })
@@ -48,6 +47,18 @@ export async function PUT(
 
     if (!updated) {
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
+
+    // Replace circuit assignments
+    await db.delete(circuitCategories).where(eq(circuitCategories.categoryId, categoryId))
+
+    if (circuitIds?.length > 0) {
+      await db.insert(circuitCategories).values(
+        circuitIds.map((circuitId: number) => ({
+          circuitId,
+          categoryId,
+        }))
+      )
     }
 
     return NextResponse.json(updated)

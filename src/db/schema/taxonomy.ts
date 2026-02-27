@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, integer, timestamp } from 'drizzle-orm/pg-core'
 
 export const category = pgTable('category', {
   id: serial('id').primaryKey(),
@@ -8,6 +8,19 @@ export const category = pgTable('category', {
   parentCategory: varchar('parent_category', { length: 128 }),
   name: varchar('name', { length: 128 }).notNull(),
   description: varchar('description', { length: 256 }),
+})
+
+export const circuits = pgTable('circuits', {
+  id: serial('id').primaryKey(),
+  name: varchar('name', { length: 128 }).unique().notNull(),
+  description: varchar('description', { length: 256 }),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
+export const circuitCategories = pgTable('circuit_categories', {
+  id: serial('id').primaryKey(),
+  circuitId: integer('circuit_id').notNull().references(() => circuits.id, { onDelete: 'cascade' }),
+  categoryId: integer('category_id').notNull().references(() => category.id, { onDelete: 'cascade' }),
 })
 
 export const region = pgTable('region', {

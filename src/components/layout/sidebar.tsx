@@ -47,6 +47,12 @@ const navSections: NavSection[] = [
         href: '/dashboard',
         icon: 'fa-light fa-grid-2',
       },
+      {
+        title: 'Admin Dashboard',
+        href: '/admin',
+        icon: 'fa-light fa-shield-halved',
+        roles: ['admin', 'editor'],
+      },
     ],
   },
   {
@@ -60,6 +66,7 @@ const navSections: NavSection[] = [
           { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
           { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus', requiresCreate: true },
           { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen', requiresCreate: true },
+          { title: 'Reports', href: '/pr/reports', icon: 'fa-light fa-chart-bar' },
         ],
       },
       {
@@ -71,6 +78,11 @@ const navSections: NavSection[] = [
           { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag', requiresCreate: true },
         ],
       },
+      {
+        title: 'Credits',
+        href: '/credits/manage',
+        icon: 'fa-light fa-coins',
+      },
     ],
   },
   {
@@ -80,10 +92,12 @@ const navSections: NavSection[] = [
         title: 'Editorial',
         href: '/editorial',
         icon: 'fa-light fa-clipboard-check',
-        roles: ['editor', 'admin', 'staff'],
+        roles: ['editor', 'admin'],
         children: [
           { title: 'Queue', href: '/editorial/queue', icon: 'fa-light fa-clipboard-list' },
           { title: 'Enhanced Queue', href: '/editorial/queue-enhanced', icon: 'fa-light fa-clipboard-list-check' },
+          { title: 'Approved Pending', href: '/editorial/pending', icon: 'fa-light fa-clock' },
+          { title: 'Edit Released', href: '/editorial/released-edit', icon: 'fa-light fa-pen-to-square' },
         ],
       },
     ],

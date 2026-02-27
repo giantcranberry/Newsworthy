@@ -108,7 +108,7 @@ export default async function AdminReleasesPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        {release.status === 'editorial' && (
+                        {release.status === 'review' && (
                           <Link href={`/editorial/review/${release.uuid}`}>
                             <Button size="sm">Review</Button>
                           </Link>

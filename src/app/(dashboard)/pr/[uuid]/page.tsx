@@ -148,7 +148,7 @@ export default async function PRDetailPage({
         : null,
     ]);
 
-  const isEditorial = release.status === "editorial";
+  const isEditorial = release.status === "review";
   const canRetract = isEditorial && !queueEntry?.checkedout;
 
   // Find topcat (first category that's a top-level category)
@@ -169,7 +169,7 @@ export default async function PRDetailPage({
     isClientOnly = !editableIds.includes(release.companyId);
   }
 
-  const isReadOnly = isClientOnly || ["editorial", "approved", "sent"].includes(release.status || "");
+  const isReadOnly = isClientOnly || ["review", "approved", "sent"].includes(release.status || "");
 
   return (
     <div className="space-y-6">

@@ -4,8 +4,7 @@ import { partners } from '@/db/schema'
 import { desc, eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { PartnerList } from './partner-list'
 
 async function getPartners() {
@@ -41,15 +40,9 @@ export default async function AdminPartnersPage() {
         Admin
       </Link>
 
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
-          <p className="text-gray-600">Manage partner accounts and settings</p>
-        </div>
-        <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
-          <Plus className="h-4 w-4" />
-          Add Partner
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
+        <p className="text-gray-600">Manage partner accounts and settings</p>
       </div>
 
       <PartnerList

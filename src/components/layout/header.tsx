@@ -2,9 +2,8 @@
 
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Bell, CreditCard, Menu, Search, Plus } from 'lucide-react'
+import { Bell, CreditCard, Menu, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -25,18 +24,6 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
       >
         <Menu className="h-5 w-5" />
       </Button>
-
-      {/* Search */}
-      <div className="w-full max-w-xl">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-          <Input
-            type="search"
-            placeholder="Search releases, brands..."
-            className="pl-10 bg-gray-50 border-gray-200"
-          />
-        </div>
-      </div>
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">

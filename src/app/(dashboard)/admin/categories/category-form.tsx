@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   SelectRoot,
   SelectContent,
@@ -13,6 +14,11 @@ import {
 } from '@/components/ui/select'
 import { Loader2 } from 'lucide-react'
 
+interface Circuit {
+  id: number
+  name: string
+}
+
 interface Category {
   id: number
   slug: string
@@ -21,10 +27,12 @@ interface Category {
   parentCategory: string | null
   name: string
   description: string | null
+  circuits: Circuit[]
 }
 
 interface CategoryFormProps {
   category: Category | null
+  circuits: Circuit[]
   parentOptions: string[]
   onSuccess: () => void
   onCancel: () => void
@@ -39,23 +47,22 @@ function slugify(text: string): string {
     .trim()
 }
 
-export function CategoryForm({ category, parentOptions, onSuccess, onCancel }: CategoryFormProps) {
+export function CategoryForm({ category, circuits, parentOptions, onSuccess, onCancel }: CategoryFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: category?.name || '',
     slug: category?.slug || '',
     description: category?.description || '',
-    circuit: category?.circuit || '',
+    circuitIds: category?.circuits.map(c => c.id) || [] as number[],
     parentSlug: category?.parentSlug || '',
-    parentCategory: category?.parentCategory || '',
+    parentCategory: category?.parentCategory || 'top',
   })
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!category)
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => {
       const updated = { ...prev, [field]: value }
-      // Auto-generate slug from name unless manually edited
       if (field === 'name' && !slugManuallyEdited) {
         updated.slug = slugify(value)
       }
@@ -68,6 +75,15 @@ export function CategoryForm({ category, parentOptions, onSuccess, onCancel }: C
     setFormData(prev => ({ ...prev, slug: value }))
   }
 
+  const toggleCircuit = (circuitId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      circuitIds: prev.circuitIds.includes(circuitId)
+        ? prev.circuitIds.filter(id => id !== circuitId)
+        : [...prev.circuitIds, circuitId],
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
@@ -78,7 +94,7 @@ export function CategoryForm({ category, parentOptions, onSuccess, onCancel }: C
         name: formData.name,
         slug: formData.slug,
         description: formData.description || null,
-        circuit: formData.circuit || null,
+        circuitIds: formData.circuitIds,
         parentSlug: formData.parentSlug || null,
         parentCategory: formData.parentCategory || null,
       }
@@ -151,16 +167,31 @@ export function CategoryForm({ category, parentOptions, onSuccess, onCancel }: C
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="circuit">Circuit</Label>
-        <Input
-          id="circuit"
-          value={formData.circuit}
-          onChange={(e) => handleChange('circuit', e.target.value)}
-          placeholder="e.g., Industry, Topic"
-          maxLength={128}
-        />
-      </div>
+      {circuits.length > 0 && (
+        <div className="space-y-2">
+          <Label>Circuits</Label>
+          <div className="rounded-md border border-gray-200 p-3 space-y-2 max-h-48 overflow-y-auto">
+            {circuits.map((c) => (
+              <label
+                key={c.id}
+                className="flex items-center gap-2 cursor-pointer text-sm text-gray-900 hover:bg-gray-50 rounded px-1 py-0.5"
+              >
+                <Checkbox
+                  checked={formData.circuitIds.includes(c.id)}
+                  onCheckedChange={() => toggleCircuit(c.id)}
+                  className="border-gray-300 data-[state=checked]:bg-cyan-700 data-[state=checked]:border-cyan-700"
+                />
+                {c.name}
+              </label>
+            ))}
+          </div>
+          {formData.circuitIds.length > 0 && (
+            <p className="text-xs text-gray-500">
+              {formData.circuitIds.length} circuit{formData.circuitIds.length !== 1 ? 's' : ''} selected
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

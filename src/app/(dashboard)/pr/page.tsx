@@ -43,7 +43,7 @@ function getStatusColor(status: string) {
   switch (status) {
     case "sent":
       return "bg-green-100 text-green-800";
-    case "editorial":
+    case "review":
       return "bg-yellow-100 text-yellow-800";
     case "approved":
       return "bg-blue-100 text-blue-800";
@@ -62,7 +62,7 @@ function getStatusLabel(status: string) {
   switch (status) {
     case "sent":
       return "Published";
-    case "editorial":
+    case "review":
       return "In Review";
     case "approved":
       return "Approved";
@@ -99,7 +99,7 @@ export default async function PressReleasesPage({
               r.status === "start"
             );
           case "review":
-            return r.status === "editorial";
+            return r.status === "review";
           case "published":
             return r.status === "sent";
           default:
@@ -114,7 +114,7 @@ export default async function PressReleasesPage({
       (r) =>
         r.status === "draftnxt" || r.status === "draft" || r.status === "start",
     ).length,
-    review: allReleases.filter((r) => r.status === "editorial").length,
+    review: allReleases.filter((r) => r.status === "review").length,
     published: allReleases.filter((r) => r.status === "sent").length,
   };
 
@@ -308,7 +308,7 @@ export default async function PressReleasesPage({
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0">
-                      {release.canEdit && !["approved", "sent", "editorial"].includes(
+                      {release.canEdit && !["approved", "sent", "review"].includes(
                         release.status,
                       ) && (
                         <Link href={`/pr/${release.uuid}`}>
@@ -318,7 +318,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && release.status === "editorial" && (
+                      {release.canEdit && release.status === "review" && (
                         <RetractReleaseButton
                           uuid={release.uuid!}
                           title={release.title}
@@ -339,7 +339,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && !["approved", "sent", "editorial"].includes(
+                      {release.canEdit && !["approved", "sent", "review"].includes(
                         release.status,
                       ) && (
                         <DeleteReleaseButton

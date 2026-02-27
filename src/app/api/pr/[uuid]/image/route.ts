@@ -6,7 +6,18 @@ import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { uploadPRImage } from '@/services/s3'
 
-async function getRelease(uuid: string, userId: number) {
+function isEditorialUser(session: any): boolean {
+  const user = session?.user
+  return !!(user && ((user as any).isEditor || (user as any).isAdmin))
+}
+
+async function getRelease(uuid: string, userId: number, isEditorial: boolean = false) {
+  if (isEditorial) {
+    // Editor/admin/staff can access any release
+    return db.query.releases.findFirst({
+      where: eq(releases.uuid, uuid),
+    })
+  }
   return db.query.releases.findFirst({
     where: and(
       eq(releases.uuid, uuid),
@@ -40,9 +51,10 @@ export async function GET(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId)
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -55,11 +67,11 @@ export async function GET(
       with: { image: true },
     })
 
-    // Get user's image library for the company
+    // Get image library for the company (use release owner's userId for library)
     const imageLibrary = await db.query.images.findMany({
       where: and(
         eq(images.companyId, release.companyId),
-        eq(images.userId, userId),
+        eq(images.userId, release.userId),
         eq(images.isDeleted, false)
       ),
       orderBy: (images, { desc }) => [desc(images.id)],
@@ -94,13 +106,17 @@ export async function POST(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId)
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
     }
+
+    // Use the release owner's userId for image records, not the editor's
+    const imageOwnerId = release.userId
 
     const contentType = request.headers.get('content-type') || ''
     let imageId: number
@@ -125,7 +141,7 @@ export async function POST(
 
       const [image] = await db.insert(images).values({
         uuid: randomUUID(),
-        userId,
+        userId: imageOwnerId,
         companyId: release.companyId,
         url,
         title: title || null,
@@ -147,7 +163,7 @@ export async function POST(
         // Create new image record from URL (filestack)
         const [image] = await db.insert(images).values({
           uuid: randomUUID(),
-          userId,
+          userId: imageOwnerId,
           companyId: release.companyId,
           url: body.url,
           title: body.title || null,
@@ -216,9 +232,10 @@ export async function PUT(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId)
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -261,9 +278,10 @@ export async function DELETE(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId)
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -306,9 +324,10 @@ export async function PATCH(
   }
 
   const userId = parseInt(session.user.id)
+  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId)
+    const release = await getRelease(uuid, userId, editorial)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })

@@ -7,12 +7,10 @@ import { eq } from 'drizzle-orm'
 export async function POST(request: NextRequest) {
   const session = await auth()
 
-  // Check if user has editorial access
   const isEditor = (session?.user as any)?.isEditor
   const isAdmin = (session?.user as any)?.isAdmin
-  const isStaff = (session?.user as any)?.isStaff
 
-  if (!isEditor && !isAdmin && !isStaff) {
+  if (!isEditor && !isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -20,11 +18,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { queueId, editorId, editorName } = body
 
-    // Update queue with editor checkout
     await db.update(queue)
       .set({
         editorId,
         editorName,
+        checkedout: new Date(),
       })
       .where(eq(queue.id, queueId))
 

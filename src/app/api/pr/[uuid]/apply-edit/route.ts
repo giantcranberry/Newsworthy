@@ -47,7 +47,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const lockedStatuses = ["editorial", "approved", "sent"];
+    const lockedStatuses = ["review", "approved", "sent"];
     if (release.status && lockedStatuses.includes(release.status)) {
       return NextResponse.json(
         { error: `Cannot edit release with status "${release.status}"` },

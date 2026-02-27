@@ -210,7 +210,7 @@ async function getDashboardData(userId: number) {
       (r) =>
         r.status === "draftnxt" || r.status === "draft" || r.status === "start",
     ).length,
-    inReview: allReleases.filter((r) => r.status === "editorial").length,
+    inReview: allReleases.filter((r) => r.status === "review").length,
   };
 
   return {
@@ -368,7 +368,7 @@ export default async function DashboardPage() {
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           release.status === "sent"
                             ? "bg-green-100 text-green-800"
-                            : release.status === "editorial"
+                            : release.status === "review"
                               ? "bg-yellow-100 text-yellow-800"
                               : release.status === "approved"
                                 ? "bg-blue-100 text-blue-800"
@@ -377,7 +377,7 @@ export default async function DashboardPage() {
                       >
                         {release.status === "sent"
                           ? "Published"
-                          : release.status === "editorial"
+                          : release.status === "review"
                             ? "In Review"
                             : release.status === "approved"
                               ? "Approved"

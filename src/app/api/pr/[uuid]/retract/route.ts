@@ -29,7 +29,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    if (release.status !== 'editorial') {
+    if (release.status !== 'review') {
       return NextResponse.json(
         { error: 'Only releases in editorial review can be retracted' },
         { status: 400 }

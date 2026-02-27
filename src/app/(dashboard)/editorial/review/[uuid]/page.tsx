@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company, users, releaseCategories, releaseRegions, category, region } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { releases, queue, company, users, releaseCategories, releaseRegions, category, region, releaseNotes } from '@/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import { ReviewForm } from './review-form'
 
@@ -38,10 +38,18 @@ async function getReleaseForReview(uuid: string) {
     .innerJoin(region, eq(releaseRegions.regionId, region.id))
     .where(eq(releaseRegions.releaseId, releaseData.release.id))
 
+  // Get staff notes for this release
+  const notes = await db
+    .select()
+    .from(releaseNotes)
+    .where(eq(releaseNotes.prId, releaseData.release.id))
+    .orderBy(desc(releaseNotes.createdAt))
+
   return {
     ...releaseData,
     categoryNames: categories.map(c => c.name).filter(Boolean),
     regionNames: regions.map(r => r.name).filter(Boolean),
+    releaseNotes: notes,
   }
 }
 
@@ -53,12 +61,10 @@ export default async function EditorialReviewPage({ params }: PageProps) {
   const { uuid } = await params
   const session = await auth()
 
-  // Check if user has editorial access
   const isEditor = (session?.user as any)?.isEditor
   const isAdmin = (session?.user as any)?.isAdmin
-  const isStaff = (session?.user as any)?.isStaff
 
-  if (!isEditor && !isAdmin && !isStaff) {
+  if (!isEditor && !isAdmin) {
     redirect('/dashboard')
   }
 
@@ -82,6 +88,7 @@ export default async function EditorialReviewPage({ params }: PageProps) {
         regionNames={data.regionNames}
         editorId={editorId}
         editorName={editorName}
+        releaseNotes={data.releaseNotes}
       />
     </div>
   )
