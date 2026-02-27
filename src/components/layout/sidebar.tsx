@@ -12,6 +12,7 @@ interface NavChild {
   href: string
   icon: string
   requiresCreate?: boolean
+  matchPaths?: string[]
 }
 
 interface NavGroup {
@@ -66,7 +67,7 @@ const navSections: NavSection[] = [
           { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
           { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus', requiresCreate: true },
           { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen', requiresCreate: true },
-          { title: 'Reports', href: '/pr/reports', icon: 'fa-light fa-chart-bar' },
+          { title: 'Reports', href: '/pr/reports', icon: 'fa-light fa-chart-bar', matchPaths: ['/pr/clips'] },
         ],
       },
       {
@@ -136,21 +137,37 @@ export function Sidebar({ canCreateContent = true }: { canCreateContent?: boolea
     return pathname === path || pathname.startsWith(path + '/')
   }
 
+  const getActiveChild = (children: NavChild[]): NavChild | null => {
+    // Priority 1: exact match on href
+    const exactMatch = children.find((c) => pathname === c.href)
+    if (exactMatch) return exactMatch
+
+    // Priority 2: exact match on additional matchPaths
+    const matchPathExact = children.find((c) =>
+      c.matchPaths?.some((p) => pathname === p)
+    )
+    if (matchPathExact) return matchPathExact
+
+    // Priority 3: most specific prefix match (longest href wins)
+    const prefixMatches = children.filter((c) =>
+      pathname.startsWith(c.href + '/') ||
+      c.matchPaths?.some((p) => pathname.startsWith(p + '/'))
+    )
+    if (prefixMatches.length === 0) return null
+
+    return prefixMatches.sort((a, b) => {
+      const aLen = Math.max(a.href.length, ...(a.matchPaths?.map((p) => p.length) || [0]))
+      const bLen = Math.max(b.href.length, ...(b.matchPaths?.map((p) => p.length) || [0]))
+      return bLen - aLen
+    })[0]
+  }
+
   const isChildActive = (child: NavChild, siblings: NavChild[]) => {
-    if (pathname === child.href) return true
-    // Only use startsWith if no sibling matches more specifically
-    if (pathname.startsWith(child.href + '/')) {
-      const hasBetterMatch = siblings.some(
-        (s) => s.href !== child.href && (pathname === s.href || pathname.startsWith(s.href + '/'))
-        && s.href.length > child.href.length
-      )
-      return !hasBetterMatch
-    }
-    return false
+    return getActiveChild(siblings)?.href === child.href
   }
 
   const hasActiveChild = (item: NavGroup) => {
-    return item.children.some((child) => isChildActive(child, item.children))
+    return getActiveChild(item.children) !== null
   }
 
   const isGroupExpanded = (key: string, item: NavGroup): boolean => {

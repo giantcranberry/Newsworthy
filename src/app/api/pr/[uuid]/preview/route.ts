@@ -1,7 +1,7 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases, company, banners, images } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { releases, company, banners, images, releaseImages } from "@/db/schema";
+import { eq, and, asc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -18,6 +18,7 @@ export async function GET(
 
   const result = await db
     .select({
+      id: releases.id,
       title: releases.title,
       abstract: releases.abstract,
       body: releases.body,
@@ -27,15 +28,10 @@ export async function GET(
       companyName: company.companyName,
       logoUrl: company.logoUrl,
       bannerUrl: banners.url,
-      primaryImageUrl: images.url,
-      primaryImageTitle: images.title,
-      primaryImageCaption: images.caption,
-      primaryImageCredits: images.imgCredits,
     })
     .from(releases)
     .leftJoin(company, eq(releases.companyId, company.id))
     .leftJoin(banners, eq(releases.bannerId, banners.id))
-    .leftJoin(images, eq(releases.primaryImageId, images.id))
     .where(and(eq(releases.uuid, uuid), eq(releases.userId, userId)))
     .limit(1);
 
@@ -43,5 +39,32 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json(result[0]);
+  const releaseData = result[0];
+
+  // Fetch all images for this release
+  const allImages = await db
+    .select({
+      id: images.id,
+      url: images.url,
+      title: images.title,
+      caption: images.caption,
+      imgCredits: images.imgCredits,
+    })
+    .from(releaseImages)
+    .innerJoin(images, eq(releaseImages.imageId, images.id))
+    .where(eq(releaseImages.releaseId, releaseData.id))
+    .orderBy(asc(releaseImages.sortOrder));
+
+  return NextResponse.json({
+    title: releaseData.title,
+    abstract: releaseData.abstract,
+    body: releaseData.body,
+    pullquote: releaseData.pullquote,
+    location: releaseData.location,
+    videoUrl: releaseData.videoUrl,
+    companyName: releaseData.companyName,
+    logoUrl: releaseData.logoUrl,
+    bannerUrl: releaseData.bannerUrl,
+    images: allImages,
+  });
 }

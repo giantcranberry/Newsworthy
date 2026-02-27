@@ -11,6 +11,14 @@ const MIN_WIDTH = 300
 const MAX_WIDTH = 900
 const DEFAULT_WIDTH = 500
 
+interface PreviewImage {
+  id: number
+  url: string
+  title: string | null
+  caption: string | null
+  imgCredits: string | null
+}
+
 interface PreviewData {
   title: string | null
   abstract: string | null
@@ -21,10 +29,7 @@ interface PreviewData {
   companyName: string | null
   logoUrl: string | null
   bannerUrl: string | null
-  primaryImageUrl: string | null
-  primaryImageTitle: string | null
-  primaryImageCaption: string | null
-  primaryImageCredits: string | null
+  images: PreviewImage[]
 }
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile'
@@ -114,7 +119,7 @@ export function ReleasePreviewSidebar() {
                 companyName: data.companyName,
               } : undefined}
               banner={data.bannerUrl ? { url: data.bannerUrl } : null}
-              images={data.primaryImageUrl ? [{ id: 1, url: data.primaryImageUrl, title: data.primaryImageTitle, caption: data.primaryImageCaption, imgCredits: data.primaryImageCredits }] : undefined}
+              images={data.images?.length > 0 ? data.images : undefined}
               compact
               deviceMode={effectiveDevice}
             />

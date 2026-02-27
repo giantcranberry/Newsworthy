@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { cn } from '@/lib/utils'
+import { ImageCarousel } from './image-carousel'
 
 export interface PreviewPanelProps {
   release?: {
@@ -121,27 +122,15 @@ export function PreviewPanel({
                 : 'float-right ml-5 mb-4',
               deviceMode === 'mobile'
                 ? ''
-                : compact ? 'w-[55%] max-w-[250px]' : 'w-[50%] max-w-[350px]'
+                : compact ? 'w-[65%] max-w-[320px]' : 'w-[60%] max-w-[450px]'
             )}>
-              {images && images.length > 0 && images.map((img) => (
-                <figure key={img.id} className="mb-2">
-                  <Image
-                    src={img.url}
-                    alt={img.caption || img.title || 'News image'}
-                    width={deviceMode === 'mobile' ? 400 : compact ? 200 : 300}
-                    height={deviceMode === 'mobile' ? 300 : compact ? 150 : 225}
-                    className="rounded-lg w-full h-auto"
-                    style={{ objectFit: 'contain' }}
-                    unoptimized
-                  />
-                  {(img.caption || img.title || img.imgCredits) && (
-                    <figcaption className="text-xs text-gray-500 mt-1.5 space-y-0.5">
-                      {(img.caption || img.title) && <p>{img.caption || img.title}</p>}
-                      {img.imgCredits && <p className="italic">Photo: {img.imgCredits}</p>}
-                    </figcaption>
-                  )}
-                </figure>
-              ))}
+              {images && images.length > 0 && (
+                <ImageCarousel
+                  images={images}
+                  compact={compact}
+                  deviceMode={deviceMode}
+                />
+              )}
               {release?.pullquote && (
                 <blockquote className={cn(
                   'border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700',

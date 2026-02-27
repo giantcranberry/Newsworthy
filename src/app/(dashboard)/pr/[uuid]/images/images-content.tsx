@@ -842,7 +842,7 @@ export function ImagesContent({
         />
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
         <div className="flex w-full rounded-lg bg-gray-100 p-1">
           <button
             type="button"
