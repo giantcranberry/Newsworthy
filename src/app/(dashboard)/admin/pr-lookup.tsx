@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, FileText, User, Building2, ExternalLink, Pencil } from 'lucide-react'
+import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3 } from 'lucide-react'
 
 interface LookupResult {
   release: {
@@ -171,6 +171,15 @@ export function PRLookup() {
                       Edit
                     </Button>
                   </Link>
+                  {result.release.status === 'sent' && result.release.releasedAt &&
+                    Date.now() - new Date(result.release.releasedAt).getTime() > 24 * 60 * 60 * 1000 && (
+                    <Link href={`/pr/clips/${result.release.uuid}`}>
+                      <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                        <BarChart3 className="h-3 w-3" />
+                        View Report
+                      </Button>
+                    </Link>
+                  )}
                   {result.release.status === 'sent' && result.release.releaseAt && result.release.slug && (
                     <a
                       href={`https://www.newsworthy.ai/news/${new Date(result.release.releaseAt).getFullYear()}${String(new Date(result.release.releaseAt).getMonth() + 1).padStart(2, '0')}${String(new Date(result.release.releaseAt).getDate()).padStart(2, '0')}${result.release.id}/${result.release.slug}`}

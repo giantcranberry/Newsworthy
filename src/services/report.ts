@@ -357,7 +357,7 @@ async function getCircuitsForRelease(releaseId: number, releaseSlug: string | nu
 
 export function reportReady(releasedAt: Date | null): boolean {
   if (!releasedAt) return false
-  return Date.now() - releasedAt.getTime() > 48 * 60 * 60 * 1000
+  return Date.now() - releasedAt.getTime() > 24 * 60 * 60 * 1000
 }
 
 // --- Main report data orchestrator ---

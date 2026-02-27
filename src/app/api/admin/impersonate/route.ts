@@ -73,22 +73,23 @@ export async function DELETE() {
     return NextResponse.json({ error: 'Not impersonating anyone' }, { status: 400 })
   }
 
-  // Clear impersonation cookies
-  cookieStore.delete(IMPERSONATE_COOKIE)
-  cookieStore.delete(IMPERSONATE_ADMIN_COOKIE)
+  // Clear impersonation cookies by setting them with maxAge 0
+  cookieStore.set(IMPERSONATE_COOKIE, '', { path: '/', maxAge: 0 })
+  cookieStore.set(IMPERSONATE_ADMIN_COOKIE, '', { path: '/', maxAge: 0 })
 
   return NextResponse.json({ success: true, message: 'Stopped impersonation' })
 }
 
 export async function GET() {
-  const session = await auth()
   const cookieStore = await cookies()
 
   const impersonateUserId = cookieStore.get(IMPERSONATE_COOKIE)?.value
   const adminId = cookieStore.get(IMPERSONATE_ADMIN_COOKIE)?.value
 
+  const headers = { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+
   if (!impersonateUserId) {
-    return NextResponse.json({ impersonating: false })
+    return NextResponse.json({ impersonating: false }, { headers })
   }
 
   // Get impersonated user info
@@ -106,5 +107,5 @@ export async function GET() {
     userEmail: targetUser?.email,
     userName: profile ? `${profile.firstName} ${profile.lastName}` : targetUser?.email,
     adminId,
-  })
+  }, { headers })
 }

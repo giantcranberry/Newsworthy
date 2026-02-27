@@ -42,8 +42,9 @@ export async function GET(
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }
 
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
     const buffer = await renderToBuffer(
-      React.createElement(ReportPdfDocument, { data }) as any
+      React.createElement(ReportPdfDocument, { data, baseUrl }) as any
     )
 
     const slug = release.slug || uuid

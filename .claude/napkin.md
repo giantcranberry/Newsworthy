@@ -33,7 +33,7 @@
 - Don't do fallback fulfillment on the thanks page — only the webhook should create brand_credits entries. Double-logging happens when both paths run.
 - Don't check `if (product.productCredits)` — 0 is falsy. Use `product.productCredits || 1` to default to 1 for products with 0 credits.
 - `chartjs-node-canvas` uses native canvas bindings incompatible with Next.js/Turbopack bundler (MODULE_NOT_FOUND). Use react-pdf's built-in SVG primitives (Svg, Path, Rect, Circle, G, Line) to draw charts natively in PDFs instead.
-- `@react-pdf/renderer` rejects image URLs without recognized extensions (.png, .jpg, .gif, etc.) and SVG URLs. Always validate with `isValidPdfImageUrl()` before passing to `<Image>` and fall back to text.
+- `@react-pdf/renderer` rejects SVG and WebP images — only PNG, JPEG, GIF, BMP, TIFF work. Use `isValidPdfImageUrl()` to validate and fall back to text. Dynamic image URLs without file extensions (like QR code APIs) can work if they serve PNG/JPEG — skip the extension check for those.
 - react-pdf `rgba()` in SVG fill attrs renders wrong colors. Use `fill={hexColor} fillOpacity={0.15}` instead.
 - react-pdf `wrap={false}` on large sections (many clips/logos) causes headers to strand on previous page while content jumps to next. Fix: allow wrapping on the outer section, use `wrap={false}` only on the header/tab row so it stays together, let the grid content flow naturally across pages.
 - PDF report file: `src/app/api/pr/[uuid]/report/pdf/report-pdf.tsx`. Web report: `src/app/(dashboard)/pr/clips/[uuid]/clips-report.tsx`. Data service: `src/services/report.ts`. Still has remaining page-break issues to revisit.

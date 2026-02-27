@@ -499,10 +499,10 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <div className="rounded-xl border border-green-200 bg-green-50 p-4 flex items-start gap-3 mb-4">
             <i className="fa-solid fa-check-circle text-green-600 text-2xl mt-0.5" aria-hidden="true" />
             <div>
-              <h6 className="font-semibold text-green-800 mb-1">Advocacy Group Active</h6>
-              <p className="text-sm text-green-700 mb-2">Your advocacy group is helping amplify your message. Keep engaging with your advocates to maximize your reach.</p>
+              <h6 className="font-semibold text-green-800 mb-1">Share List Active</h6>
+              <p className="text-sm text-green-700 mb-2">Your share list is helping amplify your message. Keep engaging with your network to maximize your reach.</p>
               <a href="/company/advocacy" className="inline-flex items-center gap-1.5 bg-green-600 text-white text-sm px-4 py-2 rounded-lg hover:bg-green-700 no-underline">
-                Manage Advocacy Group
+                Manage Share List
               </a>
             </div>
           </div>
@@ -510,10 +510,10 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3 mb-4">
             <i className="fa-solid fa-triangle-exclamation text-amber-500 text-2xl mt-0.5" aria-hidden="true" />
             <div>
-              <h6 className="font-semibold text-amber-800 mb-1">Boost Your Reach with Advocacy Groups</h6>
-              <p className="text-sm text-amber-700 mb-2">You&apos;re missing out on one of our most powerful FREE marketing tools. Set up an advocacy group to amplify your message through your network.</p>
+              <h6 className="font-semibold text-amber-800 mb-1">Boost Your Reach with Share Lists</h6>
+              <p className="text-sm text-amber-700 mb-2">You&apos;re missing out on one of our most powerful FREE marketing tools. Set up a share list to amplify your message through your network.</p>
               <a href="/company/advocacy" className="inline-flex items-center gap-1.5 bg-amber-500 text-white text-sm px-4 py-2 rounded-lg hover:bg-amber-600 no-underline">
-                Setup Advocacy Group
+                Setup Share List
               </a>
             </div>
           </div>
@@ -539,10 +539,10 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-globe" iconColor="text-blue-600">Search &amp; News Portals</SectionTitle>
         <p className="text-gray-500 mb-4 text-sm">Your press release is discoverable across major search engines and news aggregators</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
+          <LogoCard logo="/img/logos/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
+          <LogoCard logo="/img/logos/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
           <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.svg" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${formatCityBuzzDate(release.releasedAt)}/${release.slug}/`} />
+          <LogoCard logo="/img/logos/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${formatCityBuzzDate(release.releasedAt)}/${release.slug}/`} />
           {yahooFinanceUrls.map((url, i) => (
             <LogoCard key={`yahoo-${i}`} logo="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
           ))}

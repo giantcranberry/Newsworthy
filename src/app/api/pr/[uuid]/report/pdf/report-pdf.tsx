@@ -93,6 +93,7 @@ const s = StyleSheet.create({
 })
 
 // --- Image URL validation ---
+// react-pdf only supports PNG, JPEG, GIF, BMP, TIFF — not SVG or WebP
 function isValidPdfImageUrl(url: string | null | undefined): boolean {
   if (!url) return false
   if (url.startsWith('data:image/')) return true
@@ -315,8 +316,9 @@ function SectionCardPdf({ borderColor, children, allowWrap }: { borderColor: str
 }
 
 // --- Main PDF Document ---
-export function ReportPdfDocument({ data }: { data: ReportData }) {
+export function ReportPdfDocument({ data, baseUrl }: { data: ReportData; baseUrl?: string }) {
   const { release, company, clips, totalPv, totalSh, ecpc, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle } = data
+  const appUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'https://www.newsworthy.ai'
   const marketClips = [...clips.fcmarkets, ...clips.marketminute]
   const hasDistNetwork = clips.gomedia.length > 0 || clips.synacor.length > 0 || marketClips.length > 0
   const hasCircuits = circuits.hr || circuits.cannabis || circuits.cannadelic || circuits.psychedelics
@@ -451,23 +453,23 @@ export function ReportPdfDocument({ data }: { data: ReportData }) {
           </View>
         )}
 
-        {/* Advocacy Alert */}
+        {/* Share List Alert */}
         {hasAdvGroup ? (
           <View wrap={false} style={[s.advBox, { backgroundColor: C.greenLight, borderColor: C.greenBorder }]}>
-            <Text style={[s.advTitle, { color: C.greenText }]}>Advocacy Group Active</Text>
-            <Text style={[s.advText, { color: '#15803d' }]}>Your advocacy group is helping amplify your message.</Text>
+            <Text style={[s.advTitle, { color: C.greenText }]}>Share List Active</Text>
+            <Text style={[s.advText, { color: '#15803d' }]}>Your share list is helping amplify your message.</Text>
           </View>
         ) : (
           <View wrap={false} style={[s.advBox, { backgroundColor: C.amberLight, borderColor: C.amberBorder }]}>
-            <Text style={[s.advTitle, { color: C.amberText }]}>Boost Your Reach with Advocacy Groups</Text>
-            <Text style={[s.advText, { color: '#b45309' }]}>Set up an advocacy group to amplify your message through your network.</Text>
+            <Text style={[s.advTitle, { color: C.amberText }]}>Boost Your Reach with Share Lists</Text>
+            <Text style={[s.advText, { color: '#b45309' }]}>Set up a share list to amplify your message through your network.</Text>
           </View>
         )}
 
         <View style={s.divider} />
 
         {/* Blockchain */}
-        {nwrampReport && nwrampReport.blockchain_qrcode && isValidPdfImageUrl(nwrampReport.blockchain_qrcode) && (
+        {nwrampReport && nwrampReport.blockchain_qrcode && (
           <SectionCardPdf borderColor={C.purple}>
             <Text style={s.sectionTitle}>Blockchain Verification</Text>
             <Text style={s.sectionDesc}>Immutable proof of publication secured on the blockchain</Text>
@@ -482,15 +484,15 @@ export function ReportPdfDocument({ data }: { data: ReportData }) {
           <Text style={s.sectionTitle}>Search &amp; News Portals</Text>
           <Text style={s.sectionDesc}>Your press release is discoverable across major search engines and news aggregators</Text>
           <View style={s.logoGrid}>
-            <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
-            <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
+            <LogoCardPdf src={`${appUrl}/img/logos/google.png`} name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
+            <LogoCardPdf src={`${appUrl}/img/logos/microsoft.jpg`} name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
             <LogoCardPdf src="" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
-            <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${cityBuzzDate}/${release.slug}/`} />
+            <LogoCardPdf src={`${appUrl}/img/logos/citybuzz.png`} name="CityBuzz" link={`https://www.citybuzz.co/${cityBuzzDate}/${release.slug}/`} />
             {yahooFinanceUrls.map((url, i) => (
               <LogoCardPdf key={`y-${i}`} src="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
             ))}
             {clips.streetinsiderUrl && (
-              <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
+              <LogoCardPdf src="https://cdn.newsramp.app/logos/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
             )}
             <LogoCardPdf src="" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
           </View>

@@ -21,7 +21,7 @@ export function ImpersonationBanner() {
   useEffect(() => {
     const checkImpersonation = async () => {
       try {
-        const response = await fetch('/api/admin/impersonate')
+        const response = await fetch('/api/admin/impersonate', { cache: 'no-store' })
         const data = await response.json()
         setState(data)
       } catch (error) {

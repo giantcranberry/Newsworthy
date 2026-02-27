@@ -23,7 +23,8 @@ export default async function ClipsPage({
 
   if (!release || release.status !== 'sent') redirect('/pr/reports')
 
-  if (release.userId !== userId) {
+  const isAdminOrImpersonating = (session?.user as any)?.isAdmin || (session?.user as any)?.isImpersonating
+  if (!isAdminOrImpersonating && release.userId !== userId) {
     const companyIds = await getUserCompanyIds(userId)
     if (!companyIds.includes(release.companyId)) redirect('/pr/reports')
   }

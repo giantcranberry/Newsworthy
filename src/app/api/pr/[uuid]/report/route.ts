@@ -31,7 +31,8 @@ export async function GET(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
-    if (release.userId !== userId) {
+    const isAdminOrImpersonating = (session?.user as any)?.isAdmin || (session?.user as any)?.isImpersonating
+    if (!isAdminOrImpersonating && release.userId !== userId) {
       const companyIds = await getUserCompanyIds(userId)
       if (!companyIds.includes(release.companyId)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
