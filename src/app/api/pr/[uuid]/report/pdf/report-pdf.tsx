@@ -486,7 +486,7 @@ export function ReportPdfDocument({ data, baseUrl }: { data: ReportData; baseUrl
           <View style={s.logoGrid}>
             <LogoCardPdf src={`${appUrl}/img/logos/google.png`} name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
             <LogoCardPdf src={`${appUrl}/img/logos/microsoft.jpg`} name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
-            <LogoCardPdf src="" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
+            <LogoCardPdf src="https://cdn.newsramp.app/logos/duckduckgo.png" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
             <LogoCardPdf src={`${appUrl}/img/logos/citybuzz.png`} name="CityBuzz" link={`https://www.citybuzz.co/${cityBuzzDate}/${release.slug}/`} />
             {yahooFinanceUrls.map((url, i) => (
               <LogoCardPdf key={`y-${i}`} src="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
@@ -494,7 +494,7 @@ export function ReportPdfDocument({ data, baseUrl }: { data: ReportData; baseUrl
             {clips.streetinsiderUrl && (
               <LogoCardPdf src="https://cdn.newsramp.app/logos/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
             )}
-            <LogoCardPdf src="" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
+            <LogoCardPdf src="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
           </View>
         </SectionCardPdf>
 
@@ -527,9 +527,9 @@ export function ReportPdfDocument({ data, baseUrl }: { data: ReportData; baseUrl
                 })}
               {nwrampReport.linkedin && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />}
               {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />}
-              {nwrampReport.bluesky && <LogoCardPdf src="" name="Bluesky" link={nwrampReport.bluesky} />}
-              {nwrampReport.mastodon && <LogoCardPdf src="" name="Mastodon" link={nwrampReport.mastodon} />}
-              {nwrampReport.github && <LogoCardPdf src="" name="GitHub" link={nwrampReport.github} />}
+              {nwrampReport.bluesky && <LogoCardPdf src="https://cdn1.newsworthy.ai/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} />}
+              {nwrampReport.mastodon && <LogoCardPdf src="https://cdn1.newsworthy.ai/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} />}
+              {nwrampReport.github && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />}
               {nwrampReport.substack && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />}
             </View>
 

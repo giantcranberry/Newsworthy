@@ -326,9 +326,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <div className="md:col-span-2 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white">
           <div className="text-center py-4 flex flex-col justify-center items-center">
             <div className="flex justify-center items-center gap-5 mb-3">
-              <img src="/img/ai/openai.svg" alt="OpenAI" className="h-7 w-auto opacity-85" />
-              <img src="/img/ai/gemini.svg" alt="Google Gemini" className="h-7 w-auto opacity-85" />
-              <img src="/img/ai/google.svg" alt="Google" className="h-7 w-auto opacity-85" />
+              <img src="/img/ai/openai.png" alt="OpenAI" className="h-7 w-auto opacity-85" />
+              <img src="/img/ai/gemini.png" alt="Google Gemini" className="h-7 w-auto opacity-85" />
+              <img src="/img/ai/google.png" alt="Google" className="h-7 w-auto opacity-85" />
             </div>
             <div className="text-[1.4rem] font-bold text-gray-900">AIO / SEO?</div>
             <div className="text-sm uppercase tracking-wider text-gray-500 opacity-80 mt-1">We&apos;ve got you covered.</div>
@@ -541,7 +541,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
           <LogoCard logo="/img/logos/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
           <LogoCard logo="/img/logos/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
-          <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.svg" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
+          <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.png" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
           <LogoCard logo="/img/logos/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${formatCityBuzzDate(release.releasedAt)}/${release.slug}/`} />
           {yahooFinanceUrls.map((url, i) => (
             <LogoCard key={`yahoo-${i}`} logo="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
@@ -549,7 +549,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           {clips.streetinsiderUrl && (
             <LogoCard logo="https://cdn.newsramp.app/logos/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
           )}
-          <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.svg" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
+          <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
         </div>
       </SectionCard>
 
@@ -589,13 +589,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
             )}
             {nwrampReport.bluesky && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/bluesky.svg" name="Bluesky" link={nwrampReport.bluesky} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} />
             )}
             {nwrampReport.mastodon && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/mastodon.svg" name="Mastodon" link={nwrampReport.mastodon} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} />
             )}
             {nwrampReport.github && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />
             )}
             {nwrampReport.substack && (
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
@@ -624,15 +624,15 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               {/* Listen On Badges */}
               <h5 className="font-bold text-gray-900 pt-3 mb-3">Listen On:</h5>
               <div className="flex items-center flex-wrap gap-4">
-                <img src="https://cdn.newsramp.app/badges/apple-badge.svg" width={150} alt="Listen on Apple Podcasts" />
-                <img src="https://cdn.newsramp.app/badges/iheart-badge.svg" width={150} alt="Listen on iHeart Radio" />
-                <img src="https://cdn.newsramp.app/badges/spotify-badge.svg" width={150} alt="Listen on Spotify" />
-                <img src="https://cdn.newsramp.app/badges/pandora-badge.svg" width={150} alt="Listen on Pandora" />
-                <img src="https://cdn.newsramp.app/badges/youtube-badge.svg" width={150} alt="Listen on YouTube" />
-                <img src="https://cdn.newsramp.app/badges/castbox-badge.svg" width={150} alt="Listen on Castbox" />
-                <img src="https://cdn.newsramp.app/badges/android-badge.svg" width={150} alt="Listen on Android" />
-                <img src="https://cdn.newsramp.app/badges/podcast-index-badge.svg" width={150} alt="Listen on PodcastIndex" />
-                <img src="https://cdn.newsramp.app/badges/deezer.svg" width={150} alt="Listen on Deezer" />
+                <img src="https://cdn.newsramp.app/badges/apple-badge.png" width={150} alt="Listen on Apple Podcasts" />
+                <img src="https://cdn.newsramp.app/badges/iheart-badge.png" width={150} alt="Listen on iHeart Radio" />
+                <img src="https://cdn.newsramp.app/badges/spotify-badge.png" width={150} alt="Listen on Spotify" />
+                <img src="https://cdn.newsramp.app/badges/pandora-badge.png" width={150} alt="Listen on Pandora" />
+                <img src="https://cdn.newsramp.app/badges/youtube-badge.png" width={150} alt="Listen on YouTube" />
+                <img src="https://cdn.newsramp.app/badges/castbox-badge.png" width={150} alt="Listen on Castbox" />
+                <img src="https://cdn.newsramp.app/badges/android-badge.png" width={150} alt="Listen on Android" />
+                <img src="https://cdn.newsramp.app/badges/podcast-index-badge.png" width={150} alt="Listen on PodcastIndex" />
+                <img src="https://cdn.newsramp.app/badges/deezer.png" width={150} alt="Listen on Deezer" />
               </div>
             </div>
           )}
