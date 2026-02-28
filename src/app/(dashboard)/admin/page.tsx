@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, FileText, Building2, Briefcase, Settings, Package } from 'lucide-react'
+import { Users, FileText, Building2, Briefcase, Settings, Package, Mail, ListChecks } from 'lucide-react'
 import { PRLookup } from './pr-lookup'
 import { SalesStats } from './sales-stats'
 
@@ -147,6 +147,18 @@ export default async function AdminPage() {
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Package className="h-6 w-6" />
                 Products
+              </Button>
+            </Link>
+            <Link href="/admin/messages">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                <Mail className="h-6 w-6" />
+                Messages
+              </Button>
+            </Link>
+            <Link href="/admin/tasks">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                <ListChecks className="h-6 w-6" />
+                Tasks
               </Button>
             </Link>
             <Link href="/editorial/queue">

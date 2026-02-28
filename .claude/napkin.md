@@ -18,6 +18,9 @@
 - Never drop tables or databases
 
 ## Patterns That Work
+- DnD between columns (Kanban): use `DragOverlay` for visual drag preview, `handleDragOver` for cross-column movement, `handleDragEnd` for persistence. `PointerSensor` with `activationConstraint: { distance: 5 }` prevents accidental drags when clicking cards.
+- Native `<Select>` (`Select` component) for simple dropdowns with `<option>` elements. `SelectRoot` for Radix-based selects.
+- NextAuth v5 (Auth.js) uses `__Secure-` cookie prefix in production (HTTPS). Cookie name must be `__Secure-authjs.session-token` and `salt` in `encode()` must match. In dev it's just `authjs.session-token`.
 - For read-only forms: use `<fieldset disabled={readOnly}>` to natively disable all inputs without touching each one. Hide action buttons (save, delete, add) with `{!readOnly && ...}`. For list components, hide checkboxes and edit/delete action columns.
 - Stripe clients must be lazily initialized (inside a function, not at module scope) to avoid build errors when env vars are missing during static page collection
 - Credit balance checks should use net balance (SUM of all credits including negative deductions) not filter by `prId IS NULL`

@@ -234,4 +234,50 @@ export async function deletePRImage(urlOrFilename: string): Promise<void> {
   }
 }
 
+/**
+ * Upload a task file (any type — no image processing)
+ */
+export async function uploadTaskFile(
+  file: Buffer,
+  taskId: number,
+  originalFilename: string,
+  mimeType: string
+): Promise<{ url: string; filesize: number }> {
+  const sanitized = originalFilename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const key = `task_files/${taskId}-${Date.now()}-${sanitized}`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: file,
+      ContentType: mimeType,
+      ACL: 'public-read',
+    })
+  )
+
+  return {
+    url: `${CDN_BASE_URL}/${key}`,
+    filesize: file.length,
+  }
+}
+
+/**
+ * Delete a task file from S3
+ */
+export async function deleteTaskFile(urlOrFilename: string): Promise<void> {
+  if (!urlOrFilename) return
+
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: extractKey(urlOrFilename),
+      })
+    )
+  } catch (error) {
+    console.error('Error deleting task file:', error)
+  }
+}
+
 export { CDN_BASE_URL, BUCKET }

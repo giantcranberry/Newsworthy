@@ -57,7 +57,7 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: 'Content',
+    label: '',
     items: [
       {
         title: 'Press Releases',
@@ -118,6 +118,18 @@ const navSections: NavSection[] = [
           { title: 'Products', href: '/admin/products', icon: 'fa-light fa-credit-card' },
           { title: 'Categories', href: '/admin/categories', icon: 'fa-light fa-tags' },
         ],
+      },
+      {
+        title: 'Messages',
+        href: '/admin/messages',
+        icon: 'fa-light fa-envelope',
+        roles: ['admin'],
+      },
+      {
+        title: 'Tasks',
+        href: '/admin/tasks',
+        icon: 'fa-light fa-list-check',
+        roles: ['editor', 'admin'],
       },
     ],
   },
