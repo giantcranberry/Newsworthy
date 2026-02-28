@@ -4,54 +4,58 @@ import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendEmail, sendMessageNotificationEmail } from '@/lib/email'
 
-async function verifyRecaptcha(token: string): Promise<boolean> {
+async function verifyRecaptcha(token: string): Promise<{ ok: boolean; reason?: string }> {
   const apiKey = process.env.RECAPTCHA_API_KEY
   if (!apiKey) {
-    console.error('RECAPTCHA_API_KEY not configured')
-    return false
+    return { ok: false, reason: 'RECAPTCHA_API_KEY not configured' }
   }
 
   const projectId = process.env.GOOGLE_CLOUD_PROJECT
   if (!projectId) {
-    console.error('GOOGLE_CLOUD_PROJECT not configured')
-    return false
+    return { ok: false, reason: 'GOOGLE_CLOUD_PROJECT not configured' }
   }
 
-  const res = await fetch(
-    `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event: {
-          token,
-          siteKey: process.env.RECAPTCHA_SITE_KEY!,
-          expectedAction: 'CONTACT_FORM',
-        },
-      }),
-    }
-  )
+  const siteKey = process.env.RECAPTCHA_SITE_KEY
+  if (!siteKey) {
+    return { ok: false, reason: 'RECAPTCHA_SITE_KEY not configured' }
+  }
+
+  const url = `https://recaptchaenterprise.googleapis.com/v1/projects/${projectId}/assessments?key=${apiKey}`
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      event: {
+        token,
+        siteKey,
+        expectedAction: 'CONTACT_FORM',
+      },
+    }),
+  })
 
   if (!res.ok) {
-    console.error('reCAPTCHA assessment failed:', await res.text())
-    return false
+    const body = await res.text()
+    console.error('reCAPTCHA assessment failed:', res.status, body)
+    return { ok: false, reason: `Google API error: ${res.status}` }
   }
 
   const data = await res.json()
 
   if (!data.tokenProperties?.valid) {
-    console.error('reCAPTCHA token invalid:', data.tokenProperties?.invalidReason)
-    return false
+    const invalidReason = data.tokenProperties?.invalidReason || 'unknown'
+    console.error('reCAPTCHA token invalid:', invalidReason)
+    return { ok: false, reason: `Token invalid: ${invalidReason}` }
   }
 
   // Score 0.0 = very likely bot, 1.0 = very likely human. Reject below 0.5.
   const score = data.riskAnalysis?.score ?? 0
   if (score < 0.5) {
     console.warn('reCAPTCHA score too low:', score)
-    return false
+    return { ok: false, reason: `Score too low: ${score}` }
   }
 
-  return true
+  return { ok: true }
 }
 
 export async function POST(request: NextRequest) {
@@ -68,9 +72,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'reCAPTCHA verification required' }, { status: 400 })
   }
 
-  const isHuman = await verifyRecaptcha(recaptchaToken)
-  if (!isHuman) {
-    return NextResponse.json({ error: 'reCAPTCHA verification failed. Please try again.' }, { status: 403 })
+  const captcha = await verifyRecaptcha(recaptchaToken)
+  if (!captcha.ok) {
+    console.error('reCAPTCHA failed:', captcha.reason)
+    return NextResponse.json({ error: `reCAPTCHA verification failed: ${captcha.reason}` }, { status: 403 })
   }
 
   // Parse slug: "{md5Hash}-{prId}"
