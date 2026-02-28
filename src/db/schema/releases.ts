@@ -152,6 +152,13 @@ export const releaseCountries = pgTable('release_countries', {
   countryId: integer('country_id').notNull(),
 })
 
+export const releaseEmails = pgTable('release_emails', {
+  id: serial('id').primaryKey(),
+  md5Hash: varchar('md5_hash', { length: 32 }).notNull().unique(),
+  email: varchar('email', { length: 254 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 export const releasePayments = pgTable('release_payments', {
   releaseId: integer('release_id').notNull().references(() => releases.id),
   paymentId: integer('payment_id').notNull(),
@@ -230,6 +237,20 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
     references: [users.id],
   }),
 }))
+
+export const contactFormLogs = pgTable('contact_form_logs', {
+  id: serial('id').primaryKey(),
+  releaseId: integer('release_id').references(() => releases.id),
+  emailHash: varchar('email_hash', { length: 32 }).notNull(),
+  targetEmail: varchar('target_email', { length: 254 }).notNull(),
+  senderName: varchar('sender_name', { length: 128 }).notNull(),
+  senderEmail: varchar('sender_email', { length: 254 }).notNull(),
+  senderPhone: varchar('sender_phone', { length: 32 }),
+  subject: varchar('subject', { length: 255 }).notNull(),
+  message: text('message').notNull(),
+  ipAddress: varchar('ip_address', { length: 45 }),
+  createdAt: timestamp('created_at').defaultNow(),
+})
 
 export const releaseAnalysisRelations = relations(releaseAnalysis, ({ one }) => ({
   release: one(releases, {
