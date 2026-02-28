@@ -77,7 +77,7 @@ export default async function ContactPage({
               <img
                 src={logoUrl}
                 alt={companyName}
-                className="h-12 mx-auto mb-4 object-contain"
+                className="w-[200px] mx-auto mb-4 object-contain"
               />
             )}
             <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
