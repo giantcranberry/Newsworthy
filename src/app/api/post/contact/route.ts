@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
   const captcha = await verifyRecaptcha(recaptchaToken)
   if (!captcha.ok) {
     console.error('reCAPTCHA failed:', captcha.reason)
-    return NextResponse.json({ error: `reCAPTCHA verification failed: ${captcha.reason}` }, { status: 403 })
+    return NextResponse.json({ error: 'reCAPTCHA verification failed. Please try again.' }, { status: 403 })
   }
 
   // Parse slug: "{md5Hash}-{prId}"
