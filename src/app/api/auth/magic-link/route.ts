@@ -65,6 +65,10 @@ export async function GET(request: NextRequest) {
       .set({ verified: true, verifiedBy: 'email' })
       .where(eq(verify.id, verifyRecord.id))
 
+    // In production (HTTPS), NextAuth uses __Secure- prefix for cookies
+    const isSecure = process.env.NODE_ENV === 'production'
+    const cookieName = isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token'
+
     // Create session token
     const sessionToken = await encode({
       token: {
@@ -76,14 +80,14 @@ export async function GET(request: NextRequest) {
         partnerId: user.partnerId,
       },
       secret: process.env.NEXTAUTH_SECRET!,
-      salt: 'authjs.session-token',
+      salt: cookieName,
     })
 
     // Set cookie and redirect
     const cookieStore = await cookies()
-    cookieStore.set('authjs.session-token', sessionToken, {
+    cookieStore.set(cookieName, sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
