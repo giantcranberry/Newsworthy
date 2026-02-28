@@ -49,7 +49,10 @@ export default async function ContactPage({
   }
 
   const companyName = release.company?.companyName || ''
-  const logoUrl = release.company?.logoUrl || null
+  const rawLogoUrl = release.company?.logoUrl || null
+  const logoUrl = rawLogoUrl?.includes('filestackcontent.com') && rawLogoUrl.includes('RESIZE')
+    ? rawLogoUrl.replace('RESIZE', 'resize=width:200')
+    : rawLogoUrl
   const releaseTitle = release.title || 'Untitled Press Release'
 
   // Build public press release URL
@@ -77,7 +80,7 @@ export default async function ContactPage({
               <img
                 src={logoUrl}
                 alt={companyName}
-                className="w-[200px] mx-auto mb-4 object-contain"
+                className="max-h-16 mx-auto mb-4 object-contain"
               />
             )}
             <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
