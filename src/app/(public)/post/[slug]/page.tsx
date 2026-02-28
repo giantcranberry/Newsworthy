@@ -54,8 +54,9 @@ export default async function ContactPage({
 
   // Build public press release URL
   let releaseUrl: string | null = null
-  if (release.releasedAt && release.slug) {
-    const d = new Date(release.releasedAt)
+  const releaseDate = release.releasedAt || release.releaseAt
+  if (releaseDate && release.slug) {
+    const d = new Date(releaseDate)
     const y = d.getFullYear()
     const m = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
