@@ -69,7 +69,7 @@ export default async function ContactPage({
         src={`https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`}
         strategy="beforeInteractive"
       />
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gray-50 flex justify-center p-4 pt-12">
         <div className="max-w-lg w-full">
           {/* Header with company branding */}
           <div className="text-center mb-6">
