@@ -137,6 +137,12 @@ export function ReviewContent({
   >([]);
   const [isCached, setIsCached] = useState(false);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
+  const [seoScore, setSeoScore] = useState<number | null>(null);
+  const [seoScoreReason, setSeoScoreReason] = useState<string | null>(null);
+  const [aiTrainingScore, setAiTrainingScore] = useState<number | null>(null);
+  const [aiTrainingScoreReason, setAiTrainingScoreReason] = useState<string | null>(null);
+  const [aiGroundingScore, setAiGroundingScore] = useState<number | null>(null);
+  const [aiGroundingScoreReason, setAiGroundingScoreReason] = useState<string | null>(null);
   const [acceptedImprovements, setAcceptedImprovements] = useState<Set<number>>(
     new Set(),
   );
@@ -144,6 +150,9 @@ export function ReviewContent({
     null,
   );
   const [confirmIndex, setConfirmIndex] = useState<number | null>(null);
+  const [currentTitle, setCurrentTitle] = useState(release.title);
+  const [acceptingHeadline, setAcceptingHeadline] = useState<number | null>(null);
+  const [confirmHeadline, setConfirmHeadline] = useState<number | null>(null);
 
   const loadAIAnalysis = async (forceRefresh = false) => {
     setIsLoadingAI(true);
@@ -163,6 +172,12 @@ export function ReviewContent({
           setAiPullquote(cacheData.suggestedPullquote || null);
           setAiAbstract(cacheData.suggestedAbstract || null);
           setAiCopyImprovements(cacheData.copyImprovements || []);
+          setSeoScore(cacheData.seoScore || null);
+          setSeoScoreReason(cacheData.seoScoreReason || null);
+          setAiTrainingScore(cacheData.aiTrainingScore || null);
+          setAiTrainingScoreReason(cacheData.aiTrainingScoreReason || null);
+          setAiGroundingScore(cacheData.aiGroundingScore || null);
+          setAiGroundingScoreReason(cacheData.aiGroundingScoreReason || null);
           setIsCached(true);
           setCachedAt(cacheData.cachedAt);
           setIsLoadingAI(false);
@@ -195,6 +210,12 @@ export function ReviewContent({
       setAiPullquote(data.suggestedPullquote || null);
       setAiAbstract(data.suggestedAbstract || null);
       setAiCopyImprovements(data.copyImprovements || []);
+      setSeoScore(data.seoScore || null);
+      setSeoScoreReason(data.seoScoreReason || null);
+      setAiTrainingScore(data.aiTrainingScore || null);
+      setAiTrainingScoreReason(data.aiTrainingScoreReason || null);
+      setAiGroundingScore(data.aiGroundingScore || null);
+      setAiGroundingScoreReason(data.aiGroundingScoreReason || null);
       setIsCached(data.cached || false);
       setCachedAt(data.cachedAt || null);
     } catch (err) {
@@ -234,6 +255,37 @@ export function ReviewContent({
       alert("Failed to apply change");
     } finally {
       setApplyingImprovement(null);
+    }
+  };
+
+  const handleAcceptHeadline = async (index: number) => {
+    const suggestion = aiSuggestions[index];
+    if (!suggestion) return;
+
+    setAcceptingHeadline(index);
+    setConfirmHeadline(null);
+
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/apply-edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          field: "title",
+          improvedText: suggestion.headline,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to update headline");
+        return;
+      }
+
+      setCurrentTitle(suggestion.headline);
+    } catch {
+      alert("Failed to update headline");
+    } finally {
+      setAcceptingHeadline(null);
     }
   };
 
@@ -516,6 +568,17 @@ export function ReviewContent({
       />
       {children}
 
+      {/* Review warning */}
+      <div className="flex items-start gap-3 p-4 bg-violet-50 border border-violet-200 rounded-lg">
+        <Sparkles className="h-5 w-5 text-violet-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-violet-800">
+          <h2 className="text-lg font-semibold">Please review this entire page before proceeding.</h2>
+          <p className="mt-1 text-violet-700">
+            Scroll down to review the expert optimization analysis, including alternative headlines, copy improvements, and content chunk analysis.
+          </p>
+        </div>
+      </div>
+
       {/* Completion Checklist */}
       <Card>
         <CardHeader>
@@ -524,60 +587,57 @@ export function ReviewContent({
             Completion Checklist
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
-          {checklist.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={idx}
-                className={cn(
-                  "flex items-center justify-between p-3 rounded-lg border",
-                  item.completed
-                    ? "bg-emerald-50 border-emerald-200"
-                    : "bg-red-50 border-red-200",
-                )}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "p-1.5 rounded-full",
-                      item.completed ? "bg-emerald-100" : "bg-red-100",
-                    )}
-                  >
-                    <Icon
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {checklist.map((item, idx) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={idx}
+                  className={cn(
+                    "flex items-center justify-between p-3 rounded-lg border",
+                    item.completed
+                      ? "bg-emerald-50 border-emerald-200"
+                      : "bg-red-50 border-red-200",
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <div
                       className={cn(
-                        "h-4 w-4",
-                        item.completed ? "text-emerald-600" : "text-red-600",
+                        "p-1.5 rounded-full",
+                        item.completed ? "bg-emerald-100" : "bg-red-100",
                       )}
-                    />
+                    >
+                      <Icon
+                        className={cn(
+                          "h-4 w-4",
+                          item.completed ? "text-emerald-600" : "text-red-600",
+                        )}
+                      />
+                    </div>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        item.completed ? "text-emerald-900" : "text-red-900",
+                      )}
+                    >
+                      {item.label}
+                    </span>
                   </div>
-                  <span
-                    className={cn(
-                      "font-medium",
-                      item.completed ? "text-emerald-900" : "text-red-900",
-                    )}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
                   {item.completed ? (
-                    <Check className="h-5 w-5 text-emerald-600" />
+                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                   ) : (
-                    <>
-                      <X className="h-5 w-5 text-red-600" />
-                      <button
-                        onClick={() => router.push(item.editPath!)}
-                        className="text-sm text-cyan-700 hover:underline"
-                      >
-                        Complete
-                      </button>
-                    </>
+                    <button
+                      onClick={() => router.push(item.editPath!)}
+                      className="text-xs text-cyan-700 hover:underline shrink-0"
+                    >
+                      Fix
+                    </button>
                   )}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
@@ -590,7 +650,8 @@ export function ReviewContent({
               Required ({errors.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {errors.map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -616,6 +677,7 @@ export function ReviewContent({
                 </div>
               );
             })}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -629,7 +691,8 @@ export function ReviewContent({
               Recommended ({warnings.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {warnings.map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -657,6 +720,7 @@ export function ReviewContent({
                 </div>
               );
             })}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -670,7 +734,8 @@ export function ReviewContent({
               Suggestions ({infos.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {infos.map((item, idx) => {
               const Icon = item.icon;
               return (
@@ -698,6 +763,7 @@ export function ReviewContent({
                 </div>
               );
             })}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -783,6 +849,93 @@ export function ReviewContent({
 
           {!isLoadingAI && !aiError && hasLoadedAI && (
             <>
+              {/* Score Cards */}
+              {(seoScore !== null || aiTrainingScore !== null || aiGroundingScore !== null) && (
+                <div className="grid grid-cols-3 gap-4">
+                  {seoScore !== null && (
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-semibold text-gray-700">SEO</h4>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          seoScore >= 8 ? "text-emerald-600" :
+                          seoScore >= 5 ? "text-amber-600" : "text-red-600"
+                        )}>
+                          {seoScore}<span className="text-sm font-normal text-gray-400">/10</span>
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full transition-all",
+                            seoScore >= 8 ? "bg-emerald-500" :
+                            seoScore >= 5 ? "bg-amber-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${seoScore * 10}%` }}
+                        />
+                      </div>
+                      {seoScoreReason && (
+                        <p className="text-xs text-gray-500">{seoScoreReason}</p>
+                      )}
+                    </div>
+                  )}
+                  {aiTrainingScore !== null && (
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-semibold text-gray-700">AI Training</h4>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          aiTrainingScore >= 8 ? "text-emerald-600" :
+                          aiTrainingScore >= 5 ? "text-amber-600" : "text-red-600"
+                        )}>
+                          {aiTrainingScore}<span className="text-sm font-normal text-gray-400">/10</span>
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full transition-all",
+                            aiTrainingScore >= 8 ? "bg-emerald-500" :
+                            aiTrainingScore >= 5 ? "bg-amber-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${aiTrainingScore * 10}%` }}
+                        />
+                      </div>
+                      {aiTrainingScoreReason && (
+                        <p className="text-xs text-gray-500">{aiTrainingScoreReason}</p>
+                      )}
+                    </div>
+                  )}
+                  {aiGroundingScore !== null && (
+                    <div className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-semibold text-gray-700">AI Grounding</h4>
+                        <span className={cn(
+                          "text-2xl font-bold",
+                          aiGroundingScore >= 8 ? "text-emerald-600" :
+                          aiGroundingScore >= 5 ? "text-amber-600" : "text-red-600"
+                        )}>
+                          {aiGroundingScore}<span className="text-sm font-normal text-gray-400">/10</span>
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div
+                          className={cn(
+                            "h-2 rounded-full transition-all",
+                            aiGroundingScore >= 8 ? "bg-emerald-500" :
+                            aiGroundingScore >= 5 ? "bg-amber-500" : "bg-red-500"
+                          )}
+                          style={{ width: `${aiGroundingScore * 10}%` }}
+                        />
+                      </div>
+                      {aiGroundingScoreReason && (
+                        <p className="text-xs text-gray-500">{aiGroundingScoreReason}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Alternative Headlines */}
               {aiSuggestions.length > 0 && (
                 <div className="space-y-3">
@@ -795,35 +948,113 @@ export function ReviewContent({
                       Current Headline
                     </p>
                     <p className="font-medium text-gray-900">
-                      {release.title || "Untitled"}
+                      {currentTitle || "Untitled"}
                     </p>
                   </div>
                   <div className="space-y-3">
-                    {aiSuggestions.map((suggestion, index) => (
-                      <div
-                        key={index}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="bg-blue-100 p-2 rounded-full shrink-0">
-                            <Lightbulb className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                                {suggestion.strategy}
-                              </span>
+                    {aiSuggestions.map((suggestion, index) => {
+                      const isCurrentHeadline = suggestion.headline === currentTitle;
+                      const isApplying = acceptingHeadline === index;
+                      return (
+                        <div
+                          key={index}
+                          className={cn(
+                            "p-4 border rounded-lg transition-colors",
+                            isCurrentHeadline
+                              ? "border-green-300 bg-green-50/50"
+                              : "border-gray-200 hover:border-blue-300",
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full shrink-0">
+                              <Lightbulb className="h-4 w-4 text-blue-600" />
                             </div>
-                            <p className="font-medium text-gray-900">
-                              {suggestion.headline}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              {suggestion.explanation}
-                            </p>
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                  {suggestion.strategy}
+                                </span>
+                              </div>
+                              <p className="font-medium text-gray-900">
+                                {suggestion.headline}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {suggestion.explanation}
+                              </p>
+                              <div className="flex items-center justify-end">
+                                {isCurrentHeadline ? (
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    Active
+                                  </span>
+                                ) : (
+                                  <Dialog
+                                    open={confirmHeadline === index}
+                                    onOpenChange={(open) =>
+                                      setConfirmHeadline(open ? index : null)
+                                    }
+                                  >
+                                    <DialogTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isApplying}
+                                      >
+                                        {isApplying ? (
+                                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                          <Check className="h-3.5 w-3.5" />
+                                        )}
+                                        {isApplying ? "Applying..." : "Use this headline"}
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Change Headline</DialogTitle>
+                                        <DialogDescription>
+                                          This will replace your current headline with the suggested one.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <div className="space-y-3 py-2">
+                                        <div>
+                                          <p className="text-xs font-medium text-red-600 mb-1">
+                                            Current:
+                                          </p>
+                                          <p className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-300">
+                                            {currentTitle}
+                                          </p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs font-medium text-emerald-600 mb-1">
+                                            New:
+                                          </p>
+                                          <p className="text-sm bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
+                                            {suggestion.headline}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <DialogFooter>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => setConfirmHeadline(null)}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          onClick={() => handleAcceptHeadline(index)}
+                                        >
+                                          Accept & Apply
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

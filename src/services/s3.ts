@@ -127,63 +127,16 @@ export async function uploadPRImage(
   let height: number
 
   if (type === 'banner') {
-    // Social banner: exactly 1200x630
+    // Social banner: client-side react-easy-crop handles all cropping
+    // and fit-with-background processing before upload.
+    // Server just normalizes to JPEG and ensures 1200x630.
     const targetWidth = 1200
     const targetHeight = 630
 
-    if (metadata.width && metadata.height) {
-      const aspectRatio = metadata.width / metadata.height
-      const targetAspectRatio = targetWidth / targetHeight
-
-      if (Math.abs(aspectRatio - targetAspectRatio) < 0.1) {
-        // Close enough to target aspect ratio, just resize
-        processedImage = await image
-          .resize(targetWidth, targetHeight, { fit: 'cover' })
-          .jpeg({ quality: 85 })
-          .toBuffer()
-      } else if (aspectRatio > targetAspectRatio) {
-        // Image is wider - fit to height and add background
-        const { dominant } = await image.stats()
-        const bgColor = {
-          r: Math.round(dominant.r),
-          g: Math.round(dominant.g),
-          b: Math.round(dominant.b),
-        }
-
-        const resizedHeight = targetHeight
-        const resizedWidth = Math.round(resizedHeight * aspectRatio)
-
-        processedImage = await sharp({
-          create: {
-            width: targetWidth,
-            height: targetHeight,
-            channels: 3,
-            background: bgColor,
-          },
-        })
-          .composite([
-            {
-              input: await image
-                .resize(resizedWidth, resizedHeight, { fit: 'inside' })
-                .toBuffer(),
-              gravity: 'center',
-            },
-          ])
-          .jpeg({ quality: 85 })
-          .toBuffer()
-      } else {
-        // Image is taller - crop to fit
-        processedImage = await image
-          .resize(targetWidth, targetHeight, { fit: 'cover', position: 'center' })
-          .jpeg({ quality: 85 })
-          .toBuffer()
-      }
-    } else {
-      processedImage = await image
-        .resize(targetWidth, targetHeight, { fit: 'cover' })
-        .jpeg({ quality: 85 })
-        .toBuffer()
-    }
+    processedImage = await sharp(file)
+      .resize(targetWidth, targetHeight, { fit: 'fill' })
+      .jpeg({ quality: 85 })
+      .toBuffer()
 
     width = targetWidth
     height = targetHeight

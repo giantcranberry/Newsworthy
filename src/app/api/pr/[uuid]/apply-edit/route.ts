@@ -26,11 +26,11 @@ export async function POST(
   const { uuid } = await params;
 
   try {
-    const { originalText, improvedText } = await request.json();
+    const { originalText, improvedText, field } = await request.json();
 
-    if (!originalText || !improvedText) {
+    if (!improvedText) {
       return NextResponse.json(
-        { error: "originalText and improvedText are required" },
+        { error: "improvedText is required" },
         { status: 400 },
       );
     }
@@ -52,6 +52,23 @@ export async function POST(
       return NextResponse.json(
         { error: `Cannot edit release with status "${release.status}"` },
         { status: 403 },
+      );
+    }
+
+    // Handle title update
+    if (field === "title") {
+      await db
+        .update(releases)
+        .set({ title: improvedText })
+        .where(eq(releases.id, release.id));
+
+      return NextResponse.json({ success: true });
+    }
+
+    if (!originalText) {
+      return NextResponse.json(
+        { error: "originalText is required" },
+        { status: 400 },
       );
     }
 

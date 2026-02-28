@@ -62,6 +62,10 @@ export async function POST(
           suggestedPullquote: analysis.suggestedPullquote || null,
           suggestedAbstract: analysis.suggestedAbstract || null,
           copyImprovements: analysis.copyImprovements || [],
+          seoScore: analysis.seoScore || null,
+          seoScoreReason: analysis.seoScoreReason || null,
+          aiGroundingScore: analysis.aiGroundingScore || null,
+          aiGroundingScoreReason: analysis.aiGroundingScoreReason || null,
         })
       }
     }
@@ -138,6 +142,18 @@ For each suggestion:
 - Provide the improved/rewritten version
 - Briefly explain why this change improves the copy (clarity, impact, SEO, readability, etc.)
 
+## PART 6: OVERALL SCORES
+
+Rate the press release on three dimensions, each scored 1-10:
+
+1. **SEO Score**: How well-optimized is this press release for search engine discovery? Consider: keyword usage, headline effectiveness, meta-description quality (abstract), content structure, internal linking opportunities, readability, and search intent alignment.
+
+2. **AI Training Score**: How useful is this press release as training data for AI models? Consider: factual density, clear attribution, structured data (dates, names, numbers), quotability, standalone comprehensibility, and absence of ambiguity or marketing fluff.
+
+3. **AI Grounding Score**: How well-suited is this press release for RAG chunking and retrieval? Consider: semantic boundary clarity, information density per chunk, brand/entity mention placement, standalone value of content segments, and whether chunks would be useful context for AI-generated answers.
+
+For each score, provide a 1-2 sentence justification.
+
 Format your response as JSON with this exact structure:
 {
   "suggestions": [
@@ -163,7 +179,13 @@ Format your response as JSON with this exact structure:
       "improvedText": "The rewritten/improved version",
       "reason": "Brief explanation of why this change improves the copy"
     }
-  ]
+  ],
+  "seoScore": 7,
+  "seoScoreReason": "Brief justification for the SEO score",
+  "aiTrainingScore": 6,
+  "aiTrainingScoreReason": "Brief justification for the AI Training score",
+  "aiGroundingScore": 7,
+  "aiGroundingScoreReason": "Brief justification for the AI Grounding score"
 }`
 
     const completion = await openai.chat.completions.create({
@@ -196,6 +218,12 @@ Format your response as JSON with this exact structure:
       suggestedPullquote: result.suggestedPullquote || null,
       suggestedAbstract: result.suggestedAbstract || null,
       copyImprovements: result.copyImprovements || [],
+      seoScore: result.seoScore || null,
+      seoScoreReason: result.seoScoreReason || null,
+      aiTrainingScore: result.aiTrainingScore || null,
+      aiTrainingScoreReason: result.aiTrainingScoreReason || null,
+      aiGroundingScore: result.aiGroundingScore || null,
+      aiGroundingScoreReason: result.aiGroundingScoreReason || null,
       analyzedTitle: title,
       analyzedAt: new Date().toISOString(),
     }
@@ -224,6 +252,12 @@ Format your response as JSON with this exact structure:
       suggestedPullquote: result.suggestedPullquote || null,
       suggestedAbstract: result.suggestedAbstract || null,
       copyImprovements: result.copyImprovements || [],
+      seoScore: result.seoScore || null,
+      seoScoreReason: result.seoScoreReason || null,
+      aiTrainingScore: result.aiTrainingScore || null,
+      aiTrainingScoreReason: result.aiTrainingScoreReason || null,
+      aiGroundingScore: result.aiGroundingScore || null,
+      aiGroundingScoreReason: result.aiGroundingScoreReason || null,
     })
   } catch (error) {
     console.error('[API] Error generating AI suggestions:', error)
@@ -284,6 +318,12 @@ export async function GET(
       suggestedPullquote: analysis.suggestedPullquote || null,
       suggestedAbstract: analysis.suggestedAbstract || null,
       copyImprovements: analysis.copyImprovements || [],
+      seoScore: analysis.seoScore || null,
+      seoScoreReason: analysis.seoScoreReason || null,
+      aiTrainingScore: analysis.aiTrainingScore || null,
+      aiTrainingScoreReason: analysis.aiTrainingScoreReason || null,
+      aiGroundingScore: analysis.aiGroundingScore || null,
+      aiGroundingScoreReason: analysis.aiGroundingScoreReason || null,
     })
   } catch (error) {
     console.error('[API] Error fetching cached analysis:', error)

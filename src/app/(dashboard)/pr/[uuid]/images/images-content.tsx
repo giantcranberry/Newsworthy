@@ -191,12 +191,12 @@ function SortableImageCard({
   return (
     <div ref={setNodeRef} style={style} className="relative">
       <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-        <div className="relative aspect-video bg-gray-50">
+        <div className="relative aspect-video bg-gray-100">
           <Image
             src={resizedUrl(ri.image.url)}
             alt={ri.image.title || 'Release image'}
             fill
-            className="object-cover"
+            className="object-contain"
           />
 
           {isFirst && (
@@ -1170,6 +1170,7 @@ export function ImagesContent({
               </div>
 
               {displayBanner && (
+                <div className="max-w-xl">
                 <div className="relative rounded-lg overflow-hidden border bg-gray-50" style={{ aspectRatio: '1200/630' }}>
                   <Image
                     src={displayBanner}
@@ -1191,6 +1192,7 @@ export function ImagesContent({
                       <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
                     </div>
                   )}
+                </div>
                 </div>
               )}
 

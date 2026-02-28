@@ -17,15 +17,31 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
+import Cropper, { Area } from 'react-easy-crop'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Slider } from '@/components/ui/slider'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
+  Check,
+  Crop as CropIcon,
+  ImageIcon,
   Loader2,
+  Maximize,
+  Pencil,
   Save,
+  Star,
   Upload,
   X,
-  Pencil,
-  Star,
-  ImageIcon,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react'
 
 interface ImageRecord {
@@ -99,6 +115,138 @@ interface EditorialEditFormProps {
   banner: BannerRecord | null
 }
 
+type FitMode = 'crop' | 'fit'
+
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area,
+  targetWidth: number,
+  targetHeight: number
+): Promise<{ file: File; preview: string }> {
+  const image = new window.Image()
+  image.src = imageSrc
+  await new Promise((resolve) => { image.onload = resolve })
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+    0, 0, targetWidth, targetHeight
+  )
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) { reject(new Error('Canvas is empty')); return }
+        const file = new File([blob], 'banner.jpg', { type: 'image/jpeg' })
+        const preview = canvas.toDataURL('image/jpeg', 0.9)
+        resolve({ file, preview })
+      },
+      'image/jpeg',
+      0.9
+    )
+  })
+}
+
+async function getFittedImg(
+  imageSrc: string,
+  targetWidth: number,
+  targetHeight: number
+): Promise<{ file: File; preview: string }> {
+  const image = new window.Image()
+  image.src = imageSrc
+  await new Promise((resolve) => { image.onload = resolve })
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  const scale = Math.min(targetWidth / image.width, targetHeight / image.height)
+  const scaledWidth = image.width * scale
+  const scaledHeight = image.height * scale
+  const x = (targetWidth - scaledWidth) / 2
+  const y = (targetHeight - scaledHeight) / 2
+
+  // Blurred background
+  ctx.filter = 'blur(30px)'
+  const bgScale = Math.max(targetWidth / image.width, targetHeight / image.height) * 1.1
+  const bgWidth = image.width * bgScale
+  const bgHeight = image.height * bgScale
+  const bgX = (targetWidth - bgWidth) / 2
+  const bgY = (targetHeight - bgHeight) / 2
+  ctx.drawImage(image, bgX, bgY, bgWidth, bgHeight)
+
+  // Dark overlay
+  ctx.filter = 'none'
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.2)'
+  ctx.fillRect(0, 0, targetWidth, targetHeight)
+
+  // Sharp centered image
+  ctx.drawImage(image, x, y, scaledWidth, scaledHeight)
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) { reject(new Error('Canvas is empty')); return }
+        const file = new File([blob], 'banner.jpg', { type: 'image/jpeg' })
+        const preview = canvas.toDataURL('image/jpeg', 0.9)
+        resolve({ file, preview })
+      },
+      'image/jpeg',
+      0.9
+    )
+  })
+}
+
+async function getCroppedImgNatural(
+  imageSrc: string,
+  pixelCrop: Area,
+  maxWidth: number,
+  maxHeight: number
+): Promise<{ file: File; preview: string }> {
+  const image = new window.Image()
+  image.src = imageSrc
+  await new Promise((resolve) => { image.onload = resolve })
+
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+
+  let outW = pixelCrop.width
+  let outH = pixelCrop.height
+  if (outW > maxWidth || outH > maxHeight) {
+    const scale = Math.min(maxWidth / outW, maxHeight / outH)
+    outW = Math.round(outW * scale)
+    outH = Math.round(outH * scale)
+  }
+
+  canvas.width = outW
+  canvas.height = outH
+
+  ctx.drawImage(
+    image,
+    pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height,
+    0, 0, outW, outH
+  )
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) { reject(new Error('Canvas is empty')); return }
+        const file = new File([blob], 'image.jpg', { type: 'image/jpeg' })
+        const preview = canvas.toDataURL('image/jpeg', 0.9)
+        resolve({ file, preview })
+      },
+      'image/jpeg',
+      0.9
+    )
+  })
+}
+
 function resizedUrl(url: string) {
   if (url.includes('RESIZE')) {
     return url.replace('RESIZE', 'resize=width:300')
@@ -160,6 +308,16 @@ export function EditorialEditForm({
   const bannerFileInputRef = useRef<HTMLInputElement>(null)
   const [isUploadingBanner, setIsUploadingBanner] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+  const [cropperImageSrc, setCropperImageSrc] = useState<string | null>(null)
+  const [showCropper, setShowCropper] = useState(false)
+  const [cropState, setCropState] = useState({ x: 0, y: 0 })
+  const [cropZoom, setCropZoom] = useState(1)
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [fitMode, setFitMode] = useState<FitMode>('fit')
+  const [fitPreview, setFitPreview] = useState<string | null>(null)
+  const [cropProcessing, setCropProcessing] = useState(false)
   const [releaseImages, setReleaseImages] = useState<ReleaseImageRecord[]>(initialImages)
   const [imageError, setImageError] = useState<string | null>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -175,8 +333,18 @@ export function EditorialEditForm({
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editCredits, setEditCredits] = useState('')
+  // News image cropper state
+  const [newsCropperSrc, setNewsCropperSrc] = useState<string | null>(null)
+  const [showNewsCropper, setShowNewsCropper] = useState(false)
+  const [newsCrop, setNewsCrop] = useState({ x: 0, y: 0 })
+  const [newsZoom, setNewsZoom] = useState(1)
+  const [newsCroppedArea, setNewsCroppedArea] = useState<Area | null>(null)
+  const [newsCropProcessing, setNewsCropProcessing] = useState(false)
+  const [newsRawFile, setNewsRawFile] = useState<File | null>(null)
+  // Replace image cropper state
+  const [replaceImageId, setReplaceImageId] = useState<number | null>(null)
 
-  const processImageFile = useCallback((file: File) => {
+  const processImageFile = useCallback((file: File, forReplaceId?: number) => {
     if (file.size > 5 * 1024 * 1024) {
       setImageError('Image must be under 5MB')
       return
@@ -186,10 +354,17 @@ export function EditorialEditForm({
       return
     }
     setImageError(null)
-    setPendingFile(file)
-    setPendingPreview(URL.createObjectURL(file))
-    setNewTitle('')
-    setNewCredits('')
+    setNewsRawFile(file)
+    setReplaceImageId(forReplaceId ?? null)
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setNewsCropperSrc(reader.result as string)
+      setShowNewsCropper(true)
+      setNewsCrop({ x: 0, y: 0 })
+      setNewsZoom(1)
+    }
+    reader.readAsDataURL(file)
   }, [])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -259,6 +434,130 @@ export function EditorialEditForm({
     }
   }
 
+  const handleNewsCropApply = async () => {
+    if (!newsCropperSrc || !newsCroppedArea) return
+    setNewsCropProcessing(true)
+
+    try {
+      const { file, preview } = await getCroppedImgNatural(newsCropperSrc, newsCroppedArea, 1200, 800)
+      setShowNewsCropper(false)
+      setNewsCropperSrc(null)
+
+      if (replaceImageId) {
+        // Replace flow: upload immediately with existing metadata
+        setReplacingId(replaceImageId)
+        setImageError(null)
+
+        try {
+          await fetch(`/api/pr/${release.uuid}/image?imageId=${replaceImageId}`, { method: 'DELETE' })
+          const existingImage = releaseImages.find((ri) => ri.imageId === replaceImageId)
+          const altText = existingImage?.image.title || 'Release image'
+          const credits = existingImage?.image.imgCredits || ''
+
+          const formData = new FormData()
+          formData.append('image', file)
+          formData.append('title', altText)
+          if (credits) formData.append('imgCredits', credits)
+
+          const response = await fetch(`/api/pr/${release.uuid}/image`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const data = await response.json()
+            throw new Error(data.error || 'Failed to upload replacement image')
+          }
+
+          const data = await response.json()
+          setReleaseImages((prev) => {
+            const filtered = prev.filter((ri) => ri.imageId !== replaceImageId)
+            return [...filtered, data.releaseImage]
+          })
+        } catch (err) {
+          setImageError(err instanceof Error ? err.message : 'Failed to replace image')
+        } finally {
+          setReplacingId(null)
+          setReplaceImageId(null)
+        }
+      } else {
+        // New image flow: show metadata prompt
+        setPendingFile(file)
+        setPendingPreview(preview)
+        setNewTitle('')
+        setNewCredits('')
+      }
+    } catch (error) {
+      console.error('Error cropping image:', error)
+    } finally {
+      setNewsCropProcessing(false)
+    }
+  }
+
+  const handleNewsCropApplyOriginal = () => {
+    // Use original without cropping — go straight to metadata or replace
+    if (!newsRawFile) return
+    setShowNewsCropper(false)
+    setNewsCropperSrc(null)
+
+    if (replaceImageId) {
+      // Replace flow with original file
+      const file = newsRawFile
+      setReplacingId(replaceImageId)
+      setImageError(null)
+
+      ;(async () => {
+        try {
+          await fetch(`/api/pr/${release.uuid}/image?imageId=${replaceImageId}`, { method: 'DELETE' })
+          const existingImage = releaseImages.find((ri) => ri.imageId === replaceImageId)
+          const altText = existingImage?.image.title || 'Release image'
+          const credits = existingImage?.image.imgCredits || ''
+
+          const formData = new FormData()
+          formData.append('image', file)
+          formData.append('title', altText)
+          if (credits) formData.append('imgCredits', credits)
+
+          const response = await fetch(`/api/pr/${release.uuid}/image`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) {
+            const data = await response.json()
+            throw new Error(data.error || 'Failed to upload replacement image')
+          }
+
+          const data = await response.json()
+          setReleaseImages((prev) => {
+            const filtered = prev.filter((ri) => ri.imageId !== replaceImageId)
+            return [...filtered, data.releaseImage]
+          })
+        } catch (err) {
+          setImageError(err instanceof Error ? err.message : 'Failed to replace image')
+        } finally {
+          setReplacingId(null)
+          setReplaceImageId(null)
+        }
+      })()
+    } else {
+      // New image flow with original file
+      setPendingFile(newsRawFile)
+      setPendingPreview(URL.createObjectURL(newsRawFile))
+      setNewTitle('')
+      setNewCredits('')
+    }
+  }
+
+  const handleNewsCropCancel = () => {
+    setShowNewsCropper(false)
+    setNewsCropperSrc(null)
+    setNewsRawFile(null)
+    setReplaceImageId(null)
+    setNewsCrop({ x: 0, y: 0 })
+    setNewsZoom(1)
+  }
+
   const handleCancelUpload = () => {
     setPendingFile(null)
     if (pendingPreview) URL.revokeObjectURL(pendingPreview)
@@ -290,54 +589,8 @@ export function EditorialEditForm({
     }
   }
 
-  const handleReplaceImage = async (oldImageId: number, file: File) => {
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError('Image must be under 5MB')
-      return
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setImageError('Only JPEG, PNG, and WebP images are supported')
-      return
-    }
-
-    setReplacingId(oldImageId)
-    setImageError(null)
-
-    try {
-      // Delete old image
-      await fetch(`/api/pr/${release.uuid}/image?imageId=${oldImageId}`, { method: 'DELETE' })
-
-      // Get alt text from existing image
-      const existingImage = releaseImages.find((ri) => ri.imageId === oldImageId)
-      const altText = existingImage?.image.title || 'Release image'
-      const credits = existingImage?.image.imgCredits || ''
-
-      // Upload new image
-      const formData = new FormData()
-      formData.append('image', file)
-      formData.append('title', altText)
-      if (credits) formData.append('imgCredits', credits)
-
-      const response = await fetch(`/api/pr/${release.uuid}/image`, {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to upload replacement image')
-      }
-
-      const data = await response.json()
-      setReleaseImages((prev) => {
-        const filtered = prev.filter((ri) => ri.imageId !== oldImageId)
-        return [...filtered, data.releaseImage]
-      })
-    } catch (err) {
-      setImageError(err instanceof Error ? err.message : 'Failed to replace image')
-    } finally {
-      setReplacingId(null)
-    }
+  const handleReplaceImage = (oldImageId: number, file: File) => {
+    processImageFile(file, oldImageId)
   }
 
   const handleStartEdit = (ri: ReleaseImageRecord) => {
@@ -374,7 +627,7 @@ export function EditorialEditForm({
     }
   }
 
-  const handleReplaceBanner = async (file: File) => {
+  const handleBannerFileSelect = useCallback((file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       setBannerError('Banner must be under 10MB')
       return
@@ -384,12 +637,90 @@ export function EditorialEditForm({
       return
     }
 
+    setBannerError(null)
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string
+
+      const img = new window.Image()
+      img.onload = () => {
+        if (img.width === 1200 && img.height === 630) {
+          setBannerFile(file)
+          setBannerPreview(dataUrl)
+        } else {
+          setCropperImageSrc(dataUrl)
+          setShowCropper(true)
+          setFitMode('fit')
+          setCropState({ x: 0, y: 0 })
+          setCropZoom(1)
+          setFitPreview(null)
+          // Generate fit preview immediately
+          getFittedImg(dataUrl, 1200, 630)
+            .then(({ preview }) => setFitPreview(preview))
+            .catch(console.error)
+        }
+      }
+      img.src = dataUrl
+    }
+    reader.readAsDataURL(file)
+  }, [])
+
+  const handleCropperApply = async () => {
+    if (!cropperImageSrc) return
+    setCropProcessing(true)
+
+    try {
+      if (fitMode === 'fit') {
+        const { file, preview } = await getFittedImg(cropperImageSrc, 1200, 630)
+        setBannerFile(file)
+        setBannerPreview(preview)
+      } else {
+        if (!croppedAreaPixels) return
+        const { file, preview } = await getCroppedImg(cropperImageSrc, croppedAreaPixels, 1200, 630)
+        setBannerFile(file)
+        setBannerPreview(preview)
+      }
+      setShowCropper(false)
+      setCropperImageSrc(null)
+    } catch (error) {
+      console.error('Error processing image:', error)
+    } finally {
+      setCropProcessing(false)
+    }
+  }
+
+  const handleCropperCancel = () => {
+    setShowCropper(false)
+    setCropperImageSrc(null)
+    setCropState({ x: 0, y: 0 })
+    setCropZoom(1)
+    setFitMode('fit')
+    setFitPreview(null)
+  }
+
+  const handleRecrop = () => {
+    if (bannerPreview) {
+      setCropperImageSrc(bannerPreview)
+      setShowCropper(true)
+      setFitMode('fit')
+      setCropState({ x: 0, y: 0 })
+      setCropZoom(1)
+      getFittedImg(bannerPreview, 1200, 630)
+        .then(({ preview }) => setFitPreview(preview))
+        .catch(console.error)
+    }
+  }
+
+  const handleSaveBanner = async () => {
+    if (!bannerFile) return
+
     setIsUploadingBanner(true)
     setBannerError(null)
 
     try {
       const fd = new FormData()
-      fd.append('banner', file)
+      fd.append('banner', bannerFile)
       fd.append('title', currentBanner?.title || release.title || '')
       if (currentBanner?.imgCredits) fd.append('imgCredits', currentBanner.imgCredits)
 
@@ -405,10 +736,22 @@ export function EditorialEditForm({
 
       const data = await response.json()
       setCurrentBanner(data.banner)
+      setBannerFile(null)
+      setBannerPreview(null)
     } catch (err) {
       setBannerError(err instanceof Error ? err.message : 'Failed to replace banner')
     } finally {
       setIsUploadingBanner(false)
+    }
+  }
+
+  // Regenerate fit preview when switching to fit mode
+  const handleFitModeChange = (mode: string) => {
+    setFitMode(mode as FitMode)
+    if (mode === 'fit' && cropperImageSrc) {
+      getFittedImg(cropperImageSrc, 1200, 630)
+        .then(({ preview }) => setFitPreview(preview))
+        .catch(console.error)
     }
   }
 
@@ -621,59 +964,206 @@ export function EditorialEditForm({
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0]
-                if (file) handleReplaceBanner(file)
+                if (file) handleBannerFileSelect(file)
                 e.target.value = ''
               }}
             />
 
-            {currentBanner ? (
+            <Dialog open={showCropper} onOpenChange={(isOpen) => !isOpen && handleCropperCancel()}>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Adjust Banner Image</DialogTitle>
+                  <DialogDescription>
+                    Choose how to fit your image to the recommended 1200x630 dimensions.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <Tabs value={fitMode} onValueChange={handleFitModeChange}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="crop" className="flex items-center gap-2">
+                      <CropIcon className="h-4 w-4" />
+                      Crop to Fill
+                    </TabsTrigger>
+                    <TabsTrigger value="fit" className="flex items-center gap-2">
+                      <Maximize className="h-4 w-4" />
+                      Fit with Background
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {fitMode === 'crop' ? (
+                  <>
+                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+                      {cropperImageSrc && (
+                        <Cropper
+                          image={cropperImageSrc}
+                          crop={cropState}
+                          zoom={cropZoom}
+                          aspect={1200 / 630}
+                          onCropChange={setCropState}
+                          onZoomChange={setCropZoom}
+                          onCropComplete={(_area, areaPixels) => setCroppedAreaPixels(areaPixels)}
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4">
+                        <ZoomOut className="h-4 w-4 text-gray-400" />
+                        <Slider
+                          value={[cropZoom]}
+                          min={1}
+                          max={3}
+                          step={0.1}
+                          onValueChange={(value) => setCropZoom(value[0])}
+                          className="flex-1"
+                        />
+                        <ZoomIn className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-500 text-center">
+                        Use the slider to zoom, drag the image to reposition
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                      {fitPreview ? (
+                        <img
+                          src={fitPreview}
+                          alt="Fit preview"
+                          className="max-w-full max-h-full object-contain"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2 text-gray-400">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating preview...
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500 text-center">
+                      Your image will be centered with a blurred background fill
+                    </p>
+                  </div>
+                )}
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={handleCropperCancel} disabled={cropProcessing}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCropperApply}
+                    disabled={cropProcessing || (fitMode === 'fit' && !fitPreview)}
+                  >
+                    {cropProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Apply
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Show banner preview (new upload or existing) */}
+            {(bannerPreview || currentBanner) && (
               <div className="space-y-3">
                 <div className="max-w-[50%]">
                   <div className="relative rounded-lg overflow-hidden border bg-gray-50" style={{ aspectRatio: '1200/630' }}>
                     <Image
-                      src={resizedUrl(currentBanner.url)}
-                    alt={currentBanner.title || 'Social banner'}
-                    fill
-                    className="object-cover"
-                  />
-                  {isUploadingBanner && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                      <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
-                    </div>
-                  )}
+                      src={bannerPreview ? bannerPreview : resizedUrl(currentBanner!.url)}
+                      alt={currentBanner?.title || 'Social banner'}
+                      fill
+                      className="object-cover"
+                      unoptimized={!!bannerPreview}
+                    />
+                    {bannerPreview && (
+                      <div className="absolute top-2 right-2">
+                        <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
+                          <Check className="h-3 w-3" />
+                          New
+                        </span>
+                      </div>
+                    )}
+                    {isUploadingBanner && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+                      </div>
+                    )}
                   </div>
                 </div>
-                {currentBanner.title && (
+                {currentBanner?.title && !bannerPreview && (
                   <p className="text-xs text-gray-500">Alt: {currentBanner.title}</p>
                 )}
-                {currentBanner.imgCredits && (
+                {currentBanner?.imgCredits && !bannerPreview && (
                   <p className="text-xs text-gray-500">Credits: {currentBanner.imgCredits}</p>
                 )}
                 <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => bannerFileInputRef.current?.click()}
-                    disabled={isUploadingBanner}
-                  >
-                    <Upload className="h-4 w-4" />
-                    Replace Banner
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                    onClick={handleRemoveBanner}
-                    disabled={isUploadingBanner}
-                  >
-                    <X className="h-4 w-4" />
-                    Remove
-                  </Button>
+                  {bannerPreview && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        className="bg-cyan-800 hover:bg-cyan-900"
+                        onClick={handleSaveBanner}
+                        disabled={isUploadingBanner}
+                      >
+                        {isUploadingBanner ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4" />
+                        )}
+                        Save Banner
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRecrop}
+                        disabled={isUploadingBanner}
+                      >
+                        <CropIcon className="h-4 w-4" />
+                        Re-crop
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setBannerFile(null); setBannerPreview(null) }}
+                        disabled={isUploadingBanner}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+                  {!bannerPreview && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => bannerFileInputRef.current?.click()}
+                        disabled={isUploadingBanner}
+                      >
+                        <Upload className="h-4 w-4" />
+                        Replace Banner
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={handleRemoveBanner}
+                        disabled={isUploadingBanner}
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
-            ) : (
+            )}
+
+            {/* Upload dropzone — show when no banner and no preview */}
+            {!bannerPreview && !currentBanner && (
               <div
                 onClick={() => bannerFileInputRef.current?.click()}
                 className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50"
@@ -705,6 +1195,62 @@ export function EditorialEditForm({
               </div>
             )}
 
+            {/* News image cropper dialog */}
+            <Dialog open={showNewsCropper} onOpenChange={(isOpen) => !isOpen && handleNewsCropCancel()}>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>Crop Image</DialogTitle>
+                  <DialogDescription>
+                    Optionally adjust crop or apply as-is.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+                  {newsCropperSrc && (
+                    <Cropper
+                      image={newsCropperSrc}
+                      crop={newsCrop}
+                      zoom={newsZoom}
+                      onCropChange={setNewsCrop}
+                      onZoomChange={setNewsZoom}
+                      onCropComplete={(_area, areaPixels) => setNewsCroppedArea(areaPixels)}
+                    />
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <ZoomOut className="h-4 w-4 text-gray-400" />
+                    <Slider
+                      value={[newsZoom]}
+                      min={1}
+                      max={3}
+                      step={0.1}
+                      onValueChange={(value) => setNewsZoom(value[0])}
+                      className="flex-1"
+                    />
+                    <ZoomIn className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500 text-center">
+                    Use the slider to zoom, drag the image to reposition
+                  </p>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={handleNewsCropCancel} disabled={newsCropProcessing}>
+                    Cancel
+                  </Button>
+                  <Button variant="outline" onClick={handleNewsCropApplyOriginal} disabled={newsCropProcessing}>
+                    Use Original
+                  </Button>
+                  <Button onClick={handleNewsCropApply} disabled={newsCropProcessing || !newsCroppedArea}>
+                    {newsCropProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Apply Crop
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -719,12 +1265,12 @@ export function EditorialEditForm({
                 {releaseImages.map((ri, index) => (
                   <div key={ri.imageId} className="relative">
                     <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-                      <div className="relative aspect-video bg-gray-50">
+                      <div className="relative aspect-video bg-gray-100">
                         <Image
                           src={resizedUrl(ri.image.url)}
                           alt={ri.image.title || 'Release image'}
                           fill
-                          className="object-cover"
+                          className="object-contain"
                         />
 
                         {index === 0 && (
