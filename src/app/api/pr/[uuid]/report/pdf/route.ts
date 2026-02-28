@@ -8,6 +8,41 @@ import { getReportData } from '@/services/report'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPdfDocument } from './report-pdf'
 import React from 'react'
+import { readFileSync, existsSync } from 'fs'
+import { join, extname } from 'path'
+
+// Pre-load local static images from public/img/clip_report as base64 data URLs
+// so react-pdf doesn't need to HTTP-fetch from localhost
+function buildStaticImageMap(): Record<string, string> {
+  const baseDir = join(process.cwd(), 'public', 'img', 'clip_report')
+  const map: Record<string, string> = {}
+
+  const files = [
+    'google.png', 'microsoft.jpg', 'citybuzz.png', 'streetinsider.png',
+    'linkedin.png', 'reddit.png', 'substack.png', 'newsramp.png',
+    'advos.png', 'hcmtechnologyreport.jpg', 'talentculture.png',
+    'hrtechalliances.png', 'hrotoday.png', 'hrtechfeed.png',
+    'axiswire.png', 'cannabisradio.png', 'weedweek.png',
+  ]
+
+  for (const file of files) {
+    const fullPath = join(baseDir, file)
+    if (existsSync(fullPath)) {
+      const buf = readFileSync(fullPath)
+      const ext = extname(file).toLowerCase().replace('.', '')
+      const mime = ext === 'jpg' ? 'jpeg' : ext
+      map[file] = `data:image/${mime};base64,${buf.toString('base64')}`
+    }
+  }
+
+  return map
+}
+
+let cachedImageMap: Record<string, string> | null = null
+function getStaticImageMap(): Record<string, string> {
+  if (!cachedImageMap) cachedImageMap = buildStaticImageMap()
+  return cachedImageMap
+}
 
 export async function GET(
   request: NextRequest,
@@ -29,7 +64,8 @@ export async function GET(
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  if (release.userId !== userId) {
+  const isAdminOrImpersonating = (session?.user as any)?.isAdmin || (session?.user as any)?.isImpersonating
+  if (!isAdminOrImpersonating && release.userId !== userId) {
     const companyIds = await getUserCompanyIds(userId)
     if (!companyIds.includes(release.companyId)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -42,9 +78,9 @@ export async function GET(
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
+    const imageMap = getStaticImageMap()
     const buffer = await renderToBuffer(
-      React.createElement(ReportPdfDocument, { data, baseUrl }) as any
+      React.createElement(ReportPdfDocument, { data, imageMap }) as any
     )
 
     const slug = release.slug || uuid

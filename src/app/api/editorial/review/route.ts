@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, releaseNotes, releaseEnhanced } from '@/db/schema'
+import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { sendEmail } from '@/lib/email'
+import { createSystemMessage } from '@/lib/messages'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -66,6 +68,79 @@ export async function POST(request: NextRequest) {
           fromName: editorName,
           createdAt: now,
         })
+      }
+
+      // Notify the release owner
+      try {
+        const [release] = await db
+          .select({
+            userId: releases.userId,
+            title: releases.title,
+            releaseAt: releases.releaseAt,
+            timezone: releases.timezone,
+          })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+
+        if (release) {
+          const headline = release.title || 'Untitled'
+          let dateStr = 'soon'
+          if (release.releaseAt) {
+            const tz = release.timezone || 'America/New_York'
+            dateStr = new Intl.DateTimeFormat('en-US', {
+              dateStyle: 'full',
+              timeStyle: 'short',
+              timeZone: tz,
+            }).format(new Date(release.releaseAt)) + ` (${tz.replace(/_/g, ' ')})`
+          }
+
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+
+          // Inbox message
+          await createSystemMessage(
+            release.userId,
+            `Release Approved: ${headline}`,
+            `<p>Your press release <strong>${headline}</strong> has been approved and will be distributed on ${dateStr}.</p><p><a href="${appUrl}/pr">View Your Releases</a></p>`
+          )
+
+          // Email
+          const [owner] = await db
+            .select({ email: users.email })
+            .from(users)
+            .where(eq(users.id, release.userId))
+
+          const [profile] = await db
+            .select({ firstName: userProfiles.firstName })
+            .from(userProfiles)
+            .where(eq(userProfiles.userId, release.userId))
+
+          if (owner) {
+            const recipientName = profile?.firstName || owner.email
+            await sendEmail({
+              to: owner.email,
+              subject: `Your press release has been approved`,
+              html: `
+                <!DOCTYPE html>
+                <html>
+                  <head><meta charset="utf-8"><title>Release Approved</title></head>
+                  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+                      <h1 style="color: #1a1a1a; margin-bottom: 20px;">Release Approved</h1>
+                      <p>Hi ${recipientName},</p>
+                      <p>Your press release <strong>${headline}</strong> has been approved and will be distributed on ${dateStr}.</p>
+                      <a href="${appUrl}/pr" style="display: inline-block; background-color: #155e75; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">View Your Releases</a>
+                      <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                      <p style="font-size: 12px; color: #999;">This email was sent from Newsworthy.</p>
+                    </div>
+                  </body>
+                </html>
+              `,
+              text: `Hi ${recipientName},\n\nYour press release "${headline}" has been approved and will be distributed on ${dateStr}.\n\nView your releases: ${appUrl}/pr`,
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Failed to send approval notification:', err)
       }
 
       return NextResponse.json({ success: true, action: 'approved' })

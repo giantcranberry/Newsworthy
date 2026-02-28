@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { FinalizeContent } from './finalize-content'
 import { ApprovalSection } from './approval-section'
+import { processReleaseEmails } from '@/lib/release-emails'
 
 async function getReleaseWithDetails(uuid: string, userId: number) {
   const release = await db.query.releases.findFirst({
@@ -69,6 +70,11 @@ export default async function FinalizePage({
 
   if (!release) {
     notFound()
+  }
+
+  // Extract emails from body, store hashes, and replace with newsworthy.email links
+  if (release.body) {
+    await processReleaseEmails(release.id, release.body)
   }
 
   const options = release.id ? await getReleaseOptions(release.id) : null

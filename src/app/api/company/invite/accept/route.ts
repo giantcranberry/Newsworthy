@@ -3,6 +3,7 @@ import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { companyInvites, companyMembers, company } from '@/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
+import { createSystemMessage } from '@/lib/messages'
 
 // POST: Accept an invitation
 export async function POST(request: NextRequest) {
@@ -80,8 +81,24 @@ export async function POST(request: NextRequest) {
 
   const co = await db.query.company.findFirst({
     where: eq(company.id, invite.companyId),
-    columns: { uuid: true },
+    columns: { uuid: true, companyName: true },
   })
+
+  // Notify the inviter that the invite was accepted
+  if (invite.invitedBy) {
+    try {
+      const accepteeName = userEmail || 'A user'
+      const companyName = co?.companyName || 'your team'
+      const roleLabel = invite.role || 'member'
+      await createSystemMessage(
+        invite.invitedBy,
+        'Team invite accepted',
+        `${accepteeName} has joined ${companyName} as ${roleLabel}.`
+      )
+    } catch (err) {
+      console.error('Failed to create system message for invite acceptance:', err)
+    }
+  }
 
   return NextResponse.json({ success: true, companyUuid: co?.uuid })
 }

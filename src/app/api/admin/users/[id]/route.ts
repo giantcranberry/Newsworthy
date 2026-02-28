@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { users, userProfiles, userSubscription, staffNotes, brandCredits } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { createSystemMessage } from '@/lib/messages'
 
 export async function PATCH(
   request: NextRequest,
@@ -108,6 +109,18 @@ export async function PATCH(
         productType: creditType || 'pr',
         notes: creditNotes?.substring(0, 48) || null,
       })
+
+      // Send system message notification
+      try {
+        const typeLabel = creditType === 'pr' ? 'PR' : creditType || 'PR'
+        await createSystemMessage(
+          userId,
+          'Credits added to your account',
+          `${prCreditsNum} ${typeLabel} credits have been added to your account.`
+        )
+      } catch (err) {
+        console.error('Failed to create system message for credits:', err)
+      }
     }
 
     if (staffNote && staffNote.trim().length >= 10) {

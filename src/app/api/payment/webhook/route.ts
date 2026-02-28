@@ -6,6 +6,7 @@ import { eq, and, isNull } from 'drizzle-orm'
 import type { PaymentLinkProduct } from '@/db/schema/payment'
 import { getStripe, getWebhookSecret } from '@/lib/stripe'
 import type Stripe from 'stripe'
+import { createSystemMessage } from '@/lib/messages'
 
 export async function POST(request: NextRequest) {
   const stripe = await getStripe()
@@ -111,6 +112,28 @@ export async function POST(request: NextRequest) {
           receiptUrl,
           createdAt: new Date(),
         })
+
+        // Send system message with receipt info
+        try {
+          const productNames: string[] = []
+          for (const item of claimed) {
+            if (!item.productId) continue
+            const prod = await db.query.products.findFirst({
+              where: eq(products.id, item.productId),
+              columns: { displayName: true, shortName: true },
+            })
+            if (prod) productNames.push(prod.displayName || prod.shortName || 'Product')
+          }
+          const formattedAmount = `$${(paymentIntent.amount / 100).toFixed(2)}`
+          const productList = productNames.length > 0 ? productNames.join(', ') : 'your purchase'
+          await createSystemMessage(
+            userId,
+            'Payment received',
+            `Your payment of ${formattedAmount} has been processed. ${productList}.`
+          )
+        } catch (err) {
+          console.error('[Webhook] Failed to create system message for payment:', err)
+        }
 
         console.log(`[Webhook] Fulfilled ${claimed.length} cart items for user ${userId}`)
         break

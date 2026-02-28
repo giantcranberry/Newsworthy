@@ -400,6 +400,50 @@ export async function sendTeamInviteEmail({
   })
 }
 
+export async function sendMessageNotificationEmail({
+  to,
+  recipientName,
+  isReply,
+}: {
+  to: string
+  recipientName: string
+  isReply?: boolean
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const inboxLink = `${appUrl}/inbox`
+  const heading = isReply ? 'You have a new reply' : 'You have a new message'
+  const description = isReply
+    ? 'Someone replied to your message on Newsworthy. Log in to view it.'
+    : 'You have a new message waiting for you on Newsworthy. Log in to view it.'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${heading} - Newsworthy</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+          <h1 style="color: #1a1a1a; margin-bottom: 20px;">${heading}</h1>
+          <p>Hi ${recipientName},</p>
+          <p style="margin-bottom: 20px;">${description}</p>
+          <a href="${inboxLink}" style="display: inline-block; background-color: #155e75; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">View Your Inbox</a>
+          <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #999;">This email was sent from Newsworthy. If you believe this was sent in error, you can safely ignore it.</p>
+        </div>
+      </body>
+    </html>
+  `
+
+  await sendEmail({
+    to,
+    subject: `${heading} on Newsworthy`,
+    html,
+    text: `Hi ${recipientName},\n\n${description}\n\nView your inbox: ${inboxLink}`,
+  })
+}
+
 export async function sendWelcomeEmail(email: string, name: string) {
   const html = `
     <!DOCTYPE html>

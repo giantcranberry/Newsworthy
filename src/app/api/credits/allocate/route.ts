@@ -3,6 +3,7 @@ import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { brandCredits, company, companyMembers } from '@/db/schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
+import { createSystemMessage } from '@/lib/messages'
 
 export async function POST(request: NextRequest) {
   const session = await getEffectiveSession()
@@ -106,6 +107,18 @@ export async function POST(request: NextRequest) {
         createdAt: new Date(),
       },
     ])
+
+    // Send system message notification
+    try {
+      const typeLabel = creditType === 'pr' ? 'PR' : creditType
+      await createSystemMessage(
+        userId,
+        'Credits allocated',
+        `${amount} ${typeLabel} credits allocated to ${companyName}.`
+      )
+    } catch (err) {
+      console.error('Failed to create system message for credit allocation:', err)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

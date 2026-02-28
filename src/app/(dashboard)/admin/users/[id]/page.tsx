@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { UserDetailForm } from './user-detail-form'
 import { ImpersonateButton } from './impersonate-button'
+import { SendMessageDialog } from './send-message-dialog'
 
 async function getUserData(userId: number) {
   const user = await db.query.users.findFirst({
@@ -140,9 +141,18 @@ export default async function UserDetailPage({
             </p>
           </div>
         </div>
-        {isAdmin && !user.isAdmin && (
-          <ImpersonateButton userId={user.id} userEmail={user.email} />
-        )}
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <SendMessageDialog
+              userId={user.id}
+              userEmail={user.email}
+              userName={user.profile?.firstName ? `${user.profile.firstName} ${user.profile.lastName || ''}`.trim() : undefined}
+            />
+          )}
+          {isAdmin && !user.isAdmin && (
+            <ImpersonateButton userId={user.id} userEmail={user.email} />
+          )}
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

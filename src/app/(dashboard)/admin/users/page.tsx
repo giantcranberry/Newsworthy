@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Shield, ShieldCheck, User } from 'lucide-react'
 import { UserSearchForm } from './search-form'
 import { VerifyButton } from './verify-button'
+import { SendMessageDialog } from './[id]/send-message-dialog'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
@@ -190,11 +191,19 @@ export default async function AdminUsersPage({
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/admin/users/${user.id}`}>
-                        <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
-                          View
-                        </button>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        {isAdmin && (
+                          <SendMessageDialog
+                            userId={user.id}
+                            userEmail={user.email}
+                          />
+                        )}
+                        <Link href={`/admin/users/${user.id}`}>
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                            View
+                          </button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}
