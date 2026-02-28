@@ -15,29 +15,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Look up token without any filters to diagnose issues
-    const tokenRecord = await db.query.verify.findFirst({
-      where: eq(verify.uuid, token),
+    // Find token that is unused and less than 15 minutes old
+    const verifyRecord = await db.query.verify.findFirst({
+      where: and(
+        eq(verify.uuid, token),
+        eq(verify.verified, false),
+        gt(verify.createdAt, new Date(Date.now() - 15 * 60 * 1000))
+      ),
     })
 
-    console.log('[Magic Link] Token debug:', {
-      token,
-      found: !!tokenRecord,
-      verified: tokenRecord?.verified,
-      createdAt: tokenRecord?.createdAt,
-      ageMs: tokenRecord?.createdAt ? Date.now() - new Date(tokenRecord.createdAt).getTime() : 'no record',
-      now: new Date().toISOString(),
-    })
-
-    if (!tokenRecord) {
-      return NextResponse.redirect(new URL('/login?error=invalid_link', request.url))
-    }
-
-    if (tokenRecord.verified) {
+    if (!verifyRecord) {
       return NextResponse.redirect(new URL('/login?error=expired_link', request.url))
     }
-
-    const verifyRecord = tokenRecord
 
     // Find or create user
     let user = await db.query.users.findFirst({
