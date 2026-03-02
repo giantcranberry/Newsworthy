@@ -118,19 +118,13 @@ function TaskCard({
 function SortableTaskCard({
   task,
   onClick,
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee,
-}: {
-  task: KanbanTask
-  onClick: () => void
-  showAssignee: boolean
-=======
   tourId,
 }: {
   task: KanbanTask
   onClick: () => void
+  showAssignee: boolean
   tourId?: string
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }) {
   const {
     attributes,
@@ -166,21 +160,15 @@ function DroppableStageColumn({
   tasks,
   onTaskClick,
   isOver,
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee,
-=======
   isFirst,
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }: {
   stage: Stage
   tasks: KanbanTask[]
   onTaskClick: (task: KanbanTask) => void
   isOver: boolean
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee: boolean
-=======
   isFirst?: boolean
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }) {
   const { setNodeRef } = useDroppable({
     id: `stage-${stage.id}`,
@@ -214,11 +202,8 @@ function DroppableStageColumn({
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
               showAssignee={showAssignee}
-=======
               tourId={isFirst && index === 0 ? "tasks-first-card" : undefined}
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
             />
           ))}
         </SortableContext>
@@ -462,8 +447,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
   return (
     <div className="space-y-4">
       {/* Top bar */}
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
-      <div className="flex items-center gap-3 flex-wrap">
+      <div data-tour="tasks-topbar" className="flex items-center gap-3 flex-wrap">
         <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
         <div className="ml-auto flex items-center gap-2">
           {/* Brand Filter */}
@@ -484,55 +468,29 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
 
           {/* User Filter */}
           {config.showUserFilter && (
-            <Select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-44"
-            >
-              <option value="all">All Tasks</option>
-              {currentUserId && <option value={currentUserId}>My Tasks</option>}
-              {users
-                .filter((u) => String(u.id) !== String(currentUserId))
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.firstName || u.lastName
-                      ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
-                      : u.email}
-                  </option>
-                ))}
-            </Select>
+            <span data-tour="tasks-filter">
+              <Select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-44"
+              >
+                <option value="all">All Tasks</option>
+                {currentUserId && <option value={currentUserId}>My Tasks</option>}
+                {users
+                  .filter((u) => String(u.id) !== String(currentUserId))
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.firstName || u.lastName
+                        ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
+                        : u.email}
+                    </option>
+                  ))}
+              </Select>
+            </span>
           )}
 
           {config.canManageStages && (
-            <Button variant="outline" onClick={() => setShowStageManager(true)}>
-=======
-      <div data-tour="tasks-topbar" className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-gray-900">Task Board</h1>
-        <div className="ml-auto flex items-center gap-2">
-          {/* Filter */}
-          <span data-tour="tasks-filter">
-            <Select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-44"
-            >
-              <option value="all">All Tasks</option>
-              {currentUserId && <option value={currentUserId}>My Tasks</option>}
-              {users
-                .filter((u) => String(u.id) !== String(currentUserId))
-                .map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.firstName || u.lastName
-                      ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
-                      : u.email}
-                  </option>
-                ))}
-            </Select>
-          </span>
-
-          {isAdmin && (
             <Button data-tour="tasks-stages" variant="outline" onClick={() => setShowStageManager(true)}>
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
               <Settings className="h-4 w-4 mr-2" />
               Stages
             </Button>
@@ -562,11 +520,8 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
                 tasks={getTasksForStage(stage.id)}
                 onTaskClick={handleEditTask}
                 isOver={overStageId === stage.id}
-<<<<<<< HEAD:src/components/kanban/task-board.tsx
                 showAssignee={config.showAssignee}
-=======
                 isFirst={index === 0}
->>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
               />
             ))}
           </div>
