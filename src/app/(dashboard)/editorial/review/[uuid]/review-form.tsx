@@ -61,7 +61,7 @@ export function ReviewForm({
   const [notes, setNotes] = useState('')
   const [score, setScore] = useState(release.score?.toString() || '4')
   const [distribution, setDistribution] = useState(release.distribution || 'standard')
-  const [feature, setFeature] = useState(release.isFeatured || false)
+  const [feature, setFeature] = useState(release.isFeatured ?? true)
 
   const handleCheckout = async () => {
     try {
