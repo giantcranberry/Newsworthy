@@ -13,6 +13,70 @@ function buildTagAwarePattern(plainText: string): RegExp {
   return new RegExp(pattern, "i");
 }
 
+// Fuzzy match: find the best substring match using word overlap
+function fuzzyFindInBody(body: string, searchText: string): { start: number; end: number } | null {
+  const stripped = body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  const searchWords = searchText.toLowerCase().replace(/\s+/g, " ").trim().split(" ");
+  if (searchWords.length < 3) return null;
+
+  // Sliding window over stripped text sentences
+  const sentences = stripped.split(/(?<=[.!?])\s+/);
+  let bestScore = 0;
+  let bestMatch = "";
+
+  // Try matching against individual sentences and sentence pairs
+  for (let i = 0; i < sentences.length; i++) {
+    for (let span = 1; span <= 3 && i + span <= sentences.length; span++) {
+      const candidate = sentences.slice(i, i + span).join(" ");
+      const candidateWords = candidate.toLowerCase().split(/\s+/);
+      const overlap = searchWords.filter(w => candidateWords.includes(w)).length;
+      const score = overlap / Math.max(searchWords.length, candidateWords.length);
+      if (score > bestScore && score >= 0.6) {
+        bestScore = score;
+        bestMatch = candidate;
+      }
+    }
+  }
+
+  if (!bestMatch) return null;
+
+  // Find position of bestMatch in the stripped text
+  const idx = stripped.indexOf(bestMatch);
+  if (idx === -1) return null;
+
+  // Map stripped position back to HTML position
+  let htmlPos = 0;
+  let textPos = 0;
+  let matchStart = -1;
+  let matchEnd = -1;
+
+  while (htmlPos < body.length && textPos <= idx + bestMatch.length) {
+    if (body[htmlPos] === "<") {
+      const tagEnd = body.indexOf(">", htmlPos);
+      if (tagEnd === -1) break;
+      htmlPos = tagEnd + 1;
+      continue;
+    }
+
+    if (textPos === idx && matchStart === -1) {
+      matchStart = htmlPos;
+    }
+
+    textPos++;
+    htmlPos++;
+
+    if (textPos === idx + bestMatch.length) {
+      matchEnd = htmlPos;
+      break;
+    }
+  }
+
+  if (matchStart !== -1 && matchEnd !== -1) {
+    return { start: matchStart, end: matchEnd };
+  }
+  return null;
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> },
@@ -141,10 +205,19 @@ export async function POST(
         updatedBody =
           html.slice(0, matchStart) + improvedText + html.slice(matchEnd);
       } else {
-        return NextResponse.json(
-          { error: "Original text not found in release body" },
-          { status: 400 },
-        );
+        // Last resort: fuzzy match
+        const fuzzyResult = fuzzyFindInBody(release.body, originalText);
+        if (fuzzyResult) {
+          updatedBody =
+            release.body.slice(0, fuzzyResult.start) +
+            improvedText +
+            release.body.slice(fuzzyResult.end);
+        } else {
+          return NextResponse.json(
+            { error: "Original text not found in release body" },
+            { status: 400 },
+          );
+        }
       }
     }
 

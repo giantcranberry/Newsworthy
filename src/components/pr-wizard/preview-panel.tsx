@@ -19,6 +19,7 @@ export interface PreviewPanelProps {
   }
   banner?: { url: string; caption?: string | null } | null
   images?: { id: number; url: string; title?: string | null; caption?: string | null; imgCredits?: string | null }[]
+  faqs?: { question: string; answer: string }[]
   compact?: boolean
   deviceMode?: 'desktop' | 'tablet' | 'mobile'
 }
@@ -52,6 +53,7 @@ export function PreviewPanel({
   company,
   banner,
   images,
+  faqs,
   compact = false,
   deviceMode = 'desktop',
 }: PreviewPanelProps) {
@@ -155,6 +157,39 @@ export function PreviewPanel({
             dangerouslySetInnerHTML={{ __html: release?.body || '<p>No content provided.</p>' }}
           />
         </div>
+
+        {/* FAQ section */}
+        {faqs && faqs.length > 0 && (
+          <div className={cn(
+            'border-t border-gray-200',
+            compact ? 'pt-3 mt-3' : 'pt-5 mt-5'
+          )}>
+            <h3 className={cn(
+              'font-semibold text-gray-900 mb-3',
+              compact ? 'text-sm' : 'text-lg'
+            )}>
+              Frequently Asked Questions
+            </h3>
+            <dl className="space-y-3">
+              {faqs.map((faq, i) => (
+                <div key={i}>
+                  <dt className={cn(
+                    'font-medium text-gray-900',
+                    compact ? 'text-xs' : 'text-sm'
+                  )}>
+                    {faq.question}
+                  </dt>
+                  <dd className={cn(
+                    'text-gray-600 mt-1',
+                    compact ? 'text-xs' : 'text-sm'
+                  )}>
+                    {faq.answer}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )}
 
         {/* Company info section */}
         <div className={cn(compact ? 'my-3' : 'my-5')}>

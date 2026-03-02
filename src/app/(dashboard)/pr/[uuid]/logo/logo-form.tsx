@@ -86,7 +86,7 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
 
   const handleSubmit = async () => {
     if (!pendingFile) {
-      router.push(`/pr/${releaseUuid}/image`)
+      router.push(`/pr/${releaseUuid}/faq`)
       return
     }
 
@@ -111,7 +111,7 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
       setLogoUrl(data.logoUrl)
       setPendingFile(null)
       setPendingPreview(null)
-      router.push(`/pr/${releaseUuid}/image`)
+      router.push(`/pr/${releaseUuid}/faq`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

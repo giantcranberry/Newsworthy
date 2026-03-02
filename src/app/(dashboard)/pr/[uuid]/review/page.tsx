@@ -128,7 +128,7 @@ export default async function ReviewPage({
     >
       <WizardNav
         releaseUuid={uuid}
-        currentStep={6}
+        currentStep={7}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}

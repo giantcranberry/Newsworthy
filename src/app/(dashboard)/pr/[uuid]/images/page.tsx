@@ -94,7 +94,7 @@ export default async function ImagesPage({
     >
       <WizardNav
         releaseUuid={uuid}
-        currentStep={3}
+        currentStep={4}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}

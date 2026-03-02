@@ -1,7 +1,7 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
 import { company, category, region, brandCredits, companyMembers } from "@/db/schema";
-import { eq, and, isNull, sql, inArray } from "drizzle-orm";
+import { eq, and, isNull, sql, inArray, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { PRForm } from "../pr-form";
 import { NoCreditsBanner } from "./no-credits-banner";
@@ -10,7 +10,7 @@ import { getUserCompanyIds } from "@/lib/team-auth";
 async function getUserCompanies(userId: number) {
   // Get companies owned by the user
   const owned = await db.query.company.findMany({
-    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false), or(eq(company.isArchived, false), isNull(company.isArchived))),
     with: {
       contacts: true,
     },
@@ -35,6 +35,7 @@ async function getUserCompanies(userId: number) {
       where: and(
         inArray(company.id, sharedIds),
         eq(company.isDeleted, false),
+        or(eq(company.isArchived, false), isNull(company.isArchived)),
       ),
       with: {
         contacts: true,
@@ -47,7 +48,12 @@ async function getUserCompanies(userId: number) {
   const hasBrandAdmin = memberships.some((m) => m.role === 'brand_admin');
   const canPurchase = hasOwned || hasBrandAdmin;
 
-  return { companies: [...owned, ...shared], canPurchase };
+  const all = [...owned, ...shared].map((c) => ({
+    ...c,
+    contacts: c.contacts.filter((ct) => !ct.isDeleted && !ct.isArchived),
+  }));
+
+  return { companies: all, canPurchase };
 }
 
 async function getCategories() {
@@ -195,6 +201,7 @@ export default async function CreatePRPage({
       topCategories={topCategories}
       regions={regions}
       creditsByCompany={creditMap}
+      userCredits={creditBalance.userCredits}
       pageTitle="Create Press Release"
       pageDescription="Start a new press release for distribution"
       showPreview

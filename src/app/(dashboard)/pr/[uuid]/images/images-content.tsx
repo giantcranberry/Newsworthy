@@ -812,7 +812,7 @@ export function ImagesContent({
         title="Images"
         description="Add news images and social media banner for your press release"
         releaseUuid={releaseUuid}
-        currentStep={3}
+        currentStep={4}
         isLoading={isLoadingBanner}
         onSubmit={handleContinue}
         canProceed={!!displayBanner}

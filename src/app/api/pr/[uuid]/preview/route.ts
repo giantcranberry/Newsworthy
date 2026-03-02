@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases, company, banners, images, releaseImages } from "@/db/schema";
+import { releases, company, banners, images, releaseImages, releaseFaqs } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -55,6 +57,16 @@ export async function GET(
     .where(eq(releaseImages.releaseId, releaseData.id))
     .orderBy(asc(releaseImages.sortOrder));
 
+  // Fetch FAQs for this release
+  const faqs = await db
+    .select({
+      question: releaseFaqs.question,
+      answer: releaseFaqs.answer,
+    })
+    .from(releaseFaqs)
+    .where(eq(releaseFaqs.prId, releaseData.id))
+    .orderBy(asc(releaseFaqs.sortOrder));
+
   return NextResponse.json({
     title: releaseData.title,
     abstract: releaseData.abstract,
@@ -66,5 +78,6 @@ export async function GET(
     logoUrl: releaseData.logoUrl,
     bannerUrl: releaseData.bannerUrl,
     images: allImages,
+    faqs,
   });
 }

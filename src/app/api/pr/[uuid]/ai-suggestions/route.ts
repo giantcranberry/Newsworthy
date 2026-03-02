@@ -138,7 +138,7 @@ Analyze the body content and provide 3-5 specific copy improvements. Look for:
 - Sentences that bury the lead
 
 For each suggestion:
-- Quote the EXACT original text (the specific sentence or phrase)
+- The "originalText" MUST be copied VERBATIM character-for-character from the press release content above. Do NOT paraphrase, reword, or summarize. Copy-paste the exact sentence or phrase. If you cannot find the exact text, skip that suggestion.
 - Provide the improved/rewritten version
 - Briefly explain why this change improves the copy (clarity, impact, SEO, readability, etc.)
 

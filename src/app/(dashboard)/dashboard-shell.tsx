@@ -1,38 +1,63 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { ImpersonationBanner } from '@/components/layout/impersonation-banner'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { cn } from '@/lib/utils'
 
+const COLLAPSE_KEY = 'sidebar-collapsed'
+
 export function DashboardShell({ children, canCreateContent = true }: { children: React.ReactNode; canCreateContent?: boolean }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
+
+  // Restore collapsed preference from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem(COLLAPSE_KEY)
+    if (stored === 'true') setCollapsed(true)
+  }, [])
+
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem(COLLAPSE_KEY, String(next))
+      return next
+    })
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile sidebar via Sheet */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-60 p-0" showCloseButton={false}>
+          <VisuallyHidden>
+            <SheetTitle>Navigation</SheetTitle>
+          </VisuallyHidden>
+          <Sidebar canCreateContent={canCreateContent} />
+        </SheetContent>
+      </Sheet>
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 w-60 transform transition-transform duration-200 lg:relative lg:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
-      >
-        <Sidebar canCreateContent={canCreateContent} />
+      {/* Desktop sidebar */}
+      <aside className={cn(
+        'hidden lg:block flex-shrink-0 transition-all duration-200',
+        collapsed ? 'w-16' : 'w-60'
+      )}>
+        <div className="sticky top-0 h-screen">
+          <Sidebar
+            canCreateContent={canCreateContent}
+            collapsed={collapsed}
+            onToggleCollapse={toggleCollapse}
+          />
+        </div>
       </aside>
 
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <ImpersonationBanner />
-        <Header onMenuClick={() => setSidebarOpen(true)} canCreateContent={canCreateContent} />
+        <Header onMenuClick={() => setMobileOpen(true)} canCreateContent={canCreateContent} />
         <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6">{children}</div>
         </main>

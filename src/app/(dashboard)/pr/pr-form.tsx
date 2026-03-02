@@ -158,6 +158,7 @@ interface PRFormProps {
   pageDescription?: string;
   children?: React.ReactNode;
   creditsByCompany?: Record<number, number>;
+  userCredits?: number;
   showPreview?: boolean;
   initialData?: {
     id?: number;
@@ -201,6 +202,7 @@ export function PRForm({
   pageDescription,
   children,
   creditsByCompany = {},
+  userCredits = 0,
   showPreview = false,
   initialData,
 }: PRFormProps) {
@@ -550,7 +552,7 @@ export function PRForm({
     body: initialData?.body || "",
     pullquote: initialData?.pullquote || "",
     location: initialData?.location || "",
-    primaryContactId: initialData?.primaryContactId || null,
+    primaryContactId: initialData?.primaryContactId || (selectedCompany?.contacts.length === 1 ? selectedCompany.contacts[0].id : null),
     releaseDate: initialData?.releaseAt
       ? new Date(initialData.releaseAt).toISOString().slice(0, 10)
       : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
@@ -695,8 +697,9 @@ export function PRForm({
         toast.success("Release saved successfully");
 
         if (action === "submit") {
-          // Continue to the next wizard step (logo)
-          router.push(`/pr/${data.uuid}/logo`);
+          // Continue to the next wizard step — skip logo if one already exists
+          const nextStep = selectedCompany?.logoUrl ? `/pr/${data.uuid}/faq` : `/pr/${data.uuid}/logo`;
+          router.push(nextStep);
         } else {
           // Save as draft - stay on edit page
           router.push(`/pr/${data.uuid}`);
@@ -1108,23 +1111,32 @@ export function PRForm({
       <div className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Brand & Contact</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Select your brand and press contact</p>
+          <p className="text-sm text-gray-600 mt-0.5">Select the Brand and Primary Media Contact for this Release</p>
         </div>
           <div>
-            <Label htmlFor="company">Select Brand *</Label>
+            <Label htmlFor="company">Select Brand <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
             <Select
               id="company"
               value={selectedCompanyId.toString()}
-              onChange={(e) => setSelectedCompanyId(parseInt(e.target.value))}
+              onChange={(e) => {
+                const newId = parseInt(e.target.value);
+                setSelectedCompanyId(newId);
+                const newCompany = companies.find((c) => c.id === newId);
+                const contacts = newCompany?.contacts || [];
+                setFormData((prev) => ({
+                  ...prev,
+                  primaryContactId: contacts.length === 1 ? contacts[0].id : null,
+                }));
+              }}
               className="mt-1"
               disabled={readOnly}
             >
               {companies.map((company) => {
                 const credits = creditsByCompany[company.id];
-                const hasCredits = credits === undefined || credits > 0;
+                const hasCredits = credits === undefined || credits > 0 || userCredits > 0;
                 return (
                   <option key={company.id} value={company.id} disabled={!hasCredits}>
-                    {company.companyName}{credits !== undefined ? ` (${credits} credit${credits !== 1 ? 's' : ''})` : ''}
+                    {company.companyName}{credits !== undefined ? ` (${credits > 0 ? `${credits} credit${credits !== 1 ? 's' : ''}` : userCredits > 0 ? `Will use 1 of your ${userCredits} account credits.` : 'No credits'})` : ''}
                   </option>
                 );
               })}
@@ -1134,7 +1146,7 @@ export function PRForm({
           {selectedCompany && (
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="contact">Primary Contact *</Label>
+                <Label htmlFor="contact">Primary Contact <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
                 <button
                   type="button"
                   onClick={() => setShowContactModal(true)}
@@ -1177,7 +1189,7 @@ export function PRForm({
         </div>
           <div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="title">Headline *</Label>
+              <Label htmlFor="title">Headline <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
               <HelpTip title="Headline Tips" content={HELP_TEXT.headline} />
             </div>
             <Textarea
@@ -1204,7 +1216,7 @@ export function PRForm({
 
           <div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="abstract">Summary / Abstract *</Label>
+              <Label htmlFor="abstract">Summary / Abstract <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
               <HelpTip title="Abstract Tips" content={HELP_TEXT.abstract} />
             </div>
             <Textarea
@@ -1244,7 +1256,7 @@ export function PRForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="location">Location (Dateline) *</Label>
+                <Label htmlFor="location">Location (Dateline) <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
                 <HelpTip title="Location Tips" content={HELP_TEXT.location} />
               </div>
               <Input
@@ -1259,7 +1271,7 @@ export function PRForm({
               />
             </div>
             <div>
-              <Label htmlFor="timezone">Timezone *</Label>
+              <Label htmlFor="timezone">Timezone <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
               <Select
                 id="timezone"
                 value={formData.timezone}
@@ -1280,7 +1292,7 @@ export function PRForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="releaseDate">Release Date *</Label>
+                <Label htmlFor="releaseDate">Release Date <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
                 <HelpTip
                   title="Release Date Tips"
                   content={HELP_TEXT.releaseDate}
@@ -1310,7 +1322,7 @@ export function PRForm({
               />
             </div>
             <div>
-              <Label htmlFor="releaseTime">Release Time *</Label>
+              <Label htmlFor="releaseTime">Release Time <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
               <Input
                 id="releaseTime"
                 type="time"
@@ -1348,7 +1360,7 @@ export function PRForm({
           {topCategories.length > 0 && (
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="topcat">Primary Category *</Label>
+                <Label htmlFor="topcat">Primary Category <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
                 <HelpTip title="Category Tips" content={HELP_TEXT.categories} />
               </div>
               <Select
@@ -1393,7 +1405,7 @@ export function PRForm({
       <div className="p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-medium text-gray-900">Content *</h3>
+            <h3 className="font-medium text-gray-900">Content <span className="text-xs font-normal text-gray-500">(Required)</span></h3>
             <p className="text-sm text-gray-600 mt-0.5">Write or paste your press release body</p>
           </div>
           <HelpTip title="Content Tips" content={HELP_TEXT.body} />
@@ -1787,7 +1799,7 @@ export function PRForm({
                 </div>
               )}
               <div>
-                <Label htmlFor="contactName">Contact Name *</Label>
+                <Label htmlFor="contactName">Contact Name <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
                 <Input
                   id="contactName"
                   value={contactForm.name}

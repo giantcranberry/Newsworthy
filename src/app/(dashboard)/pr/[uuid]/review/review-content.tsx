@@ -251,6 +251,7 @@ export function ReviewContent({
 
       // Mark as accepted (server already updated the body)
       setAcceptedImprovements((prev) => new Set([...prev, index]));
+      window.dispatchEvent(new Event('preview-refresh'));
     } catch {
       alert("Failed to apply change");
     } finally {
@@ -282,6 +283,7 @@ export function ReviewContent({
       }
 
       setCurrentTitle(suggestion.headline);
+      window.dispatchEvent(new Event('preview-refresh'));
     } catch {
       alert("Failed to update headline");
     } finally {
@@ -561,7 +563,7 @@ export function ReviewContent({
         title="Review"
         description="Review your press release before finalizing"
         releaseUuid={releaseUuid}
-        currentStep={6}
+        currentStep={7}
         onSubmit={handleContinue}
         canProceed={requiredComplete}
         submitLabel="Continue to Finalize"
@@ -578,68 +580,6 @@ export function ReviewContent({
           </p>
         </div>
       </div>
-
-      {/* Completion Checklist */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Check className="h-5 w-5" />
-            Completion Checklist
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {checklist.map((item, idx) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={idx}
-                  className={cn(
-                    "flex items-center justify-between p-3 rounded-lg border",
-                    item.completed
-                      ? "bg-emerald-50 border-emerald-200"
-                      : "bg-red-50 border-red-200",
-                  )}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={cn(
-                        "p-1.5 rounded-full",
-                        item.completed ? "bg-emerald-100" : "bg-red-100",
-                      )}
-                    >
-                      <Icon
-                        className={cn(
-                          "h-4 w-4",
-                          item.completed ? "text-emerald-600" : "text-red-600",
-                        )}
-                      />
-                    </div>
-                    <span
-                      className={cn(
-                        "text-sm font-medium",
-                        item.completed ? "text-emerald-900" : "text-red-900",
-                      )}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                  {item.completed ? (
-                    <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                  ) : (
-                    <button
-                      onClick={() => router.push(item.editPath!)}
-                      className="text-xs text-cyan-700 hover:underline shrink-0"
-                    >
-                      Fix
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Errors - Required fields */}
       {errors.length > 0 && (

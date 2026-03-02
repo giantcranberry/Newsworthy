@@ -97,7 +97,7 @@ export default async function FinalizePage({
       >
         <WizardNav
           releaseUuid={uuid}
-          currentStep={7}
+          currentStep={8}
           release={release}
           company={release.company || undefined}
           releaseOptions={options || undefined}

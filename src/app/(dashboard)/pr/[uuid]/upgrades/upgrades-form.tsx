@@ -359,7 +359,7 @@ export function UpgradesForm({
         title="Upgrades"
         description="Expand your reach with premium news distribution"
         releaseUuid={releaseUuid}
-        currentStep={5}
+        currentStep={6}
         isLoading={isLoading}
         onSubmit={handleContinue}
         submitLabel={

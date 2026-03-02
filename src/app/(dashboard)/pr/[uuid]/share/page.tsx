@@ -80,7 +80,7 @@ export default async function SharePage({
     >
       <WizardNav
         releaseUuid={uuid}
-        currentStep={4}
+        currentStep={5}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}

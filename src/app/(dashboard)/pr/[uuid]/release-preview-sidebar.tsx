@@ -19,6 +19,11 @@ interface PreviewImage {
   imgCredits: string | null
 }
 
+interface PreviewFaq {
+  question: string
+  answer: string
+}
+
 interface PreviewData {
   title: string | null
   abstract: string | null
@@ -30,6 +35,7 @@ interface PreviewData {
   logoUrl: string | null
   bannerUrl: string | null
   images: PreviewImage[]
+  faqs: PreviewFaq[]
 }
 
 type DeviceMode = 'desktop' | 'tablet' | 'mobile'
@@ -61,12 +67,27 @@ export function ReleasePreviewSidebar() {
     setPanelWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, DEVICE_SNAP_WIDTHS[mode])))
   }, [])
 
-  useEffect(() => {
-    fetch(`/api/pr/${uuid}/preview`)
+  const fetchPreview = useCallback(() => {
+    fetch(`/api/pr/${uuid}/preview?t=${Date.now()}`)
       .then((res) => res.ok ? res.json() : null)
       .then(setData)
       .catch(() => null)
   }, [uuid])
+
+  useEffect(() => {
+    fetchPreview()
+  }, [fetchPreview])
+
+  // Re-fetch preview periodically and on explicit refresh events
+  useEffect(() => {
+    const handler = () => fetchPreview()
+    window.addEventListener('preview-refresh', handler)
+    const interval = setInterval(fetchPreview, 5000)
+    return () => {
+      window.removeEventListener('preview-refresh', handler)
+      clearInterval(interval)
+    }
+  }, [fetchPreview])
 
   return (
     <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: panelWidth }}>
@@ -120,6 +141,7 @@ export function ReleasePreviewSidebar() {
               } : undefined}
               banner={data.bannerUrl ? { url: data.bannerUrl } : null}
               images={data.images?.length > 0 ? data.images : undefined}
+              faqs={data.faqs?.length > 0 ? data.faqs : undefined}
               compact
               deviceMode={effectiveDevice}
             />

@@ -12,7 +12,7 @@ import {
   releaseRegions,
   queue,
 } from "@/db/schema";
-import { eq, and, asc, or, inArray } from "drizzle-orm";
+import { eq, and, asc, or, inArray, isNull } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { PRForm } from "../pr-form";
 import { WizardNav } from "@/components/pr-wizard/wizard-nav";
@@ -45,7 +45,7 @@ async function getRelease(uuid: string, userId: number, companyIds: number[]) {
 
 async function getUserCompanies(userId: number) {
   const owned = await db.query.company.findMany({
-    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false), or(eq(company.isArchived, false), isNull(company.isArchived))),
     with: { contacts: true },
   });
 
@@ -64,12 +64,15 @@ async function getUserCompanies(userId: number) {
   let shared: typeof owned = [];
   if (sharedIds.length > 0) {
     shared = await db.query.company.findMany({
-      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false), or(eq(company.isArchived, false), isNull(company.isArchived))),
       with: { contacts: true },
     });
   }
 
-  return [...owned, ...shared];
+  return [...owned, ...shared].map((c) => ({
+    ...c,
+    contacts: c.contacts.filter((ct) => !ct.isDeleted && !ct.isArchived),
+  }));
 }
 
 async function getReleaseOptions(prId: number) {

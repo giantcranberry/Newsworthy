@@ -67,7 +67,7 @@ export default async function SocialPage({
 
       <WizardNav
         releaseUuid={uuid}
-        currentStep={4}
+        currentStep={5}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}

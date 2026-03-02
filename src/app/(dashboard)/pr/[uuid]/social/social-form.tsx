@@ -400,7 +400,7 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
 
       <WizardActions
         releaseUuid={releaseUuid}
-        currentStep={4}
+        currentStep={5}
         isLoading={isLoading}
         onSubmit={handleSubmit}
         canProceed={true}

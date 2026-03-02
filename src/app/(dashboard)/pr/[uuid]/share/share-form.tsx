@@ -33,7 +33,7 @@ export function ShareForm({
   const [error, setError] = useState<string | null>(null)
 
   // Add to list state
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(true)
   const [emails, setEmails] = useState('')
   const [isAdding, setIsAdding] = useState(false)
   const [addResult, setAddResult] = useState<{ added: number; skipped: number } | null>(null)
@@ -104,7 +104,7 @@ export function ShareForm({
         title="Share with My List"
         description="Share this release with your subscribers"
         releaseUuid={releaseUuid}
-        currentStep={4}
+        currentStep={5}
         isLoading={isLoading}
         onSubmit={handleSubmit}
         canProceed={true}

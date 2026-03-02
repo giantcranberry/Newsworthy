@@ -648,7 +648,7 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
 
       <WizardActions
         releaseUuid={releaseUuid}
-        currentStep={3}
+        currentStep={4}
         onSubmit={handleContinue}
         canProceed={true}
         showSkip={releaseImages.length === 0}

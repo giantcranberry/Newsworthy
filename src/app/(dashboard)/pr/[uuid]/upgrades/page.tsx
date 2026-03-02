@@ -89,7 +89,7 @@ export default async function UpgradesPage({
     >
       <WizardNav
         releaseUuid={uuid}
-        currentStep={5}
+        currentStep={6}
         release={release}
         company={release.company || undefined}
         releaseOptions={options || undefined}

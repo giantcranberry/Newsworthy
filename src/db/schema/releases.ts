@@ -214,6 +214,7 @@ export const releasesRelations = relations(releases, ({ one, many }) => ({
   approvals: many(approvals),
   releaseNotes: many(releaseNotes),
   releaseImages: many(releaseImages),
+  faqs: many(releaseFaqs),
 }))
 
 export const queueRelations = relations(queue, ({ one }) => ({
@@ -235,6 +236,23 @@ export const approvalsRelations = relations(approvals, ({ one }) => ({
   user: one(users, {
     fields: [approvals.userId],
     references: [users.id],
+  }),
+}))
+
+export const releaseFaqs = pgTable('release_faqs', {
+  id: serial('id').primaryKey(),
+  prId: integer('pr_id').notNull().references(() => releases.id, { onDelete: 'cascade' }),
+  question: text('question').notNull(),
+  answer: text('answer').notNull(),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+export const releaseFaqsRelations = relations(releaseFaqs, ({ one }) => ({
+  release: one(releases, {
+    fields: [releaseFaqs.prId],
+    references: [releases.id],
   }),
 }))
 
