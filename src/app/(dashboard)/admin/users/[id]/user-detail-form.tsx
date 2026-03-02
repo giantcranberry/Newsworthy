@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
+import { MultiSelect } from '@/components/ui/multi-select'
+import { KeyRound, Check, AlertCircle } from 'lucide-react'
 
 interface Partner {
   id: number
@@ -28,10 +30,12 @@ interface UserDetailFormProps {
   user: {
     id: number
     email: string
+    isAdmin: boolean
+    isEditor: boolean
+    isStaff: boolean
     referredBy: string | null
     partnerId: number | null
     imPartnerId: number | null
-    managerFor: number | null
     profile: {
       firstName: string | null
       lastName: string | null
@@ -41,22 +45,39 @@ interface UserDetailFormProps {
     } | null
   }
   allPartners: Partner[]
+  managedPartnerIds: number[]
   accountCredits: number
   creditHistory: CreditTransaction[]
   companies: Record<number, string>
+  canResetPassword?: boolean
 }
 
 export function UserDetailForm({
   user,
   allPartners,
+  managedPartnerIds: initialManagedPartnerIds,
   accountCredits,
   creditHistory,
   companies,
+  canResetPassword,
 }: UserDetailFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [showCreditHistory, setShowCreditHistory] = useState(false)
+  const [managedPartnerIds, setManagedPartnerIds] = useState<number[]>(initialManagedPartnerIds)
+
+  // Password reset state
+  const [newPassword, setNewPassword] = useState('')
+  const [isResettingPassword, setIsResettingPassword] = useState(false)
+  const [passwordResult, setPasswordResult] = useState<{ success?: boolean; error?: string } | null>(null)
+
+  // Role state
+  const [roles, setRoles] = useState({
+    isAdmin: user.isAdmin,
+    isEditor: user.isEditor,
+    isStaff: user.isStaff,
+  })
 
   const [formData, setFormData] = useState({
     firstName: user.profile?.firstName || '',
@@ -66,11 +87,40 @@ export function UserDetailForm({
     creditType: 'pr',
     creditNotes: '',
     newsdbCredits: user.subscription?.newsdbCredits?.toString() || '0',
-    managerFor: user.managerFor?.toString() || '',
     prPartner: user.partnerId?.toString() || '',
     imPartner: user.imPartnerId?.toString() || '',
-    staffNote: '',
   })
+
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordResult({ error: 'Password must be at least 8 characters' })
+      return
+    }
+
+    setIsResettingPassword(true)
+    setPasswordResult(null)
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resetPassword: newPassword }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to reset password')
+      }
+
+      setPasswordResult({ success: true })
+      setNewPassword('')
+      setTimeout(() => setPasswordResult(null), 3000)
+    } catch (err) {
+      setPasswordResult({ error: err instanceof Error ? err.message : 'An error occurred' })
+    } finally {
+      setIsResettingPassword(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,7 +138,7 @@ export function UserDetailForm({
       const response = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, managedPartnerIds, roles }),
       })
 
       if (!response.ok) {
@@ -101,7 +151,6 @@ export function UserDetailForm({
         ...prev,
         prCredits: '',
         creditNotes: '',
-        staffNote: '',
       }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -143,6 +192,47 @@ export function UserDetailForm({
               />
             </div>
           </div>
+
+          {canResetPassword && (
+            <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
+              <legend className="text-sm font-medium text-gray-700 px-2">Roles</legend>
+              <div className="flex flex-wrap gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roles.isAdmin}
+                    onChange={(e) => setRoles({ ...roles, isAdmin: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                  />
+                  <span className="text-sm">
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Admin</span>
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roles.isEditor}
+                    onChange={(e) => setRoles({ ...roles, isEditor: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm">
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Editor</span>
+                  </span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={roles.isStaff}
+                    onChange={(e) => setRoles({ ...roles, isStaff: e.target.checked })}
+                    className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm">
+                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Staff</span>
+                  </span>
+                </label>
+              </div>
+            </fieldset>
+          )}
 
           <div>
             <Label htmlFor="referredBy">Referred By</Label>
@@ -266,20 +356,17 @@ export function UserDetailForm({
           </div>
 
           <div>
-            <Label htmlFor="managerFor">Partner Network Manager</Label>
-            <Select
-              id="managerFor"
-              value={formData.managerFor}
-              onChange={(e) => setFormData({ ...formData, managerFor: e.target.value })}
+            <Label>Partner Network Manager</Label>
+            <MultiSelect
+              options={allPartners.map((p) => ({
+                value: p.id,
+                label: p.handle || p.company || `Partner ${p.id}`,
+              }))}
+              selected={managedPartnerIds}
+              onChange={setManagedPartnerIds}
+              placeholder="Select partners to manage..."
               className="mt-1"
-            >
-              <option value="">None</option>
-              {allPartners.map((p) => (
-                <option key={p.id} value={p.id.toString()}>
-                  {p.handle || p.company || `Partner ${p.id}`}
-                </option>
-              ))}
-            </Select>
+            />
           </div>
 
           <div>
@@ -316,24 +403,51 @@ export function UserDetailForm({
             </Select>
           </div>
 
-          <hr className="border-gray-200" />
-
-          <div>
-            <Label htmlFor="staffNote">Add Staff Note</Label>
-            <Textarea
-              id="staffNote"
-              placeholder="Add notes (min 10 characters)"
-              rows={3}
-              value={formData.staffNote}
-              onChange={(e) => setFormData({ ...formData, staffNote: e.target.value })}
-              className="mt-1"
-            />
-          </div>
-
           <Button type="submit" disabled={isSubmitting} className="w-full">
             {isSubmitting ? 'Saving...' : 'Save & Continue'}
           </Button>
         </form>
+
+        {canResetPassword && (
+          <div className="mt-6 pt-6 border-t">
+            <fieldset className="border border-amber-200 p-4 rounded-lg space-y-3">
+              <legend className="text-sm font-medium text-amber-700 px-2 flex items-center gap-1.5">
+                <KeyRound className="h-4 w-4" />
+                Reset Password
+              </legend>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="New password (min 8 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="flex-1 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleResetPassword}
+                  disabled={isResettingPassword || newPassword.length < 8}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  {isResettingPassword ? 'Resetting...' : 'Reset'}
+                </Button>
+              </div>
+              {passwordResult?.success && (
+                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded">
+                  <Check className="h-4 w-4" />
+                  Password reset successfully
+                </div>
+              )}
+              {passwordResult?.error && (
+                <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                  <AlertCircle className="h-4 w-4" />
+                  {passwordResult.error}
+                </div>
+              )}
+            </fieldset>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

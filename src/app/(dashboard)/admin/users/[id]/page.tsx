@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, userProfiles, userSubscription, releases, staffNotes, brandCredits, company, partners } from '@/db/schema'
+import { users, userProfiles, userSubscription, releases, staffNotes, brandCredits, company, partners, partnerManagers } from '@/db/schema'
 import { eq, desc, and, sql } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react'
 import { UserDetailForm } from './user-detail-form'
 import { ImpersonateButton } from './impersonate-button'
 import { SendMessageDialog } from './send-message-dialog'
+import { StaffNotesCard } from './staff-notes-card'
 
 async function getUserData(userId: number) {
   const user = await db.query.users.findFirst({
@@ -79,6 +80,12 @@ async function getUserData(userId: number) {
     .where(eq(partners.isDeleted, false))
     .orderBy(partners.handle)
 
+  const managedRows = await db
+    .select({ partnerId: partnerManagers.partnerId })
+    .from(partnerManagers)
+    .where(eq(partnerManagers.userId, userId))
+  const managedPartnerIds = managedRows.map(r => r.partnerId)
+
   return {
     user,
     recentReleases,
@@ -87,6 +94,7 @@ async function getUserData(userId: number) {
     creditHistory,
     companies,
     allPartners,
+    managedPartnerIds,
   }
 }
 
@@ -97,6 +105,7 @@ export default async function UserDetailPage({
 }) {
   const session = await auth()
   const isAdmin = (session?.user as any)?.isAdmin
+  const isEditor = (session?.user as any)?.isEditor
   const isStaff = (session?.user as any)?.isStaff
 
   if (!isAdmin && !isStaff) {
@@ -116,7 +125,7 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  const { user, recentReleases, notes, accountCredits, creditHistory, companies, allPartners } = data
+  const { user, recentReleases, notes, accountCredits, creditHistory, companies, allPartners, managedPartnerIds } = data
 
   return (
     <div className="space-y-6">
@@ -218,33 +227,14 @@ export default async function UserDetailPage({
         <UserDetailForm
           user={user}
           allPartners={allPartners}
+          managedPartnerIds={managedPartnerIds}
           accountCredits={accountCredits}
           creditHistory={creditHistory}
           companies={companies}
+          canResetPassword={isAdmin || isEditor}
         />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Staff Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {notes.length === 0 ? (
-              <p className="text-sm text-gray-500">No staff notes yet</p>
-            ) : (
-              <div className="space-y-4 text-sm">
-                {notes.map((note) => (
-                  <div key={note.id} className="border-b border-gray-100 pb-3 last:border-0">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span className="font-medium text-gray-700">{note.staffName || 'Staff'}</span>
-                      <span>{note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Just now'}</span>
-                    </div>
-                    <p>{note.body}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <StaffNotesCard notes={notes} userId={user.id} />
       </div>
     </div>
   )
