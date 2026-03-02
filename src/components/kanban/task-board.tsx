@@ -25,9 +25,18 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
-import { Plus, Settings, GripVertical, FileText, Calendar, MessageSquare } from 'lucide-react'
+import { Plus, Settings, GripVertical, FileText, Calendar, MessageSquare, Building2 } from 'lucide-react'
 import { StageManager, type Stage } from './stage-manager'
-import { TaskFormDialog, type KanbanTask, getPriorityConfig } from './task-form'
+import { TaskFormDialog, type KanbanTask, type BrandCompany, getPriorityConfig } from './task-form'
+
+export interface TaskBoardConfig {
+  apiBase: string
+  title: string
+  showUserFilter: boolean
+  showAssignee: boolean
+  canManageStages: boolean
+  showBrandFilter: boolean
+}
 
 interface EditorialUser {
   id: number
@@ -40,10 +49,12 @@ function TaskCard({
   task,
   onClick,
   isDragging,
+  showAssignee = true,
 }: {
   task: KanbanTask
   onClick: () => void
   isDragging?: boolean
+  showAssignee?: boolean
 }) {
   const assigneeName = task.assigneeFirstName || task.assigneeLastName
     ? `${task.assigneeFirstName || ''} ${task.assigneeLastName || ''}`.trim()
@@ -67,7 +78,14 @@ function TaskCard({
       </div>
 
       <div className="mt-2 flex items-center gap-2 flex-wrap">
-        {assigneeName && (
+        {task.companyName && (
+          <span className="inline-flex items-center gap-1 text-xs text-cyan-700 bg-cyan-50 rounded-full px-2 py-0.5">
+            <Building2 className="h-3 w-3" />
+            {task.companyName}
+          </span>
+        )}
+
+        {showAssignee && assigneeName && (
           <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
             <i className="fa-light fa-circle-user text-xs" aria-hidden="true" />
             {assigneeName}
@@ -100,9 +118,11 @@ function TaskCard({
 function SortableTaskCard({
   task,
   onClick,
+  showAssignee,
 }: {
   task: KanbanTask
   onClick: () => void
+  showAssignee: boolean
 }) {
   const {
     attributes,
@@ -128,7 +148,7 @@ function SortableTaskCard({
       >
         <GripVertical className="h-4 w-4 text-gray-400" />
       </div>
-      <TaskCard task={task} onClick={onClick} />
+      <TaskCard task={task} onClick={onClick} showAssignee={showAssignee} />
     </div>
   )
 }
@@ -138,11 +158,13 @@ function DroppableStageColumn({
   tasks,
   onTaskClick,
   isOver,
+  showAssignee,
 }: {
   stage: Stage
   tasks: KanbanTask[]
   onTaskClick: (task: KanbanTask) => void
   isOver: boolean
+  showAssignee: boolean
 }) {
   const { setNodeRef } = useDroppable({
     id: `stage-${stage.id}`,
@@ -176,6 +198,7 @@ function DroppableStageColumn({
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
+              showAssignee={showAssignee}
             />
           ))}
         </SortableContext>
@@ -198,14 +221,16 @@ function findStageForId(id: string | number, tasks: KanbanTask[], stages: Stage[
   return null
 }
 
-export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
+export function TaskBoard({ config }: { config: TaskBoardConfig }) {
   const { data: session } = useSession()
   const currentUserId = (session?.user as any)?.id
 
   const [stages, setStages] = useState<Stage[]>([])
   const [tasks, setTasks] = useState<KanbanTask[]>([])
   const [users, setUsers] = useState<EditorialUser[]>([])
+  const [companies, setCompanies] = useState<BrandCompany[]>([])
   const [filter, setFilter] = useState<string>('all')
+  const [brandFilter, setBrandFilter] = useState<string>('all')
   const [loading, setLoading] = useState(true)
 
   // Dialogs
@@ -227,41 +252,55 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
 
   const fetchStages = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/tasks/stages')
+      const res = await fetch(`${config.apiBase}/stages`)
       if (res.ok) setStages(await res.json())
     } catch (err) {
       console.error('Error fetching stages:', err)
     }
-  }, [])
+  }, [config.apiBase])
 
   const fetchTasks = useCallback(async () => {
     try {
-      const params = filter && filter !== 'all' ? `?assignedTo=${filter}` : ''
-      const res = await fetch(`/api/admin/tasks${params}`)
+      const searchParams = new URLSearchParams()
+      if (filter && filter !== 'all') searchParams.set('assignedTo', filter)
+      if (brandFilter && brandFilter !== 'all') searchParams.set('companyId', brandFilter)
+      const qs = searchParams.toString()
+      const res = await fetch(`${config.apiBase}${qs ? `?${qs}` : ''}`)
       if (res.ok) setTasks(await res.json())
     } catch (err) {
       console.error('Error fetching tasks:', err)
     }
-  }, [filter])
+  }, [filter, brandFilter, config.apiBase])
 
   const fetchUsers = useCallback(async () => {
+    if (!config.showUserFilter) return
     try {
       const res = await fetch('/api/admin/users/search?role=editorial')
       if (res.ok) setUsers(await res.json())
     } catch (err) {
       console.error('Error fetching users:', err)
     }
-  }, [])
+  }, [config.showUserFilter])
+
+  const fetchCompanies = useCallback(async () => {
+    if (!config.showBrandFilter) return
+    try {
+      const res = await fetch(`${config.apiBase}/companies`)
+      if (res.ok) setCompanies(await res.json())
+    } catch (err) {
+      console.error('Error fetching companies:', err)
+    }
+  }, [config.showBrandFilter, config.apiBase])
 
   useEffect(() => {
-    Promise.all([fetchStages(), fetchTasks(), fetchUsers()]).then(() =>
+    Promise.all([fetchStages(), fetchTasks(), fetchUsers(), fetchCompanies()]).then(() =>
       setLoading(false)
     )
-  }, [fetchStages, fetchTasks, fetchUsers])
+  }, [fetchStages, fetchTasks, fetchUsers, fetchCompanies])
 
   useEffect(() => {
     fetchTasks()
-  }, [filter, fetchTasks])
+  }, [filter, brandFilter, fetchTasks])
 
   const getTasksForStage = (stageId: number) =>
     tasks
@@ -358,7 +397,7 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
 
     // Persist
     try {
-      const res = await fetch('/api/admin/tasks/reorder', {
+      const res = await fetch(`${config.apiBase}/reorder`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId, stageId: targetStageId, sortOrder: targetSortOrder }),
@@ -404,28 +443,46 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
     <div className="space-y-4">
       {/* Top bar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-gray-900">Task Board</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
         <div className="ml-auto flex items-center gap-2">
-          {/* Filter */}
-          <Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="w-44"
-          >
-            <option value="all">All Tasks</option>
-            {currentUserId && <option value={currentUserId}>My Tasks</option>}
-            {users
-              .filter((u) => String(u.id) !== String(currentUserId))
-              .map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.firstName || u.lastName
-                    ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
-                    : u.email}
+          {/* Brand Filter */}
+          {config.showBrandFilter && companies.length > 0 && (
+            <Select
+              value={brandFilter}
+              onChange={(e) => setBrandFilter(e.target.value)}
+              className="w-48"
+            >
+              <option value="all">All Brands</option>
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.companyName}
                 </option>
               ))}
-          </Select>
+            </Select>
+          )}
 
-          {isAdmin && (
+          {/* User Filter */}
+          {config.showUserFilter && (
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="w-44"
+            >
+              <option value="all">All Tasks</option>
+              {currentUserId && <option value={currentUserId}>My Tasks</option>}
+              {users
+                .filter((u) => String(u.id) !== String(currentUserId))
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.firstName || u.lastName
+                      ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
+                      : u.email}
+                  </option>
+                ))}
+            </Select>
+          )}
+
+          {config.canManageStages && (
             <Button variant="outline" onClick={() => setShowStageManager(true)}>
               <Settings className="h-4 w-4 mr-2" />
               Stages
@@ -456,6 +513,7 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
                 tasks={getTasksForStage(stage.id)}
                 onTaskClick={handleEditTask}
                 isOver={overStageId === stage.id}
+                showAssignee={config.showAssignee}
               />
             ))}
           </div>
@@ -463,7 +521,7 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
           <DragOverlay>
             {activeTask ? (
               <div className="w-72">
-                <TaskCard task={activeTask} onClick={() => {}} isDragging />
+                <TaskCard task={activeTask} onClick={() => {}} isDragging showAssignee={config.showAssignee} />
               </div>
             ) : null}
           </DragOverlay>
@@ -471,12 +529,13 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       {/* Dialogs */}
-      {isAdmin && (
+      {config.canManageStages && (
         <StageManager
           open={showStageManager}
           onOpenChange={setShowStageManager}
           stages={stages}
           onStagesChanged={handleStagesChanged}
+          apiBase={config.apiBase}
         />
       )}
 
@@ -486,9 +545,13 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
         task={editingTask}
         stages={stages}
         users={users}
+        companies={companies}
         defaultStageId={stages[0]?.id}
         currentUserId={currentUserId ? parseInt(currentUserId) : null}
         onSaved={handleTaskSaved}
+        apiBase={config.apiBase}
+        showAssignee={config.showAssignee}
+        showBrandSelector={config.showBrandFilter}
       />
     </div>
   )

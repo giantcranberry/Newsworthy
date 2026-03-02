@@ -30,7 +30,6 @@ interface ProfileFormProps {
   subscription: {
     remainingPr: number
     remainingPluspr: number
-    newsdbCredits: number
   }
   canPurchase?: boolean
 }
@@ -109,7 +108,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
             <CardTitle>Subscription</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded-lg">
                 <p className="text-2xl font-bold text-gray-900">
                   {subscription.remainingPr}
@@ -121,12 +120,6 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
                   {subscription.remainingPluspr}
                 </p>
                 <p className="text-sm text-gray-600">Enhanced Credits</p>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
-                  {subscription.newsdbCredits}
-                </p>
-                <p className="text-sm text-gray-600">NewsDB Credits</p>
               </div>
             </div>
             <div className="mt-4">

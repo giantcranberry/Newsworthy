@@ -115,11 +115,13 @@ export function StageManager({
   onOpenChange,
   stages: initialStages,
   onStagesChanged,
+  apiBase,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   stages: Stage[]
   onStagesChanged: () => void
+  apiBase: string
 }) {
   const [stages, setStages] = useState<Stage[]>(initialStages)
   const [newName, setNewName] = useState('')
@@ -152,7 +154,7 @@ export function StageManager({
     setStages(reordered)
 
     try {
-      const res = await fetch('/api/admin/tasks/stages/reorder', {
+      const res = await fetch(`${apiBase}/stages/reorder`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stageIds: reordered.map((s) => s.id) }),
@@ -170,7 +172,7 @@ export function StageManager({
 
   const handleSaveStage = async (stage: Stage) => {
     try {
-      await fetch(`/api/admin/tasks/stages/${stage.id}`, {
+      await fetch(`${apiBase}/stages/${stage.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: stage.name, color: stage.color }),
@@ -185,7 +187,7 @@ export function StageManager({
     if (!newName.trim()) return
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/tasks/stages', {
+      const res = await fetch(`${apiBase}/stages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newName.trim(), color: newColor }),
@@ -207,7 +209,7 @@ export function StageManager({
   const handleDelete = async () => {
     if (deleteId === null) return
     try {
-      const res = await fetch(`/api/admin/tasks/stages/${deleteId}`, {
+      const res = await fetch(`${apiBase}/stages/${deleteId}`, {
         method: 'DELETE',
       })
       if (res.ok) {

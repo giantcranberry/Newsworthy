@@ -1,17 +1,24 @@
 import { pgTable, serial, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
+import { company } from './company'
 
 export const kanbanStages = pgTable('kanban_stages', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 100 }).notNull(),
   color: varchar('color', { length: 7 }).notNull().default('#3b82f6'),
   sortOrder: integer('sort_order').notNull().default(0),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 
-export const kanbanStagesRelations = relations(kanbanStages, ({ many }) => ({
+export const kanbanStagesRelations = relations(kanbanStages, ({ one, many }) => ({
   tasks: many(kanbanTasks),
+  user: one(users, {
+    fields: [kanbanStages.userId],
+    references: [users.id],
+    relationName: 'kanbanStages',
+  }),
 }))
 
 export const kanbanTasks = pgTable('kanban_tasks', {
@@ -22,6 +29,7 @@ export const kanbanTasks = pgTable('kanban_tasks', {
   priority: varchar('priority', { length: 10 }).notNull().default('medium'),
   assignedTo: integer('assigned_to').references(() => users.id, { onDelete: 'set null' }),
   createdBy: integer('created_by').notNull().references(() => users.id),
+  companyId: integer('company_id').references(() => company.id, { onDelete: 'set null' }),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -41,6 +49,10 @@ export const kanbanTasksRelations = relations(kanbanTasks, ({ one, many }) => ({
     fields: [kanbanTasks.createdBy],
     references: [users.id],
     relationName: 'createdTasks',
+  }),
+  company: one(company, {
+    fields: [kanbanTasks.companyId],
+    references: [company.id],
   }),
   files: many(kanbanTaskFiles),
   notes: many(kanbanTaskNotes),

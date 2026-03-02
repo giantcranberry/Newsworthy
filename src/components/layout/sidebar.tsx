@@ -89,6 +89,11 @@ const navSections: NavSection[] = [
           { title: 'Purchases', href: '/billing/purchases', icon: 'fa-light fa-receipt' },
         ],
       },
+      {
+        title: 'My Tasks',
+        href: '/tasks',
+        icon: 'fa-light fa-list-check',
+      },
     ],
   },
   {
@@ -446,7 +451,7 @@ export function Sidebar({
                     <FaIcon icon="fa-light fa-gear" className="text-base" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right">Settings</TooltipContent>
+                <TooltipContent side="right">My Profile</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -479,7 +484,7 @@ export function Sidebar({
                   className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
                 >
                   <FaIcon icon="fa-light fa-gear" className="w-5 text-center text-base" />
-                  Settings
+                  My Profile
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}

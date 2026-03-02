@@ -48,6 +48,7 @@ export const company = pgTable('company', {
   agencyContactPhone: varchar('agency_contact_phone', { length: 30 }),
   agencyContactEmail: varchar('agency_contact_email', { length: 128 }),
   agencyWebsite: varchar('agency_website', { length: 128 }),
+  videoShortsOptOut: boolean('video_shorts_opt_out').default(false),
   jsonLd: jsonb('json_ld'),
   seo: jsonb('seo'),
 })

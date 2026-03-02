@@ -1,16 +1,18 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { kanbanStages } from '@/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyStageOwnership } from '@/lib/kanban-auth'
 
-// PUT: Update a global stage (admin only)
+// PUT: Update a user's stage
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  if (!(session?.user as any)?.isAdmin) {
+  const userId = (session?.user as any)?.id
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -18,6 +20,11 @@ export async function PUT(
   const stageId = parseInt(id)
   if (isNaN(stageId)) {
     return NextResponse.json({ error: 'Invalid stage ID' }, { status: 400 })
+  }
+
+  const uid = parseInt(userId)
+  if (!(await verifyStageOwnership(stageId, uid))) {
+    return NextResponse.json({ error: 'Stage not found' }, { status: 404 })
   }
 
   try {
@@ -34,7 +41,7 @@ export async function PUT(
     const [stage] = await db
       .update(kanbanStages)
       .set(updates)
-      .where(and(eq(kanbanStages.id, stageId), isNull(kanbanStages.userId)))
+      .where(and(eq(kanbanStages.id, stageId), eq(kanbanStages.userId, uid)))
       .returning()
 
     if (!stage) {
@@ -48,13 +55,14 @@ export async function PUT(
   }
 }
 
-// DELETE: Delete a global stage (admin only, cascades tasks)
+// DELETE: Delete a user's stage (cascades tasks)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  if (!(session?.user as any)?.isAdmin) {
+  const userId = (session?.user as any)?.id
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -64,10 +72,15 @@ export async function DELETE(
     return NextResponse.json({ error: 'Invalid stage ID' }, { status: 400 })
   }
 
+  const uid = parseInt(userId)
+  if (!(await verifyStageOwnership(stageId, uid))) {
+    return NextResponse.json({ error: 'Stage not found' }, { status: 404 })
+  }
+
   try {
     const [deleted] = await db
       .delete(kanbanStages)
-      .where(and(eq(kanbanStages.id, stageId), isNull(kanbanStages.userId)))
+      .where(and(eq(kanbanStages.id, stageId), eq(kanbanStages.userId, uid)))
       .returning()
 
     if (!deleted) {

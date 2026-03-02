@@ -271,7 +271,7 @@ export async function getEffectiveSession() {
     const impersonateUserId = cookieStore.get(IMPERSONATE_COOKIE)?.value
     const adminId = cookieStore.get(IMPERSONATE_ADMIN_COOKIE)?.value
 
-    if (impersonateUserId && adminId && (session.user as any).isAdmin) {
+    if (impersonateUserId && adminId && ((session.user as any).isAdmin || (session.user as any).isEditor || (session.user as any).isStaff)) {
       // Fetch impersonated user
       const impersonatedUser = await db.query.users.findFirst({
         where: eq(users.id, parseInt(impersonateUserId)),

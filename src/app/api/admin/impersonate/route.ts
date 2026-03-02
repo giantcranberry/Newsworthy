@@ -8,8 +8,10 @@ import { eq } from 'drizzle-orm'
 export async function POST(request: Request) {
   const session = await auth()
   const isAdmin = (session?.user as any)?.isAdmin
+  const isEditor = (session?.user as any)?.isEditor
+  const isStaff = (session?.user as any)?.isStaff
 
-  if (!isAdmin) {
+  if (!isAdmin && !isEditor && !isStaff) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
@@ -29,9 +31,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Don't allow impersonating other admins
-    if (targetUser.isAdmin) {
-      return NextResponse.json({ error: 'Cannot impersonate admin users' }, { status: 403 })
+    // Admins can impersonate anyone except other admins
+    // Editors and staff can only impersonate regular users (not admin/editor/staff)
+    if (isAdmin) {
+      if (targetUser.isAdmin) {
+        return NextResponse.json({ error: 'Cannot impersonate admin users' }, { status: 403 })
+      }
+    } else {
+      if (targetUser.isAdmin || targetUser.isEditor || targetUser.isStaff) {
+        return NextResponse.json({ error: 'Cannot impersonate admin, editor, or staff users' }, { status: 403 })
+      }
     }
 
     const cookieStore = await cookies()

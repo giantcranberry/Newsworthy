@@ -174,6 +174,7 @@ export default async function AssetsPage({
         totalPages={imageData.totalPages}
         filter={filter}
         counts={counts}
+        videoShortsOptOut={co.videoShortsOptOut ?? false}
       />
     </div>
   )

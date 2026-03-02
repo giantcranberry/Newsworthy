@@ -1,27 +1,26 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTasks, kanbanTaskFiles, kanbanTaskNotes, kanbanStages, users, userProfiles } from '@/db/schema'
-import { eq, asc, sql, and, isNull } from 'drizzle-orm'
+import { kanbanTasks, kanbanTaskFiles, kanbanTaskNotes, kanbanStages, company } from '@/db/schema'
+import { eq, asc, sql, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadTaskFile } from '@/services/s3'
-import { sendSystemMessageWithEmail } from '@/lib/messages'
+import { verifyStageOwnership } from '@/lib/kanban-auth'
 
-// GET: List all global (admin) tasks with files
+// GET: List user's tasks with files
 export async function GET(request: NextRequest) {
   const session = await auth()
-  const isAdmin = (session?.user as any)?.isAdmin
-  const isEditor = (session?.user as any)?.isEditor
-
-  if (!isAdmin && !isEditor) {
+  const userId = (session?.user as any)?.id
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const assignedTo = request.nextUrl.searchParams.get('assignedTo')
+  const uid = parseInt(userId)
+  const companyIdParam = request.nextUrl.searchParams.get('companyId')
 
   try {
-    const conditions = [isNull(kanbanStages.userId)]
-    if (assignedTo) {
-      conditions.push(eq(kanbanTasks.assignedTo, parseInt(assignedTo)))
+    const conditions = [eq(kanbanStages.userId, uid)]
+    if (companyIdParam) {
+      conditions.push(eq(kanbanTasks.companyId, parseInt(companyIdParam)))
     }
 
     const tasks = await db
@@ -33,17 +32,15 @@ export async function GET(request: NextRequest) {
         priority: kanbanTasks.priority,
         assignedTo: kanbanTasks.assignedTo,
         createdBy: kanbanTasks.createdBy,
+        companyId: kanbanTasks.companyId,
+        companyName: company.companyName,
         sortOrder: kanbanTasks.sortOrder,
         createdAt: kanbanTasks.createdAt,
         updatedAt: kanbanTasks.updatedAt,
-        assigneeFirstName: userProfiles.firstName,
-        assigneeLastName: userProfiles.lastName,
-        assigneeEmail: users.email,
       })
       .from(kanbanTasks)
       .innerJoin(kanbanStages, eq(kanbanTasks.stageId, kanbanStages.id))
-      .leftJoin(users, eq(kanbanTasks.assignedTo, users.id))
-      .leftJoin(userProfiles, eq(kanbanTasks.assignedTo, userProfiles.userId))
+      .leftJoin(company, eq(kanbanTasks.companyId, company.id))
       .where(and(...conditions))
       .orderBy(asc(kanbanTasks.sortOrder))
 
@@ -57,7 +54,6 @@ export async function GET(request: NextRequest) {
         .where(sql`${kanbanTaskFiles.taskId} IN (${sql.join(taskIds.map(id => sql`${id}`), sql`, `)})`)
     }
 
-    // Group files by task
     const filesByTask = new Map<number, any[]>()
     for (const file of files) {
       const existing = filesByTask.get(file.taskId) || []
@@ -65,10 +61,10 @@ export async function GET(request: NextRequest) {
       filesByTask.set(file.taskId, existing)
     }
 
-    // Fetch note counts for all tasks
+    // Fetch note counts
     let noteCounts: { taskId: number; count: number }[] = []
     if (taskIds.length > 0) {
-      const noteCountRows = await db
+      noteCounts = await db
         .select({
           taskId: kanbanTaskNotes.taskId,
           count: sql<number>`count(*)::int`,
@@ -76,8 +72,6 @@ export async function GET(request: NextRequest) {
         .from(kanbanTaskNotes)
         .where(sql`${kanbanTaskNotes.taskId} IN (${sql.join(taskIds.map(id => sql`${id}`), sql`, `)})`)
         .groupBy(kanbanTaskNotes.taskId)
-
-      noteCounts = noteCountRows
     }
 
     const noteCountMap = new Map<number, number>()
@@ -87,6 +81,9 @@ export async function GET(request: NextRequest) {
 
     const tasksWithFiles = tasks.map(task => ({
       ...task,
+      assigneeFirstName: null,
+      assigneeLastName: null,
+      assigneeEmail: null,
       files: filesByTask.get(task.id) || [],
       noteCount: noteCountMap.get(task.id) || 0,
     }))
@@ -98,16 +95,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Create a new task (with optional file uploads)
+// POST: Create a new task in user's board
 export async function POST(request: NextRequest) {
   const session = await auth()
-  const isAdmin = (session?.user as any)?.isAdmin
-  const isEditor = (session?.user as any)?.isEditor
   const userId = (session?.user as any)?.id
-
-  if (!isAdmin && !isEditor) {
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const uid = parseInt(userId)
 
   try {
     const formData = await request.formData()
@@ -115,7 +111,8 @@ export async function POST(request: NextRequest) {
     const description = (formData.get('description') as string) || null
     const priority = (formData.get('priority') as string) || 'medium'
     const stageId = parseInt(formData.get('stageId') as string)
-    const assignedTo = formData.get('assignedTo') ? parseInt(formData.get('assignedTo') as string) : null
+    const companyIdRaw = formData.get('companyId') as string | null
+    const companyId = companyIdRaw ? parseInt(companyIdRaw) : null
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -125,7 +122,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Valid stage is required' }, { status: 400 })
     }
 
-    // Get max sort order for the stage
+    // Verify stage belongs to user
+    if (!(await verifyStageOwnership(stageId, uid))) {
+      return NextResponse.json({ error: 'Invalid stage' }, { status: 400 })
+    }
+
     const existingTasks = await db
       .select({ sortOrder: kanbanTasks.sortOrder })
       .from(kanbanTasks)
@@ -136,8 +137,6 @@ export async function POST(request: NextRequest) {
       ? Math.max(...existingTasks.map(t => t.sortOrder)) + 1
       : 0
 
-    const now = new Date().toISOString()
-
     const [task] = await db
       .insert(kanbanTasks)
       .values({
@@ -145,8 +144,9 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         description,
         priority,
-        assignedTo,
-        createdBy: parseInt(userId),
+        assignedTo: null,
+        createdBy: uid,
+        companyId,
         sortOrder: maxOrder,
         createdAt: sql`NOW()`,
         updatedAt: sql`NOW()`,
@@ -180,16 +180,6 @@ export async function POST(request: NextRequest) {
 
         fileRecords.push(fileRecord)
       }
-    }
-
-    // Notify assignee if assigned to someone other than the creator
-    if (assignedTo && assignedTo !== parseInt(userId)) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
-      sendSystemMessageWithEmail(
-        assignedTo,
-        'Task Assigned: ' + title.trim(),
-        `<p>You have been assigned a new task: <strong>${title.trim()}</strong></p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
-      ).catch(err => console.error('Failed to send task assignment notification:', err))
     }
 
     return NextResponse.json({ ...task, files: fileRecords })

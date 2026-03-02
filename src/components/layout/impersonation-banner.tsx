@@ -40,9 +40,9 @@ export function ImpersonationBanner() {
       })
 
       if (response.ok) {
-        // Redirect back to admin users page
-        router.push('/admin/users')
-        router.refresh()
+        // Hard redirect so session, sidebar, and banner all reset
+        window.location.href = '/admin/users'
+        return
       }
     } catch (error) {
       console.error('Error stopping impersonation:', error)

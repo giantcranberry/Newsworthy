@@ -50,7 +50,6 @@ export default async function ProfilePage() {
       subscription={{
         remainingPr: subscription?.remainingPr || 0,
         remainingPluspr: subscription?.remainingPluspr || 0,
-        newsdbCredits: subscription?.newsdbCredits || 0,
       }}
       canPurchase={canPurchase}
     />

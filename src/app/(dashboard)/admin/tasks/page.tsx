@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { TaskBoard } from './task-board'
+import { TaskBoard, type TaskBoardConfig } from '@/components/kanban/task-board'
 
 export default async function TasksPage() {
   const session = await auth()
@@ -12,5 +12,14 @@ export default async function TasksPage() {
     redirect('/dashboard')
   }
 
-  return <TaskBoard isAdmin={!!isAdmin} />
+  const config: TaskBoardConfig = {
+    apiBase: '/api/admin/tasks',
+    title: 'Task Board',
+    showUserFilter: true,
+    showAssignee: true,
+    canManageStages: !!isAdmin,
+    showBrandFilter: false,
+  }
+
+  return <TaskBoard config={config} />
 }

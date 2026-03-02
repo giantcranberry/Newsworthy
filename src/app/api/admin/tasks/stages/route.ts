@@ -1,10 +1,10 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { kanbanStages } from '@/db/schema'
-import { asc } from 'drizzle-orm'
+import { asc, isNull } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-// GET: List all stages ordered by sortOrder
+// GET: List all global (admin) stages ordered by sortOrder
 export async function GET() {
   const session = await auth()
   const isAdmin = (session?.user as any)?.isAdmin
@@ -17,12 +17,13 @@ export async function GET() {
   const stages = await db
     .select()
     .from(kanbanStages)
+    .where(isNull(kanbanStages.userId))
     .orderBy(asc(kanbanStages.sortOrder))
 
   return NextResponse.json(stages)
 }
 
-// POST: Create a new stage (admin only)
+// POST: Create a new global stage (admin only)
 export async function POST(request: NextRequest) {
   const session = await auth()
   if (!(session?.user as any)?.isAdmin) {
@@ -36,10 +37,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
-    // Get max sort order
+    // Get max sort order for global stages
     const existing = await db
       .select()
       .from(kanbanStages)
+      .where(isNull(kanbanStages.userId))
       .orderBy(asc(kanbanStages.sortOrder))
 
     const maxOrder = existing.length > 0

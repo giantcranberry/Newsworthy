@@ -17,6 +17,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { Switch } from '@/components/ui/switch'
 import {
   Upload,
   Loader2,
@@ -29,6 +30,7 @@ import {
   Share2,
   Eye,
   Search,
+  VideoOff,
 } from 'lucide-react'
 
 interface UnsplashPhoto {
@@ -62,6 +64,7 @@ interface AssetsFormProps {
   totalPages: number
   filter: string
   counts: { news: number; social: number }
+  videoShortsOptOut: boolean
 }
 
 function resizedUrl(url: string, width: number = 300) {
@@ -129,9 +132,14 @@ export function AssetsForm({
   totalPages,
   filter,
   counts,
+  videoShortsOptOut: initialVideoShortsOptOut,
 }: AssetsFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Video shorts opt-out state
+  const [videoShortsOptOut, setVideoShortsOptOut] = useState(initialVideoShortsOptOut)
+  const [isSavingOptOut, setIsSavingOptOut] = useState(false)
 
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -437,6 +445,27 @@ export function AssetsForm({
     }
   }
 
+  const handleVideoShortsToggle = async (checked: boolean) => {
+    setVideoShortsOptOut(checked)
+    setIsSavingOptOut(true)
+    try {
+      const res = await fetch(`/api/company/${companyUuid}/assets`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoShortsOptOut: checked }),
+      })
+      if (!res.ok) {
+        setVideoShortsOptOut(!checked)
+        setError('Failed to update video shorts preference')
+      }
+    } catch {
+      setVideoShortsOptOut(!checked)
+      setError('Failed to update video shorts preference')
+    } finally {
+      setIsSavingOptOut(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {error && (
@@ -445,6 +474,26 @@ export function AssetsForm({
       {success && (
         <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
+
+      {/* Video Shorts Opt Out */}
+      <Card className={videoShortsOptOut ? 'border-amber-300 bg-amber-50/50' : ''}>
+        <CardContent className="pt-4 pb-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <VideoOff className={`h-5 w-5 shrink-0 ${videoShortsOptOut ? 'text-amber-600' : 'text-gray-400'}`} />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Video Shorts Opt Out</p>
+                <p className="text-xs text-gray-500">Do not create video shorts for this brand.</p>
+              </div>
+            </div>
+            <Switch
+              checked={videoShortsOptOut}
+              onCheckedChange={handleVideoShortsToggle}
+              disabled={isSavingOptOut || readOnly}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Filter Cards */}
       <div className="grid grid-cols-2 gap-4">

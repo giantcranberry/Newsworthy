@@ -1,15 +1,19 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { kanbanStages } from '@/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyStageOwnership } from '@/lib/kanban-auth'
 
-// PUT: Reorder global stages (admin only)
+// PUT: Reorder user's stages
 export async function PUT(request: NextRequest) {
   const session = await auth()
-  if (!(session?.user as any)?.isAdmin) {
+  const userId = (session?.user as any)?.id
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const uid = parseInt(userId)
 
   try {
     const { stageIds } = await request.json()
@@ -18,12 +22,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'stageIds array is required' }, { status: 400 })
     }
 
-    // Update sort order for each global stage
+    // Verify all stages belong to user
+    for (const sid of stageIds) {
+      if (!(await verifyStageOwnership(sid, uid))) {
+        return NextResponse.json({ error: 'Invalid stage' }, { status: 400 })
+      }
+    }
+
     for (let i = 0; i < stageIds.length; i++) {
       await db
         .update(kanbanStages)
         .set({ sortOrder: i })
-        .where(and(eq(kanbanStages.id, stageIds[i]), isNull(kanbanStages.userId)))
+        .where(and(eq(kanbanStages.id, stageIds[i]), eq(kanbanStages.userId, uid)))
     }
 
     return NextResponse.json({ success: true })

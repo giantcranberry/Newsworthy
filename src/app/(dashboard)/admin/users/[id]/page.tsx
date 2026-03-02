@@ -161,6 +161,9 @@ export default async function UserDetailPage({
           {isAdmin && !user.isAdmin && (
             <ImpersonateButton userId={user.id} userEmail={user.email} />
           )}
+          {!isAdmin && (isEditor || isStaff) && !user.isAdmin && !user.isEditor && !user.isStaff && (
+            <ImpersonateButton userId={user.id} userEmail={user.email} />
+          )}
         </div>
       </div>
 

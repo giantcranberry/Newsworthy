@@ -1,18 +1,19 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTasks, kanbanStages } from '@/db/schema'
-import { eq, and, isNull, sql, asc } from 'drizzle-orm'
+import { kanbanTasks } from '@/db/schema'
+import { eq, sql, asc } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyTaskOwnership, verifyStageOwnership } from '@/lib/kanban-auth'
 
-// PUT: Move task between/within global stages
+// PUT: Move task between/within user's stages
 export async function PUT(request: NextRequest) {
   const session = await auth()
-  const isAdmin = (session?.user as any)?.isAdmin
-  const isEditor = (session?.user as any)?.isEditor
-
-  if (!isAdmin && !isEditor) {
+  const userId = (session?.user as any)?.id
+  if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const uid = parseInt(userId)
 
   try {
     const { taskId, stageId, sortOrder } = await request.json()
@@ -21,13 +22,12 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'taskId, stageId, and sortOrder are required' }, { status: 400 })
     }
 
-    // Verify target stage is a global stage
-    const [targetStage] = await db
-      .select({ id: kanbanStages.id })
-      .from(kanbanStages)
-      .where(and(eq(kanbanStages.id, stageId), isNull(kanbanStages.userId)))
+    // Verify task and target stage belong to user
+    if (!(await verifyTaskOwnership(taskId, uid))) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+    }
 
-    if (!targetStage) {
+    if (!(await verifyStageOwnership(stageId, uid))) {
       return NextResponse.json({ error: 'Invalid stage' }, { status: 400 })
     }
 

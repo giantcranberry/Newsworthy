@@ -246,6 +246,35 @@ export async function PUT(
   return NextResponse.json({ success: true })
 }
 
+// PATCH: Toggle video shorts opt-out
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ uuid: string }> }
+) {
+  const { uuid } = await params
+  const session = await getEffectiveSession()
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const userId = parseInt(session.user.id)
+  const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
+  const co = await getCompanyForUser(uuid, userId, isAdmin)
+
+  if (!co) {
+    return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+  }
+
+  const { videoShortsOptOut } = await request.json()
+
+  await db.update(company)
+    .set({ videoShortsOptOut: !!videoShortsOptOut })
+    .where(eq(company.id, co.id))
+
+  return NextResponse.json({ success: true })
+}
+
 // DELETE: Soft-delete an image asset
 export async function DELETE(
   request: NextRequest,

@@ -64,6 +64,11 @@ interface TaskNote {
   authorEmail: string | null
 }
 
+export interface BrandCompany {
+  id: number
+  companyName: string
+}
+
 export interface KanbanTask {
   id: number
   stageId: number
@@ -72,6 +77,8 @@ export interface KanbanTask {
   priority: string
   assignedTo: number | null
   createdBy: number
+  companyId: number | null
+  companyName: string | null
   sortOrder: number
   createdAt: string
   updatedAt: string
@@ -115,18 +122,26 @@ export function TaskFormDialog({
   task,
   stages,
   users,
+  companies = [],
   defaultStageId,
   currentUserId,
   onSaved,
+  apiBase,
+  showAssignee = true,
+  showBrandSelector = false,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   task: KanbanTask | null
   stages: Stage[]
   users: EditorialUser[]
+  companies?: BrandCompany[]
   defaultStageId?: number
   currentUserId: number | null
   onSaved: () => void
+  apiBase: string
+  showAssignee?: boolean
+  showBrandSelector?: boolean
 }) {
   const editorRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -135,6 +150,7 @@ export function TaskFormDialog({
   const [priority, setPriority] = useState('medium')
   const [stageId, setStageId] = useState<number>(0)
   const [assignedTo, setAssignedTo] = useState<string>('')
+  const [companyId, setCompanyId] = useState<string>('')
   const [existingFiles, setExistingFiles] = useState<TaskFile[]>([])
   const [newFiles, setNewFiles] = useState<File[]>([])
   const [saving, setSaving] = useState(false)
@@ -157,6 +173,7 @@ export function TaskFormDialog({
         setPriority(task.priority || 'medium')
         setStageId(task.stageId)
         setAssignedTo(task.assignedTo ? String(task.assignedTo) : '')
+        setCompanyId(task.companyId ? String(task.companyId) : '')
         setExistingFiles(task.files || [])
         fetchNotes(task.id)
       } else {
@@ -164,6 +181,7 @@ export function TaskFormDialog({
         setPriority('medium')
         setStageId(defaultStageId || stages[0]?.id || 0)
         setAssignedTo('')
+        setCompanyId('')
         setExistingFiles([])
         setNotes([])
       }
@@ -175,7 +193,7 @@ export function TaskFormDialog({
 
   const fetchNotes = async (taskId: number) => {
     try {
-      const res = await fetch(`/api/admin/tasks/${taskId}/notes`)
+      const res = await fetch(`${apiBase}/${taskId}/notes`)
       if (res.ok) setNotes(await res.json())
     } catch (err) {
       console.error('Error fetching notes:', err)
@@ -194,7 +212,7 @@ export function TaskFormDialog({
     setNewNote('')
 
     try {
-      const res = await fetch(`/api/admin/tasks/${task.id}/notes`, {
+      const res = await fetch(`${apiBase}/${task.id}/notes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
@@ -230,15 +248,20 @@ export function TaskFormDialog({
       formData.append('description', description)
       formData.append('priority', priority)
       formData.append('stageId', String(stageId))
-      formData.append('assignedTo', assignedTo)
+      if (showAssignee) {
+        formData.append('assignedTo', assignedTo)
+      }
+      if (showBrandSelector) {
+        formData.append('companyId', companyId)
+      }
 
       for (const file of newFiles) {
         formData.append('files', file)
       }
 
       const url = task
-        ? `/api/admin/tasks/${task.id}`
-        : '/api/admin/tasks'
+        ? `${apiBase}/${task.id}`
+        : apiBase
       const method = task ? 'PUT' : 'POST'
 
       const res = await fetch(url, { method, body: formData })
@@ -260,7 +283,7 @@ export function TaskFormDialog({
   const handleDeleteFile = async (fileId: number) => {
     if (!task) return
     try {
-      const res = await fetch(`/api/admin/tasks/${task.id}/files/${fileId}`, {
+      const res = await fetch(`${apiBase}/${task.id}/files/${fileId}`, {
         method: 'DELETE',
       })
       if (res.ok) {
@@ -274,7 +297,7 @@ export function TaskFormDialog({
   const handleDeleteTask = async () => {
     if (!task) return
     try {
-      const res = await fetch(`/api/admin/tasks/${task.id}`, {
+      const res = await fetch(`${apiBase}/${task.id}`, {
         method: 'DELETE',
       })
       if (res.ok) {
@@ -362,7 +385,7 @@ export function TaskFormDialog({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-4 grid-cols-2">
               {/* Priority */}
               <div className="space-y-2">
                 <Label htmlFor="task-priority">Priority</Label>
@@ -396,21 +419,42 @@ export function TaskFormDialog({
               </div>
 
               {/* Assigned To */}
-              <div className="space-y-2">
-                <Label htmlFor="task-assignee">Assign To</Label>
-                <Select
-                  id="task-assignee"
-                  value={assignedTo}
-                  onChange={(e) => setAssignedTo(e.target.value)}
-                >
-                  <option value="">Unassigned</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {getUserLabel(u)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
+              {showAssignee && (
+                <div className="space-y-2">
+                  <Label htmlFor="task-assignee">Assign To</Label>
+                  <Select
+                    id="task-assignee"
+                    value={assignedTo}
+                    onChange={(e) => setAssignedTo(e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {getUserLabel(u)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+
+              {/* Brand */}
+              {showBrandSelector && companies.length > 0 && (
+                <div className="space-y-2">
+                  <Label htmlFor="task-brand">Brand</Label>
+                  <Select
+                    id="task-brand"
+                    value={companyId}
+                    onChange={(e) => setCompanyId(e.target.value)}
+                  >
+                    <option value="">No Brand</option>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.companyName}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
             </div>
 
             {/* Files */}
