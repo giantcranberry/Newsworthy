@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Eye, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Eye, ArrowUpDown, ArrowUp, ArrowDown, Loader2 } from 'lucide-react'
 
 interface ReleaseRow {
   release: {
@@ -12,8 +12,8 @@ interface ReleaseRow {
     uuid: string
     title: string | null
     status: string | null
-    createdAt: Date | null
-    releaseAt: Date | null
+    createdAt: Date | string | null
+    releaseAt: Date | string | null
   }
   user: {
     email: string
@@ -48,8 +48,10 @@ const ALL_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent'
 type SortField = 'createdAt' | 'releaseAt'
 type SortDir = 'desc' | 'asc'
 
-export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
+export function ReleasesTable({ initialReleases }: { initialReleases: ReleaseRow[] }) {
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [displayedReleases, setDisplayedReleases] = useState<ReleaseRow[]>(initialReleases)
+  const [isLoading, setIsLoading] = useState(false)
   const [sortField, setSortField] = useState<SortField>('createdAt')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
 
@@ -69,29 +71,51 @@ export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
       : <ArrowUp className="h-3.5 w-3.5" />
   }
 
-  const filtered = useMemo(() => {
-    let result = releases
-    if (statusFilter !== 'all') {
-      result = result.filter(r => (r.release.status || 'start') === statusFilter)
+  const handleStatusFilter = useCallback(async (status: string) => {
+    setStatusFilter(status)
+
+    if (status === 'all') {
+      setDisplayedReleases(initialReleases)
+      return
     }
-    result = [...result].sort((a, b) => {
+
+    setIsLoading(true)
+    try {
+      const res = await fetch(`/api/admin/releases?status=${status}`)
+      if (res.ok) {
+        const data = await res.json()
+        setDisplayedReleases(data)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [initialReleases])
+
+  const sorted = useMemo(() => {
+    return [...displayedReleases].sort((a, b) => {
       const aVal = a.release[sortField] ? new Date(a.release[sortField]!).getTime() : 0
       const bVal = b.release[sortField] ? new Date(b.release[sortField]!).getTime() : 0
       return sortDir === 'desc' ? bVal - aVal : aVal - bVal
     })
-    return result
-  }, [releases, statusFilter, sortField, sortDir])
+  }, [displayedReleases, sortField, sortDir])
+
+  const countLabel = statusFilter === 'all'
+    ? `${sorted.length} — Last 30 days`
+    : `${sorted.length} ${statusFilter}`
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle>Press Releases ({filtered.length})</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            Press Releases ({countLabel})
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+          </CardTitle>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-gray-500">Status:</span>
             <div className="flex gap-1 flex-wrap">
               <button
-                onClick={() => setStatusFilter('all')}
+                onClick={() => handleStatusFilter('all')}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                   statusFilter === 'all'
                     ? 'bg-gray-900 text-white'
@@ -103,7 +127,7 @@ export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
               {ALL_STATUSES.map(status => (
                 <button
                   key={status}
-                  onClick={() => setStatusFilter(status)}
+                  onClick={() => handleStatusFilter(status)}
                   className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                     statusFilter === status
                       ? 'bg-gray-900 text-white'
@@ -140,7 +164,7 @@ export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(({ release, user, company: comp }) => (
+              {sorted.map(({ release, user, company: comp }) => (
                 <tr key={release.id} className="border-b hover:bg-gray-50">
                   <td className="py-3 px-4 text-sm">{release.id}</td>
                   <td className="py-3 px-4 text-sm max-w-xs truncate">
@@ -179,7 +203,7 @@ export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {sorted.length === 0 && (
                 <tr>
                   <td colSpan={8} className="py-8 text-center text-gray-500">
                     No releases found

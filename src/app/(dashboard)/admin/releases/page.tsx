@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, users, company } from '@/db/schema'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, gte } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,9 @@ import { ArrowLeft } from 'lucide-react'
 import { ReleasesTable } from './releases-table'
 
 async function getReleases() {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
   const allReleases = await db
     .select({
       release: {
@@ -29,8 +32,8 @@ async function getReleases() {
     .from(releases)
     .leftJoin(users, eq(releases.userId, users.id))
     .leftJoin(company, eq(releases.companyId, company.id))
+    .where(gte(releases.createdAt, thirtyDaysAgo))
     .orderBy(desc(releases.createdAt))
-    .limit(200)
 
   return allReleases
 }
@@ -62,7 +65,7 @@ export default async function AdminReleasesPage() {
         </div>
       </div>
 
-      <ReleasesTable releases={allReleases} />
+      <ReleasesTable initialReleases={allReleases} />
     </div>
   )
 }
