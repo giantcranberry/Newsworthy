@@ -116,20 +116,13 @@ export function ReleasesTable({ releases }: { releases: ReleaseRow[] }) {
                 <th className="py-3 px-4 font-medium text-gray-500">Company</th>
                 <th className="py-3 px-4 font-medium text-gray-500">Author</th>
                 <th className="py-3 px-4 font-medium text-gray-500">Status</th>
-                <th className="py-3 px-4 font-medium text-gray-500">
-                  <button
-                    onClick={() => toggleSort('createdAt')}
-                    className="flex items-center gap-1 hover:text-gray-900"
-                  >
-                    Created <SortIcon field="createdAt" />
-                  </button>
-                </th>
+                <th className="py-3 px-4 font-medium text-gray-500">Created</th>
                 <th className="py-3 px-4 font-medium text-gray-500">
                   <button
                     onClick={() => toggleSort('releaseAt')}
                     className="flex items-center gap-1 hover:text-gray-900"
                   >
-                    Release Date <SortIcon field="releaseAt" />
+                    Release <SortIcon field="releaseAt" />
                   </button>
                 </th>
                 <th className="py-3 px-4 font-medium text-gray-500">Actions</th>
