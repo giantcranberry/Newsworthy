@@ -107,7 +107,7 @@ export default async function AdminUsersPage({
       <UserSearchForm />
 
       {/* Filter Tabs */}
-      <div className="flex gap-2">
+      <div data-tour="users-filters" className="flex gap-2">
         <Link
           href={`/admin/users${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
           className={cn(
@@ -138,11 +138,11 @@ export default async function AdminUsersPage({
       </div>
 
       {/* Users Table */}
-      <Card>
+      <Card data-tour="users-table">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
+              <thead data-tour="users-columns">
                 <tr className="border-b text-left">
                   <th className="py-3 px-4 text-sm font-medium text-gray-500">ID</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500">Email</th>
@@ -153,8 +153,8 @@ export default async function AdminUsersPage({
                 </tr>
               </thead>
               <tbody>
-                {allUsers.map((user) => (
-                  <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                {allUsers.map((user, index) => (
+                  <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600">{user.id}</td>
                     <td className="py-3 px-4 text-sm font-medium text-gray-900">{user.email}</td>
                     <td className="py-3 px-4">
@@ -191,7 +191,7 @@ export default async function AdminUsersPage({
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "users-actions" } : {})}>
                         {isAdmin && (
                           <SendMessageDialog
                             userId={user.id}

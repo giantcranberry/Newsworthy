@@ -70,13 +70,13 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
   return (
     <form onSubmit={handleSubmit} className="-mt-6 space-y-8">
       {/* Sticky Action Bar */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="profile-actionbar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 truncate">Account Settings</h1>
             <p className="text-sm text-gray-600 mt-0.5">Manage your profile and preferences</p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div data-tour="profile-save" className="flex items-center gap-2 flex-shrink-0">
             <Button
               type="button"
               variant="outline"
@@ -104,7 +104,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
 
       {/* Subscription Info */}
       {canPurchase && (
-        <Card>
+        <Card data-tour="profile-subscription">
           <CardHeader>
             <CardTitle>Subscription</CardTitle>
           </CardHeader>
@@ -142,7 +142,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
       )}
 
       {/* Profile Information */}
-      <Card>
+      <Card data-tour="profile-info">
         <CardHeader>
           <CardTitle>Profile Information</CardTitle>
         </CardHeader>
@@ -207,7 +207,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
       </Card>
 
       {/* Agency Features */}
-      <Card>
+      <Card data-tour="profile-agency">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -231,10 +231,12 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
       </Card>
 
       {/* Password */}
-      <PasswordSection hasPassword={hasPassword} />
+      <div data-tour="profile-password">
+        <PasswordSection hasPassword={hasPassword} />
+      </div>
 
       {/* Address */}
-      <Card>
+      <Card data-tour="profile-address">
         <CardHeader>
           <CardTitle>Address</CardTitle>
         </CardHeader>

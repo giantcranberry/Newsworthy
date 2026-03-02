@@ -182,6 +182,7 @@ export function ProductList({
       {/* Filter & Add */}
       <div className="flex items-center justify-between">
         <Select
+          data-tour="products-filter"
           value={currentFilter}
           onChange={(e) => handleFilterChange(e.target.value)}
           className="w-48"
@@ -194,7 +195,7 @@ export function ProductList({
             </option>
           ))}
         </Select>
-        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+        <Button data-tour="products-add" onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
           <Plus className="h-4 w-4" />
           Add Product
         </Button>
@@ -202,7 +203,7 @@ export function ProductList({
 
       {/* Product List */}
       {products.length === 0 ? (
-        <Card>
+        <Card data-tour="products-empty">
           <CardContent className="py-16 text-center">
             <Zap className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">No products found</h3>
@@ -211,10 +212,10 @@ export function ProductList({
         </Card>
       ) : (
         <div className="space-y-4">
-          {products.map((product) => {
+          {products.map((product, index) => {
             const partnerName = getPartnerName(product.partnerId);
             return (
-              <Card key={product.id} className="overflow-hidden">
+              <Card key={product.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "products-first-item" } : {})}>
                 <div className="flex-1 min-w-0 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -260,7 +261,7 @@ export function ProductList({
                         {formatPrice(product.price)}
                       </p>
                       <div className="h-6 w-px bg-gray-200" />
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "products-actions" } : {})}>
                         <button
                           onClick={() => handleEdit(product)}
                           className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"

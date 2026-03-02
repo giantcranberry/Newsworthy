@@ -235,7 +235,7 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
   // List view
   return (
     <div className="space-y-4">
-      <div className="relative max-w-sm">
+      <div data-tour="email-templates-search" className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           placeholder="Search templates..."
@@ -245,16 +245,17 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
         />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg divide-y divide-slate-200">
+      <div data-tour="email-templates-list" className="bg-white border border-slate-200 rounded-lg divide-y divide-slate-200">
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm">
+          <div data-tour="email-templates-empty" className="p-8 text-center text-gray-500 text-sm">
             No templates found.
           </div>
         ) : (
-          filtered.map((template) => (
+          filtered.map((template, index) => (
             <div
               key={template.id}
               className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+              {...(index === 0 ? { "data-tour": "email-templates-first-item" } : {})}
             >
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
@@ -268,7 +269,7 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3" {...(index === 0 ? { "data-tour": "email-templates-actions" } : {})}>
                 {template.updatedAt && (
                   <span className="text-xs text-gray-400">
                     Updated {new Date(template.updatedAt).toLocaleDateString()}

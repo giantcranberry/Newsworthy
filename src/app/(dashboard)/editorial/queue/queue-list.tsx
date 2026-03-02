@@ -135,9 +135,9 @@ export function QueueList({
   const isNotCheckedOut = (item: QueueItem) => !item.editorId
 
   return (
-    <div className="space-y-3">
-      {items.map((item) => (
-        <Card key={item.queueId} className="overflow-hidden">
+    <div data-tour="queue-list" className="space-y-3">
+      {items.map((item, index) => (
+        <Card key={item.queueId} className="overflow-hidden" {...(index === 0 ? { "data-tour": "queue-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -147,7 +147,13 @@ export function QueueList({
                       {item.title || 'Untitled Release'}
                     </h3>
                   </Link>
-                  <DistributionBadge distribution={item.distribution} />
+                  {index === 0 ? (
+                    <span data-tour="queue-distribution">
+                      <DistributionBadge distribution={item.distribution} />
+                    </span>
+                  ) : (
+                    <DistributionBadge distribution={item.distribution} />
+                  )}
                 </div>
 
                 <p className="text-sm text-gray-600">
@@ -172,7 +178,7 @@ export function QueueList({
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                <div className="flex items-center gap-2 mt-3 flex-wrap" {...(index === 0 ? { "data-tour": "queue-actions" } : {})}>
                   {isCheckedOutByMe(item) && (
                     <>
                       <Link href={`/editorial/edit/${item.releaseId}`}>

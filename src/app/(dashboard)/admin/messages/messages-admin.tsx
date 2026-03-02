@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -42,6 +41,7 @@ export function MessagesAdmin() {
   const [isLoading, setIsLoading] = useState(true)
   const [globalDialogOpen, setGlobalDialogOpen] = useState(false)
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<'global' | 'sent'>('global')
   const [editingMessage, setEditingMessage] = useState<GlobalMessage | null>(null)
   const [editingSentMessage, setEditingSentMessage] = useState<SentMessage | null>(null)
 
@@ -125,22 +125,33 @@ export function MessagesAdmin() {
   }
 
   return (
-    <>
-      <Tabs defaultValue="global">
-        <TabsList>
-          <TabsTrigger value="global" className="gap-2">
-            <Globe className="h-4 w-4" />
-            Global Messages
-          </TabsTrigger>
-          <TabsTrigger value="sent" className="gap-2">
-            <Send className="h-4 w-4" />
-            Sent Messages
-          </TabsTrigger>
-        </TabsList>
+    <div data-tour-active-tab={activeTab}>
+      <div data-tour="messages-tabs" className="flex gap-2">
+        <button
+          onClick={() => setActiveTab('global')}
+          className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            activeTab === 'global' ? 'bg-cyan-800/10 text-cyan-800' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Globe className="h-4 w-4" />
+          Global Messages ({globals.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('sent')}
+          className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
+            activeTab === 'sent' ? 'bg-cyan-800/10 text-cyan-800' : 'text-gray-700 hover:bg-gray-100'
+          }`}
+        >
+          <Send className="h-4 w-4" />
+          Sent Messages ({sent.length})
+        </button>
+      </div>
 
-        <TabsContent value="global" className="mt-4">
+      {activeTab === 'global' && (
+        <div className="space-y-4">
           <div className="flex justify-end mb-4">
             <Button
+              data-tour="messages-create-global"
               onClick={() => { setEditingMessage(null); setGlobalDialogOpen(true) }}
               className="gap-2 bg-cyan-800 hover:bg-cyan-900 text-white"
             >
@@ -150,15 +161,15 @@ export function MessagesAdmin() {
           </div>
 
           {globals.length === 0 ? (
-            <Card>
+            <Card data-tour="messages-global-empty">
               <CardContent className="p-8 text-center text-gray-500">
                 No global messages yet. Create one to broadcast to all users.
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
-              {globals.map((msg) => (
-                <Card key={msg.id}>
+              {globals.map((msg, index) => (
+                <Card key={msg.id} {...(index === 0 ? { "data-tour": "messages-global-first" } : {})}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -173,7 +184,7 @@ export function MessagesAdmin() {
                           )}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "messages-global-actions" } : {})}>
                         <Button
                           variant="outline"
                           size="sm"
@@ -219,11 +230,14 @@ export function MessagesAdmin() {
               ))}
             </div>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        <TabsContent value="sent" className="mt-4">
+      {activeTab === 'sent' && (
+        <div className="space-y-4">
           <div className="flex justify-end mb-4">
             <Button
+              data-tour="messages-send"
               onClick={() => { setEditingSentMessage(null); setSendDialogOpen(true) }}
               className="gap-2 bg-cyan-800 hover:bg-cyan-900 text-white"
             >
@@ -233,15 +247,15 @@ export function MessagesAdmin() {
           </div>
 
           {sent.length === 0 ? (
-            <Card>
+            <Card data-tour="messages-sent-empty">
               <CardContent className="p-8 text-center text-gray-500">
                 No individual messages sent yet.
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
-              {sent.map((msg) => (
-                <Card key={msg.id}>
+              {sent.map((msg, index) => (
+                <Card key={msg.id} {...(index === 0 ? { "data-tour": "messages-sent-first" } : {})}>
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -264,7 +278,7 @@ export function MessagesAdmin() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "messages-sent-actions" } : {})}>
                         {!msg.isRead && (
                           <Button
                             variant="outline"
@@ -292,8 +306,8 @@ export function MessagesAdmin() {
               ))}
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
 
       {/* Global Message Dialog */}
       <Dialog open={globalDialogOpen} onOpenChange={setGlobalDialogOpen}>
@@ -323,6 +337,6 @@ export function MessagesAdmin() {
           />
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   )
 }

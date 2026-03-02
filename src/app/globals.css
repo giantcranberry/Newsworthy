@@ -96,6 +96,15 @@ body {
   border-radius: 2px;
 }
 
+@keyframes bounce-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+.animate-bounce-x {
+  animation: bounce-x 1s ease-in-out infinite;
+}
+
 @keyframes preview-flash {
   0%, 40% {
     background-color: rgb(16 185 129 / 0.3);

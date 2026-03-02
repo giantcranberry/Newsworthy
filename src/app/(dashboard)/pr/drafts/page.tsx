@@ -46,7 +46,7 @@ export default async function DraftsPage() {
             Press releases not yet submitted for review
           </p>
         </div>
-        <Link href="/pr/create">
+        <Link href="/pr/create" data-tour="drafts-new-release">
           <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
             <Plus className="h-4 w-4" />
             New Release
@@ -56,7 +56,7 @@ export default async function DraftsPage() {
 
       {/* Drafts List */}
       {drafts.length === 0 ? (
-        <Card>
+        <Card data-tour="drafts-empty">
           <CardContent className="py-16 text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
@@ -75,9 +75,9 @@ export default async function DraftsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {drafts.map((release) => (
-            <Card key={release.id} className="overflow-hidden">
+        <div data-tour="drafts-list" className="space-y-4">
+          {drafts.map((release, index) => (
+            <Card key={release.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "drafts-first-card" } : {})}>
               <div className="flex flex-col sm:flex-row">
                 {/* Banner */}
                 {release.banner?.url || release.primaryImage?.url ? (
@@ -146,7 +146,7 @@ export default async function DraftsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "drafts-actions" } : {})}>
                       <Link href={`/pr/${release.uuid}`}>
                         <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                           <Edit className="h-3.5 w-3.5" />

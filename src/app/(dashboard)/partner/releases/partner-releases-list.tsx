@@ -75,7 +75,7 @@ export function PartnerReleasesList({
 
   if (releases.length === 0 && !currentUser && !currentStatus) {
     return (
-      <Card>
+      <Card data-tour="partner-releases-empty">
         <CardContent className="py-16 text-center">
           <FileText className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No Press Releases Yet</h3>
@@ -90,7 +90,7 @@ export function PartnerReleasesList({
   return (
     <>
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
+      <div data-tour="partner-releases-filters" className="inline-flex flex-wrap gap-3">
         <select
           value={currentUser?.toString() || ''}
           onChange={(e) => {
@@ -127,7 +127,7 @@ export function PartnerReleasesList({
         <p className="text-sm text-gray-500">No releases match your filters.</p>
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div data-tour="partner-releases-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -149,8 +149,8 @@ export function PartnerReleasesList({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {releases.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
+                {releases.map((r, index) => (
+                  <tr key={r.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "partner-releases-first-row" } : {})}>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
                       {(r.releasedAt || r.createdAt)
                         ? new Date(r.releasedAt || r.createdAt!).toLocaleDateString('en-US', {

@@ -58,14 +58,14 @@ export function ReleasedEditLookup() {
   }
 
   return (
-    <Card>
+    <Card data-tour="released-edit-lookup">
       <CardHeader>
         <CardTitle>Find Release</CardTitle>
         <CardDescription>Enter a press release ID or paste a newsworthy.ai URL</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLookup} className="flex items-end gap-3">
-          <div className="flex-1">
+          <div data-tour="released-edit-input" className="flex-1">
             <Label htmlFor="prId">Press Release ID or URL</Label>
             <Input
               id="prId"
@@ -77,6 +77,7 @@ export function ReleasedEditLookup() {
             />
           </div>
           <Button
+            data-tour="released-edit-submit"
             type="submit"
             className="bg-cyan-800 text-white hover:bg-cyan-900"
             disabled={loading || !prId.trim()}

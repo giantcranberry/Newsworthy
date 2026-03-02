@@ -37,7 +37,7 @@ export default async function PendingPage() {
       </div>
 
       {items.length === 0 ? (
-        <Card>
+        <Card data-tour="pending-empty">
           <CardContent className="py-16 text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">No pending releases</h3>
