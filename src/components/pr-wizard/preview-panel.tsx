@@ -76,7 +76,7 @@ export function PreviewPanel({
 
       <article className={cn('flex flex-col', compact ? 'px-4 py-4 gap-3' : 'px-6 py-6 gap-5')}>
         {/* Title */}
-        <h1 className={cn(
+        <h1 id="preview-title" className={cn(
           'font-serif font-medium text-gray-900',
           compact ? 'text-2xl leading-snug' : 'text-2xl lg:text-4xl'
         )}>
@@ -100,7 +100,7 @@ export function PreviewPanel({
         )}
 
         {/* Abstract */}
-        <p className={cn(
+        <p id="preview-abstract" className={cn(
           'font-light text-gray-700',
           compact ? 'text-sm' : 'text-base md:text-xl'
         )}>
@@ -134,7 +134,7 @@ export function PreviewPanel({
                 />
               )}
               {release?.pullquote && (
-                <blockquote className={cn(
+                <blockquote id="preview-pullquote" className={cn(
                   'border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700',
                   deviceMode === 'mobile'
                     ? 'pl-4 py-3 text-sm'
@@ -148,6 +148,7 @@ export function PreviewPanel({
 
           {/* Body content */}
           <div
+            id="preview-body"
             className={cn(
               'article max-w-none prose prose-gray prose-p:text-gray-800 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-blockquote:text-gray-600',
               compact

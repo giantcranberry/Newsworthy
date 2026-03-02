@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Monitor, Tablet, Smartphone } from 'lucide-react'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 const MIN_WIDTH = 300
 const MAX_WIDTH = 900
-const DEFAULT_WIDTH = 500
+const DEFAULT_WIDTH = MAX_WIDTH
 
 interface PreviewImage {
   id: number
@@ -56,6 +56,8 @@ export function ReleasePreviewSidebar() {
   const { uuid } = useParams<{ uuid: string }>()
   const [data, setData] = useState<PreviewData | null>(null)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const pendingHighlightText = useRef<string | null>(null)
 
   const effectiveDevice = useMemo(() => widthToDevice(panelWidth), [panelWidth])
 
@@ -67,12 +69,87 @@ export function ReleasePreviewSidebar() {
     setPanelWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, DEVICE_SNAP_WIDTHS[mode])))
   }, [])
 
+  const highlightText = useCallback((text: string) => {
+    const container = scrollRef.current
+    if (!container) return
+
+    // Walk text nodes to find the matching text
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+    const textNodes: { node: Text; start: number }[] = []
+    let accumulated = ''
+    let node: Text | null
+    while ((node = walker.nextNode() as Text | null)) {
+      textNodes.push({ node, start: accumulated.length })
+      accumulated += node.textContent || ''
+    }
+
+    const matchIndex = accumulated.indexOf(text)
+    if (matchIndex === -1) return
+
+    const matchEnd = matchIndex + text.length
+    let startNode: Text | null = null
+    let startOffset = 0
+    let endNode: Text | null = null
+    let endOffset = 0
+
+    for (const { node: tn, start } of textNodes) {
+      const nodeEnd = start + (tn.textContent?.length || 0)
+      if (!startNode && matchIndex >= start && matchIndex < nodeEnd) {
+        startNode = tn
+        startOffset = matchIndex - start
+      }
+      if (matchEnd > start && matchEnd <= nodeEnd) {
+        endNode = tn
+        endOffset = matchEnd - start
+        break
+      }
+    }
+
+    if (!startNode || !endNode) return
+
+    const range = document.createRange()
+    range.setStart(startNode, startOffset)
+    range.setEnd(endNode, endOffset)
+
+    try {
+      const mark = document.createElement('mark')
+      mark.className = 'preview-highlight-flash'
+      range.surroundContents(mark)
+      mark.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      mark.addEventListener('animationend', () => {
+        // Unwrap the mark and restore original DOM
+        const parent = mark.parentNode
+        if (parent) {
+          while (mark.firstChild) parent.insertBefore(mark.firstChild, mark)
+          parent.removeChild(mark)
+          parent.normalize()
+        }
+      }, { once: true })
+    } catch {
+      // Fallback if text spans multiple elements: highlight the parent block
+      const el = startNode.parentElement
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        el.classList.add('preview-highlight-flash')
+        el.addEventListener('animationend', () => el.classList.remove('preview-highlight-flash'), { once: true })
+      }
+    }
+  }, [])
+
   const fetchPreview = useCallback(() => {
     fetch(`/api/pr/${uuid}/preview?t=${Date.now()}`)
       .then((res) => res.ok ? res.json() : null)
-      .then(setData)
+      .then((d) => {
+        setData(d)
+        if (pendingHighlightText.current) {
+          const text = pendingHighlightText.current
+          pendingHighlightText.current = null
+          // Wait for React to render new data before searching DOM
+          requestAnimationFrame(() => highlightText(text))
+        }
+      })
       .catch(() => null)
-  }, [uuid])
+  }, [uuid, highlightText])
 
   useEffect(() => {
     fetchPreview()
@@ -81,10 +158,19 @@ export function ReleasePreviewSidebar() {
   // Re-fetch preview periodically and on explicit refresh events
   useEffect(() => {
     const handler = () => fetchPreview()
+    const highlightHandler = (e: Event) => {
+      const text = (e as CustomEvent<{ text: string }>).detail?.text
+      if (text) {
+        pendingHighlightText.current = text
+        fetchPreview()
+      }
+    }
     window.addEventListener('preview-refresh', handler)
+    window.addEventListener('preview-highlight', highlightHandler)
     const interval = setInterval(fetchPreview, 5000)
     return () => {
       window.removeEventListener('preview-refresh', handler)
+      window.removeEventListener('preview-highlight', highlightHandler)
       clearInterval(interval)
     }
   }, [fetchPreview])
@@ -93,7 +179,7 @@ export function ReleasePreviewSidebar() {
     <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: panelWidth }}>
       <div className="sticky top-0 h-screen flex">
         <ResizeHandle onResize={handleResize} />
-        <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
+        <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
         <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-sm font-medium text-gray-900">Live Preview</h3>
