@@ -26,13 +26,24 @@ interface ReleaseRow {
 const statusColors: Record<string, string> = {
   start: 'bg-gray-100 text-gray-700',
   draft: 'bg-yellow-100 text-yellow-700',
+  draftnxt: 'bg-orange-100 text-orange-700',
   review: 'bg-blue-100 text-blue-700',
   approved: 'bg-green-100 text-green-700',
   sent: 'bg-emerald-100 text-emerald-700',
   released: 'bg-purple-100 text-purple-700',
 }
 
-const ALL_STATUSES = ['start', 'draft', 'review', 'approved', 'sent', 'released']
+const statusLabels: Record<string, string> = {
+  start: 'start',
+  draft: 'draft',
+  draftnxt: 'draftnxt',
+  review: 'review',
+  approved: 'approved',
+  sent: 'sent',
+  released: 'released',
+}
+
+const ALL_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent', 'released']
 
 type SortField = 'createdAt' | 'releaseAt'
 type SortDir = 'desc' | 'asc'
