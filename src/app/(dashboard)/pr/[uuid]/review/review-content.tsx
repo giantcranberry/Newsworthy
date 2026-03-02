@@ -25,6 +25,7 @@ import {
   Video,
   RefreshCw,
   CheckCircle,
+  Undo2,
 } from "lucide-react";
 import {
   Dialog,
@@ -149,6 +150,7 @@ export function ReviewContent({
   const [applyingImprovement, setApplyingImprovement] = useState<number | null>(
     null,
   );
+  const [undoingImprovement, setUndoingImprovement] = useState<number | null>(null);
   const [confirmIndex, setConfirmIndex] = useState<number | null>(null);
   const [currentTitle, setCurrentTitle] = useState(release.title);
   const [acceptingHeadline, setAcceptingHeadline] = useState<number | null>(null);
@@ -256,6 +258,41 @@ export function ReviewContent({
       alert("Failed to apply change");
     } finally {
       setApplyingImprovement(null);
+    }
+  };
+
+  const handleUndoImprovement = async (index: number) => {
+    const improvement = aiCopyImprovements[index];
+    if (!improvement) return;
+
+    setUndoingImprovement(index);
+
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/apply-edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalText: improvement.improvedText,
+          improvedText: improvement.originalText,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to undo change");
+        return;
+      }
+
+      setAcceptedImprovements((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+      window.dispatchEvent(new Event("preview-refresh"));
+    } catch {
+      alert("Failed to undo change");
+    } finally {
+      setUndoingImprovement(null);
     }
   };
 
@@ -1086,10 +1123,26 @@ export function ReviewContent({
                                 {improvement.reason}
                               </p>
                               {isAccepted ? (
-                                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
-                                  <CheckCircle className="h-3.5 w-3.5" />
-                                  Applied
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    Applied
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleUndoImprovement(index)}
+                                    disabled={undoingImprovement === index}
+                                    className="text-gray-500 hover:text-gray-700 h-7 px-2"
+                                  >
+                                    {undoingImprovement === index ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <Undo2 className="h-3.5 w-3.5" />
+                                    )}
+                                    {undoingImprovement === index ? "Undoing..." : "Undo"}
+                                  </Button>
+                                </div>
                               ) : (
                                 <Dialog
                                   open={confirmIndex === index}
