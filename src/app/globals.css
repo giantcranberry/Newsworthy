@@ -90,3 +90,19 @@ body {
 .wizard-step-current {
   animation: wizard-pulse 2s ease-in-out infinite;
 }
+
+.preview-highlight-flash {
+  animation: preview-flash 2s ease-out;
+  border-radius: 2px;
+}
+
+@keyframes preview-flash {
+  0%, 40% {
+    background-color: rgb(16 185 129 / 0.3);
+    box-shadow: 0 0 0 3px rgb(16 185 129 / 0.2);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 3px transparent;
+  }
+}
