@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, uniqueIndex } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
 
@@ -103,9 +103,30 @@ export const couponLog = pgTable('coupon_log', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
+export const partnerManagers = pgTable('partner_managers', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  partnerId: integer('partner_id').notNull().references(() => partners.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  uniqueIndex('idx_partner_managers_unique').on(table.userId, table.partnerId),
+])
+
 // Relations
 export const partnersRelations = relations(partners, ({ many }) => ({
   products: many(products),
+  managers: many(partnerManagers),
+}))
+
+export const partnerManagersRelations = relations(partnerManagers, ({ one }) => ({
+  user: one(users, {
+    fields: [partnerManagers.userId],
+    references: [users.id],
+  }),
+  partner: one(partners, {
+    fields: [partnerManagers.partnerId],
+    references: [partners.id],
+  }),
 }))
 
 export const productsRelations = relations(products, ({ one }) => ({

@@ -231,6 +231,20 @@ export const processControl = pgTable('process_control', {
   settings: json('settings'),
 })
 
+// Email templates (system transactional emails editable by admin)
+export const emailTemplates = pgTable('email_templates', {
+  id: serial('id').primaryKey(),
+  slug: varchar('slug', { length: 64 }).unique().notNull(),
+  name: varchar('name', { length: 128 }).notNull(),
+  subject: varchar('subject', { length: 256 }).notNull(),
+  htmlBody: text('html_body').notNull(),
+  textBody: text('text_body'),
+  description: varchar('description', { length: 256 }),
+  variables: text('variables'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 // Email and outreach
 export const emailLists = pgTable('email_lists', {
   id: serial('id').primaryKey(),

@@ -6,8 +6,8 @@ import { compare } from 'bcryptjs'
 import { pbkdf2Sync } from 'crypto'
 import { cookies } from 'next/headers'
 import { db } from '@/db'
-import { users, userProfiles } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { users, userProfiles, partners, partnerManagers } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { addPersonToFolk } from '@/lib/folk'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
@@ -97,6 +97,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             where: eq(userProfiles.userId, user.id),
           })
 
+          // Get managed partner IDs
+          const managedRows = await db
+            .select({ partnerId: partnerManagers.partnerId })
+            .from(partnerManagers)
+            .where(eq(partnerManagers.userId, user.id))
+          const managedPartnerIds = managedRows.map(r => r.partnerId)
+
           console.log('[Auth] Login successful for:', email)
 
           return {
@@ -109,6 +116,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             isEditor: user.isEditor,
             isStaff: user.isStaff,
             partnerId: user.partnerId,
+            managedPartnerIds,
           }
         } catch (error) {
           console.error('[Auth] Error during login:', error)
@@ -141,11 +149,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               where: eq(users.email, email),
             })
             if (dbUser) {
+              const managedRows = await db
+                .select({ partnerId: partnerManagers.partnerId })
+                .from(partnerManagers)
+                .where(eq(partnerManagers.userId, dbUser.id))
               token.id = dbUser.id.toString()
               token.isAdmin = dbUser.isAdmin
               token.isEditor = dbUser.isEditor
               token.isStaff = dbUser.isStaff
               token.partnerId = dbUser.partnerId
+              token.managedPartnerIds = managedRows.map(r => r.partnerId)
               return token
             }
           }
@@ -156,6 +169,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.isEditor = (user as any).isEditor
         token.isStaff = (user as any).isStaff
         token.partnerId = (user as any).partnerId
+        token.managedPartnerIds = (user as any).managedPartnerIds || []
       }
       return token
     },
@@ -167,6 +181,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         ;(session.user as any).isEditor = token.isEditor
         ;(session.user as any).isStaff = token.isStaff
         ;(session.user as any).partnerId = token.partnerId
+        ;(session.user as any).managedPartnerIds = token.managedPartnerIds || []
       }
       return session
     },
@@ -181,12 +196,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (!existingUser) {
+          // Check for co-registration partner cookie
+          let oauthPartnerId = 1
+          try {
+            const cookieStore = await cookies()
+            const partnerCookie = cookieStore.get('coregister_partner_id')?.value
+            if (partnerCookie) {
+              const parsedId = parseInt(partnerCookie, 10)
+              if (!isNaN(parsedId)) {
+                const partner = await db.query.partners.findFirst({
+                  where: and(
+                    eq(partners.id, parsedId),
+                    eq(partners.isActive, true),
+                  ),
+                })
+                if (partner) {
+                  oauthPartnerId = partner.id
+                }
+              }
+            }
+          } catch {
+            // Cookies may not be available in all contexts
+          }
+
           // Create new user from OAuth
           const [newUser] = await db.insert(users).values({
             email,
             emailVerified: true,
             regMethod: account.provider,
-            partnerId: 1,
+            partnerId: oauthPartnerId,
           }).returning()
 
           if (newUser && user.name) {
@@ -244,6 +282,11 @@ export async function getEffectiveSession() {
           where: eq(userProfiles.userId, impersonatedUser.id),
         })
 
+        const managedRows = await db
+          .select({ partnerId: partnerManagers.partnerId })
+          .from(partnerManagers)
+          .where(eq(partnerManagers.userId, impersonatedUser.id))
+
         // Return session as the impersonated user
         return {
           ...session,
@@ -257,6 +300,7 @@ export async function getEffectiveSession() {
             isEditor: impersonatedUser.isEditor,
             isStaff: impersonatedUser.isStaff,
             partnerId: impersonatedUser.partnerId,
+            managedPartnerIds: managedRows.map(r => r.partnerId),
             isImpersonating: true,
             impersonatedBy: adminId,
           }

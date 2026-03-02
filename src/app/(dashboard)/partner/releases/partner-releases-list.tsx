@@ -1,0 +1,242 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { BarChart3, ExternalLink, FileText } from 'lucide-react'
+
+interface ReleaseData {
+  id: number
+  uuid: string
+  title: string | null
+  status: string
+  createdAt: Date | null
+  releasedAt: Date | null
+  companyName: string | null
+  userName: string
+  userId: number
+  reportReady: boolean
+}
+
+interface UserOption {
+  id: number
+  label: string
+}
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'start', label: 'Draft' },
+  { value: 'review', label: 'In Review' },
+  { value: 'sent', label: 'Sent' },
+]
+
+function buildUrl(params: { user?: number | null; status?: string | null; page?: number; partnerId?: number }) {
+  const searchParams = new URLSearchParams()
+  if (params.partnerId) searchParams.set('partner', params.partnerId.toString())
+  if (params.user) searchParams.set('user', params.user.toString())
+  if (params.status) searchParams.set('status', params.status)
+  if (params.page && params.page > 1) searchParams.set('page', params.page.toString())
+  const qs = searchParams.toString()
+  return `/partner/releases${qs ? `?${qs}` : ''}`
+}
+
+export function PartnerReleasesList({
+  releases,
+  users,
+  currentUser,
+  currentStatus,
+  page,
+  totalPages,
+  currentPartnerId,
+}: {
+  releases: ReleaseData[]
+  users: UserOption[]
+  currentUser: number | null
+  currentStatus: string | null
+  page: number
+  totalPages: number
+  currentPartnerId?: number
+}) {
+  const router = useRouter()
+
+  const statusBadge = (status: string) => {
+    switch (status) {
+      case 'sent':
+        return <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Sent</span>
+      case 'review':
+        return <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">In Review</span>
+      case 'start':
+        return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Draft</span>
+      default:
+        return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{status}</span>
+    }
+  }
+
+  if (releases.length === 0 && !currentUser && !currentStatus) {
+    return (
+      <Card>
+        <CardContent className="py-16 text-center">
+          <FileText className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-4 text-lg font-medium text-gray-900">No Press Releases Yet</h3>
+          <p className="mt-2 text-gray-600">
+            No press releases have been created by partner users yet.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <select
+          value={currentUser?.toString() || ''}
+          onChange={(e) => {
+            const userId = e.target.value ? parseInt(e.target.value) : null
+            router.push(buildUrl({ user: userId, status: currentStatus, partnerId: currentPartnerId }))
+          }}
+          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+        >
+          <option value="">All Users</option>
+          {users.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={currentStatus || ''}
+          onChange={(e) => {
+            const status = e.target.value || null
+            router.push(buildUrl({ user: currentUser, status, partnerId: currentPartnerId }))
+          }}
+          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {releases.length === 0 ? (
+        <p className="text-sm text-gray-500">No releases match your filters.</p>
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Title
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Reports
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {releases.map((r) => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                      {(r.releasedAt || r.createdAt)
+                        ? new Date(r.releasedAt || r.createdAt!).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                        : '—'}
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <div className="max-w-md truncate">{r.title || 'Untitled'}</div>
+                      {r.companyName && (
+                        <div className="text-xs text-gray-500 mt-0.5">{r.companyName}</div>
+                      )}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                      <Link
+                        href={buildUrl({ user: r.userId, status: currentStatus, partnerId: currentPartnerId })}
+                        className="text-cyan-700 hover:text-cyan-900"
+                      >
+                        {r.userName}
+                      </Link>
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm">
+                      {statusBadge(r.status)}
+                    </td>
+                    <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
+                      {r.status === 'sent' && r.reportReady ? (
+                        <div className="flex items-center justify-end gap-2">
+                          <Link href={`/pr/clips/${r.uuid}`}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5 cursor-pointer"
+                            >
+                              <BarChart3 className="h-3.5 w-3.5" />
+                              Report
+                            </Button>
+                          </Link>
+                          <Link href={`/pr/clipsreport/${r.uuid}`} target="_blank">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1.5 cursor-pointer"
+                            >
+                              <ExternalLink className="h-3.5 w-3.5" />
+                              Share
+                            </Button>
+                          </Link>
+                        </div>
+                      ) : r.status === 'sent' ? (
+                        <span className="text-gray-400 italic">Pending...</span>
+                      ) : (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2">
+              {page > 1 && (
+                <Link href={buildUrl({ user: currentUser, status: currentStatus, page: page - 1, partnerId: currentPartnerId })}>
+                  <Button variant="outline" size="sm" className="cursor-pointer">
+                    Previous
+                  </Button>
+                </Link>
+              )}
+              <span className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+              {page < totalPages && (
+                <Link href={buildUrl({ user: currentUser, status: currentStatus, page: page + 1, partnerId: currentPartnerId })}>
+                  <Button variant="outline" size="sm" className="cursor-pointer">
+                    Next
+                  </Button>
+                </Link>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </>
+  )
+}

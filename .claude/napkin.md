@@ -8,6 +8,7 @@
 | 2026-02-27 | self | Used `Select` import for Radix select in manage-credits — `Select` is the native HTML select wrapper, not the Radix one | Use `SelectRoot` for Radix-based selects (with `onValueChange`, `SelectTrigger`, `SelectContent`, `SelectItem`). `Select` is the native `<select>` wrapper. |
 | 2026-02-27 | self | Used `rgba()` CSS color strings in react-pdf SVG `fill` attributes — colors rendered as garbled yellow/red | Use SVG `fillOpacity` attribute instead: `fill={color} fillOpacity={0.15}`. react-pdf doesn't parse `rgba()` in SVG fill correctly. |
 | 2026-02-27 | user | Banner upload: kept trying server-side sharp processing instead of using client-side react-easy-crop. User said "use react-easy-crop" 3x. | Image processing belongs on the client. Use `Cropper` from `react-easy-crop` directly (not the ImageCropper wrapper). Server just normalizes to JPEG. User prefers "Fit with Background" as default mode. |
+| 2026-03-01 | self | Only filtered `is_deleted` on company queries, but brands with `is_archived=true` still showed in dropdowns | Always filter BOTH `is_deleted` AND `is_archived` when fetching active companies. Same for contacts. `isArchived` is nullable so use `or(eq(isArchived, false), isNull(isArchived))`. |
 
 ## User Preferences
 - Use bun, not npm/yarn/node

@@ -9,6 +9,7 @@ declare module 'next-auth' {
       isEditor: boolean
       isStaff: boolean
       partnerId: number | null
+      managedPartnerIds: number[]
     } & DefaultSession['user']
   }
 
@@ -17,6 +18,7 @@ declare module 'next-auth' {
     isEditor: boolean
     isStaff: boolean
     partnerId: number | null
+    managedPartnerIds: number[]
   }
 }
 
@@ -27,5 +29,6 @@ declare module 'next-auth/jwt' {
     isEditor: boolean
     isStaff: boolean
     partnerId: number | null
+    managedPartnerIds: number[]
   }
 }

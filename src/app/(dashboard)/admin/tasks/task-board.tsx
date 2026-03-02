@@ -216,6 +216,7 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
   // DnD
   const [activeId, setActiveId] = useState<number | null>(null)
   const [overStageId, setOverStageId] = useState<number | null>(null)
+  const [dragOriginStageId, setDragOriginStageId] = useState<number | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -270,7 +271,10 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
   const handleDragStart = (event: DragStartEvent) => {
     const idStr = String(event.active.id)
     if (idStr.startsWith('task-')) {
-      setActiveId(parseInt(idStr.replace('task-', '')))
+      const taskId = parseInt(idStr.replace('task-', ''))
+      setActiveId(taskId)
+      const task = tasks.find((t) => t.id === taskId)
+      setDragOriginStageId(task ? task.stageId : null)
     }
   }
 
@@ -302,8 +306,10 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
+    const originStageId = dragOriginStageId
     setActiveId(null)
     setOverStageId(null)
+    setDragOriginStageId(null)
 
     if (!over) return
 
@@ -317,6 +323,7 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
     const targetStageId = findStageForId(over.id, tasks, stages)
     if (!targetStageId) return
 
+    const isCrossStage = originStageId !== null && originStageId !== targetStageId
     const stageTasks = getTasksForStage(targetStageId)
 
     // Determine sort order
@@ -328,7 +335,10 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
       const overIndex = stageTasks.findIndex((t) => t.id === overTaskId)
       const activeIndex = stageTasks.findIndex((t) => t.id === taskId)
 
-      if (activeIndex !== -1 && activeIndex !== overIndex) {
+      if (isCrossStage) {
+        // Cross-stage drop on a task
+        targetSortOrder = overIndex >= 0 ? overIndex : stageTasks.length
+      } else if (activeIndex !== -1 && activeIndex !== overIndex) {
         // Same-stage reorder
         const reordered = arrayMove(stageTasks, activeIndex, overIndex)
         targetSortOrder = overIndex
@@ -337,9 +347,6 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
           const updated = reordered.map((t, i) => ({ ...t, sortOrder: i }))
           return [...others, ...updated]
         })
-      } else if (activeIndex === -1) {
-        // Cross-stage drop on a task
-        targetSortOrder = overIndex >= 0 ? overIndex : stageTasks.length
       } else {
         // Dropped on self, no-op
         return
@@ -351,11 +358,14 @@ export function TaskBoard({ isAdmin }: { isAdmin: boolean }) {
 
     // Persist
     try {
-      await fetch('/api/admin/tasks/reorder', {
+      const res = await fetch('/api/admin/tasks/reorder', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId, stageId: targetStageId, sortOrder: targetSortOrder }),
       })
+      if (!res.ok) {
+        fetchTasks()
+      }
     } catch {
       fetchTasks()
     }

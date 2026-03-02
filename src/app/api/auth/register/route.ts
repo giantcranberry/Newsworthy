@@ -1,6 +1,6 @@
 import { db } from '@/db'
-import { users, userProfiles, userSubscription, verify } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { users, userProfiles, userSubscription, verify, partners } from '@/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
@@ -10,7 +10,7 @@ import { addPersonToFolk } from '@/lib/folk'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { firstName, lastName, email, password } = body
+    const { firstName, lastName, email, password, partnerId } = body
 
     if (!firstName || !email || !password) {
       return NextResponse.json(
@@ -43,6 +43,20 @@ export async function POST(request: Request) {
     // Hash password
     const passwordHash = await hash(password, 12)
 
+    // Validate partnerId if provided
+    let validPartnerId = 1
+    if (partnerId) {
+      const partner = await db.query.partners.findFirst({
+        where: and(
+          eq(partners.id, partnerId),
+          eq(partners.isActive, true),
+        ),
+      })
+      if (partner) {
+        validPartnerId = partner.id
+      }
+    }
+
     // Create user
     const [newUser] = await db
       .insert(users)
@@ -51,7 +65,7 @@ export async function POST(request: Request) {
         passwordHash,
         emailVerified: false,
         regMethod: 'email',
-        partnerId: 1,
+        partnerId: validPartnerId,
         isAdmin: false,
         isDeleted: false,
         isSuper: false,

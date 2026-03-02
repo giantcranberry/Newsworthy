@@ -1,4 +1,7 @@
 import { Resend } from 'resend'
+import { db } from '@/db'
+import { emailTemplates } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'support@newsworthyai.com'
@@ -35,8 +38,43 @@ export async function sendEmail({
   }
 }
 
+/**
+ * Load an email template from the database by slug.
+ * Returns null if not found (caller should fall back to hardcoded).
+ */
+async function getTemplate(slug: string) {
+  try {
+    return await db.query.emailTemplates.findFirst({
+      where: eq(emailTemplates.slug, slug),
+    }) || null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Replace {{variable}} placeholders in a template string.
+ */
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return vars[key] !== undefined ? vars[key] : match
+  })
+}
+
 export async function sendMagicLinkEmail(email: string, token: string) {
   const magicLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/magic-link?token=${token}&email=${encodeURIComponent(email)}`
+
+  const tmpl = await getTemplate('magic-link')
+  if (tmpl) {
+    const vars = { magicLink }
+    await sendEmail({
+      to: email,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -68,6 +106,18 @@ export async function sendMagicLinkEmail(email: string, token: string) {
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`
+
+  const tmpl = await getTemplate('password-reset')
+  if (tmpl) {
+    const vars = { resetLink }
+    await sendEmail({
+      to: email,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -125,6 +175,18 @@ export async function sendPaymentReceiptEmail({
     .join('')
 
   const productListText = productNames.map(name => `  - ${name}`).join('\n')
+
+  const tmpl = await getTemplate('payment-receipt')
+  if (tmpl) {
+    const vars = { date, transactionId, customerName, releaseTitle, releaseUuid, productListHtml, productListText, formattedAmount, appUrl }
+    await sendEmail({
+      to,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
 
   const html = `
     <!DOCTYPE html>
@@ -246,6 +308,18 @@ export async function sendApprovalRequestEmail({
 
   const notesText = notes ? `\nMessage from ${requestorName}:\n"${notes}"\n` : ''
 
+  const tmpl = await getTemplate('approval-request')
+  if (tmpl) {
+    const vars = { approverName, requestorName, releaseTitle, notesHtml, notesText, approvalLink }
+    await sendEmail({
+      to,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -318,6 +392,18 @@ This email was sent from Newsworthy on behalf of ${requestorName}. If you believ
 export async function sendVerificationEmail(email: string, token: string, name: string) {
   const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/verify-email?token=${token}&email=${encodeURIComponent(email)}`
 
+  const tmpl = await getTemplate('verification')
+  if (tmpl) {
+    const vars = { name, verifyLink }
+    await sendEmail({
+      to: email,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -370,6 +456,18 @@ export async function sendTeamInviteEmail({
   }
   const roleLabel = roleLabels[role] || role
 
+  const tmpl = await getTemplate('team-invite')
+  if (tmpl) {
+    const vars = { inviterName, companyName, roleLabel, inviteLink }
+    await sendEmail({
+      to,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -416,6 +514,18 @@ export async function sendMessageNotificationEmail({
     ? 'Someone replied to your message on Newsworthy. Log in to view it.'
     : 'You have a new message waiting for you on Newsworthy. Log in to view it.'
 
+  const tmpl = await getTemplate('message-notification')
+  if (tmpl) {
+    const vars = { recipientName, heading, description, inboxLink }
+    await sendEmail({
+      to,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -445,6 +555,20 @@ export async function sendMessageNotificationEmail({
 }
 
 export async function sendWelcomeEmail(email: string, name: string) {
+  const dashboardLink = `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`
+
+  const tmpl = await getTemplate('welcome')
+  if (tmpl) {
+    const vars = { name, dashboardLink }
+    await sendEmail({
+      to: email,
+      subject: renderTemplate(tmpl.subject, vars),
+      html: renderTemplate(tmpl.htmlBody, vars),
+      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+    })
+    return
+  }
+
   const html = `
     <!DOCTYPE html>
     <html>
@@ -464,7 +588,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
             <li>Connect with influencers</li>
             <li>Track your press coverage</li>
           </ul>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" style="display: inline-block; background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Go to Dashboard</a>
+          <a href="${dashboardLink}" style="display: inline-block; background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Go to Dashboard</a>
         </div>
       </body>
     </html>

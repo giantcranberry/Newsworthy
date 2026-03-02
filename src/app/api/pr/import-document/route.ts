@@ -118,7 +118,7 @@ ${regionList}
 
 Please extract and generate the following:
 
-1. **Title/Headline**: Create a compelling, SEO-friendly headline (max 120 characters). Use Title Case. Return as plain text, not HTML.
+1. **Title/Headline**: Use the original headline from the document as-is. Do NOT rewrite, rephrase, or create a new headline. Preserve the original wording exactly. Return as plain text, not HTML.
 
 2. **Abstract/Summary**: Write a 2-3 sentence summary that captures the key news (max 350 characters). Return as plain text, not HTML.
 
@@ -131,6 +131,7 @@ Please extract and generate the following:
    - Wrap paragraphs in <p> tags
    - Keep all hyperlinks intact with their original URLs
    - Remove any title/headline that would duplicate the extracted title
+   - Remove any dateline (e.g., "CITY, State — " or "CITY, State, Date — ") from the beginning of the body content since it is captured separately in the Location field
    - Clean up any messy HTML but preserve semantic formatting
    - The output must be valid HTML suitable for a TinyMCE editor
 
