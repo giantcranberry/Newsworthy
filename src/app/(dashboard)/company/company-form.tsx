@@ -304,7 +304,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
   return (
     <form onSubmit={handleSubmit} className="-mt-6 space-y-8">
       {/* Sticky Action Bar */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="brand-form-action-bar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 truncate">{title}</h1>
@@ -350,7 +350,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
       {headerExtra}
 
       {/* Basic Info */}
-      <Card>
+      <Card data-tour="brand-form-basic-info">
         <CardHeader>
           <CardTitle>Basic Information</CardTitle>
         </CardHeader>
@@ -468,7 +468,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
       </Card>
 
       {/* Contact Info */}
-      <Card>
+      <Card data-tour="brand-form-contact-info">
         <CardHeader>
           <CardTitle>Contact Information</CardTitle>
         </CardHeader>
@@ -503,7 +503,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
 
       {/* Brand Contacts */}
       {initialData?.uuid && (
-        <Card>
+        <Card data-tour="brand-form-media-contacts">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
@@ -690,7 +690,7 @@ export function CompanyForm({ initialData, contacts: initialContacts = [], pageT
       </Dialog>
 
       {/* Address */}
-      <Card>
+      <Card data-tour="brand-form-address">
         <CardHeader>
           <CardTitle>Address</CardTitle>
         </CardHeader>

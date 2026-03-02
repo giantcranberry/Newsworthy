@@ -269,8 +269,8 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <Link href="/pr">
+      <div data-tour="dashboard-stats" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <Link href="/pr" data-tour="dashboard-stat-releases">
           <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -287,7 +287,7 @@ export default async function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/company">
+        <Link href="/company" data-tour="dashboard-stat-brands">
           <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -302,9 +302,11 @@ export default async function DashboardPage() {
           </Card>
         </Link>
 
-        <CreditsCard allCredits={allCredits} canPurchase={canCreate} />
+        <div data-tour="dashboard-stat-credits">
+          <CreditsCard allCredits={allCredits} canPurchase={canCreate} />
+        </div>
 
-        <Link href="/pr?filter=review">
+        <Link href="/pr?filter=review" data-tour="dashboard-stat-review">
           <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -321,8 +323,9 @@ export default async function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
+      {!canCreate && <div data-tour="dashboard-empty" className="hidden" />}
       {canCreate && (
-        <Card>
+        <Card data-tour="dashboard-quick-actions">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Common tasks and actions</CardDescription>
@@ -331,6 +334,7 @@ export default async function DashboardPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <Link
                 href="/pr/create"
+                data-tour="dashboard-action-new-release"
                 className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-3 sm:p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
               >
                 <FaIcon icon={faFilePlus} className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-700" />
@@ -338,6 +342,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/company/add"
+                data-tour="dashboard-action-add-brand"
                 className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-indigo-500 bg-indigo-500/10 p-3 sm:p-4 text-center transition-colors hover:bg-indigo-500/20 cursor-pointer"
               >
                 <FaIcon icon={faFlag} className="h-6 w-6 sm:h-8 sm:w-8 text-indigo-500" />
@@ -345,6 +350,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/pr/reports"
+                data-tour="dashboard-action-reports"
                 className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-emerald-600 bg-emerald-600/10 p-3 sm:p-4 text-center transition-colors hover:bg-emerald-600/20 cursor-pointer"
               >
                 <FaIcon icon={faChartBar} className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
@@ -352,6 +358,7 @@ export default async function DashboardPage() {
               </Link>
               <Link
                 href="/payment/paygo"
+                data-tour="dashboard-action-buy-credits"
                 className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-amber-500 bg-amber-500/10 p-3 sm:p-4 text-center transition-colors hover:bg-amber-500/20 cursor-pointer"
               >
                 <FaIcon icon={faCoins} className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500" />
@@ -364,7 +371,7 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         {/* Recent Releases */}
-        <Card>
+        <Card data-tour="dashboard-recent-releases">
           <CardHeader className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base sm:text-lg">Recent Releases</CardTitle>
@@ -436,7 +443,7 @@ export default async function DashboardPage() {
 
         {/* Your Brands */}
         {companies.length > 0 && (
-          <Card>
+          <Card data-tour="dashboard-brands">
             <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-base sm:text-lg">Your Brands</CardTitle>

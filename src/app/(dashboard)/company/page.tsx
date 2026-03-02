@@ -116,7 +116,7 @@ export default async function CompaniesPage() {
           </p>
         </div>
         {canCreate && (
-          <Link href="/company/add">
+          <Link href="/company/add" data-tour="brands-add">
             <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
               <Plus className="h-4 w-4" />
               Add Brand

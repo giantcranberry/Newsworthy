@@ -247,7 +247,7 @@ export function CategoryList({
     <>
       {/* Search & Filter & Add */}
       <div className="flex items-center gap-3">
-        <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1">
+        <form data-tour="categories-search" onSubmit={handleSearch} className="inline-flex items-center gap-2">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -262,29 +262,31 @@ export function CategoryList({
           </Button>
         </form>
 
-        <select
-          value={levelFilter}
-          onChange={(e) => setLevelFilter(e.target.value as 'top' | 'all')}
-          className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
-        >
-          <option value="top">Top Level</option>
-          <option value="all">All Categories</option>
-        </select>
-
-        {circuits.length > 0 && (
+        <div data-tour="categories-filters" className="flex items-center gap-3">
           <select
-            value={circuitFilter === 'all' ? 'all' : String(circuitFilter)}
-            onChange={(e) => setCircuitFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            value={levelFilter}
+            onChange={(e) => setLevelFilter(e.target.value as 'top' | 'all')}
             className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
           >
-            <option value="all">All Circuits</option>
-            {circuits.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
+            <option value="top">Top Level</option>
+            <option value="all">All Categories</option>
           </select>
-        )}
 
-        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+          {circuits.length > 0 && (
+            <select
+              value={circuitFilter === 'all' ? 'all' : String(circuitFilter)}
+              onChange={(e) => setCircuitFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
+            >
+              <option value="all">All Circuits</option>
+              {circuits.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <Button data-tour="categories-add" onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
@@ -293,7 +295,7 @@ export function CategoryList({
       {/* Circuits Management Panel */}
       <Collapsible open={circuitsOpen} onOpenChange={setCircuitsOpen}>
         <CollapsibleTrigger asChild>
-          <Button variant="outline" className="gap-2 cursor-pointer">
+          <Button data-tour="categories-circuits" variant="outline" className="gap-2 cursor-pointer">
             <Settings className="h-4 w-4" />
             Manage Circuits
           </Button>
@@ -447,7 +449,7 @@ export function CategoryList({
 
       {/* Category List */}
       {filtered.length === 0 ? (
-        <Card>
+        <Card data-tour="categories-empty">
           <CardContent className="py-16 text-center">
             <Tag className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">No categories found</h3>
@@ -458,8 +460,8 @@ export function CategoryList({
         </Card>
       ) : (
         <div className="space-y-2">
-          {filtered.map((cat) => (
-            <Card key={cat.id} className="overflow-hidden">
+          {filtered.map((cat, index) => (
+            <Card key={cat.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "categories-first-item" } : {})}>
               <div className="flex-1 min-w-0 p-4 sm:px-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -495,7 +497,7 @@ export function CategoryList({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "categories-actions" } : {})}>
                     <button
                       onClick={() => handleEdit(cat)}
                       className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"

@@ -236,7 +236,7 @@ export function Sidebar({
     <TooltipProvider delayDuration={0}>
       <div className={cn(
         'flex h-full flex-col border-r border-slate-200 bg-white transition-all duration-200',
-        collapsed ? 'w-16' : 'w-60'
+        collapsed ? 'w-16' : 'w-64'
       )}>
         {/* Logo */}
         <div className={cn(
@@ -282,7 +282,7 @@ export function Sidebar({
         )}
 
         {/* Navigation */}
-        <nav className={cn(
+        <nav data-tour="sidebar-nav" className={cn(
           'flex-1 overflow-y-auto space-y-6',
           collapsed ? 'p-2' : 'p-4'
         )}>

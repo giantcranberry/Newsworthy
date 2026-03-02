@@ -49,7 +49,7 @@ export default async function EditorialQueuePage() {
           <p className="text-gray-600">Press releases pending editorial review</p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800">
+          <span data-tour="queue-pending-count" className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800">
             <Clock className="h-4 w-4" />
             {queueItems.length} pending
           </span>
@@ -57,7 +57,7 @@ export default async function EditorialQueuePage() {
       </div>
 
       {queueItems.length === 0 ? (
-        <Card>
+        <Card data-tour="queue-empty">
           <CardContent className="py-16 text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">All caught up!</h3>

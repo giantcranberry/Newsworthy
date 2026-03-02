@@ -64,7 +64,7 @@ export default async function PartnerDashboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div data-tour="partner-header" className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {partner?.company || partner?.brandName || 'Partner'} Dashboard
@@ -74,7 +74,7 @@ export default async function PartnerDashboardPage({
         <PartnerSelector partners={managedPartners} currentPartnerId={currentPartnerId} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div data-tour="partner-stats" className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export default async function PartnerDashboardPage({
         </Card>
       </div>
 
-      <Card>
+      <Card data-tour="partner-actions">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Link href={`/partner/users${partnerQs}`}>

@@ -118,11 +118,19 @@ function TaskCard({
 function SortableTaskCard({
   task,
   onClick,
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee,
 }: {
   task: KanbanTask
   onClick: () => void
   showAssignee: boolean
+=======
+  tourId,
+}: {
+  task: KanbanTask
+  onClick: () => void
+  tourId?: string
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }) {
   const {
     attributes,
@@ -140,7 +148,7 @@ function SortableTaskCard({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="relative group">
+    <div ref={setNodeRef} style={style} className="relative group" {...(tourId ? { "data-tour": tourId } : {})}>
       <div
         className="absolute top-3 right-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10"
         {...attributes}
@@ -158,13 +166,21 @@ function DroppableStageColumn({
   tasks,
   onTaskClick,
   isOver,
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee,
+=======
+  isFirst,
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }: {
   stage: Stage
   tasks: KanbanTask[]
   onTaskClick: (task: KanbanTask) => void
   isOver: boolean
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
   showAssignee: boolean
+=======
+  isFirst?: boolean
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
 }) {
   const { setNodeRef } = useDroppable({
     id: `stage-${stage.id}`,
@@ -172,7 +188,7 @@ function DroppableStageColumn({
   })
 
   return (
-    <div className={`flex flex-col w-72 min-w-72 rounded-lg border transition-colors ${isOver ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+    <div {...(isFirst ? { "data-tour": "tasks-first-column" } : {})} className={`flex flex-col w-72 min-w-72 rounded-lg border transition-colors ${isOver ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
       {/* Column header */}
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center gap-2">
@@ -193,12 +209,16 @@ function DroppableStageColumn({
           items={tasks.map((t) => `task-${t.id}`)}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <SortableTaskCard
               key={task.id}
               task={task}
               onClick={() => onTaskClick(task)}
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
               showAssignee={showAssignee}
+=======
+              tourId={isFirst && index === 0 ? "tasks-first-card" : undefined}
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
             />
           ))}
         </SortableContext>
@@ -442,6 +462,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
   return (
     <div className="space-y-4">
       {/* Top bar */}
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
       <div className="flex items-center gap-3 flex-wrap">
         <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
         <div className="ml-auto flex items-center gap-2">
@@ -484,12 +505,40 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
 
           {config.canManageStages && (
             <Button variant="outline" onClick={() => setShowStageManager(true)}>
+=======
+      <div data-tour="tasks-topbar" className="flex items-center gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold text-gray-900">Task Board</h1>
+        <div className="ml-auto flex items-center gap-2">
+          {/* Filter */}
+          <span data-tour="tasks-filter">
+            <Select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="w-44"
+            >
+              <option value="all">All Tasks</option>
+              {currentUserId && <option value={currentUserId}>My Tasks</option>}
+              {users
+                .filter((u) => String(u.id) !== String(currentUserId))
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.firstName || u.lastName
+                      ? `${u.firstName || ''} ${u.lastName || ''}`.trim()
+                      : u.email}
+                  </option>
+                ))}
+            </Select>
+          </span>
+
+          {isAdmin && (
+            <Button data-tour="tasks-stages" variant="outline" onClick={() => setShowStageManager(true)}>
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
               <Settings className="h-4 w-4 mr-2" />
               Stages
             </Button>
           )}
 
-          <Button onClick={handleNewTask}>
+          <Button data-tour="tasks-new" onClick={handleNewTask} className="bg-cyan-800 hover:bg-cyan-900 text-white">
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>
@@ -497,7 +546,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
       </div>
 
       {/* Kanban Board */}
-      <div className="overflow-x-auto pb-4">
+      <div data-tour="tasks-board" className="overflow-x-auto pb-4">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
@@ -506,14 +555,18 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-4 min-w-min">
-            {stages.map((stage) => (
+            {stages.map((stage, index) => (
               <DroppableStageColumn
                 key={stage.id}
                 stage={stage}
                 tasks={getTasksForStage(stage.id)}
                 onTaskClick={handleEditTask}
                 isOver={overStageId === stage.id}
+<<<<<<< HEAD:src/components/kanban/task-board.tsx
                 showAssignee={config.showAssignee}
+=======
+                isFirst={index === 0}
+>>>>>>> 46890e17baf7d5f9b75461f9815912da044e30e3:src/app/(dashboard)/admin/tasks/task-board.tsx
               />
             ))}
           </div>

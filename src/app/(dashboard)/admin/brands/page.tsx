@@ -80,11 +80,11 @@ export default async function AdminBrandsPage({
       <BrandSearchForm />
 
       {/* Brands Table */}
-      <Card>
+      <Card data-tour="admin-brands-table">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead>
+              <thead data-tour="admin-brands-columns">
                 <tr className="border-b text-left">
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 w-16">ID</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500">Brand</th>
@@ -96,8 +96,8 @@ export default async function AdminBrandsPage({
                 </tr>
               </thead>
               <tbody>
-                {brands.map((brand) => (
-                  <tr key={brand.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                {brands.map((brand, index) => (
+                  <tr key={brand.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors" {...(index === 0 ? { "data-tour": "admin-brands-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600">{brand.id}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
@@ -164,7 +164,7 @@ export default async function AdminBrandsPage({
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2" {...(index === 0 ? { "data-tour": "admin-brands-actions" } : {})}>
                         <Link href={`/admin/brands/${brand.uuid}`}>
                           <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                             View

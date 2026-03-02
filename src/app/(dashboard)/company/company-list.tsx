@@ -49,7 +49,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
 
   if (companies.length === 0) {
     return (
-      <Card>
+      <Card data-tour="brands-empty">
         <CardContent className="py-16 text-center">
           <Building2 className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">
@@ -72,7 +72,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
   return (
     <div className="space-y-4">
       {/* Layout Toggle */}
-      <div className="flex justify-end">
+      <div className="flex justify-end" data-tour="brands-layout-toggle">
         <div className="inline-flex rounded-md border border-gray-300 bg-white">
           <button
             onClick={() => setLayout("grid")}
@@ -99,8 +99,8 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
 
       {layout === "grid" ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {companies.map((co) => (
-            <Card key={co.id} className="overflow-hidden flex flex-col">
+          {companies.map((co, index) => (
+            <Card key={co.id} className="overflow-hidden flex flex-col" {...(index === 0 ? { "data-tour": "brands-first-card" } : {})}>
               <CardContent className="p-0 flex flex-col flex-1">
                 {/* Logo Header */}
                 <div className="flex items-center justify-center h-32 bg-gray-50">
@@ -149,7 +149,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
                   )}
 
                   {/* Credits Badge */}
-                  <div className="mt-3 flex items-center gap-1.5 text-sm">
+                  <div className="mt-3 flex items-center gap-1.5 text-sm" {...(index === 0 ? { "data-tour": "brands-credits" } : {})}>
                     <CreditCard className="h-4 w-4 text-gray-400" />
                     <span
                       className={`font-medium ${(creditsByCompany[co.id] || 0) > 0 ? "text-green-600" : "text-gray-500"}`}
@@ -158,7 +158,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
                     </span>
                   </div>
 
-                  <div className="mt-auto pt-4 flex gap-2">
+                  <div className="mt-auto pt-4 flex gap-2" {...(index === 0 ? { "data-tour": "brands-actions" } : {})}>
                     <Link href={`/company/${co.uuid}`} className="flex-1">
                       <button className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                         <Edit className="h-3.5 w-3.5" />
@@ -181,8 +181,8 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
         </div>
       ) : (
         <div className="space-y-4">
-          {companies.map((co) => (
-            <Card key={co.id} className="overflow-hidden">
+          {companies.map((co, index) => (
+            <Card key={co.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "brands-first-card" } : {})}>
               <div className="flex flex-col sm:flex-row">
                 {/* Logo */}
                 {co.logoUrl ? (
@@ -235,7 +235,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
                           {co.city}, {co.state}
                         </p>
                       )}
-                      <div className="mt-3 flex items-center gap-1.5 text-sm">
+                      <div className="mt-3 flex items-center gap-1.5 text-sm" {...(index === 0 ? { "data-tour": "brands-credits" } : {})}>
                         <CreditCard className="h-4 w-4 text-gray-400" />
                         <span
                           className={`font-medium ${(creditsByCompany[co.id] || 0) > 0 ? "text-green-600" : "text-gray-500"}`}
@@ -246,7 +246,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany }: Com
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "brands-actions" } : {})}>
                       <Link href={`/company/${co.uuid}`}>
                         <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
                           <Edit className="h-3.5 w-3.5" />

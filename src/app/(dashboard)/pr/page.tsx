@@ -127,7 +127,7 @@ export default async function PressReleasesPage({
           <p className="text-gray-600">Manage your press releases</p>
         </div>
         {canCreate && (
-          <Link href="/pr/create">
+          <Link href="/pr/create" data-tour="pr-new-release">
             <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
               <Plus className="h-4 w-4" />
               New Release
@@ -137,7 +137,7 @@ export default async function PressReleasesPage({
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2">
+      <div data-tour="pr-filters" className="flex gap-2">
         <Link href="/pr">
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
             !filter ? "bg-cyan-800/10 text-cyan-800" : "text-gray-700 hover:bg-gray-100"
@@ -170,7 +170,7 @@ export default async function PressReleasesPage({
 
       {/* Releases List */}
       {userReleases.length === 0 ? (
-        <Card>
+        <Card data-tour="pr-empty">
           <CardContent className="py-16 text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
@@ -192,9 +192,9 @@ export default async function PressReleasesPage({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {userReleases.map((release) => (
-            <Card key={release.id} className="overflow-hidden">
+        <div data-tour="pr-releases-list" className="space-y-4">
+          {userReleases.map((release, index) => (
+            <Card key={release.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "pr-first-release" } : {})}>
               <div className={`flex flex-col sm:flex-row ${release.status === "sent" ? "group" : ""}`}>
                 {/* Banner */}
                 {release.banner?.url || release.primaryImage?.url ? (
@@ -265,7 +265,7 @@ export default async function PressReleasesPage({
                 <div className="flex-1 min-w-0 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1" {...(index === 0 ? { "data-tour": "pr-status-badge" } : {})}>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
                             release.status,
@@ -307,7 +307,7 @@ export default async function PressReleasesPage({
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "pr-release-actions" } : {})}>
                       {release.canEdit && !["approved", "sent", "review"].includes(
                         release.status,
                       ) && (
