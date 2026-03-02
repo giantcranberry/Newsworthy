@@ -33,6 +33,7 @@ interface UserDetailFormProps {
     isAdmin: boolean
     isEditor: boolean
     isStaff: boolean
+    emailVerified: boolean | null
     referredBy: string | null
     partnerId: number | null
     imPartnerId: number | null
@@ -78,6 +79,7 @@ export function UserDetailForm({
     isEditor: user.isEditor,
     isStaff: user.isStaff,
   })
+  const [emailVerified, setEmailVerified] = useState(user.emailVerified ?? false)
 
   const [formData, setFormData] = useState({
     firstName: user.profile?.firstName || '',
@@ -138,7 +140,7 @@ export function UserDetailForm({
       const response = await fetch(`/api/admin/users/${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, managedPartnerIds, roles }),
+        body: JSON.stringify({ ...formData, managedPartnerIds, roles, emailVerified }),
       })
 
       if (!response.ok) {
@@ -195,7 +197,7 @@ export function UserDetailForm({
 
           {canResetPassword && (
             <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-              <legend className="text-sm font-medium text-gray-700 px-2">Roles</legend>
+              <legend className="text-sm font-medium text-gray-700 px-2">Roles & Status</legend>
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -228,6 +230,22 @@ export function UserDetailForm({
                   />
                   <span className="text-sm">
                     <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Staff</span>
+                  </span>
+                </label>
+                <div className="w-px bg-gray-300" />
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={emailVerified}
+                    onChange={(e) => setEmailVerified(e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                    emailVerified
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-amber-100 text-amber-700'
+                  }`}>
+                    {emailVerified ? 'Verified' : 'Pending'}
                   </span>
                 </label>
               </div>
