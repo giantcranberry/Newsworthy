@@ -110,7 +110,7 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div data-tour="enhanced-queue-list" className="space-y-3">
       {message && (
         <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
           {message.text}
@@ -118,21 +118,27 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
         </div>
       )}
 
-      {items.map((item) => (
-        <Card key={item.releaseId} className="overflow-hidden">
+      {items.map((item, index) => (
+        <Card key={item.releaseId} className="overflow-hidden" {...(index === 0 ? { "data-tour": "enhanced-queue-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2">
               <h3 className="text-base font-semibold text-gray-900">
                 {item.title || 'Untitled Release'}
               </h3>
-              <DistributionBadge distribution={item.distribution} />
+              {index === 0 ? (
+                <span data-tour="enhanced-queue-distribution">
+                  <DistributionBadge distribution={item.distribution} />
+                </span>
+              ) : (
+                <DistributionBadge distribution={item.distribution} />
+              )}
             </div>
 
             <p className="text-xs text-gray-500 mb-3">
               Released: {formatDate(item.releasedAt)}
             </p>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap" {...(index === 0 ? { "data-tour": "enhanced-queue-actions" } : {})}>
               <Input
                 type="url"
                 placeholder="Enter report URL"

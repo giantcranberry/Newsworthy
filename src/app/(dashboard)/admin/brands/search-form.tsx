@@ -26,7 +26,7 @@ export function BrandSearchForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form data-tour="admin-brands-search" onSubmit={handleSubmit} className="inline-flex gap-2">
       <div className="relative flex-1 max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input

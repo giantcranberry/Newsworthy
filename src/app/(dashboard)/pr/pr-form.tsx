@@ -721,7 +721,7 @@ export function PRForm({
     <div className={showPreview ? "flex gap-6" : ""}>
     <div className={showPreview ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
       {/* Sticky Action Bar */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="pr-create-action-bar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 truncate">{pageTitle}</h1>
@@ -801,7 +801,7 @@ export function PRForm({
 
       {/* Import/Generate options - only show for new releases or drafts */}
       {!readOnly && !initialData?.uuid && (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div data-tour="pr-create-import-generate" className="grid md:grid-cols-2 gap-4">
           {/* Import from Document */}
           <Card className="border border-blue-200/60 bg-blue-50/30">
             <CardContent className="py-4">
@@ -1108,7 +1108,7 @@ export function PRForm({
       <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
 
       {/* Brand & Contact */}
-      <div className="p-6 space-y-5">
+      <div data-tour="pr-create-brand-contact" className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Brand & Contact</h3>
           <p className="text-sm text-gray-600 mt-0.5">Select the Brand and Primary Media Contact for this Release</p>
@@ -1182,7 +1182,7 @@ export function PRForm({
       </div>
 
       {/* Release Details */}
-      <div className="p-6 space-y-5">
+      <div data-tour="pr-create-release-details" className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Release Details</h3>
           <p className="text-sm text-gray-600 mt-0.5">Set your headline, summary, and schedule</p>
@@ -1352,7 +1352,7 @@ export function PRForm({
       </div>
 
       {/* Categories & Regions */}
-      <div className="p-6 space-y-5">
+      <div data-tour="pr-create-categories" className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Categories & Regions</h3>
           <p className="text-sm text-gray-600 mt-0.5">Choose relevant topics and target markets</p>
@@ -1402,7 +1402,7 @@ export function PRForm({
       </div>
 
       {/* Body Content */}
-      <div className="p-6 space-y-4">
+      <div data-tour="pr-create-content" className="p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="font-medium text-gray-900">Content <span className="text-xs font-normal text-gray-500">(Required)</span></h3>
@@ -1445,7 +1445,7 @@ export function PRForm({
       </div>
 
       {/* Additional Links */}
-      <div className="p-6 space-y-5">
+      <div data-tour="pr-create-links" className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Additional Links</h3>
           <p className="text-sm text-gray-600 mt-0.5">Add video, landing page, or media kit URLs</p>
@@ -1888,7 +1888,7 @@ export function PRForm({
     {/* Live Preview Sidebar */}
     {showPreview && (
       <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: previewWidth }}>
-        <div className="sticky top-0 h-screen flex">
+        <div data-tour="pr-create-preview" className="sticky top-0 h-screen flex">
           <ResizeHandle onResize={handlePreviewResize} />
           <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-start justify-between gap-3">

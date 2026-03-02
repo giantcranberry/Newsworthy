@@ -61,15 +61,17 @@ export default async function ReportsPage({
           <p className="text-gray-600">View clipping reports for your published releases</p>
         </div>
         {userCompanies.length > 1 && (
-          <BrandFilter
-            brands={userCompanies.map((c) => ({ id: c.id, name: c.companyName }))}
-            currentBrand={brandFilter}
-          />
+          <div data-tour="reports-brand-filter">
+            <BrandFilter
+              brands={userCompanies.map((c) => ({ id: c.id, name: c.companyName }))}
+              currentBrand={brandFilter}
+            />
+          </div>
         )}
       </div>
 
       {paginated.length === 0 ? (
-        <Card>
+        <Card data-tour="reports-empty">
           <CardContent className="py-16 text-center">
             <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">No Published Releases Yet</h3>
@@ -83,9 +85,9 @@ export default async function ReportsPage({
         </Card>
       ) : (
         <>
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+          <div data-tour="reports-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead data-tour="reports-columns" className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                     Date Released
@@ -99,10 +101,10 @@ export default async function ReportsPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {paginated.map((r) => {
+                {paginated.map((r, index) => {
                   const ready = reportReady(r.releasedAt)
                   return (
-                    <tr key={r.id} className="hover:bg-gray-50">
+                    <tr key={r.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "reports-first-row" } : {})}>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
                         {r.releasedAt
                           ? new Date(r.releasedAt).toLocaleDateString('en-US', {
@@ -120,7 +122,7 @@ export default async function ReportsPage({
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
                         {ready ? (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex items-center justify-end gap-2" {...(index === 0 ? { "data-tour": "reports-actions" } : {})}>
                             <Link href={`/pr/clips/${r.uuid}`}>
                               <Button
                                 variant="outline"

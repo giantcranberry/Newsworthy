@@ -47,7 +47,7 @@ export function PartnerUsersList({
 
   if (users.length === 0 && !searchQuery) {
     return (
-      <Card>
+      <Card data-tour="partner-users-empty">
         <CardContent className="py-16 text-center">
           <Users className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">No Users Yet</h3>
@@ -59,7 +59,7 @@ export function PartnerUsersList({
 
   return (
     <>
-      <div className="relative max-w-sm">
+      <div data-tour="partner-users-search" className="inline-flex relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           placeholder="Search by name or email..."
@@ -72,7 +72,7 @@ export function PartnerUsersList({
       {users.length === 0 ? (
         <p className="text-sm text-gray-500">No users match your search.</p>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+        <div data-tour="partner-users-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -91,8 +91,8 @@ export function PartnerUsersList({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+              {users.map((user, index) => (
+                <tr key={user.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "partner-users-first-row" } : {})}>
                   <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                     {user.firstName || user.lastName
                       ? `${user.firstName || ''} ${user.lastName || ''}`.trim()

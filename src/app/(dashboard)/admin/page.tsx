@@ -54,14 +54,18 @@ export default async function AdminPage() {
       </div>
 
       {/* PR Lookup */}
-      <PRLookup />
+      <div data-tour="admin-pr-lookup">
+        <PRLookup />
+      </div>
 
       {/* Sales Stats */}
-      <SalesStats />
+      <div data-tour="admin-sales-stats">
+        <SalesStats />
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+      <div data-tour="admin-stats" className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card data-tour="admin-stat-users">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -75,7 +79,7 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="admin-stat-releases">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
@@ -89,7 +93,7 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="admin-stat-companies">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
@@ -103,7 +107,7 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="admin-stat-partners">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
@@ -119,49 +123,49 @@ export default async function AdminPage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card data-tour="admin-quick-actions">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/admin/users">
+            <Link href="/admin/users" data-tour="admin-action-users">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Users className="h-6 w-6" />
                 Manage Users
               </Button>
             </Link>
-            <Link href="/admin/releases">
+            <Link href="/admin/releases" data-tour="admin-action-releases">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <FileText className="h-6 w-6" />
                 All Releases
               </Button>
             </Link>
-            <Link href="/admin/partners">
+            <Link href="/admin/partners" data-tour="admin-action-partners">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Briefcase className="h-6 w-6" />
                 Partners
               </Button>
             </Link>
-            <Link href="/admin/products">
+            <Link href="/admin/products" data-tour="admin-action-products">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Package className="h-6 w-6" />
                 Products
               </Button>
             </Link>
-            <Link href="/admin/messages">
+            <Link href="/admin/messages" data-tour="admin-action-messages">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Mail className="h-6 w-6" />
                 Messages
               </Button>
             </Link>
-            <Link href="/admin/tasks">
+            <Link href="/admin/tasks" data-tour="admin-action-tasks">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <ListChecks className="h-6 w-6" />
                 Tasks
               </Button>
             </Link>
-            <Link href="/editorial/queue">
+            <Link href="/editorial/queue" data-tour="admin-action-review-queue">
               <Button variant="outline" className="w-full h-20 flex-col gap-2 relative">
                 <FileText className="h-6 w-6" />
                 Review Queue
@@ -176,7 +180,7 @@ export default async function AdminPage() {
 
       {/* Pending Items */}
       {stats.pendingReleases > 0 && (
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card data-tour="admin-pending-review" className="border-yellow-200 bg-yellow-50">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

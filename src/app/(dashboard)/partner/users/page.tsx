@@ -60,7 +60,7 @@ export default async function PartnerUsersPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div data-tour="partner-users-header" className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
             {partner?.company || partner?.brandName || 'Partner'} Users

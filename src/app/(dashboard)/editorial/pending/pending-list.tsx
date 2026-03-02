@@ -76,15 +76,21 @@ export function PendingList({ items }: { items: PendingItem[] }) {
   }
 
   return (
-    <div className="space-y-3">
-      {items.map((item) => (
-        <Card key={item.id} className="overflow-hidden">
+    <div data-tour="pending-list" className="space-y-3">
+      {items.map((item, index) => (
+        <Card key={item.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "pending-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="text-base font-semibold text-gray-900">
                 {item.title || 'Untitled Release'}
               </h3>
-              <DistributionBadge distribution={item.distribution} />
+              {index === 0 ? (
+                <span data-tour="pending-distribution">
+                  <DistributionBadge distribution={item.distribution} />
+                </span>
+              ) : (
+                <DistributionBadge distribution={item.distribution} />
+              )}
             </div>
 
             <p className="text-xs text-gray-500 mb-3">
@@ -116,7 +122,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "pending-actions" } : {})}>
                 <Link href={`/editorial/edit/${item.id}`}>
                   <Button size="sm" className="bg-cyan-800 text-white hover:bg-cyan-900 h-7 text-xs">
                     Edit

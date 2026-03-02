@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Bell, CreditCard, Globe, Menu, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useId } from 'react'
 
 interface HeaderProps {
   onMenuClick?: () => void
@@ -25,6 +25,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const notificationsId = useId()
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -87,7 +88,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">
         {canCreateContent && (
-          <>
+          <div data-tour="header-actions" className="flex items-center gap-2">
             {/* Quick create */}
             <Link href="/pr/create">
               <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
@@ -103,7 +104,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
                 <span className="hidden sm:inline">Buy Credits</span>
               </Button>
             </Link>
-          </>
+          </div>
         )}
 
         {/* Notifications */}
@@ -111,6 +112,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
           <PopoverTrigger asChild>
             <button
               type="button"
+              data-tour="header-notifications"
               className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer outline-none"
             >
               <Bell className="h-5 w-5" />
@@ -121,7 +123,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
               )}
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-0 bg-white border-gray-200">
+          <PopoverContent id={notificationsId} align="end" className="w-80 p-0 bg-white border-gray-200">
             <div className="p-3 border-b border-gray-100">
               <h3 className="font-semibold text-sm text-gray-900">Notifications</h3>
             </div>

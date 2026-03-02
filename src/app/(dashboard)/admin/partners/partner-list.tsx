@@ -102,7 +102,7 @@ export function PartnerList({ partners }: PartnerListProps) {
 
   if (partners.length === 0) {
     return (
-      <Card>
+      <Card data-tour="partners-empty">
         <CardContent className="py-16 text-center">
           <Building2 className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">
@@ -120,7 +120,7 @@ export function PartnerList({ partners }: PartnerListProps) {
     <div className="space-y-4">
       {/* Filter, Layout Toggle & Add */}
       <div className="flex items-center justify-between gap-3">
-        <div className="inline-flex rounded-md border border-gray-300 bg-white">
+        <div data-tour="partners-filters" className="inline-flex rounded-md border border-gray-300 bg-white">
           {(
             [
               { value: "active", label: "Active" },
@@ -169,6 +169,7 @@ export function PartnerList({ partners }: PartnerListProps) {
           </div>
 
           <Button
+            data-tour="partners-add"
             onClick={() => setShowAddDialog(true)}
             className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
           >
@@ -188,8 +189,8 @@ export function PartnerList({ partners }: PartnerListProps) {
         </Card>
       ) : layout === "grid" ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredPartners.map((partner) => (
-            <Card key={partner.id} className="overflow-hidden flex flex-col">
+          {filteredPartners.map((partner, index) => (
+            <Card key={partner.id} className="overflow-hidden flex flex-col" {...(index === 0 ? { "data-tour": "partners-first-card" } : {})}>
               <CardContent className="p-0 flex flex-col flex-1">
                 {/* Logo Header */}
                 <div className="flex items-center justify-center h-32 bg-gray-50">
@@ -247,7 +248,7 @@ export function PartnerList({ partners }: PartnerListProps) {
                       )}
                   </div>
 
-                  <div className="mt-auto pt-4">
+                  <div className="mt-auto pt-4" {...(index === 0 ? { "data-tour": "partners-actions" } : {})}>
                     <Link
                       href={`/admin/partners/${partner.id}`}
                       className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
@@ -263,8 +264,8 @@ export function PartnerList({ partners }: PartnerListProps) {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredPartners.map((partner) => (
-            <Card key={partner.id} className="overflow-hidden">
+          {filteredPartners.map((partner, index) => (
+            <Card key={partner.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "partners-first-card" } : {})}>
               <div className="flex flex-col sm:flex-row">
                 {/* Logo */}
                 {partner.logo ? (
@@ -326,7 +327,7 @@ export function PartnerList({ partners }: PartnerListProps) {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "partners-actions" } : {})}>
                       <Link
                         href={`/admin/partners/${partner.id}`}
                         className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
