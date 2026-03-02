@@ -105,8 +105,8 @@ export function WizardNav({
   releaseOptions,
 }: WizardNavProps) {
   return (
-      <nav aria-label="Progress" className="mb-8 overflow-x-auto">
-        <ol className="flex items-center min-w-[500px]">
+      <nav aria-label="Progress" className="mb-8">
+        <ol className="flex items-center">
           {STEPS.map((step, stepIdx) => {
             const status = getStepStatus(step, currentStep, release, company, releaseOptions)
             const isComplete = isStepComplete(step, release, company, releaseOptions)
@@ -121,44 +121,30 @@ export function WizardNav({
             return (
               <li
                 key={step.id}
-                className={cn('relative', stepIdx !== STEPS.length - 1 && 'flex-1')}
+                className={cn('relative flex items-center', stepIdx !== STEPS.length - 1 && 'flex-1')}
               >
-                <div className="flex items-center">
-                  <Link
-                    href={href}
-                    style={{ minWidth: 32, minHeight: 32 }}
-                    className={cn(
-                      'relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full transition-colors',
-                      status === 'completed' && 'bg-emerald-600 text-white hover:bg-emerald-700',
-                      status === 'current' && 'bg-cyan-700 text-white wizard-step-current',
-                      status === 'upcoming' && !step.optional && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400',
-                      status === 'upcoming' && step.optional && 'border-2 border-dashed border-gray-300 bg-white text-gray-400 hover:border-gray-400'
-                    )}
-                    title={`${step.name}${step.optional ? ' (Optional)' : ''}`}
-                  >
-                    {isComplete && status !== 'current' ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      <Icon className="h-4 w-4" />
-                    )}
-                  </Link>
-
-                  {stepIdx !== STEPS.length - 1 && (
-                    <div
-                      className={cn(
-                        'h-0.5 w-full min-w-[8px]',
-                        isTransitionLine && 'wizard-gradient-line',
-                        !isTransitionLine && status === 'completed' && 'bg-emerald-600',
-                        !isTransitionLine && status !== 'completed' && 'bg-gray-200'
-                      )}
-                      aria-hidden="true"
-                    />
+                <Link
+                  href={href}
+                  style={{ minWidth: 40, minHeight: 40 }}
+                  className={cn(
+                    'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
+                    status === 'completed' && 'bg-emerald-600 text-white hover:bg-emerald-700',
+                    status === 'current' && 'bg-cyan-700 text-white wizard-step-current',
+                    status === 'upcoming' && !step.optional && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400',
+                    status === 'upcoming' && step.optional && 'border-2 border-dashed border-gray-300 bg-white text-gray-400 hover:border-gray-400'
                   )}
-                </div>
+                  title={`${step.name}${step.optional ? ' (Optional)' : ''}`}
+                >
+                  {isComplete && status !== 'current' ? (
+                    <Check className="h-5 w-5" />
+                  ) : (
+                    <Icon className="h-5 w-5" />
+                  )}
+                </Link>
 
                 <span
                   className={cn(
-                    'absolute -bottom-6 left-4 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
+                    'absolute -bottom-6 left-5 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
                     status === 'current' && 'text-cyan-700',
                     status === 'completed' && 'text-emerald-600',
                     status === 'upcoming' && 'text-gray-500'
@@ -167,6 +153,18 @@ export function WizardNav({
                   {step.name}
                   {step.optional && <span className="text-gray-400 ml-0.5">*</span>}
                 </span>
+
+                {stepIdx !== STEPS.length - 1 && (
+                  <div
+                    className={cn(
+                      'h-0.5 flex-1',
+                      isTransitionLine && 'wizard-gradient-line',
+                      !isTransitionLine && status === 'completed' && 'bg-emerald-600',
+                      !isTransitionLine && status !== 'completed' && 'bg-gray-200'
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
               </li>
             )
           })}

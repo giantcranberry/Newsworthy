@@ -253,7 +253,8 @@ export function ReviewContent({
 
       // Mark as accepted (server already updated the body)
       setAcceptedImprovements((prev) => new Set([...prev, index]));
-      window.dispatchEvent(new Event('preview-refresh'));
+      // Scroll to and highlight the changed text in the preview
+      window.dispatchEvent(new CustomEvent('preview-highlight', { detail: { text: improvement.improvedText } }));
     } catch {
       alert("Failed to apply change");
     } finally {
