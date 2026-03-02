@@ -88,7 +88,6 @@ export function UserDetailForm({
     prCredits: '',
     creditType: 'pr',
     creditNotes: '',
-    newsdbCredits: user.subscription?.newsdbCredits?.toString() || '0',
     prPartner: user.partnerId?.toString() || '',
     imPartner: user.imPartnerId?.toString() || '',
   })
@@ -362,18 +361,6 @@ export function UserDetailForm({
           </fieldset>
 
           <div>
-            <Label htmlFor="newsdbCredits">NewsDB Credits</Label>
-            <Input
-              id="newsdbCredits"
-              type="number"
-              value={formData.newsdbCredits}
-              onChange={(e) => setFormData({ ...formData, newsdbCredits: e.target.value })}
-              className="mt-1"
-            />
-            <p className="text-xs text-gray-500 mt-1">This replaces existing credits</p>
-          </div>
-
-          <div>
             <Label>Partner Network Manager</Label>
             <MultiSelect
               options={allPartners.map((p) => ({
@@ -421,13 +408,7 @@ export function UserDetailForm({
             </Select>
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? 'Saving...' : 'Save & Continue'}
-          </Button>
-        </form>
-
-        {canResetPassword && (
-          <div className="mt-6 pt-6 border-t">
+          {canResetPassword && (
             <fieldset className="border border-amber-200 p-4 rounded-lg space-y-3">
               <legend className="text-sm font-medium text-amber-700 px-2 flex items-center gap-1.5">
                 <KeyRound className="h-4 w-4" />
@@ -464,8 +445,12 @@ export function UserDetailForm({
                 </div>
               )}
             </fieldset>
-          </div>
-        )}
+          )}
+
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Saving...' : 'Save & Continue'}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   )
