@@ -65,7 +65,7 @@ export default async function AdminReleasesPage() {
         </div>
       </div>
 
-      <ReleasesTable initialReleases={allReleases} />
+      <ReleasesTable initialReleases={allReleases} isAdmin={!!isAdmin} />
     </div>
   )
 }

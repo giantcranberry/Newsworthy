@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle } from 'lucide-react'
+import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon } from 'lucide-react'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface LookupResult {
@@ -35,6 +35,7 @@ interface LookupResult {
     companyName: string
     logoUrl: string | null
   } | null
+  reportUrl: string | null
 }
 
 function extractPrId(input: string): string {
@@ -68,7 +69,6 @@ const distributionOptions = [
   { value: 'standard', label: 'Standard', color: 'bg-gray-500' },
   { value: 'enhanced', label: 'Enhanced', color: 'bg-blue-900' },
   { value: 'yahoo', label: 'Yahoo', color: 'bg-purple-700' },
-  { value: 'enhanced,yahoo', label: 'Enhanced + Yahoo', color: 'bg-indigo-700' },
 ]
 
 export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
@@ -79,6 +79,9 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
   const [upgradeTarget, setUpgradeTarget] = useState('')
   const [upgrading, setUpgrading] = useState(false)
   const [upgradeSuccess, setUpgradeSuccess] = useState('')
+  const [reportUrlInput, setReportUrlInput] = useState('')
+  const [savingReportUrl, setSavingReportUrl] = useState(false)
+  const [reportUrlMessage, setReportUrlMessage] = useState('')
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -95,6 +98,8 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
     setResult(null)
     setUpgradeTarget('')
     setUpgradeSuccess('')
+    setReportUrlInput('')
+    setReportUrlMessage('')
 
     try {
       const res = await fetch(`/api/admin/lookup?prId=${resolvedId}`)
@@ -144,6 +149,38 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
       setError('Failed to upgrade distribution')
     } finally {
       setUpgrading(false)
+    }
+  }
+
+  const handleSaveReportUrl = async () => {
+    if (!result || !reportUrlInput.trim()) return
+
+    setSavingReportUrl(true)
+    setReportUrlMessage('')
+
+    try {
+      const res = await fetch('/api/editorial/enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          releaseId: result.release.id,
+          reportUrl: reportUrlInput.trim(),
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({ ...result, reportUrl: reportUrlInput.trim() })
+        setReportUrlMessage('Report URL saved')
+        setReportUrlInput('')
+      } else {
+        setReportUrlMessage(data.error || 'Failed to save URL')
+      }
+    } catch {
+      setReportUrlMessage('Failed to save URL')
+    } finally {
+      setSavingReportUrl(false)
     }
   }
 
@@ -239,6 +276,14 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                         View Live
                       </Button>
                     </a>
+                  )}
+                  {result.release.status === 'sent' && (
+                    <Link href={`/pr/clips/${result.release.uuid}`}>
+                      <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                        <BarChart3 className="h-3 w-3" />
+                        Clipping Report
+                      </Button>
+                    </Link>
                   )}
                 </div>
               </div>
@@ -350,6 +395,57 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                     </div>
                     {upgradeSuccess && (
                       <p className="text-xs text-green-700 mt-2 font-medium">{upgradeSuccess}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Report URL - shown for enhanced/yahoo distributions */}
+            {isAdmin && ['enhanced', 'yahoo'].includes(result.release.distribution || '') && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <LinkIcon className="h-4 w-4 text-blue-700" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-blue-900">Report URL</p>
+                    {result.reportUrl ? (
+                      <div className="mt-1">
+                        <a
+                          href={result.reportUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-700 underline break-all"
+                        >
+                          {result.reportUrl}
+                        </a>
+                        <p className="text-xs text-blue-600 mt-2 mb-1">Replace with a new URL:</p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-blue-700 mt-0.5 mb-1">No report URL set</p>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="url"
+                        placeholder="Enter report URL"
+                        value={reportUrlInput}
+                        onChange={(e) => setReportUrlInput(e.target.value)}
+                        className="flex-1 h-8 text-xs bg-white"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-8 bg-blue-700 text-white hover:bg-blue-800 text-xs"
+                        disabled={savingReportUrl || !reportUrlInput.trim()}
+                        onClick={handleSaveReportUrl}
+                      >
+                        {savingReportUrl ? 'Saving...' : result.reportUrl ? 'Replace' : 'Save'}
+                      </Button>
+                    </div>
+                    {reportUrlMessage && (
+                      <p className={`text-xs mt-2 font-medium ${reportUrlMessage.includes('saved') ? 'text-green-700' : 'text-red-700'}`}>
+                        {reportUrlMessage}
+                      </p>
                     )}
                   </div>
                 </div>

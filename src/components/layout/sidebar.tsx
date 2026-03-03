@@ -233,6 +233,27 @@ export function Sidebar({
     return roles.some((role) => userRoles.includes(role))
   }
 
+  const isRoleRestricted = (roles?: string[]) => {
+    return roles && roles.length > 0
+  }
+
+  const accentColor = (roles?: string[]) =>
+    isRoleRestricted(roles)
+      ? {
+          active: 'bg-purple-900/10 text-purple-900',
+          activeBold: 'bg-purple-900/10 text-purple-900 font-semibold',
+          header: 'text-purple-900 bg-purple-50',
+          idle: 'text-purple-800 hover:bg-purple-50 hover:text-purple-900',
+          childIdle: 'text-purple-700 hover:bg-purple-50 hover:text-purple-900',
+        }
+      : {
+          active: 'bg-cyan-800/10 text-cyan-800',
+          activeBold: 'bg-cyan-800/10 text-cyan-800 font-semibold',
+          header: 'text-cyan-800 bg-gray-50',
+          idle: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
+          childIdle: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+        }
+
   return (
     <TooltipProvider delayDuration={0}>
       <div className={cn(
@@ -306,6 +327,7 @@ export function Sidebar({
                     if (!isNavGroup(item)) {
                       // Simple link
                       const active = isActive(item.href)
+                      const colors = accentColor(item.roles)
                       if (collapsed) {
                         return (
                           <Tooltip key={item.href}>
@@ -315,8 +337,8 @@ export function Sidebar({
                                 className={cn(
                                   'flex items-center justify-center h-10 w-full rounded-md transition-colors cursor-pointer',
                                   active
-                                    ? 'bg-cyan-800/10 text-cyan-800'
-                                    : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                    ? colors.active
+                                    : colors.idle
                                 )}
                               >
                                 <FaIcon icon={item.icon} className="text-base" />
@@ -333,8 +355,8 @@ export function Sidebar({
                             className={cn(
                               'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
                               active
-                                ? 'bg-cyan-800/10 text-cyan-800 font-semibold'
-                                : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                ? colors.activeBold
+                                : colors.idle
                             )}
                           >
                             <FaIcon icon={item.icon} className="w-5 text-center text-base flex-shrink-0" />
@@ -349,6 +371,7 @@ export function Sidebar({
                     const isExpanded = isGroupExpanded(groupKey, item)
                     const activeChild = hasActiveChild(item)
                     const submenuId = `submenu-${groupKey}`
+                    const colors = accentColor(item.roles)
 
                     if (collapsed) {
                       // In collapsed mode, show group icon linking to first child
@@ -362,8 +385,8 @@ export function Sidebar({
                               className={cn(
                                 'flex items-center justify-center h-10 w-full rounded-md transition-colors cursor-pointer',
                                 activeChild
-                                  ? 'bg-cyan-800/10 text-cyan-800'
-                                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                                  ? colors.active
+                                  : colors.idle
                               )}
                             >
                               <FaIcon icon={item.icon} className="text-base" />
@@ -381,8 +404,8 @@ export function Sidebar({
                           className={cn(
                             'flex items-center justify-between w-full px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
                             activeChild
-                              ? 'text-cyan-800 bg-gray-50'
-                              : 'text-gray-700 hover:bg-gray-100'
+                              ? colors.header
+                              : colors.idle
                           )}
                           aria-expanded={isExpanded}
                           aria-controls={submenuId}
@@ -409,7 +432,7 @@ export function Sidebar({
                             isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                           )}
                         >
-                          <div className="ml-4 pl-3 border-l border-slate-200 mt-1 space-y-1">
+                          <div className={cn('ml-4 pl-3 border-l mt-1 space-y-1', isRoleRestricted(item.roles) ? 'border-purple-200' : 'border-slate-200')}>
                             {item.children.filter((child) => !child.requiresCreate || canCreateContent).map((child) => {
                               return (
                                 <Link
@@ -418,8 +441,8 @@ export function Sidebar({
                                   className={cn(
                                     'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer',
                                     isChildActive(child, item.children)
-                                      ? 'bg-cyan-800/10 text-cyan-800 font-semibold'
-                                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                      ? colors.activeBold
+                                      : colors.childIdle
                                   )}
                                   tabIndex={isExpanded ? 0 : -1}
                                 >
