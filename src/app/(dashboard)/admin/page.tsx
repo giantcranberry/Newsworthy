@@ -55,7 +55,7 @@ export default async function AdminPage() {
 
       {/* PR Lookup */}
       <div data-tour="admin-pr-lookup">
-        <PRLookup />
+        <PRLookup isAdmin={!!isAdmin} />
       </div>
 
       {/* Sales Stats */}

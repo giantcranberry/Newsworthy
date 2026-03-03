@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3 } from 'lucide-react'
+import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle } from 'lucide-react'
+import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface LookupResult {
   release: {
@@ -63,11 +64,21 @@ const statusLabels: Record<string, string> = {
   start: 'Draft',
 }
 
-export function PRLookup() {
+const distributionOptions = [
+  { value: 'standard', label: 'Standard', color: 'bg-gray-500' },
+  { value: 'enhanced', label: 'Enhanced', color: 'bg-blue-900' },
+  { value: 'yahoo', label: 'Yahoo', color: 'bg-purple-700' },
+  { value: 'enhanced,yahoo', label: 'Enhanced + Yahoo', color: 'bg-indigo-700' },
+]
+
+export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<LookupResult | null>(null)
+  const [upgradeTarget, setUpgradeTarget] = useState('')
+  const [upgrading, setUpgrading] = useState(false)
+  const [upgradeSuccess, setUpgradeSuccess] = useState('')
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,6 +93,8 @@ export function PRLookup() {
     setLoading(true)
     setError('')
     setResult(null)
+    setUpgradeTarget('')
+    setUpgradeSuccess('')
 
     try {
       const res = await fetch(`/api/admin/lookup?prId=${resolvedId}`)
@@ -96,6 +109,41 @@ export function PRLookup() {
       setError('Failed to look up press release')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleUpgrade = async () => {
+    if (!result || !upgradeTarget) return
+
+    setUpgrading(true)
+    setUpgradeSuccess('')
+
+    try {
+      const res = await fetch('/api/admin/lookup/upgrade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          releaseId: result.release.id,
+          distribution: upgradeTarget,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({
+          ...result,
+          release: { ...result.release, distribution: data.distribution },
+        })
+        setUpgradeSuccess(`Distribution updated to ${data.distribution}`)
+        setUpgradeTarget('')
+      } else {
+        setError(data.error || 'Failed to upgrade')
+      }
+    } catch {
+      setError('Failed to upgrade distribution')
+    } finally {
+      setUpgrading(false)
     }
   }
 
@@ -257,6 +305,53 @@ export function PRLookup() {
                       View Brand
                     </Button>
                   </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Distribution Upgrade - Admin Only */}
+            {isAdmin && (
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ArrowUpCircle className="h-4 w-4 text-amber-700" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-amber-900">Change Distribution</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Current: <span className="font-medium">{result.release.distribution || 'none'}</span>
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <SelectRoot value={upgradeTarget} onValueChange={setUpgradeTarget}>
+                        <SelectTrigger className="w-48 h-8 text-xs bg-white">
+                          <SelectValue placeholder="Select distribution" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {distributionOptions
+                            .filter(opt => opt.value !== result.release.distribution)
+                            .map(opt => (
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <span className="flex items-center gap-2">
+                                  <span className={`inline-block h-2 w-2 rounded-full ${opt.color}`} />
+                                  {opt.label}
+                                </span>
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </SelectRoot>
+                      <Button
+                        size="sm"
+                        className="h-8 bg-amber-700 text-white hover:bg-amber-800 text-xs"
+                        disabled={!upgradeTarget || upgrading}
+                        onClick={handleUpgrade}
+                      >
+                        {upgrading ? 'Updating...' : 'Update'}
+                      </Button>
+                    </div>
+                    {upgradeSuccess && (
+                      <p className="text-xs text-green-700 mt-2 font-medium">{upgradeSuccess}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
