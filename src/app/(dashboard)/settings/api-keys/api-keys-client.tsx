@@ -132,7 +132,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
       {companies.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center text-gray-500">
-            <p>You need at least one brand to create API keys.</p>
+            <p>You need at least one brand before you can create an API key. Each key is tied to a specific brand so the AI agent knows which account to act on.</p>
           </CardContent>
         </Card>
       )}
@@ -191,7 +191,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
         <Card>
           <CardContent className="py-8 text-center text-gray-500">
             <Key className="h-8 w-8 mx-auto mb-3 text-gray-300" />
-            <p>No API keys yet. Create one to enable A2A access for external agents.</p>
+            <p>No API keys yet. Create one to let an AI agent draft releases, manage your brand, and submit content for review — all through the A2A protocol.</p>
           </CardContent>
         </Card>
       )}
@@ -231,7 +231,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
               <DialogHeader>
                 <DialogTitle>Create API Key</DialogTitle>
                 <DialogDescription>
-                  Create an API key to allow external agents to access the A2A protocol on behalf of a brand.
+                  This key lets an AI agent create press releases, manage your brand, and submit content for review. Pick a name to help you remember what it's for, then choose which brand the agent will have access to.
                 </DialogDescription>
               </DialogHeader>
 

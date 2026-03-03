@@ -53,8 +53,10 @@ export default async function ApiKeysPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">API Keys</h1>
-        <p className="text-gray-500">Manage API keys for the A2A protocol. Keys allow external agents to act on your behalf.</p>
+        <h1 className="text-2xl font-bold text-gray-900">AI Agent API Keys</h1>
+        <p className="text-gray-500 mt-1">
+          A2A (Agent-to-Agent) lets AI tools and automations work with your Newsworthy account directly — creating press releases, managing brands, and submitting content for review, all without logging into the dashboard. Create an API key below to give an external AI agent secure access to act on behalf of one of your brands.
+        </p>
       </div>
 
       <ApiKeysClient

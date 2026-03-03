@@ -78,6 +78,7 @@ const navSections: NavSection[] = [
         children: [
           { title: 'All Brands', href: '/company', icon: 'fa-light fa-flag' },
           { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag', requiresCreate: true },
+          { title: 'AI A2A Keys', href: '/settings/api-keys', icon: 'fa-light fa-key' },
         ],
       },
       {
