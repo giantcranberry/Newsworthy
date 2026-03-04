@@ -887,7 +887,7 @@ export function ImagesContent({
             }`}
           >
             <ImageIcon className="h-4 w-4" />
-            News Images - Yes, Now Supporting Multiple Images
+            News Images
             <span className={`text-xs ${activeTab === 'news-images' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
           </button>
         </div>
@@ -897,8 +897,11 @@ export function ImagesContent({
             <CardHeader>
               <div>
                 <CardTitle className="text-base">News Images</CardTitle>
-                <CardDescription className="inline-flex items-center flex-wrap gap-x-1">
-                  Add images for your press release. The first image is the primary image. You can drag images using the grip icon <GripVertical className="h-4 w-4 inline-block align-text-bottom" /> in the lower left of each image to reorder your images.
+                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-md bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 px-2.5 py-1 text-xs font-medium text-cyan-700 dark:text-cyan-400">
+                  Yes, Now Supporting Multiple Images
+                </div>
+                <CardDescription className="mt-2 inline-flex items-center flex-wrap gap-x-1">
+                  Add images for your press release. The first image is the primary image. You can drag images using the grip icon <GripVertical className="h-4 w-4 inline-block align-text-bottom" aria-hidden="true" /> in the lower left of each image to reorder your images.
                 </CardDescription>
               </div>
             </CardHeader>
