@@ -2,6 +2,8 @@ import { db } from '@/db'
 import { userMessages, users, userProfiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendMessageNotificationEmail } from '@/lib/email'
+import { sendSlackNotification, formatNewMessageAlert } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatNewMessageAlert } from '@/lib/google-chat'
 
 /**
  * Create a system-generated message for a user.
@@ -47,4 +49,12 @@ export async function sendSystemMessageWithEmail(toId: number, subject: string, 
     emailSent,
     createdAt: new Date(),
   })
+
+  // Slack notification (best-effort)
+  sendSlackNotification(toId, formatNewMessageAlert(subject, 'Newsworthy'))
+    .catch(err => console.error('[Slack] message notification failed:', err))
+
+  // Google Chat notification (best-effort)
+  sendGoogleChatNotification(toId, formatGChatNewMessageAlert(subject, 'Newsworthy'))
+    .catch(err => console.error('[GChat] message notification failed:', err))
 }

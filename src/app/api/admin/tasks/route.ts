@@ -5,6 +5,8 @@ import { eq, asc, sql, and, isNull } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadTaskFile } from '@/services/s3'
 import { sendSystemMessageWithEmail } from '@/lib/messages'
+import { sendSlackNotification, formatTaskAssignmentMessage } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatTaskAssignmentMessage } from '@/lib/google-chat'
 
 // GET: List all global (admin) tasks with files
 export async function GET(request: NextRequest) {
@@ -190,6 +192,18 @@ export async function POST(request: NextRequest) {
         'Task Assigned: ' + title.trim(),
         `<p>You have been assigned a new task: <strong>${title.trim()}</strong></p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
       ).catch(err => console.error('Failed to send task assignment notification:', err))
+
+      // Slack notification (best-effort)
+      const assignerProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, parseInt(userId)),
+      })
+      const assignerName = assignerProfile?.firstName || 'Someone'
+      sendSlackNotification(assignedTo, formatTaskAssignmentMessage(title.trim(), assignerName))
+        .catch(err => console.error('[Slack] task assignment notification failed:', err))
+
+      // Google Chat notification (best-effort)
+      sendGoogleChatNotification(assignedTo, formatGChatTaskAssignmentMessage(title.trim(), assignerName))
+        .catch(err => console.error('[GChat] task assignment notification failed:', err))
     }
 
     return NextResponse.json({ ...task, files: fileRecords })

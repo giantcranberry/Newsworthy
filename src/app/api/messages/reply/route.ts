@@ -4,6 +4,8 @@ import { userMessages, users, userProfiles } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendMessageNotificationEmail } from '@/lib/email'
+import { sendSlackNotification, formatNewMessageAlert } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatNewMessageAlert } from '@/lib/google-chat'
 
 // POST: Reply to a user message
 export async function POST(request: NextRequest) {
@@ -73,6 +75,18 @@ export async function POST(request: NextRequest) {
     emailSent,
     createdAt: new Date(),
   }).returning()
+
+  // Slack notification for reply (best-effort)
+  const senderProfile = await db.query.userProfiles.findFirst({
+    where: eq(userProfiles.userId, userId),
+  })
+  const senderName = senderProfile?.firstName || 'Someone'
+  sendSlackNotification(original.fromId, formatNewMessageAlert(subject, senderName))
+    .catch(err => console.error('[Slack] reply notification failed:', err))
+
+  // Google Chat notification for reply (best-effort)
+  sendGoogleChatNotification(original.fromId, formatGChatNewMessageAlert(subject, senderName))
+    .catch(err => console.error('[GChat] reply notification failed:', err))
 
   return NextResponse.json(reply, { status: 201 })
 }

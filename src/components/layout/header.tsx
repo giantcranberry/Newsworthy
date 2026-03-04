@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Bell, CreditCard, Globe, Menu, Plus, User } from 'lucide-react'
+import { Bell, CreditCard, Globe, Menu, MessageCircle, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { useState, useEffect, useCallback, useId } from 'react'
@@ -23,6 +23,7 @@ interface PreviewMessage {
 export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const { data: session } = useSession()
   const [unreadCount, setUnreadCount] = useState(0)
+  const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [popoverOpen, setPopoverOpen] = useState(false)
   const notificationsId = useId()
@@ -39,21 +40,36 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
     }
   }, [])
 
+  const fetchChatUnreadCount = useCallback(async () => {
+    try {
+      const res = await fetch('/api/chat/unread-count')
+      if (res.ok) {
+        const data = await res.json()
+        setChatUnreadCount(data.count)
+      }
+    } catch {
+      // Silently fail
+    }
+  }, [])
+
   // Poll unread count every 60 seconds + listen for inbox read events
   useEffect(() => {
     if (!session?.user) return
 
     fetchUnreadCount()
+    fetchChatUnreadCount()
     const interval = setInterval(fetchUnreadCount, 60000)
+    const chatInterval = setInterval(fetchChatUnreadCount, 60000)
 
     const handleMessageRead = () => fetchUnreadCount()
     window.addEventListener('messages:read', handleMessageRead)
 
     return () => {
       clearInterval(interval)
+      clearInterval(chatInterval)
       window.removeEventListener('messages:read', handleMessageRead)
     }
-  }, [session, fetchUnreadCount])
+  }, [session, fetchUnreadCount, fetchChatUnreadCount])
 
   // Fetch preview messages when popover opens
   const handlePopoverOpen = async (open: boolean) => {
@@ -106,6 +122,19 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
             </Link>
           </div>
         )}
+
+        {/* Chat */}
+        <Link
+          href="/community/chat"
+          className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+        >
+          <MessageCircle className="h-5 w-5" />
+          {chatUnreadCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-cyan-600 px-1 text-[10px] text-white">
+              {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+            </span>
+          )}
+        </Link>
 
         {/* Notifications */}
         <Popover open={popoverOpen} onOpenChange={handlePopoverOpen}>

@@ -122,6 +122,26 @@ export const oauth = pgTable('oauth', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
+export const slackConnections = pgTable('slack_connections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  teamId: varchar('team_id', { length: 64 }).notNull(),
+  teamName: varchar('team_name', { length: 128 }),
+  channelId: varchar('channel_id', { length: 64 }).notNull(),
+  channelName: varchar('channel_name', { length: 128 }),
+  webhookUrl: text('webhook_url').notNull(),
+  botToken: text('bot_token'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const googleChatConnections = pgTable('google_chat_connections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  spaceName: varchar('space_name', { length: 128 }),
+  webhookUrl: text('webhook_url').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles, {

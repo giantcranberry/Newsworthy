@@ -340,4 +340,61 @@ export async function deleteTaskFile(urlOrFilename: string): Promise<void> {
   }
 }
 
+/**
+ * Upload a community post image
+ */
+export async function uploadCommunityImage(
+  file: Buffer,
+  postId: number
+): Promise<{ url: string; width: number; height: number }> {
+  const processedImage = await sharp(file)
+    .rotate()
+    .resize(1200, 800, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 85 })
+    .toBuffer()
+
+  const processedMetadata = await sharp(processedImage).metadata()
+  const width = processedMetadata.width || 1200
+  const height = processedMetadata.height || 800
+
+  const filename = `community/${postId}-${Date.now()}.jpg`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: processedImage,
+      ContentType: 'image/jpeg',
+      ACL: 'public-read',
+    })
+  )
+
+  return {
+    url: `${CDN_BASE_URL}/${filename}`,
+    width,
+    height,
+  }
+}
+
+/**
+ * Delete a community post image from S3
+ */
+export async function deleteCommunityImage(urlOrFilename: string): Promise<void> {
+  if (!urlOrFilename) return
+
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: extractKey(urlOrFilename),
+      })
+    )
+  } catch (error) {
+    console.error('Error deleting community image:', error)
+  }
+}
+
 export { CDN_BASE_URL, BUCKET }

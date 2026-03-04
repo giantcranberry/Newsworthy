@@ -4,7 +4,7 @@ import { releases, users, company } from '@/db/schema'
 import { desc, eq, gte } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 
-const VALID_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent', 'released']
+const VALID_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent']
 
 export async function GET(request: NextRequest) {
   const session = await auth()

@@ -1,13 +1,15 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Save, Lock, Eye, EyeOff, Building2 } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Loader2, Save, Lock, Eye, EyeOff, Building2, Plug, Calendar, MessageCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ProfileFormProps {
   email: string
@@ -314,7 +316,297 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
         </div>
       </div>
 
+      {/* Integrations */}
+      <IntegrationsSection />
+
     </form>
+  )
+}
+
+function IntegrationsSection() {
+  const searchParams = useSearchParams()
+  const [slackStatus, setSlackStatus] = useState<{ connected: boolean; channelName?: string; teamName?: string }>({ connected: false })
+  const [gcalConnected, setGcalConnected] = useState(false)
+  const [gchatStatus, setGchatStatus] = useState<{ connected: boolean; spaceName?: string }>({ connected: false })
+  const [loading, setLoading] = useState(true)
+  const [disconnecting, setDisconnecting] = useState<string | null>(null)
+  const [gchatDialogOpen, setGchatDialogOpen] = useState(false)
+  const [gchatWebhookUrl, setGchatWebhookUrl] = useState('')
+  const [gchatSpaceName, setGchatSpaceName] = useState('')
+  const [gchatSaving, setGchatSaving] = useState(false)
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/slack/status').then(r => r.json()).catch(() => ({ connected: false })),
+      fetch('/api/google-calendar/status').then(r => r.json()).catch(() => ({ connected: false })),
+      fetch('/api/google-chat/status').then(r => r.json()).catch(() => ({ connected: false })),
+    ]).then(([slack, gcal, gchat]) => {
+      setSlackStatus(slack)
+      setGcalConnected(gcal.connected)
+      setGchatStatus(gchat)
+      setLoading(false)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (searchParams.get('slack_connected') === 'true') {
+      toast.success('Slack connected successfully')
+      fetch('/api/slack/status').then(r => r.json()).then(setSlackStatus).catch(() => {})
+    }
+    if (searchParams.get('slack_error')) {
+      toast.error(`Slack connection failed: ${searchParams.get('slack_error')}`)
+    }
+  }, [searchParams])
+
+  const handleDisconnect = async (service: 'slack' | 'google-calendar' | 'google-chat') => {
+    setDisconnecting(service)
+    try {
+      const resp = await fetch(`/api/${service}/disconnect`, { method: 'POST' })
+      if (resp.ok) {
+        if (service === 'slack') setSlackStatus({ connected: false })
+        else if (service === 'google-calendar') setGcalConnected(false)
+        else setGchatStatus({ connected: false })
+        const label = service === 'slack' ? 'Slack' : service === 'google-calendar' ? 'Google Calendar' : 'Google Chat'
+        toast.success(`${label} disconnected`)
+      }
+    } catch {
+      toast.error('Failed to disconnect')
+    } finally {
+      setDisconnecting(null)
+    }
+  }
+
+  const handleGchatConnect = async () => {
+    if (!gchatWebhookUrl.trim()) {
+      toast.error('Webhook URL is required')
+      return
+    }
+    setGchatSaving(true)
+    try {
+      const resp = await fetch('/api/google-chat/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ webhookUrl: gchatWebhookUrl.trim(), spaceName: gchatSpaceName.trim() || undefined }),
+      })
+      const data = await resp.json()
+      if (resp.ok) {
+        setGchatStatus({ connected: true, spaceName: gchatSpaceName.trim() || undefined })
+        setGchatDialogOpen(false)
+        setGchatWebhookUrl('')
+        setGchatSpaceName('')
+        toast.success('Google Chat connected! A test message was sent.')
+      } else {
+        toast.error(data.error || 'Failed to connect')
+      }
+    } catch {
+      toast.error('Failed to connect')
+    } finally {
+      setGchatSaving(false)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Plug className="h-5 w-5" />
+          Integrations
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Slack */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded bg-purple-100 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-700" fill="currentColor">
+                <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.124 2.521a2.528 2.528 0 0 1 2.52-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.52V8.834zm-1.271 0a2.528 2.528 0 0 1-2.521 2.521 2.528 2.528 0 0 1-2.521-2.521V2.522A2.528 2.528 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.312zm-2.521 10.124a2.528 2.528 0 0 1 2.521 2.52A2.528 2.528 0 0 1 15.166 24a2.528 2.528 0 0 1-2.521-2.522v-2.52h2.521zm0-1.271a2.528 2.528 0 0 1-2.521-2.521 2.528 2.528 0 0 1 2.521-2.521h6.312A2.528 2.528 0 0 1 24 15.166a2.528 2.528 0 0 1-2.522 2.521h-6.312z"/>
+              </svg>
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Slack</p>
+              {loading ? (
+                <p className="text-sm text-gray-500">Checking...</p>
+              ) : slackStatus.connected ? (
+                <p className="text-sm text-green-600">
+                  Connected to {slackStatus.teamName || 'workspace'} &middot; #{slackStatus.channelName || 'channel'}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500">Receive notifications in Slack</p>
+              )}
+            </div>
+          </div>
+          {!loading && (
+            slackStatus.connected ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleDisconnect('slack')}
+                disabled={disconnecting === 'slack'}
+                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                {disconnecting === 'slack' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => { window.location.href = '/api/slack/connect' }}
+                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+              >
+                Connect
+              </Button>
+            )
+          )}
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Google Calendar */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded bg-blue-100 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-blue-700" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Google Calendar</p>
+              {loading ? (
+                <p className="text-sm text-gray-500">Checking...</p>
+              ) : gcalConnected ? (
+                <p className="text-sm text-green-600">Connected</p>
+              ) : (
+                <p className="text-sm text-gray-500">Sync events to Google Calendar</p>
+              )}
+            </div>
+          </div>
+          {!loading && (
+            gcalConnected ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleDisconnect('google-calendar')}
+                disabled={disconnecting === 'google-calendar'}
+                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                {disconnecting === 'google-calendar' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => { window.location.href = '/api/google-calendar/connect' }}
+                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+              >
+                Connect
+              </Button>
+            )
+          )}
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Google Chat */}
+        <div className="flex items-center justify-between py-2">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded bg-green-100 flex items-center justify-center">
+              <MessageCircle className="h-5 w-5 text-green-700" />
+            </div>
+            <div>
+              <p className="font-medium text-gray-900">Google Chat</p>
+              {loading ? (
+                <p className="text-sm text-gray-500">Checking...</p>
+              ) : gchatStatus.connected ? (
+                <p className="text-sm text-green-600">
+                  Connected{gchatStatus.spaceName ? ` to ${gchatStatus.spaceName}` : ''}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-500">Send notifications to Google Chat</p>
+              )}
+            </div>
+          </div>
+          {!loading && (
+            gchatStatus.connected ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleDisconnect('google-chat')}
+                disabled={disconnecting === 'google-chat'}
+                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                {disconnecting === 'google-chat' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setGchatDialogOpen(true)}
+                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+              >
+                Connect
+              </Button>
+            )
+          )}
+        </div>
+      </CardContent>
+
+      {/* Google Chat Connect Dialog */}
+      <Dialog open={gchatDialogOpen} onOpenChange={setGchatDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Connect Google Chat</DialogTitle>
+            <DialogDescription>
+              Paste the webhook URL from your Google Chat Space to receive notifications.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-gray-600">
+              In Google Chat, open your Space &rarr; Apps &amp; integrations &rarr; Webhooks &rarr; Create a webhook. Copy the URL and paste it below.
+            </p>
+            <div>
+              <Label htmlFor="gchatWebhookUrl">Webhook URL</Label>
+              <Input
+                id="gchatWebhookUrl"
+                value={gchatWebhookUrl}
+                onChange={(e) => setGchatWebhookUrl(e.target.value)}
+                placeholder="https://chat.googleapis.com/v1/spaces/..."
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="gchatSpaceName">Space Name (optional)</Label>
+              <Input
+                id="gchatSpaceName"
+                value={gchatSpaceName}
+                onChange={(e) => setGchatSpaceName(e.target.value)}
+                placeholder="e.g. PR Notifications"
+                className="mt-1"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setGchatDialogOpen(false)}
+                className="cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={handleGchatConnect}
+                disabled={gchatSaving}
+                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+              >
+                {gchatSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Save
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
   )
 }
 

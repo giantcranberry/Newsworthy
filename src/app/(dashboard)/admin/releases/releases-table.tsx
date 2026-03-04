@@ -68,7 +68,6 @@ const statusColors: Record<string, string> = {
   review: 'bg-blue-100 text-blue-700',
   approved: 'bg-green-100 text-green-700',
   sent: 'bg-emerald-100 text-emerald-700',
-  released: 'bg-purple-100 text-purple-700',
 }
 
 const statusLabels: Record<string, string> = {
@@ -78,10 +77,9 @@ const statusLabels: Record<string, string> = {
   review: 'review',
   approved: 'approved',
   sent: 'sent',
-  released: 'released',
 }
 
-const ALL_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent', 'released']
+const ALL_STATUSES = ['start', 'draft', 'draftnxt', 'review', 'approved', 'sent']
 
 type SortField = 'createdAt' | 'releaseAt'
 type SortDir = 'desc' | 'asc'

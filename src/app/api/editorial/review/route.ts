@@ -5,6 +5,8 @@ import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles } f
 import { eq } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { createSystemMessage } from '@/lib/messages'
+import { sendSlackNotification, formatPrStatusMessage } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/google-chat'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -138,6 +140,14 @@ export async function POST(request: NextRequest) {
               text: `Hi ${recipientName},\n\nYour press release "${headline}" has been approved and will be distributed on ${dateStr}.\n\nView your releases: ${appUrl}/pr`,
             })
           }
+
+          // Slack notification (best-effort)
+          sendSlackNotification(release.userId, formatPrStatusMessage(headline, 'approved'))
+            .catch(err => console.error('[Slack] approval notification failed:', err))
+
+          // Google Chat notification (best-effort)
+          sendGoogleChatNotification(release.userId, formatGChatPrStatusMessage(headline, 'approved'))
+            .catch(err => console.error('[GChat] approval notification failed:', err))
         }
       } catch (err) {
         console.error('Failed to send approval notification:', err)
@@ -169,6 +179,22 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      // Slack + Google Chat notification for hold (best-effort)
+      try {
+        const [holdRelease] = await db
+          .select({ userId: releases.userId, title: releases.title })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+        if (holdRelease) {
+          sendSlackNotification(holdRelease.userId, formatPrStatusMessage(holdRelease.title || 'Untitled', 'on hold', notes))
+            .catch(err => console.error('[Slack] hold notification failed:', err))
+          sendGoogleChatNotification(holdRelease.userId, formatGChatPrStatusMessage(holdRelease.title || 'Untitled', 'on hold', notes))
+            .catch(err => console.error('[GChat] hold notification failed:', err))
+        }
+      } catch (err) {
+        console.error('[Slack/GChat] hold notification error:', err)
+      }
+
       return NextResponse.json({ success: true, action: 'hold' })
 
     } else if (action === 'reject') {
@@ -193,6 +219,22 @@ export async function POST(request: NextRequest) {
           fromName: editorName,
           createdAt: now,
         })
+      }
+
+      // Slack + Google Chat notification for rejection (best-effort)
+      try {
+        const [rejectRelease] = await db
+          .select({ userId: releases.userId, title: releases.title })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+        if (rejectRelease) {
+          sendSlackNotification(rejectRelease.userId, formatPrStatusMessage(rejectRelease.title || 'Untitled', 'needs revision', notes))
+            .catch(err => console.error('[Slack] reject notification failed:', err))
+          sendGoogleChatNotification(rejectRelease.userId, formatGChatPrStatusMessage(rejectRelease.title || 'Untitled', 'needs revision', notes))
+            .catch(err => console.error('[GChat] reject notification failed:', err))
+        }
+      } catch (err) {
+        console.error('[Slack/GChat] reject notification error:', err)
       }
 
       return NextResponse.json({ success: true, action: 'rejected' })

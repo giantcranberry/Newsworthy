@@ -43,6 +43,12 @@
 - react-pdf `wrap={false}` on large sections (many clips/logos) causes headers to strand on previous page while content jumps to next. Fix: allow wrapping on the outer section, use `wrap={false}` only on the header/tab row so it stays together, let the grid content flow naturally across pages.
 - PDF report file: `src/app/api/pr/[uuid]/report/pdf/report-pdf.tsx`. Web report: `src/app/(dashboard)/pr/clips/[uuid]/clips-report.tsx`. Data service: `src/services/report.ts`. Still has remaining page-break issues to revisit.
 
+## Patterns That Work (continued)
+- Community feature: community schema in `/src/db/schema/community.ts`, all tables use snake_case DB columns with camelCase JS fields
+- Large feature implementation: create schema first, then API routes, then pages/components. TypeScript catches integration issues early.
+- Chat polling pattern: active conversation polls every 5s, conversation list every 30s, header badge every 60s
+- Visibility filtering for posts: use separate queries for followed user IDs and company member IDs, then build OR condition
+
 ## Domain Notes
 - Next.js 16.1.3 with Turbopack
 - Project: newsworthy (press release platform)

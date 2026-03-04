@@ -107,6 +107,16 @@ const navSections: NavSection[] = [
         icon: 'fa-light fa-calendar-days',
       },
       {
+        title: 'Community',
+        href: '/community',
+        icon: 'fa-light fa-comments',
+        children: [
+          { title: 'Feed', href: '/community', icon: 'fa-light fa-stream' },
+          { title: 'Chat', href: '/community/chat', icon: 'fa-light fa-message' },
+          { title: 'Guidelines', href: '/community/guidelines', icon: 'fa-light fa-book' },
+        ],
+      },
+      {
         title: 'Partner',
         href: '/partner',
         icon: 'fa-light fa-handshake',
@@ -160,6 +170,16 @@ const navSections: NavSection[] = [
         href: '/admin/tasks',
         icon: 'fa-light fa-list-check',
         roles: ['editor', 'admin'],
+      },
+      {
+        title: 'Community',
+        href: '/admin/community',
+        icon: 'fa-light fa-comments',
+        roles: ['admin'],
+        children: [
+          { title: 'Boards', href: '/admin/community/boards', icon: 'fa-light fa-table-columns' },
+          { title: 'Guidelines', href: '/admin/community/guidelines', icon: 'fa-light fa-book' },
+        ],
       },
     ],
   },
