@@ -124,7 +124,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
             ) : (
               <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "pending-actions" } : {})}>
                 <Link href={`/editorial/edit/${item.id}`}>
-                  <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 h-7 text-xs">
+                  <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 h-7 text-xs">
                     Edit
                   </Button>
                 </Link>

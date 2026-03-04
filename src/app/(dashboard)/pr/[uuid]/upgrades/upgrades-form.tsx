@@ -90,6 +90,16 @@ export function UpgradesForm({
   children,
 }: UpgradesFormProps) {
   const router = useRouter()
+  const [previewDesktop, setPreviewDesktop] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { visible, deviceMode } = (e as CustomEvent<{ visible: boolean; deviceMode: string }>).detail
+      setPreviewDesktop(visible && deviceMode === 'desktop')
+    }
+    window.addEventListener('preview-visibility', handler)
+    return () => window.removeEventListener('preview-visibility', handler)
+  }, [])
 
   // Parse distribution to get purchased product types
   // - 'standard' → default, no upgrades purchased (DB default)
@@ -304,13 +314,13 @@ export function UpgradesForm({
   if (showPayment && clientSecret && stripePromise && paymentIntentId) {
     return (
       <div className="space-y-6">
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="font-medium text-blue-900">
+                  <p className="font-medium text-blue-900 dark:text-blue-300">
                     {selectedProducts.size} upgrade{selectedProducts.size > 1 ? 's' : ''} selected
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-400">
@@ -321,7 +331,7 @@ export function UpgradesForm({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-blue-900">{formatPrice(cartTotal)}</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">{formatPrice(cartTotal)}</p>
                 <p className="text-xs text-blue-600 dark:text-blue-400">total</p>
               </div>
             </div>
@@ -374,21 +384,21 @@ export function UpgradesForm({
 
       {/* Payment Status Messages */}
       {paymentSuccess && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 dark:text-green-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-lg">
           <Check className="h-5 w-5" />
           <span>Payment successful! Your upgrades have been added to your release.</span>
         </div>
       )}
 
       {paymentCanceled && (
-        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 dark:text-amber-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>Payment was canceled. You can try again or skip upgrades.</span>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -396,7 +406,7 @@ export function UpgradesForm({
 
       {/* Notice when solo upgrade prevents adding more */}
       {hasPurchasedSoloUpgrade && (
-        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 dark:text-amber-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>Your purchased upgrade cannot be combined with other upgrades.</span>
         </div>
@@ -432,18 +442,18 @@ export function UpgradesForm({
             )
 
             const isYahoo = product.type === 'yahoo'
-            const accentRing = isYahoo ? 'ring-2 ring-[#7d2eff]' : 'ring-2 ring-cyan-700'
+            const accentRing = isYahoo ? 'ring-2 ring-[#7d2eff] dark:ring-[#a855f7]' : 'ring-2 ring-cyan-700'
             const accentBg = isYahoo ? 'bg-[#7d2eff]' : 'bg-cyan-700'
-            const accentIconBg = isYahoo ? 'bg-[#7d2eff]/10' : 'bg-cyan-100 dark:bg-cyan-900/30'
-            const accentIconText = isYahoo ? 'text-[#7d2eff]' : 'text-cyan-700'
+            const accentIconBg = isYahoo ? 'bg-[#7d2eff]/10 dark:bg-purple-900/30' : 'bg-cyan-100 dark:bg-cyan-900/30'
+            const accentIconText = isYahoo ? 'text-[#7d2eff] dark:text-purple-400' : 'text-cyan-700 dark:text-cyan-400'
 
             return (
               <Card
                 key={product.type}
                 className={cn(
                   'relative transition-all',
-                  isPurchased && 'ring-2 ring-emerald-500 bg-emerald-50',
-                  isSelected && !isPurchased && 'ring-2 ring-green-500 bg-green-50',
+                  isPurchased && 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-950/30',
+                  isSelected && !isPurchased && 'ring-2 ring-green-500 bg-green-50 dark:bg-green-950/30',
                   isDisabled && 'opacity-50',
                   product.label && !isSelected && !isPurchased && accentRing
                 )}
@@ -475,7 +485,7 @@ export function UpgradesForm({
                   <div className="flex items-start justify-between">
                     <div className={cn(
                       "p-2 rounded-lg flex items-center justify-center w-12 h-12",
-                      isPurchased ? "bg-emerald-100" : isSelected ? "bg-green-100 dark:bg-green-900/30" : isYahoo ? accentIconBg : "bg-cyan-400/10"
+                      isPurchased ? "bg-emerald-100 dark:bg-emerald-900/30" : isSelected ? "bg-green-100 dark:bg-green-900/30" : isYahoo ? accentIconBg : "bg-cyan-400/10"
                     )}>
                       <ProductIcon iconName={product.icon} faSize={isYahoo ? "text-3xl" : undefined} className={cn(
                         "h-8 w-8",
@@ -499,8 +509,9 @@ export function UpgradesForm({
                   <CardTitle className="text-lg">{product.name}</CardTitle>
                   {product.description && (
                     <div className={cn(
-                      "prose prose-sm prose-gray max-w-none text-muted-foreground [&_ul]:columns-2 [&_ul]:gap-x-4 [&_li]:break-inside-avoid",
-                      isYahoo ? "[&_li]:marker:text-[#7d2eff]" : "[&_li]:marker:text-cyan-700"
+                      "prose prose-sm prose-gray max-w-none text-muted-foreground [&_ul]:gap-x-4 [&_li]:break-inside-avoid",
+                      previewDesktop ? '' : '[&_ul]:columns-2',
+                      isYahoo ? "[&_li]:marker:text-[#7d2eff] dark:[&_li]:marker:text-purple-400" : "[&_li]:marker:text-cyan-700 dark:[&_li]:marker:text-cyan-400"
                     )} dangerouslySetInnerHTML={{ __html: product.description }} />
                   )}
                   {product.isSoloUpgrade && !isPurchased && (
@@ -511,10 +522,10 @@ export function UpgradesForm({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {hasCredits && !isPurchased && (
-                    <div className={cn("p-3 rounded-lg", isYahoo ? "bg-[#7d2eff]/10" : "bg-cyan-50 dark:bg-cyan-900/30")}>
+                    <div className={cn("p-3 rounded-lg", isYahoo ? "bg-[#7d2eff]/10 dark:bg-purple-900/30" : "bg-cyan-50 dark:bg-cyan-900/30")}>
                       <div className="flex items-center justify-between text-sm">
-                        <span className={cn(isYahoo ? "text-[#7d2eff]" : "text-cyan-800 dark:text-cyan-400", "font-medium")}>Available credits</span>
-                        <span className={cn("font-bold", isYahoo ? "text-[#7d2eff]" : "text-cyan-800 dark:text-cyan-400")}>{credits}</span>
+                        <span className={cn(isYahoo ? "text-[#7d2eff] dark:text-purple-400" : "text-cyan-800 dark:text-cyan-400", "font-medium")}>Available credits</span>
+                        <span className={cn("font-bold", isYahoo ? "text-[#7d2eff] dark:text-purple-400" : "text-cyan-800 dark:text-cyan-400")}>{credits}</span>
                       </div>
                     </div>
                   )}
@@ -534,7 +545,7 @@ export function UpgradesForm({
                       className={cn(
                         "w-full",
                         isSelected && "border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 hover:text-red-700 dark:text-red-400",
-                        !isSelected && isYahoo && "bg-[#7d2eff] hover:bg-[#6a27d6]",
+                        !isSelected && isYahoo && "bg-[#7d2eff] hover:bg-[#6a27d6] dark:bg-purple-600 dark:hover:bg-purple-700",
                         !isSelected && !isYahoo && "bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700"
                       )}
                       onClick={() => toggleProduct(product.type)}
@@ -571,16 +582,16 @@ export function UpgradesForm({
 
       {/* Purchased Summary */}
       {purchasedProducts.size > 0 && (
-        <Card className="bg-emerald-50 border-emerald-200">
+        <Card className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Check className="h-5 w-5 text-emerald-600" />
+                <Check className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 <div>
-                  <p className="font-medium text-emerald-900">
+                  <p className="font-medium text-emerald-900 dark:text-emerald-300">
                     {purchasedProducts.size} upgrade{purchasedProducts.size > 1 ? 's' : ''} purchased
                   </p>
-                  <p className="text-sm text-emerald-700">
+                  <p className="text-sm text-emerald-700 dark:text-emerald-400">
                     {Array.from(purchasedProducts).map(type =>
                       products.find(p => p.type === type)?.name
                     ).join(', ')}
@@ -594,13 +605,13 @@ export function UpgradesForm({
 
       {/* Cart Summary */}
       {selectedProducts.size > 0 && (
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="font-medium text-blue-900">
+                  <p className="font-medium text-blue-900 dark:text-blue-300">
                     {selectedProducts.size} upgrade{selectedProducts.size > 1 ? 's' : ''} selected
                   </p>
                   <p className="text-sm text-blue-700 dark:text-blue-400">
@@ -611,7 +622,7 @@ export function UpgradesForm({
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-2xl font-bold text-blue-900">{formatPrice(cartTotal)}</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-300">{formatPrice(cartTotal)}</p>
                 <p className="text-xs text-blue-600 dark:text-blue-400">total</p>
               </div>
             </div>

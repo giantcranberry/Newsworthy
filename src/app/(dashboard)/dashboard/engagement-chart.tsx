@@ -229,7 +229,16 @@ export function EngagementChart({ brands }: { brands: BrandOption[] }) {
                 },
               },
               plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 12 } },
+                legend: {
+                  position: 'bottom',
+                  labels: { boxWidth: 12 },
+                  onHover: (event: any) => {
+                    if (event.native?.target) event.native.target.style.cursor = 'pointer'
+                  },
+                  onLeave: (event: any) => {
+                    if (event.native?.target) event.native.target.style.cursor = 'default'
+                  },
+                },
                 tooltip: {
                   callbacks: {
                     label: (ctx) => {

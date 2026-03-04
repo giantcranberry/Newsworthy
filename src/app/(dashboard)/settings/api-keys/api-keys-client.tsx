@@ -149,10 +149,10 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
               {activeKeys.map(key => (
                 <div
                   key={key.uuid}
-                  className="flex items-center justify-between p-4 border rounded-lg"
+                  className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-green-50 flex items-center justify-center">
+                    <div className="h-9 w-9 rounded-lg bg-green-50 dark:bg-green-950/30 flex items-center justify-center">
                       <Key className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
@@ -175,7 +175,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
                     onClick={() => setShowRevoke(key.uuid)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -190,7 +190,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
       {activeKeys.length === 0 && companies.length > 0 && (
         <Card>
           <CardContent className="py-8 text-center text-gray-500 dark:text-gray-400">
-            <Key className="h-8 w-8 mx-auto mb-3 text-gray-300" />
+            <Key className="h-8 w-8 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
             <p>No API keys yet. Create one to let an AI agent draft releases, manage your brand, and submit content for review — all through the A2A protocol.</p>
           </CardContent>
         </Card>
@@ -207,7 +207,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
               {revokedKeys.map(key => (
                 <div
                   key={key.uuid}
-                  className="flex items-center gap-3 p-3 border border-dashed rounded-lg opacity-60"
+                  className="flex items-center gap-3 p-3 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg opacity-60"
                 >
                   <Key className="h-4 w-4 text-gray-400" />
                   <div>
@@ -259,7 +259,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
                 </div>
 
                 {createError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
                     <p className="text-sm text-red-700 dark:text-red-400">{createError}</p>
                   </div>
                 )}
@@ -285,8 +285,8 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
               </DialogHeader>
 
               <div className="py-4">
-                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <p className="text-sm text-amber-700 dark:text-amber-400">
                     This is the only time the full key will be shown. Store it securely.
                   </p>

@@ -171,7 +171,7 @@ export function PartnerList({ partners }: PartnerListProps) {
           <Button
             data-tour="partners-add"
             onClick={() => setShowAddDialog(true)}
-            className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+            className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Partner
@@ -422,7 +422,7 @@ export function PartnerList({ partners }: PartnerListProps) {
               <Button
                 type="submit"
                 disabled={isCreating}
-                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 {isCreating ? "Creating..." : "Create Partner"}
               </Button>

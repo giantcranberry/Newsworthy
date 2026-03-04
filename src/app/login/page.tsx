@@ -93,7 +93,7 @@ function LoginForm() {
           </div>
 
           {errorParam && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:text-red-400 text-sm">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
               {errorParam === 'expired_link' && 'This link has expired. Please request a new one.'}
               {errorParam === 'invalid_link' && 'Invalid sign in link. Please try again.'}
               {errorParam === 'server_error' && 'An error occurred. Please try again.'}
@@ -101,7 +101,7 @@ function LoginForm() {
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:text-red-400 text-sm">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -204,7 +204,7 @@ function LoginForm() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
+                    className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
                     disabled={isLoading}
                   >
                     {isLoading ? (
@@ -238,7 +238,7 @@ function LoginForm() {
                   </div>
                   <Button
                     type="submit"
-                    className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
+                    className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
                     disabled={isLoading}
                   >
                     {isLoading ? (

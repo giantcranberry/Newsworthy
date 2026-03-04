@@ -64,7 +64,7 @@ export function RetractReleaseButton({
           <Button variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
             Cancel
           </Button>
-          <Button onClick={handleRetract} disabled={isRetracting} className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+          <Button onClick={handleRetract} disabled={isRetracting} className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
             {isRetracting ? "Retracting..." : "Retract & Edit"}
           </Button>
         </DialogFooter>

@@ -184,7 +184,7 @@ export function MessageArea({
             type="submit"
             size="icon"
             disabled={!inputValue.trim() || sending}
-            className="h-9 w-9 rounded-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+            className="h-9 w-9 rounded-full bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
           >
             <Send className="h-4 w-4" />
           </Button>

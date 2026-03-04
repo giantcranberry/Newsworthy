@@ -149,7 +149,7 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
     <>
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500 dark:text-gray-400">{boards.length} board{boards.length !== 1 ? 's' : ''}</p>
-        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           <Plus className="h-4 w-4" />
           Add Board
         </Button>

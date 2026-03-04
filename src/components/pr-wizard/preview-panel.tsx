@@ -150,7 +150,7 @@ export function PreviewPanel({
           <div
             id="preview-body"
             className={cn(
-              'article max-w-none prose prose-gray prose-p:text-gray-800 dark:text-gray-200 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 dark:text-gray-100 prose-strong:text-gray-900 dark:text-gray-100 prose-blockquote:text-gray-600 dark:text-gray-400',
+              'article max-w-none prose prose-gray dark:prose-invert prose-p:text-gray-800 dark:prose-p:text-gray-200 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 dark:prose-li:marker:text-slate-200 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-strong:text-gray-900 dark:prose-strong:text-gray-100 prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400',
               compact
                 ? 'prose-sm prose-h2:text-base'
                 : 'prose-p:text-base prose-h2:text-xl'

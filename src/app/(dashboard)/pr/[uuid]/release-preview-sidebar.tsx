@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 const MIN_WIDTH = 300
 const MAX_WIDTH = 900
-const DEFAULT_WIDTH = MAX_WIDTH
+const DEFAULT_WIDTH = 375
 
 interface PreviewImage {
   id: number
@@ -58,6 +58,7 @@ export function ReleasePreviewSidebar() {
   const isWizardComplete = searchParams.get('wizard') === 'complete'
 
   const [data, setData] = useState<PreviewData | null>(null)
+  const [visible, setVisible] = useState(false)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const scrollRef = useRef<HTMLDivElement>(null)
   const pendingHighlightText = useRef<string | null>(null)
@@ -183,8 +184,24 @@ export function ReleasePreviewSidebar() {
     return null
   }
 
+  // Listen for toggle events from WizardHeader
+  useEffect(() => {
+    const handler = () => setVisible((v) => !v)
+    window.addEventListener('toggle-preview', handler)
+    return () => window.removeEventListener('toggle-preview', handler)
+  }, [])
+
+  // Broadcast visibility + device mode so other components can adapt
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('preview-visibility', { detail: { visible, deviceMode: effectiveDevice } }))
+  }, [visible, effectiveDevice])
+
+  if (!visible) {
+    return null
+  }
+
   return (
-    <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: panelWidth }}>
+    <div className="hidden xl:block shrink -mt-6 -mr-6 -mb-6" style={{ width: panelWidth, maxWidth: '50vw' }}>
       <div className="sticky top-0 h-screen flex">
         <ResizeHandle onResize={handleResize} />
         <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">

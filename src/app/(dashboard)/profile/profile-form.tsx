@@ -106,7 +106,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
             <Button
               type="submit"
               disabled={isLoading}
-              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -452,7 +452,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => { window.location.href = '/api/slack/connect' }}
-                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -496,7 +496,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => { window.location.href = '/api/google-calendar/connect' }}
-                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -542,7 +542,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => setGchatDialogOpen(true)}
-                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -597,7 +597,7 @@ function IntegrationsSection() {
                 type="button"
                 onClick={handleGchatConnect}
                 disabled={gchatSaving}
-                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 {gchatSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save
@@ -744,7 +744,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
             type="button"
             onClick={handlePasswordSubmit}
             disabled={isLoading}
-            className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+            className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
           >
             {isLoading ? (
               <>

@@ -112,7 +112,7 @@ function EditMetadataDialog({
   const [imgCredits, setImgCredits] = useState(image.imgCredits || '')
 
   return (
-    <div className="space-y-3 p-3 border rounded-lg bg-white dark:bg-gray-900">
+    <div className="space-y-3 p-3 border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900">
       <div>
         <Label htmlFor={`edit-title-${image.id}`}>Alt Description *</Label>
         <Input
@@ -190,7 +190,7 @@ function SortableImageCard({
 
   return (
     <div ref={setNodeRef} style={style} className="relative">
-      <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-900/50">
+      <div className="border dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-900/50">
         <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
           <Image
             src={resizedUrl(ri.image.url)}
@@ -837,6 +837,13 @@ export function ImagesContent({
         }}
         canProceed={!!displayBanner}
       />
+
+      <div className="flex items-center gap-2 rounded-lg bg-cyan-50 dark:bg-cyan-950/30 border border-cyan-200 dark:border-cyan-800 px-4 py-2.5 text-sm text-cyan-800 dark:text-cyan-300">
+        <span className="text-lg">🎉</span>
+        <span className="font-medium">New!</span>
+        <span>Now supporting multiple news images per release</span>
+      </div>
+
       {children}
       <input
         ref={newsImageFileInputRef}
@@ -887,7 +894,7 @@ export function ImagesContent({
             }`}
           >
             <ImageIcon className="h-4 w-4" />
-            News Images - Yes, Now Supporting Multiple Images
+            News Images
             <span className={`text-xs ${activeTab === 'news-images' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
           </button>
         </div>
@@ -910,7 +917,7 @@ export function ImagesContent({
               )}
 
               {pendingFile && (
-                <div className="border rounded-lg p-4 bg-blue-50 space-y-3">
+                <div className="border dark:border-gray-700 rounded-lg p-4 bg-blue-50 dark:bg-blue-950/30 space-y-3">
                   {pendingPreview && (
                     <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                       <img
@@ -1099,7 +1106,7 @@ export function ImagesContent({
 
               {/* Brand asset library */}
               {newsSource === 'library' && !pendingFile && (
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
                   {availableLibraryImages.length > 0 ? (
                     <>
                       <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your brand assets</h4>
@@ -1191,7 +1198,7 @@ export function ImagesContent({
 
               {displayBanner && (
                 <div className="max-w-xl">
-                <div className="relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950" style={{ aspectRatio: '1200/630' }}>
+                <div className="relative rounded-lg overflow-hidden border dark:border-gray-700 bg-gray-50 dark:bg-gray-950" style={{ aspectRatio: '1200/630' }}>
                   <Image
                     src={displayBanner}
                     alt="Social media banner"
@@ -1367,7 +1374,7 @@ export function ImagesContent({
 
               {/* Brand asset library */}
               {bannerSource === 'library' && (
-                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
                   {availableLibraryBanners.length > 0 ? (
                     <>
                       <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your banner library</h4>
@@ -1405,7 +1412,7 @@ export function ImagesContent({
               )}
 
               {displayBanner && (
-                <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-4 pt-4 border-t dark:border-gray-700">
                   <div>
                     <Label htmlFor="banner-title">Alt Text / Title</Label>
                     <Input

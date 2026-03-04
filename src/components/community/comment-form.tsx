@@ -72,7 +72,7 @@ export function CommentForm({
           type="submit"
           size="icon"
           disabled={!body.trim() || submitting}
-          className="h-9 w-9 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+          className="h-9 w-9 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Send className="h-3.5 w-3.5" />
         </Button>

@@ -182,7 +182,7 @@ export function QueueList({
                   {isCheckedOutByMe(item) && (
                     <>
                       <Link href={`/editorial/edit/${item.releaseId}`}>
-                        <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7">
+                        <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7">
                           Edit / Approve
                         </Button>
                       </Link>
@@ -213,7 +213,7 @@ export function QueueList({
                   {isNotCheckedOut(item) && (
                     <Button
                       size="sm"
-                      className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7"
+                      className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7"
                       onClick={() => handleCheckout(item)}
                       disabled={loading[`checkout-${item.queueId}`]}
                     >

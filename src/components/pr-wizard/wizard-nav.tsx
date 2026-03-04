@@ -105,7 +105,7 @@ export function WizardNav({
   releaseOptions,
 }: WizardNavProps) {
   return (
-      <nav aria-label="Progress" className="mb-8">
+      <nav aria-label="Progress" className="mb-8 px-8">
         <ol className="flex items-center">
           {STEPS.map((step, stepIdx) => {
             const status = getStepStatus(step, currentStep, release, company, releaseOptions)

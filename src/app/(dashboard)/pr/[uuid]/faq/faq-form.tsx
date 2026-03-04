@@ -132,7 +132,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
               <Button
                 onClick={handleGenerate}
                 size="lg"
-                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 <Sparkles className="h-4 w-4" />
                 Generate FAQs
@@ -197,7 +197,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
             <Button
               onClick={saveFaqs}
               disabled={isSaving}
-              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             >
               {isSaving ? (
                 <>

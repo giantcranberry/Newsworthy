@@ -243,7 +243,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b text-left">
+                <tr className="border-b dark:border-gray-700 text-left">
                   <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Name</th>
                   <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Email</th>
                   <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Role</th>
@@ -255,7 +255,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
               <tbody>
                 {/* Owner row */}
                 {owner && (
-                  <tr className="border-b">
+                  <tr className="border-b dark:border-gray-700">
                     <td className="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{owner.name}</td>
                     <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{owner.email}</td>
                     <td className="py-2 pr-4">
@@ -268,7 +268,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                 )}
                 {/* Members */}
                 {members.map((m) => (
-                  <tr key={m.id} className="border-b last:border-0">
+                  <tr key={m.id} className="border-b dark:border-gray-700 last:border-0">
                     <td className="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{m.name}</td>
                     <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{m.email}</td>
                     <td className="py-2 pr-4">
@@ -395,7 +395,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
               type="button"
               onClick={handleSendInvite}
               disabled={isSendingInvite || !inviteEmail.trim()}
-              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             >
               {isSendingInvite ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

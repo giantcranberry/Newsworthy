@@ -75,7 +75,7 @@ function SortableStageRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border rounded-lg"
+      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg"
     >
       <div
         className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:text-gray-400"
