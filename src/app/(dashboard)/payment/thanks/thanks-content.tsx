@@ -99,7 +99,7 @@ export function ThanksContent({ cartUuid, userEmail }: ThanksContentProps) {
           <div className="flex flex-col gap-3">
             {fulfilled && balance && balance.prCredits > 0 && (
               <Link href="/pr/create">
-                <Button className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+                <Button className="w-full bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
                   Distribute a Press Release
                 </Button>
               </Link>

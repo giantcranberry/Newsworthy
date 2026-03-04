@@ -217,12 +217,15 @@ export function TourProvider({ children }: { children: ReactNode }) {
   }, [tour, stepIndex])
 
   const endTour = useCallback(() => {
+    if (tour) {
+      markTourCompleted(tour.id)
+    }
     clearActiveTour()
     setTour(null)
     setStepIndex(0)
     setTargetElement(null)
     setSearchFailed(false)
-  }, [])
+  }, [tour])
 
   const handleFabHintDismiss = useCallback(() => {
     markFabHintShown()

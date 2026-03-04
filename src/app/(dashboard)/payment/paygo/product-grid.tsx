@@ -228,7 +228,7 @@ export function ProductGrid({
               <Button
                 onClick={handleCheckout}
                 disabled={loading}
-                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 px-8"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 px-8"
                 size="lg"
               >
                 {loading ? (

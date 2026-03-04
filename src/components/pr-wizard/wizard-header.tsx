@@ -2,7 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, SkipForward, Loader2, Eye, EyeOff } from 'lucide-react'
 import { STEPS } from './wizard-nav'
 
 interface WizardHeaderProps {
@@ -33,6 +34,19 @@ export function WizardHeader({
   hideNext = false,
 }: WizardHeaderProps) {
   const router = useRouter()
+  const [previewVisible, setPreviewVisible] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setPreviewVisible((e as CustomEvent<{ visible: boolean }>).detail.visible)
+    }
+    window.addEventListener('preview-visibility', handler)
+    return () => window.removeEventListener('preview-visibility', handler)
+  }, [])
+
+  const togglePreview = () => {
+    window.dispatchEvent(new CustomEvent('toggle-preview'))
+  }
 
   const prevStep = STEPS.find((s) => s.id === currentStep - 1)
   const nextStep = STEPS.find((s) => s.id === currentStep + 1)
@@ -80,14 +94,14 @@ export function WizardHeader({
 
   return (
     <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4 -mt-6 mb-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 truncate">{title}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{title}</h1>
           {description && (
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2">
           {prevPath && (
             <Button
               type="button"
@@ -115,7 +129,7 @@ export function WizardHeader({
               type="button"
               onClick={handleNext}
               disabled={isLoading || !canProceed}
-              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 disabled:opacity-50"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 disabled:opacity-50"
             >
               {isLoading ? (
                 <>
@@ -130,6 +144,15 @@ export function WizardHeader({
               )}
             </Button>
           )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={togglePreview}
+            className="hidden xl:inline-flex"
+          >
+            {previewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {previewVisible ? 'Hide Preview' : 'Preview Your Release'}
+          </Button>
         </div>
       </div>
     </div>

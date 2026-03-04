@@ -192,7 +192,7 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={saving} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+        <Button type="submit" disabled={saving} className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           {saving ? 'Saving...' : board ? 'Update Board' : 'Create Board'}
         </Button>
       </div>

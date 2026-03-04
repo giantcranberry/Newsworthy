@@ -508,7 +508,7 @@ export function CrmContactList({
         >
           <CardContent className="pt-4 pb-4 text-center">
             <UserX className="h-5 w-5 text-amber-400 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-amber-600">{stats.unsubscribed}</p>
+            <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{stats.unsubscribed}</p>
             <p className="text-xs text-gray-500 dark:text-gray-400">Unsubscribed</p>
           </CardContent>
         </Card>
@@ -520,7 +520,7 @@ export function CrmContactList({
           onClick={() => handleTypeFilter(contactType || '')}
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
             !contactType
-              ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+              ? 'bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900'
               : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
           }`}
         >
@@ -627,7 +627,7 @@ export function CrmContactList({
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-left">
+                    <tr className="border-b border-gray-200 dark:border-gray-800 text-left">
                       {!readOnly && (
                         <th className="pb-2 pr-2 w-8">
                           <Checkbox
@@ -650,7 +650,7 @@ export function CrmContactList({
                       const rowStatus = getStatus(c)
                       const isSelected = c.uuid ? selected.has(c.uuid) : false
                       return (
-                        <tr key={c.id} className={`border-b last:border-0 ${isSelected ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}>
+                        <tr key={c.id} className={`border-b border-gray-200 dark:border-gray-800 last:border-0 ${isSelected ? 'bg-red-50/50 dark:bg-red-900/10' : ''}`}>
                           {!readOnly && (
                             <td className="py-2 pr-2">
                               {c.uuid && (
@@ -734,7 +734,7 @@ export function CrmContactList({
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500 dark:text-gray-400">Rows per page:</span>
                   <Select
@@ -878,7 +878,7 @@ export function CrmContactList({
                 </div>
               )}
 
-              <div className="border-t pt-3">
+              <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
                 <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Activity</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>

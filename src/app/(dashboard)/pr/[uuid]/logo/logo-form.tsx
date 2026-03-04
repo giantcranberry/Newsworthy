@@ -151,13 +151,13 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-3 rounded-lg">
               {error}
             </div>
           )}
 
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-sm">
+            <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
             <div className="text-amber-800 dark:text-amber-400">
               <strong>Note:</strong> Changing this logo will update it across all press releases for {companyName}.
             </div>
@@ -194,7 +194,7 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
                     </span>
                   </div>
                 )}
-                <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border">
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border dark:border-gray-700">
                   <Image
                     src={displayUrl}
                     alt={`${companyName} logo`}
@@ -255,7 +255,7 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
       </Card>
 
       {!hasLogo && (
-        <p className="text-sm text-amber-600 text-center">
+        <p className="text-sm text-amber-600 dark:text-amber-400 text-center">
           Please upload a logo to continue
         </p>
       )}

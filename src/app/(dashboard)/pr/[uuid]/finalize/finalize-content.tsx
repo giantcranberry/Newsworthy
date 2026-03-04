@@ -73,13 +73,13 @@ export function FinalizeContent({
 
   if (success) {
     return (
-      <Card className="border-green-200 bg-green-50">
+      <Card className="border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center text-center py-8">
             <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full mb-4">
               <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-xl font-semibold text-green-900 mb-2">
+            <h3 className="text-xl font-semibold text-green-900 dark:text-green-300 mb-2">
               Press Release Submitted!
             </h3>
             <p className="text-green-700 dark:text-green-400">
@@ -110,7 +110,7 @@ export function FinalizeContent({
       />
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -143,12 +143,12 @@ export function FinalizeContent({
             </p>
           </div>
 
-          <div className="border-t pt-4">
+          <div className="border-t dark:border-gray-700 pt-4">
             <div
               className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
                 confirmed
-                  ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-amber-300 bg-amber-50'
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                  : 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30'
               }`}
               onClick={() => setConfirmed(!confirmed)}
             >
@@ -166,7 +166,7 @@ export function FinalizeContent({
           </div>
 
           {hasBlockingApprovals && (
-            <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 text-amber-800 dark:text-amber-400 rounded-lg">
+            <div className="flex items-center gap-2 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400 rounded-lg">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <p className="text-sm">
                 You have pending or unapproved stakeholder approval requests. All approvals must be approved or deleted before you can submit.

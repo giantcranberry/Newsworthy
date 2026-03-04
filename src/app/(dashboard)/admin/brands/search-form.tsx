@@ -37,7 +37,7 @@ export function BrandSearchForm() {
           className="pl-9"
         />
       </div>
-      <Button type="submit" className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">Search</Button>
+      <Button type="submit" className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">Search</Button>
       {searchParams.get('q') && (
         <Button type="button" variant="outline" onClick={handleClear} className="cursor-pointer">
           <X className="h-4 w-4" />

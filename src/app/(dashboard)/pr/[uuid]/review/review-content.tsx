@@ -609,11 +609,11 @@ export function ReviewContent({
       {children}
 
       {/* Review warning */}
-      <div className="flex items-start gap-3 p-4 bg-violet-50 border border-violet-200 rounded-lg">
-        <Sparkles className="h-5 w-5 text-violet-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-violet-800">
+      <div className="flex items-start gap-3 p-4 bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800 rounded-lg">
+        <Sparkles className="h-5 w-5 text-violet-600 dark:text-violet-400 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-violet-800 dark:text-violet-300">
           <h2 className="text-lg font-semibold">Please review this entire page before proceeding.</h2>
-          <p className="mt-1 text-violet-700">
+          <p className="mt-1 text-violet-700 dark:text-violet-400">
             Scroll down to review the expert optimization analysis, including alternative headlines, copy improvements, and content chunk analysis.
           </p>
         </div>
@@ -621,7 +621,7 @@ export function ReviewContent({
 
       {/* Errors - Required fields */}
       {errors.length > 0 && (
-        <Card className="border-red-200">
+        <Card className="border-red-200 dark:border-red-800">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-red-800 dark:text-red-400">
               <AlertCircle className="h-5 w-5" />
@@ -635,12 +635,12 @@ export function ReviewContent({
               return (
                 <div
                   key={idx}
-                  className="flex items-start justify-between p-3 bg-red-50 rounded-lg"
+                  className="flex items-start justify-between p-3 bg-red-50 dark:bg-red-950/30 rounded-lg"
                 >
                   <div className="flex items-start gap-3">
                     <Icon className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium text-red-900">{item.label}</p>
+                      <p className="font-medium text-red-900 dark:text-red-300">{item.label}</p>
                       <p className="text-sm text-red-700 dark:text-red-400">{item.description}</p>
                     </div>
                   </div>
@@ -662,7 +662,7 @@ export function ReviewContent({
 
       {/* Warnings - Recommended */}
       {warnings.length > 0 && (
-        <Card className="border-amber-200">
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-400">
               <AlertTriangle className="h-5 w-5" />
@@ -676,12 +676,12 @@ export function ReviewContent({
               return (
                 <div
                   key={idx}
-                  className="flex items-start justify-between p-3 bg-amber-50 rounded-lg"
+                  className="flex items-start justify-between p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg"
                 >
                   <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                    <Icon className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium text-amber-900">{item.label}</p>
+                      <p className="font-medium text-amber-900 dark:text-amber-300">{item.label}</p>
                       <p className="text-sm text-amber-700 dark:text-amber-400">
                         {item.description}
                       </p>
@@ -705,7 +705,7 @@ export function ReviewContent({
 
       {/* Info - Suggestions */}
       {infos.length > 0 && (
-        <Card className="border-blue-200">
+        <Card className="border-blue-200 dark:border-blue-800">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-blue-800 dark:text-blue-400">
               <Info className="h-5 w-5" />
@@ -719,12 +719,12 @@ export function ReviewContent({
               return (
                 <div
                   key={idx}
-                  className="flex items-start justify-between p-3 bg-blue-50 rounded-lg"
+                  className="flex items-start justify-between p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg"
                 >
                   <div className="flex items-start gap-3">
                     <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                     <div>
-                      <p className="font-medium text-blue-900">{item.label}</p>
+                      <p className="font-medium text-blue-900 dark:text-blue-300">{item.label}</p>
                       <p className="text-sm text-blue-700 dark:text-blue-400">
                         {item.description}
                       </p>
@@ -819,7 +819,7 @@ export function ReviewContent({
           )}
 
           {aiError && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
+            <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
               <AlertCircle className="h-5 w-5 shrink-0" />
               <span>{aiError}</span>
             </div>
@@ -836,8 +836,8 @@ export function ReviewContent({
                         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">SEO</h4>
                         <span className={cn(
                           "text-2xl font-bold",
-                          seoScore >= 8 ? "text-emerald-600" :
-                          seoScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
+                          seoScore >= 8 ? "text-emerald-600 dark:text-emerald-400" :
+                          seoScore >= 5 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
                         )}>
                           {seoScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
@@ -863,8 +863,8 @@ export function ReviewContent({
                         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Training</h4>
                         <span className={cn(
                           "text-2xl font-bold",
-                          aiTrainingScore >= 8 ? "text-emerald-600" :
-                          aiTrainingScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
+                          aiTrainingScore >= 8 ? "text-emerald-600 dark:text-emerald-400" :
+                          aiTrainingScore >= 5 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
                         )}>
                           {aiTrainingScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
@@ -890,8 +890,8 @@ export function ReviewContent({
                         <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Grounding</h4>
                         <span className={cn(
                           "text-2xl font-bold",
-                          aiGroundingScore >= 8 ? "text-emerald-600" :
-                          aiGroundingScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
+                          aiGroundingScore >= 8 ? "text-emerald-600 dark:text-emerald-400" :
+                          aiGroundingScore >= 5 ? "text-amber-600 dark:text-amber-400" : "text-red-600 dark:text-red-400"
                         )}>
                           {aiGroundingScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
@@ -939,7 +939,7 @@ export function ReviewContent({
                           className={cn(
                             "p-4 border rounded-lg transition-colors",
                             isCurrentHeadline
-                              ? "border-green-300 bg-green-50/50"
+                              ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-950/30"
                               : "border-gray-200 dark:border-gray-800 hover:border-blue-300",
                           )}
                         >
@@ -998,15 +998,15 @@ export function ReviewContent({
                                           <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-1">
                                             Current:
                                           </p>
-                                          <p className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-300">
+                                          <p className="text-sm bg-red-50 dark:bg-red-950/30 p-2 rounded border-l-2 border-red-300 dark:border-red-700">
                                             {currentTitle}
                                           </p>
                                         </div>
                                         <div>
-                                          <p className="text-xs font-medium text-emerald-600 mb-1">
+                                          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
                                             New:
                                           </p>
-                                          <p className="text-sm bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
+                                          <p className="text-sm bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded border-l-2 border-emerald-300 dark:border-emerald-700">
                                             {suggestion.headline}
                                           </p>
                                         </div>
@@ -1044,8 +1044,8 @@ export function ReviewContent({
                     <FileText className="h-4 w-4" />
                     Suggested Abstract
                   </h3>
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-green-900">{aiAbstract}</p>
+                  <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                    <p className="text-green-900 dark:text-green-300">{aiAbstract}</p>
                     <p className="text-xs text-green-600 dark:text-green-400 mt-2">
                       {aiAbstract.length}/350 characters - Add this summary to
                       your press release
@@ -1061,11 +1061,11 @@ export function ReviewContent({
                     <Quote className="h-4 w-4" />
                     Suggested Notable Quote
                   </h3>
-                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                    <p className="text-purple-900 italic">
+                  <div className="p-4 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <p className="text-purple-900 dark:text-purple-300 italic">
                       &ldquo;{aiPullquote}&rdquo;
                     </p>
-                    <p className="text-xs text-purple-600 mt-2">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-2">
                       Consider adding this quote to make your release more
                       quotable
                     </p>
@@ -1093,7 +1093,7 @@ export function ReviewContent({
                           className={cn(
                             "p-4 border rounded-lg",
                             isAccepted
-                              ? "border-green-300 bg-green-50/50"
+                              ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-950/30"
                               : "border-gray-200 dark:border-gray-800",
                           )}
                         >
@@ -1104,7 +1104,7 @@ export function ReviewContent({
                               </p>
                               <p
                                 className={cn(
-                                  "text-sm text-gray-700 dark:text-gray-300 bg-red-50 p-2 rounded border-l-2 border-red-300",
+                                  "text-sm text-gray-700 dark:text-gray-300 bg-red-50 dark:bg-red-950/30 p-2 rounded border-l-2 border-red-300 dark:border-red-700",
                                   isAccepted && "line-through opacity-60",
                                 )}
                               >
@@ -1112,10 +1112,10 @@ export function ReviewContent({
                               </p>
                             </div>
                             <div>
-                              <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">
+                              <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">
                                 Suggested
                               </p>
-                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded border-l-2 border-emerald-300 dark:border-emerald-700">
                                 {improvement.improvedText}
                               </p>
                             </div>
@@ -1182,15 +1182,15 @@ export function ReviewContent({
                                         <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-1">
                                           Will be replaced:
                                         </p>
-                                        <p className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-300">
+                                        <p className="text-sm bg-red-50 dark:bg-red-950/30 p-2 rounded border-l-2 border-red-300 dark:border-red-700">
                                           {improvement.originalText}
                                         </p>
                                       </div>
                                       <div>
-                                        <p className="text-xs font-medium text-emerald-600 mb-1">
+                                        <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">
                                           With:
                                         </p>
-                                        <p className="text-sm bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
+                                        <p className="text-sm bg-emerald-50 dark:bg-emerald-950/30 p-2 rounded border-l-2 border-emerald-300 dark:border-emerald-700">
                                           {improvement.improvedText}
                                         </p>
                                       </div>
@@ -1247,7 +1247,7 @@ export function ReviewContent({
                             className={cn(
                               "text-xs font-medium px-2 py-0.5 rounded",
                               chunk.brandability === "High"
-                                ? "bg-emerald-100 text-emerald-700"
+                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
                                 : chunk.brandability === "Medium"
                                   ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                                   : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
@@ -1302,7 +1302,7 @@ export function ReviewContent({
 
       {/* Warning if not complete */}
       {!requiredComplete && (
-        <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="flex items-start gap-2 p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg">
           <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-red-800 dark:text-red-400">
             <strong>Cannot proceed.</strong> Please complete all required items

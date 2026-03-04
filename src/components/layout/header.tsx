@@ -107,7 +107,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
           <div data-tour="header-actions" className="flex items-center gap-2">
             {/* Quick create */}
             <Link href="/pr/create">
-              <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700 cursor-pointer">
+              <Button size="sm" className="gap-2 bg-cyan-800 text-white dark:text-white hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700 cursor-pointer">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">New Release</span>
               </Button>

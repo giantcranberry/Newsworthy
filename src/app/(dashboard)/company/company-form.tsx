@@ -91,7 +91,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
   const description = pageDescription || (initialData?.uuid ? formData.companyName : 'Create a new brand profile for your press releases')
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-4xl mx-auto -mt-6 space-y-8">
+    <form onSubmit={handleSubmit} className="-mt-6 space-y-8">
       {/* Sticky Action Bar */}
       <div data-tour="brand-form-action-bar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -115,7 +115,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
               <Button
                 type="submit"
                 disabled={isLoading || !formData.companyName}
-                className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+                className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

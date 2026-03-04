@@ -96,7 +96,7 @@ export function PendingInvites({ invites: initialInvites }: { invites: Invite[] 
                 size="sm"
                 onClick={() => handleAccept(invite)}
                 disabled={acceptingId === invite.id}
-                className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+                className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {acceptingId === invite.id ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

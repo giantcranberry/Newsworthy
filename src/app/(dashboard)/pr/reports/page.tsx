@@ -77,7 +77,7 @@ export default async function ReportsPage({
             <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Published Releases Yet</h3>
             <p className="mt-2 text-gray-600 dark:text-gray-400">Once your releases are published, reports will appear here.</p>
             <Link href="/pr/create">
-              <Button className="mt-6 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
+              <Button className="mt-6 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
                 Create a Release
               </Button>
             </Link>

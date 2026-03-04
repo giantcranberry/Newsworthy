@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 
 const Editor = dynamic(
@@ -207,6 +208,8 @@ export function PRForm({
   initialData,
 }: PRFormProps) {
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const editorRef = useRef<any>(null);
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH);
   const previewDevice = useMemo(() => widthToDevice(previewWidth), [previewWidth]);
@@ -722,14 +725,14 @@ export function PRForm({
     <div className={showPreview ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
       {/* Sticky Action Bar */}
       <div data-tour="pr-create-action-bar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{pageTitle}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{pageTitle}</h1>
             {pageDescription && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{pageDescription}</p>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() => router.back()}
@@ -773,7 +776,7 @@ export function PRForm({
                 !formData.location ||
                 !!dateError
               }
-              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -790,8 +793,8 @@ export function PRForm({
       {children}
 
       {readOnly && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 text-amber-600" />
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           <p className="text-sm text-amber-800 dark:text-amber-400">
             This release cannot be edited because it has status{" "}
             <strong className="capitalize">{initialData?.status}</strong>.
@@ -801,56 +804,48 @@ export function PRForm({
 
       {/* Import/Generate options - only show for new releases or drafts */}
       {!readOnly && !initialData?.uuid && (
-        <div data-tour="pr-create-import-generate" className="grid md:grid-cols-2 gap-4">
+        <div data-tour="pr-create-import-generate" className="grid xl:grid-cols-2 gap-4">
           {/* Import from Document */}
-          <Card className="border border-blue-200/60 bg-blue-50/30">
-            <CardContent className="py-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">
-                    Import from Document
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Upload a Word doc or Google Docs URL
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowImportDialog(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
-                >
-                  <Upload className="h-4 w-4" />
-                  Import
-                </button>
+          <Card className="border border-blue-200/60 dark:border-blue-800/60 bg-blue-50/30 dark:bg-blue-950/20">
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <p className="font-medium text-gray-900 dark:text-gray-100">
+                  Import from Document
+                </p>
               </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Upload a Word doc or Google Docs URL
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowImportDialog(true)}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 cursor-pointer"
+              >
+                <Upload className="h-4 w-4" />
+                Import
+              </button>
             </CardContent>
           </Card>
 
           {/* Generate with AI */}
-          <Card className="border border-purple-200/60 bg-purple-50/30">
-            <CardContent className="py-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                  <Sparkles className="h-5 w-5 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-gray-900 dark:text-gray-100">Generate with AI</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Tell us about your news and we'll draft it
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAIDraftDialog(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-purple-600 text-white hover:bg-purple-700 cursor-pointer"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Generate
-                </button>
+          <Card className="border border-purple-200/60 dark:border-purple-800/60 bg-purple-50/30 dark:bg-purple-950/20">
+            <CardContent className="py-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <p className="font-medium text-gray-900 dark:text-gray-100">Generate with AI</p>
               </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Tell us about your news and we'll draft it
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowAIDraftDialog(true)}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-purple-600 text-white hover:bg-purple-700 cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generate
+              </button>
             </CardContent>
           </Card>
         </div>
@@ -887,7 +882,7 @@ export function PRForm({
 
           <div className="space-y-4 py-4">
             {importError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
                 <p className="text-sm text-red-800 dark:text-red-400">{importError}</p>
               </div>
@@ -972,7 +967,7 @@ export function PRForm({
 
           <div className="space-y-4 py-4">
             {importError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-start gap-2">
                 <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
                 <p className="text-sm text-red-800 dark:text-red-400">{importError}</p>
               </div>
@@ -994,7 +989,7 @@ export function PRForm({
               </p>
             </div>
 
-            <div className="bg-purple-50 rounded-md p-3 text-sm text-gray-600 dark:text-gray-400 border border-purple-100">
+            <div className="bg-purple-50 dark:bg-purple-950/20 rounded-md p-3 text-sm text-gray-600 dark:text-gray-400 border border-purple-100 dark:border-purple-800">
               <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Add details about your news:
               </p>
@@ -1068,7 +1063,7 @@ export function PRForm({
                     (aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH &&
                       !aiDraftSourceUrl.trim())
                   }
-                  className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+                  className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
                 >
                   {isFetchingUrl ? (
                     <>
@@ -1412,12 +1407,15 @@ export function PRForm({
         </div>
           <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Minimum 200 words</p>
           <Editor
+            key={isDark ? "dark" : "light"}
             apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
             onInit={(evt, editor) => (editorRef.current = editor)}
             initialValue={formData.body}
             init={{
               height: 800,
               menubar: false,
+              skin: isDark ? "oxide-dark" : "oxide",
+              content_css: isDark ? "dark" : "default",
               plugins: [
                 "advlist",
                 "autolink",
@@ -1438,7 +1436,9 @@ export function PRForm({
                 "alignright alignjustify | bullist numlist outdent indent | " +
                 "link | removeformat | wordcount",
               content_style:
-                'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+                isDark
+                  ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #1a1a2e; color: #e0e0e0; }'
+                  : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
               branding: false,
             }}
           />
@@ -1540,7 +1540,7 @@ export function PRForm({
             )}
 
             {suggestionsError && (
-              <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
+              <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <span>{suggestionsError}</span>
               </div>
@@ -1626,7 +1626,7 @@ export function PRForm({
                           setSuggestedAbstract(null);
                           toast.success("Abstract applied to form");
                         }}
-                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer"
+                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
                           <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full shrink-0">
@@ -1672,11 +1672,11 @@ export function PRForm({
                           setSuggestedPullquote(null);
                           toast.success("Pullquote applied to form");
                         }}
-                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer"
+                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
                           <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full shrink-0">
-                            <Lightbulb className="h-4 w-4 text-purple-600" />
+                            <Lightbulb className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                           </div>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
@@ -1739,7 +1739,7 @@ export function PRForm({
                                 </p>
                               </div>
 
-                              <div className="bg-amber-50 border border-amber-200 rounded p-3">
+                              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded p-3">
                                 <p className="text-xs font-medium text-amber-800 dark:text-amber-400 mb-1">
                                   Issue
                                 </p>
@@ -1748,7 +1748,7 @@ export function PRForm({
                                 </p>
                               </div>
 
-                              <div className="bg-green-50 border border-green-200 rounded p-3">
+                              <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded p-3">
                                 <p className="text-xs font-medium text-green-800 dark:text-green-400 mb-1">
                                   Recommendation
                                 </p>
@@ -1794,7 +1794,7 @@ export function PRForm({
             </div>
             <div className="p-4 space-y-4">
               {contactError && (
-                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-2 rounded">
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-2 rounded">
                   {contactError}
                 </div>
               )}
@@ -1869,7 +1869,7 @@ export function PRForm({
                 type="button"
                 onClick={handleCreateContact}
                 disabled={savingContact}
-                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {savingContact ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

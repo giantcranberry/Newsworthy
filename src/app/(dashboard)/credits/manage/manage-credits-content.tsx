@@ -154,7 +154,7 @@ export function ManageCreditsContent({
             </Button>
           )}
           <Link href="/payment/paygo">
-            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
               <FaIcon icon={faCoins} className="h-4 w-4" />
               Purchase Credits
             </Button>
@@ -175,7 +175,7 @@ export function ManageCreditsContent({
         </CardHeader>
         <CardContent>
           {hasPersonalCredits ? (
-            <div className="divide-y">
+            <div className="divide-y divide-gray-200 dark:divide-gray-800">
               {CREDIT_LABELS.map(({ key, label }) => (
                 <CreditRow key={key} label={label} count={allCredits.personal[key]} />
               ))}
@@ -200,7 +200,7 @@ export function ManageCreditsContent({
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="divide-y">
+                  <div className="divide-y divide-gray-200 dark:divide-gray-800">
                     {CREDIT_LABELS.map(({ key, label }) => (
                       <CreditRow key={key} label={label} count={brand.credits[key]} />
                     ))}
@@ -312,7 +312,7 @@ export function ManageCreditsContent({
             <Button
               onClick={handleAllocate}
               disabled={!selectedType || !selectedCompany || !amount || isSubmitting}
-              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isSubmitting ? 'Allocating...' : 'Allocate Credits'}
             </Button>

@@ -3,6 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --tour-arrow-border: rgba(0, 0, 0, 0.05);
   --background: #ffffff;
   --foreground: #171717;
   --card: #ffffff;
@@ -26,6 +27,7 @@
 }
 
 .dark {
+  --tour-arrow-border: rgba(255, 255, 255, 0.1);
   --background: #0a0a0a;
   --foreground: #ededed;
   --card: #111827;

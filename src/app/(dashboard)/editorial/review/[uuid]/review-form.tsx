@@ -175,7 +175,7 @@ export function ReviewForm({
               <Button variant="outline">Edit Release</Button>
             </Link>
             {!isCheckedOut && !isCheckedOutByOther && (
-              <Button onClick={handleCheckout} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+              <Button onClick={handleCheckout} className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
                 Check Out for Review
               </Button>
             )}

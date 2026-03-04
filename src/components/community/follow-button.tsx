@@ -40,7 +40,7 @@ export function FollowButton({ userId, isFollowing: initialFollowing, className 
       disabled={loading}
       className={following
         ? `gap-1.5 text-gray-700 dark:text-gray-300 ${className || ''}`
-        : `gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 ${className || ''}`
+        : `gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 ${className || ''}`
       }
     >
       {following ? (

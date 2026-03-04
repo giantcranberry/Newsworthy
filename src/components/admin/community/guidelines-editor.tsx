@@ -50,7 +50,7 @@ export function GuidelinesEditor({ initialBody }: GuidelinesEditorProps) {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+          className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Save className="h-4 w-4" />
           {saving ? 'Saving...' : 'Save Guidelines'}
