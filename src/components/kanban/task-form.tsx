@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import dynamic from 'next/dynamic'
 import {
   Dialog,
   DialogContent,
@@ -27,21 +26,26 @@ import { Textarea } from '@/components/ui/textarea'
 import { FileText, X, Upload, Trash2, Send, MessageSquare } from 'lucide-react'
 import type { Stage } from './stage-manager'
 
-const Editor = dynamic(
-  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[200px] bg-gray-50 rounded border border-gray-200 animate-pulse" />
-    ),
-  }
-)
-
 interface EditorialUser {
   id: number
   email: string
   firstName: string | null
   lastName: string | null
+}
+
+interface TeamMember {
+  id: number
+  userId: number
+  email: string
+  name: string
+  role: string
+}
+
+interface TeamOwner {
+  id: number
+  email: string
+  name: string
+  role: string
 }
 
 interface TaskFile {
@@ -66,6 +70,7 @@ interface TaskNote {
 
 export interface BrandCompany {
   id: number
+  uuid?: string | null
   companyName: string
 }
 
@@ -143,10 +148,10 @@ export function TaskFormDialog({
   showAssignee?: boolean
   showBrandSelector?: boolean
 }) {
-  const editorRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('medium')
   const [stageId, setStageId] = useState<number>(0)
   const [assignedTo, setAssignedTo] = useState<string>('')
@@ -157,6 +162,10 @@ export function TaskFormDialog({
   const [error, setError] = useState<string | null>(null)
   const [showDelete, setShowDelete] = useState(false)
 
+  // Brand team members for assignee
+  const [brandTeamMembers, setBrandTeamMembers] = useState<EditorialUser[]>([])
+  const [loadingTeam, setLoadingTeam] = useState(false)
+
   // Notes
   const [notes, setNotes] = useState<TaskNote[]>([])
   const [newNote, setNewNote] = useState('')
@@ -165,11 +174,83 @@ export function TaskFormDialog({
 
   const isCreator = task ? task.createdBy === currentUserId : false
 
+  // Determine which users to show in assignee dropdown
+  // If brand is selected and we have brand team members, use those; otherwise fall back to users prop
+  const assigneeUsers = showBrandSelector && companyId && brandTeamMembers.length > 0
+    ? brandTeamMembers
+    : users
+
+  // Fetch team members when brand changes
+  useEffect(() => {
+    if (!showBrandSelector || !companyId) {
+      setBrandTeamMembers([])
+      return
+    }
+
+    const selectedCompany = companies.find((c) => String(c.id) === companyId)
+    if (!selectedCompany?.uuid) {
+      setBrandTeamMembers([])
+      return
+    }
+
+    const fetchTeam = async () => {
+      setLoadingTeam(true)
+      try {
+        const res = await fetch(`/api/company/${selectedCompany.uuid}/team`)
+        if (res.ok) {
+          const data = await res.json()
+          const members: EditorialUser[] = []
+
+          // Add owner
+          if (data.owner) {
+            members.push({
+              id: data.owner.id,
+              email: data.owner.email,
+              firstName: data.owner.name.split(' ')[0] || null,
+              lastName: data.owner.name.split(' ').slice(1).join(' ') || null,
+            })
+          }
+
+          // Add team members
+          if (data.members) {
+            for (const m of data.members as TeamMember[]) {
+              members.push({
+                id: m.userId,
+                email: m.email,
+                firstName: m.name.split(' ')[0] || null,
+                lastName: m.name.split(' ').slice(1).join(' ') || null,
+              })
+            }
+          }
+
+          setBrandTeamMembers(members)
+        }
+      } catch (err) {
+        console.error('Error fetching brand team:', err)
+      } finally {
+        setLoadingTeam(false)
+      }
+    }
+
+    fetchTeam()
+  }, [companyId, companies, showBrandSelector])
+
+  // Clear assignee when brand changes (if the current assignee isn't in the new team)
+  useEffect(() => {
+    if (showBrandSelector && companyId && brandTeamMembers.length > 0 && assignedTo) {
+      const isInTeam = brandTeamMembers.some((m) => String(m.id) === assignedTo)
+      if (!isInTeam) {
+        setAssignedTo('')
+      }
+    }
+  }, [brandTeamMembers, showBrandSelector, companyId, assignedTo])
+
   // Initialize form when dialog opens
   useEffect(() => {
     if (open) {
       if (task) {
         setTitle(task.title)
+        setDescription(task.description || '')
         setPriority(task.priority || 'medium')
         setStageId(task.stageId)
         setAssignedTo(task.assignedTo ? String(task.assignedTo) : '')
@@ -178,6 +259,7 @@ export function TaskFormDialog({
         fetchNotes(task.id)
       } else {
         setTitle('')
+        setDescription('')
         setPriority('medium')
         setStageId(defaultStageId || stages[0]?.id || 0)
         setAssignedTo('')
@@ -241,14 +323,12 @@ export function TaskFormDialog({
     setError(null)
 
     try {
-      const description = editorRef.current?.getContent() || ''
-
       const formData = new FormData()
       formData.append('title', title.trim())
       formData.append('description', description)
       formData.append('priority', priority)
       formData.append('stageId', String(stageId))
-      if (showAssignee) {
+      if (showAssignee || (showBrandSelector && companyId)) {
         formData.append('assignedTo', assignedTo)
       }
       if (showBrandSelector) {
@@ -332,6 +412,9 @@ export function TaskFormDialog({
     return note.authorEmail || 'Unknown'
   }
 
+  // Show assignee selector when: showAssignee is true (admin), OR a brand with team members is selected
+  const showAssigneeSelector = showAssignee || (showBrandSelector && companyId && brandTeamMembers.length > 0)
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -361,28 +444,14 @@ export function TaskFormDialog({
 
             {/* Description */}
             <div className="space-y-2">
-              <Label>Description</Label>
-              <div className="border rounded-lg overflow-hidden">
-                <Editor
-                  apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
-                  onInit={(_evt, editor) => (editorRef.current = editor)}
-                  initialValue={task?.description || ''}
-                  init={{
-                    height: 200,
-                    menubar: false,
-                    plugins: [
-                      'advlist', 'autolink', 'lists', 'link',
-                      'searchreplace', 'visualblocks',
-                      'insertdatetime', 'help', 'wordcount',
-                    ],
-                    toolbar:
-                      'undo redo | blocks | bold italic | bullist numlist | link | removeformat',
-                    content_style:
-                      'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
-                    branding: false,
-                  }}
-                />
-              </div>
+              <Label htmlFor="task-description">Description</Label>
+              <Textarea
+                id="task-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the task..."
+                className="min-h-[120px] resize-y"
+              />
             </div>
 
             <div className="grid gap-4 grid-cols-2">
@@ -418,25 +487,6 @@ export function TaskFormDialog({
                 </Select>
               </div>
 
-              {/* Assigned To */}
-              {showAssignee && (
-                <div className="space-y-2">
-                  <Label htmlFor="task-assignee">Assign To</Label>
-                  <Select
-                    id="task-assignee"
-                    value={assignedTo}
-                    onChange={(e) => setAssignedTo(e.target.value)}
-                  >
-                    <option value="">Unassigned</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {getUserLabel(u)}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-              )}
-
               {/* Brand */}
               {showBrandSelector && companies.length > 0 && (
                 <div className="space-y-2">
@@ -444,12 +494,38 @@ export function TaskFormDialog({
                   <Select
                     id="task-brand"
                     value={companyId}
-                    onChange={(e) => setCompanyId(e.target.value)}
+                    onChange={(e) => {
+                      setCompanyId(e.target.value)
+                      if (!e.target.value) {
+                        setAssignedTo('')
+                        setBrandTeamMembers([])
+                      }
+                    }}
                   >
                     <option value="">No Brand</option>
                     {companies.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.companyName}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              )}
+
+              {/* Assigned To */}
+              {showAssigneeSelector && (
+                <div className="space-y-2">
+                  <Label htmlFor="task-assignee">Assign To</Label>
+                  <Select
+                    id="task-assignee"
+                    value={assignedTo}
+                    onChange={(e) => setAssignedTo(e.target.value)}
+                    disabled={loadingTeam}
+                  >
+                    <option value="">Unassigned</option>
+                    {assigneeUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {getUserLabel(u)}
                       </option>
                     ))}
                   </Select>

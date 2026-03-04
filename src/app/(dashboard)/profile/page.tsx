@@ -1,9 +1,8 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { users, userProfiles, userSubscription } from '@/db/schema'
+import { users, userProfiles } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { ProfileForm } from './profile-form'
-import { getUserCompanyIds } from '@/lib/team-auth'
 
 async function getUserProfile(userId: number) {
   const user = await db.query.users.findFirst({
@@ -14,20 +13,14 @@ async function getUserProfile(userId: number) {
     where: eq(userProfiles.userId, userId),
   })
 
-  const subscription = await db.query.userSubscription.findFirst({
-    where: eq(userSubscription.userId, userId),
-  })
-
-  return { user, profile, subscription }
+  return { user, profile }
 }
 
 export default async function ProfilePage() {
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
 
-  const { user, profile, subscription } = await getUserProfile(userId)
-  const editableIds = await getUserCompanyIds(userId, 'collaborator')
-  const canPurchase = editableIds.length > 0
+  const { user, profile } = await getUserProfile(userId)
 
   return (
     <ProfileForm
@@ -47,11 +40,6 @@ export default async function ProfilePage() {
         countryCode: profile?.countryCode || 'US',
       }}
       isAgency={user?.isAgency || false}
-      subscription={{
-        remainingPr: subscription?.remainingPr || 0,
-        remainingPluspr: subscription?.remainingPluspr || 0,
-      }}
-      canPurchase={canPurchase}
     />
   )
 }

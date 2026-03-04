@@ -353,7 +353,7 @@ export default async function AdminBrandDetailPage({
           {/* Contacts */}
           <Card>
             <CardHeader>
-              <CardTitle>Media Contacts ({contacts.length})</CardTitle>
+              <CardTitle>PR Contacts ({contacts.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {contacts.length > 0 ? (

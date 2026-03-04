@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface Approval {
+export interface Approval {
   id: number
   uuid: string
   email: string | null
@@ -32,7 +32,7 @@ interface Approval {
   notes: string | null
 }
 
-interface PriorApprover {
+export interface PriorApprover {
   email: string | null
   emailTo: string | null
 }
@@ -41,6 +41,7 @@ interface ApprovalSectionProps {
   releaseUuid: string
   approvals: Approval[]
   priorApprovers: PriorApprover[]
+  onApprovalsChange?: (approvals: Approval[]) => void
 }
 
 const QUESTIONS = [
@@ -92,10 +93,14 @@ function formatDate(dateStr: string | null) {
 
 export function ApprovalSection({
   releaseUuid,
-  approvals: initialApprovals,
+  approvals: approvalList,
   priorApprovers,
+  onApprovalsChange,
 }: ApprovalSectionProps) {
-  const [approvalList, setApprovalList] = useState<Approval[]>(initialApprovals)
+  const setApprovalList = (updater: Approval[] | ((prev: Approval[]) => Approval[])) => {
+    const newList = typeof updater === 'function' ? updater(approvalList) : updater
+    onApprovalsChange?.(newList)
+  }
   const [answers, setAnswers] = useState<Record<string, 'yes' | 'no'>>({})
   const [selectedPrior, setSelectedPrior] = useState<Set<string>>(new Set())
   const [newName, setNewName] = useState('')

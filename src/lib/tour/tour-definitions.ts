@@ -368,7 +368,7 @@ const prCreateTour: TourDefinition = {
       target: "pr-create-brand-contact",
       title: "Brand & Contact",
       description:
-        "Select which brand this press release is for and choose a primary media contact. The contact's name and email will appear on the published release so journalists know who to reach out to. You can add new contacts directly from here if needed.",
+        "Select which brand this press release is for and choose a primary PR contact. The contact's name and email will appear on the published release so journalists know who to reach out to. You can add new contacts directly from here if needed.",
       position: "top",
     },
     {
@@ -609,7 +609,7 @@ const brandAddTour: TourDefinition = {
       target: "brand-form-contact-info",
       title: "Contact Information",
       description:
-        "Add a general email and phone number for this brand. This is the company-level contact info — you'll add individual media contacts (the people journalists reach out to) after creating the brand.",
+        "Add a general email and phone number for this brand. This is the company-level contact info — you'll add individual PR contacts (the people journalists reach out to) after creating the brand.",
       position: "top",
     },
     {

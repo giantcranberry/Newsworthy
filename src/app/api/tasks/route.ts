@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTasks, kanbanTaskFiles, kanbanTaskNotes, kanbanStages, company } from '@/db/schema'
+import { kanbanTasks, kanbanTaskFiles, kanbanTaskNotes, kanbanStages, company, users, userProfiles } from '@/db/schema'
 import { eq, asc, sql, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadTaskFile } from '@/services/s3'
@@ -37,10 +37,15 @@ export async function GET(request: NextRequest) {
         sortOrder: kanbanTasks.sortOrder,
         createdAt: kanbanTasks.createdAt,
         updatedAt: kanbanTasks.updatedAt,
+        assigneeFirstName: userProfiles.firstName,
+        assigneeLastName: userProfiles.lastName,
+        assigneeEmail: users.email,
       })
       .from(kanbanTasks)
       .innerJoin(kanbanStages, eq(kanbanTasks.stageId, kanbanStages.id))
       .leftJoin(company, eq(kanbanTasks.companyId, company.id))
+      .leftJoin(users, eq(kanbanTasks.assignedTo, users.id))
+      .leftJoin(userProfiles, eq(kanbanTasks.assignedTo, userProfiles.userId))
       .where(and(...conditions))
       .orderBy(asc(kanbanTasks.sortOrder))
 
@@ -81,9 +86,6 @@ export async function GET(request: NextRequest) {
 
     const tasksWithFiles = tasks.map(task => ({
       ...task,
-      assigneeFirstName: null,
-      assigneeLastName: null,
-      assigneeEmail: null,
       files: filesByTask.get(task.id) || [],
       noteCount: noteCountMap.get(task.id) || 0,
     }))
@@ -113,6 +115,8 @@ export async function POST(request: NextRequest) {
     const stageId = parseInt(formData.get('stageId') as string)
     const companyIdRaw = formData.get('companyId') as string | null
     const companyId = companyIdRaw ? parseInt(companyIdRaw) : null
+    const assignedToRaw = formData.get('assignedTo') as string | null
+    const assignedTo = assignedToRaw ? parseInt(assignedToRaw) : null
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -144,7 +148,7 @@ export async function POST(request: NextRequest) {
         title: title.trim(),
         description,
         priority,
-        assignedTo: null,
+        assignedTo: assignedTo && !isNaN(assignedTo) ? assignedTo : null,
         createdBy: uid,
         companyId,
         sortOrder: maxOrder,

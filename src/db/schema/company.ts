@@ -62,6 +62,7 @@ export const contact = pgTable('contact', {
   title: varchar('title', { length: 128 }),
   phone: varchar('phone', { length: 30 }),
   email: varchar('email', { length: 128 }),
+  avatar: text('avatar'),
   isArchived: boolean('is_archived').default(false),
   isDeleted: boolean('is_deleted').default(false),
 })

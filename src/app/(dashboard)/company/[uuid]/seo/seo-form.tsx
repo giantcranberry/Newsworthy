@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { HelpTip } from '@/components/ui/help-tip'
 import {
   Copy, Check, Info, Save, RotateCcw, Loader2,
-  Globe, Bot, Braces, Shield, Plus, Trash2,
+  Globe, Bot, Braces, Plus, Trash2, Camera, Sparkles,
 } from 'lucide-react'
 
 interface CompanyData {
@@ -225,6 +225,110 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
   const [success, setSuccess] = useState<string | null>(null)
 
   const [config, setConfig] = useState<SeoConfig>(() => mergeSeoConfig(savedSeo))
+  const [isUploadingHeadshot, setIsUploadingHeadshot] = useState(false)
+  const [isPrefilling, setIsPrefilling] = useState(false)
+  const [prefillWebsite, setPrefillWebsite] = useState('')
+  const headshotInputRef = useRef<HTMLInputElement>(null)
+
+  const handleHeadshotUpload = useCallback(async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Photo must be under 5MB')
+      return
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Only PNG, JPG, and WebP files are supported')
+      return
+    }
+
+    setIsUploadingHeadshot(true)
+    setError(null)
+
+    try {
+      const fd = new FormData()
+      fd.append('headshot', file)
+      fd.append('oldUrl', config.schemas.person.image)
+
+      const response = await fetch(`/api/company/${companyUuid}/seo/headshot`, {
+        method: 'POST',
+        body: fd,
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to upload photo')
+      }
+
+      const data = await response.json()
+      updatePerson('image', data.imageUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setIsUploadingHeadshot(false)
+    }
+  }, [companyUuid, config.schemas.person.image])
+
+  const handlePrefill = useCallback(async () => {
+    setIsPrefilling(true)
+    setError(null)
+
+    try {
+      const body: Record<string, string> = {}
+      if (!companyData.website && prefillWebsite) {
+        body.website = prefillWebsite
+      }
+
+      const response = await fetch(`/api/company/${companyUuid}/seo/prefill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to generate suggestions')
+      }
+
+      const result = await response.json()
+
+      setConfig(prev => ({
+        ...prev,
+        meta: {
+          ...prev.meta,
+          title: result.meta?.title || prev.meta.title,
+          description: result.meta?.description || prev.meta.description,
+        },
+        aio: {
+          ...prev.aio,
+          preferredName: result.aio?.preferredName || prev.aio.preferredName,
+          companySummary: result.aio?.companySummary || prev.aio.companySummary,
+          keyFacts: {
+            ...prev.aio.keyFacts,
+            foundedYear: result.aio?.keyFacts?.foundedYear || prev.aio.keyFacts.foundedYear,
+            hqLocation: result.aio?.keyFacts?.hqLocation || prev.aio.keyFacts.hqLocation,
+            employeeCount: result.aio?.keyFacts?.employeeCount || prev.aio.keyFacts.employeeCount,
+            industry: result.aio?.keyFacts?.industry || prev.aio.keyFacts.industry,
+            stockTicker: result.aio?.keyFacts?.stockTicker || prev.aio.keyFacts.stockTicker,
+          },
+        },
+        schemas: {
+          ...prev.schemas,
+          person: {
+            ...prev.schemas.person,
+            enabled: result.person?.name ? true : prev.schemas.person.enabled,
+            name: result.person?.name || prev.schemas.person.name,
+            jobTitle: result.person?.jobTitle || prev.schemas.person.jobTitle,
+            sameAs: result.person?.sameAs?.length ? result.person.sameAs : prev.schemas.person.sameAs,
+          },
+        },
+      }))
+
+      setSuccess('AI suggestions applied. Review the fields below and save when ready.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate suggestions')
+    } finally {
+      setIsPrefilling(false)
+    }
+  }, [companyUuid, companyData.website, prefillWebsite])
 
   // Helper to update nested config
   function updateMeta<K extends keyof SeoConfig['meta']>(key: K, value: SeoConfig['meta'][K]) {
@@ -343,10 +447,6 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
     }))
   }
 
-  function updateIndexing<K extends keyof SeoConfig['indexing']>(key: K, value: string) {
-    setConfig(prev => ({ ...prev, indexing: { ...prev.indexing, [key]: value } }))
-  }
-
   async function handleSave() {
     setError(null)
     setSuccess(null)
@@ -397,13 +497,6 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const robotsOptions = [
-    'index, follow',
-    'noindex, follow',
-    'index, nofollow',
-    'noindex, nofollow',
-  ]
-
   return (
     <fieldset disabled={readOnly} className="space-y-6">
       {error && (
@@ -413,19 +506,12 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
         <div className="text-sm text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg">{success}</div>
       )}
 
-      <div className="flex items-start gap-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <Info className="h-5 w-5 mt-0.5 text-amber-500 flex-shrink-0" />
-        <p>
-          <strong>SEO &amp; AI: Get the most out of your news marketing efforts.</strong> This section is optional, however spending some time on this page will boost your SEO and AI visibility. You will get out of it what you put into it.
-        </p>
-      </div>
-
       {/* Organization JSON-LD Card */}
       <Card>
         <CardHeader>
           <CardTitle>Organization JSON-LD</CardTitle>
           <CardDescription>
-            Structured data markup for your organization. Edit the JSON below, then
+            Structured data markup for your organization. You shouldn&apos;t need to change anything in here. Just make sure your Newsroom settings are up to date. Edit the JSON below, then
             copy the snippet into your website&apos;s <code className="text-sm bg-gray-100 px-1 py-0.5 rounded">&lt;head&gt;</code> tag
             to help search engines and AI models understand your organization.
           </CardDescription>
@@ -470,6 +556,55 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
           </div>
         </CardContent>
       </Card>
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm text-blue-800">
+          Everything you add below will be used to optimize your content for AI and SEO. Most of this data will be hidden from people reading your press releases, but it will be available to AI models and search engines to provide additional context about your organization.
+        </p>
+      </div>
+
+      {/* Prefill Using AI Search */}
+      {!readOnly && (
+        <div className="rounded-lg border border-purple-200 bg-purple-50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-purple-900">Prefill Using AI Search</p>
+              <p className="text-sm text-purple-700 mt-0.5">
+                {companyData.website
+                  ? `We'll visit ${companyData.website} and use AI to fill in as many fields as possible.`
+                  : 'Enter your website URL and we\'ll use AI to fill in as many fields as possible.'}
+              </p>
+            </div>
+          </div>
+          {!companyData.website && (
+            <Input
+              value={prefillWebsite}
+              onChange={(e) => setPrefillWebsite(e.target.value)}
+              placeholder="https://yourcompany.com"
+              className="bg-white"
+            />
+          )}
+          <Button
+            type="button"
+            onClick={handlePrefill}
+            disabled={isPrefilling || (!companyData.website && !prefillWebsite)}
+            variant="outline"
+            className="border-purple-300 text-purple-700 hover:bg-purple-100"
+          >
+            {isPrefilling ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Searching...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Prefill Using AI Search
+              </>
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* Newsroom Meta Defaults Card */}
       <Card>
@@ -889,19 +1024,59 @@ This should be someone who publicly represents the company — typically the CEO
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="person-image" className="text-xs text-gray-500">Image URL</Label>
+                    <Label className="text-xs text-gray-500">Photo</Label>
                     <HelpTip
-                      title="Person Image URL"
-                      content="A direct URL to a professional headshot of this person. This image may be used in search engine Knowledge Panels and rich results. Use a high-quality photo (at least 400x400 pixels, square crop preferred). The image should be hosted on your domain or a reliable CDN."
+                      title="Person Photo"
+                      content="A professional headshot of this person. This image may be used in search engine Knowledge Panels and rich results. Use a high-quality photo (at least 400x400 pixels, square crop preferred). You can upload an image or paste a URL."
                     />
                   </div>
-                  <Input
-                    id="person-image"
-                    type="url"
-                    value={config.schemas.person.image}
-                    onChange={(e) => updatePerson('image', e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
-                  />
+                  <div className="flex items-center gap-4">
+                    <input
+                      ref={headshotInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        e.target.value = ''
+                        handleHeadshotUpload(file)
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => headshotInputRef.current?.click()}
+                      disabled={isUploadingHeadshot}
+                      className="relative group cursor-pointer flex-shrink-0"
+                    >
+                      {isUploadingHeadshot ? (
+                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                        </div>
+                      ) : config.schemas.person.image ? (
+                        <div className="relative">
+                          <img src={config.schemas.person.image} alt="" className="h-16 w-16 rounded-full object-cover" />
+                          <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <Camera className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 group-hover:border-cyan-600 flex items-center justify-center transition-colors">
+                          <Camera className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
+                        </div>
+                      )}
+                    </button>
+                    <div className="flex-1">
+                      <Input
+                        id="person-image"
+                        type="url"
+                        value={config.schemas.person.image}
+                        onChange={(e) => updatePerson('image', e.target.value)}
+                        placeholder="https://example.com/photo.jpg"
+                      />
+                      <p className="text-xs text-gray-400 mt-1">Upload a photo or paste a URL</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -1044,72 +1219,6 @@ Benefits:
 This is recommended for all newsrooms and has no downside."
               />
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Indexing Controls Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-gray-500" />
-            <CardTitle>Indexing Controls</CardTitle>
-          </div>
-          <CardDescription>
-            Control how search engines index your newsroom and press releases.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="newsroom-robots">Newsroom Robots Meta (Recommended: index, follow)</Label>
-              <HelpTip
-                title="Newsroom Robots Meta"
-                content="Controls the robots meta tag for your main newsroom pages (homepage, category pages, archive pages). This tells search engine crawlers whether to index the page and follow its links.
-
-Options:
-- 'index, follow' (Recommended) — Search engines will index the page and follow all links. Best for maximum visibility.
-- 'noindex, follow' — Page won't appear in search results, but search engines will still follow links to discover your press releases.
-- 'index, nofollow' — Page appears in search results, but links on it won't pass SEO value. Rarely useful.
-- 'noindex, nofollow' — Page is completely hidden from search engines. Use only if you want a fully private newsroom."
-              />
-            </div>
-            <Select
-              id="newsroom-robots"
-              value={config.indexing.newsroomRobots}
-              onChange={(e) => updateIndexing('newsroomRobots', e.target.value)}
-            >
-              {robotsOptions.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="pr-robots">Press Release Default Robots (Recommended: index, follow)</Label>
-              <HelpTip
-                title="Press Release Default Robots"
-                content="Controls the default robots meta tag for individual press release pages. This setting applies to all new press releases unless overridden per release.
-
-Options:
-- 'index, follow' (Recommended) — Press releases appear in search results and links within them pass SEO value. Best for public press releases.
-- 'noindex, follow' — Press releases won't appear in search results directly, but links within them are still followed. Useful for embargoed or internal-only releases.
-- 'index, nofollow' — Press releases appear in search but links don't pass value. Rarely needed.
-- 'noindex, nofollow' — Completely hidden from search engines. Use for confidential releases.
-
-Individual press releases can override this default in their own settings."
-              />
-            </div>
-            <Select
-              id="pr-robots"
-              value={config.indexing.prDefaultRobots}
-              onChange={(e) => updateIndexing('prDefaultRobots', e.target.value)}
-            >
-              {robotsOptions.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </Select>
           </div>
         </CardContent>
       </Card>

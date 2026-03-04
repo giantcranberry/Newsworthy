@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,25 +8,38 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Flag, Loader2, Check, AlertCircle } from 'lucide-react'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
+import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
 
 interface FinalizeContentProps {
   releaseUuid: string
   releaseTitle: string
   distribution: string | null
-  children?: React.ReactNode
+  initialApprovals: Approval[]
+  priorApprovers: PriorApprover[]
+  wizardNav?: React.ReactNode
 }
 
 export function FinalizeContent({
   releaseUuid,
   releaseTitle,
   distribution,
-  children,
+  initialApprovals,
+  priorApprovers,
+  wizardNav,
 }: FinalizeContentProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  // Shared approval state — updated by ApprovalSection via callback
+  const [approvalList, setApprovalList] = useState<Approval[]>(initialApprovals)
+
+  const hasBlockingApprovals = useMemo(
+    () => approvalList.some((a) => !a.signedAt || (a.signedAt && !a.approved)),
+    [approvalList]
+  )
 
   const handleSubmit = async () => {
     if (!confirmed) return
@@ -82,12 +95,19 @@ export function FinalizeContent({
     <div className="space-y-6">
       <WizardHeader
         title="Finalize"
-        description="Submit your press release for distribution"
+        description="Submit your press release for editorial review and distribution"
         releaseUuid={releaseUuid}
         currentStep={8}
         hideNext
       />
-      {children}
+      {wizardNav}
+
+      <ApprovalSection
+        releaseUuid={releaseUuid}
+        approvals={approvalList}
+        priorApprovers={priorApprovers}
+        onApprovalsChange={setApprovalList}
+      />
 
       {error && (
         <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
@@ -105,7 +125,7 @@ export function FinalizeContent({
             <div>
               <CardTitle>Ready to Submit</CardTitle>
               <CardDescription>
-                Submit your press release for distribution
+                Submit your press release for editorial review and distribution
               </CardDescription>
             </div>
           </div>
@@ -145,11 +165,20 @@ export function FinalizeContent({
             </div>
           </div>
 
+          {hasBlockingApprovals && (
+            <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <p className="text-sm">
+                You have pending or unapproved stakeholder approval requests. All approvals must be approved or deleted before you can submit.
+              </p>
+            </div>
+          )}
+
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={!confirmed || isSubmitting}
-              className={`flex-1 ${confirmed ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+              disabled={!confirmed || isSubmitting || hasBlockingApprovals}
+              className={`flex-1 ${confirmed && !hasBlockingApprovals ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (

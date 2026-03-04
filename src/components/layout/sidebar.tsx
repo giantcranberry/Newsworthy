@@ -2,10 +2,10 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { signOut, useSession } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface NavChild {
@@ -31,14 +31,19 @@ interface NavLink {
   roles?: string[]
 }
 
+type SidebarMode = 'user' | 'admin'
+
 interface NavSection {
   label: string
   items: (NavGroup | NavLink)[]
+  mode?: SidebarMode
 }
 
 function isNavGroup(item: NavGroup | NavLink): item is NavGroup {
   return 'children' in item && item.children !== undefined
 }
+
+const SIDEBAR_MODE_KEY = 'sidebar-mode'
 
 const navSections: NavSection[] = [
   {
@@ -53,12 +58,13 @@ const navSections: NavSection[] = [
         title: 'Admin Dashboard',
         href: '/admin',
         icon: 'fa-light fa-shield-halved',
-        roles: ['admin', 'editor'],
+        roles: ['admin', 'editor', 'staff'],
       },
     ],
   },
   {
     label: '',
+    mode: 'user',
     items: [
       {
         title: 'Press Releases',
@@ -95,11 +101,11 @@ const navSections: NavSection[] = [
         href: '/tasks',
         icon: 'fa-light fa-list-check',
       },
-    ],
-  },
-  {
-    label: '',
-    items: [
+      {
+        title: 'Calendar',
+        href: '/calendar',
+        icon: 'fa-light fa-calendar-days',
+      },
       {
         title: 'Partner',
         href: '/partner',
@@ -111,6 +117,12 @@ const navSections: NavSection[] = [
           { title: 'Press Releases', href: '/partner/releases', icon: 'fa-light fa-newspaper' },
         ],
       },
+    ],
+  },
+  {
+    label: '',
+    mode: 'admin',
+    items: [
       {
         title: 'Editorial',
         href: '/editorial',
@@ -153,6 +165,19 @@ const navSections: NavSection[] = [
   },
 ]
 
+function isAdminPath(pathname: string): boolean {
+  return pathname.startsWith('/admin') || pathname.startsWith('/editorial')
+}
+
+function getInitialMode(pathname: string): SidebarMode {
+  if (isAdminPath(pathname)) return 'admin'
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem(SIDEBAR_MODE_KEY)
+    if (stored === 'user' || stored === 'admin') return stored
+  }
+  return 'user'
+}
+
 function FaIcon({ icon, className }: { icon: string; className?: string }) {
   return <i className={cn(icon, className)} aria-hidden="true" />
 }
@@ -167,8 +192,22 @@ export function Sidebar({
   onToggleCollapse?: () => void
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { data: session } = useSession()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [mode, setModeState] = useState<SidebarMode>(() => getInitialMode(pathname))
+
+  const setMode = useCallback((newMode: SidebarMode) => {
+    setModeState(newMode)
+    localStorage.setItem(SIDEBAR_MODE_KEY, newMode)
+  }, [])
+
+  // Auto-detect mode from pathname changes
+  useEffect(() => {
+    if (isAdminPath(pathname)) {
+      setMode('admin')
+    }
+  }, [pathname, setMode])
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return pathname === path
@@ -237,8 +276,8 @@ export function Sidebar({
     return roles && roles.length > 0
   }
 
-  const accentColor = (roles?: string[]) =>
-    isRoleRestricted(roles)
+  const accentColor = (roles?: string[], sectionMode?: SidebarMode) =>
+    isRoleRestricted(roles) && sectionMode === 'admin'
       ? {
           active: 'bg-purple-900/10 text-purple-900',
           activeBold: 'bg-purple-900/10 text-purple-900 font-semibold',
@@ -308,9 +347,14 @@ export function Sidebar({
           'flex-1 overflow-y-auto space-y-6',
           collapsed ? 'p-2' : 'p-4'
         )}>
-          {navSections.map((section, sectionIdx) => {
+          {navSections
+            .filter((section) => !section.mode || section.mode === mode)
+            .map((section, sectionIdx) => {
             const visibleItems = section.items.filter((item) => hasAccess(item.roles))
             if (visibleItems.length === 0) return null
+
+            // Check if this is the top section (mode switchers)
+            const isTopSection = !section.mode
 
             return (
               <div key={section.label || `section-${sectionIdx}`}>
@@ -324,10 +368,61 @@ export function Sidebar({
                 )}
                 <div className="space-y-1">
                   {visibleItems.map((item) => {
+                    // Mode switcher items (Dashboard / Admin Dashboard)
+                    if (isTopSection && !isNavGroup(item)) {
+                      const targetMode: SidebarMode = item.href === '/admin' ? 'admin' : 'user'
+                      const isActiveMode = mode === targetMode
+                      const active = isActive(item.href)
+                      const colors = accentColor(item.roles, section.mode)
+
+                      const handleClick = (e: React.MouseEvent) => {
+                        e.preventDefault()
+                        setMode(targetMode)
+                        router.push(item.href)
+                      }
+
+                      if (collapsed) {
+                        return (
+                          <Tooltip key={item.href}>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={handleClick}
+                                className={cn(
+                                  'flex items-center justify-center h-10 w-full rounded-md transition-colors cursor-pointer',
+                                  active || isActiveMode
+                                    ? colors.active
+                                    : colors.idle
+                                )}
+                              >
+                                <FaIcon icon={item.icon} className="text-base" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">{item.title}</TooltipContent>
+                          </Tooltip>
+                        )
+                      }
+                      return (
+                        <div key={item.href}>
+                          <button
+                            onClick={handleClick}
+                            className={cn(
+                              'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer w-full text-left',
+                              active || isActiveMode
+                                ? colors.activeBold
+                                : colors.idle
+                            )}
+                          >
+                            <FaIcon icon={item.icon} className="w-5 text-center text-base flex-shrink-0" />
+                            <span>{item.title}</span>
+                          </button>
+                        </div>
+                      )
+                    }
+
                     if (!isNavGroup(item)) {
                       // Simple link
                       const active = isActive(item.href)
-                      const colors = accentColor(item.roles)
+                      const colors = accentColor(item.roles, section.mode)
                       if (collapsed) {
                         return (
                           <Tooltip key={item.href}>
@@ -371,7 +466,7 @@ export function Sidebar({
                     const isExpanded = isGroupExpanded(groupKey, item)
                     const activeChild = hasActiveChild(item)
                     const submenuId = `submenu-${groupKey}`
-                    const colors = accentColor(item.roles)
+                    const colors = accentColor(item.roles, section.mode)
 
                     if (collapsed) {
                       // In collapsed mode, show group icon linking to first child

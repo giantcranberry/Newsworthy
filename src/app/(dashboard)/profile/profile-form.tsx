@@ -2,13 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Save, CreditCard, Lock, Eye, EyeOff, Building2 } from 'lucide-react'
+import { Loader2, Save, Lock, Eye, EyeOff, Building2 } from 'lucide-react'
 
 interface ProfileFormProps {
   email: string
@@ -27,17 +26,34 @@ interface ProfileFormProps {
     postalCode: string
     countryCode: string
   }
-  subscription: {
-    remainingPr: number
-    remainingPluspr: number
-  }
-  canPurchase?: boolean
 }
 
-export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, initialData, subscription, canPurchase = true }: ProfileFormProps) {
+function formatPhoneNumber(value: string): string {
+  const digits = value.replace(/\D/g, '')
+  if (digits.length === 0) return ''
+  if (digits.length <= 3) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+}
+
+function handlePhoneChange(
+  value: string,
+  field: 'phone' | 'mobile',
+  formData: ProfileFormProps['initialData'],
+  setFormData: (data: ProfileFormProps['initialData']) => void
+) {
+  const formatted = formatPhoneNumber(value)
+  setFormData({ ...formData, [field]: formatted })
+}
+
+export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, initialData }: ProfileFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const [formData, setFormData] = useState(initialData)
+  const [formData, setFormData] = useState({
+    ...initialData,
+    phone: initialData.phone ? formatPhoneNumber(initialData.phone) : '',
+    mobile: initialData.mobile ? formatPhoneNumber(initialData.mobile) : '',
+  })
   const [isAgency, setIsAgency] = useState(initialIsAgency)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,43 +117,10 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
         </div>
       </div>
 
-      {/* Subscription Info */}
-      {canPurchase && (
-        <Card data-tour="profile-subscription">
-          <CardHeader>
-            <CardTitle>Subscription</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
-                  {subscription.remainingPr}
-                </p>
-                <p className="text-sm text-gray-600">PR Credits</p>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
-                  {subscription.remainingPluspr}
-                </p>
-                <p className="text-sm text-gray-600">Enhanced Credits</p>
-              </div>
-            </div>
-            <div className="mt-4">
-              <Link href="/payment/paygo">
-                <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
-                  <CreditCard className="h-3.5 w-3.5" />
-                  Buy More Credits
-                </button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Profile Information */}
       <Card data-tour="profile-info">
         <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
+          <CardTitle>Profile Information <span className="text-sm font-normal text-gray-500">(Who do we contact with regard to your account.)</span></CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -181,8 +164,11 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
+                type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => handlePhoneChange(e.target.value, 'phone', formData, setFormData)}
+                placeholder="(555) 555-1234"
+                maxLength={14}
                 className="mt-1"
               />
             </div>
@@ -190,119 +176,144 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
               <Label htmlFor="mobile">Mobile</Label>
               <Input
                 id="mobile"
+                type="tel"
                 value={formData.mobile}
-                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                onChange={(e) => handlePhoneChange(e.target.value, 'mobile', formData, setFormData)}
+                placeholder="(555) 555-1234"
+                maxLength={14}
                 className="mt-1"
               />
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Agency Features */}
-      <Card data-tour="profile-agency">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Agency Features
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium text-gray-900">Enable Agency Features</p>
-              <p className="text-sm text-gray-500">
-                Enables Team Logins, Client Pay, Client Reporting Login, Advanced Agency Features
-              </p>
+          {/* Address */}
+          <div className="border-t border-gray-200 pt-4 mt-4">
+            <h3 className="text-base font-semibold text-gray-900 mb-4">Address</h3>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="addr1">Address Line 1</Label>
+                <Input
+                  id="addr1"
+                  value={formData.addr1}
+                  onChange={(e) => setFormData({ ...formData, addr1: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="addr2">Address Line 2</Label>
+                <Input
+                  id="addr2"
+                  value={formData.addr2}
+                  onChange={(e) => setFormData({ ...formData, addr2: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="city">City</Label>
+                  <Input
+                    id="city"
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="state">State / Province</Label>
+                  <Input
+                    id="state"
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    maxLength={32}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="postalCode">Postal Code</Label>
+                  <Input
+                    id="postalCode"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="countryCode">Country</Label>
+                  <select
+                    id="countryCode"
+                    value={formData.countryCode}
+                    onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
+                  >
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option disabled>──────────</option>
+                    <option value="IN">India</option>
+                    <option value="IE">Ireland</option>
+                    <option value="NZ">New Zealand</option>
+                    <option value="PH">Philippines</option>
+                    <option value="SG">Singapore</option>
+                    <option value="ZA">South Africa</option>
+                    <option disabled>──────────</option>
+                    <option value="AG">Antigua and Barbuda</option>
+                    <option value="BS">Bahamas</option>
+                    <option value="BB">Barbados</option>
+                    <option value="BZ">Belize</option>
+                    <option value="DM">Dominica</option>
+                    <option value="GD">Grenada</option>
+                    <option value="GY">Guyana</option>
+                    <option value="JM">Jamaica</option>
+                    <option value="MT">Malta</option>
+                    <option value="KN">Saint Kitts and Nevis</option>
+                    <option value="LC">Saint Lucia</option>
+                    <option value="VC">Saint Vincent and the Grenadines</option>
+                    <option value="TT">Trinidad and Tobago</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <Switch
-              checked={isAgency}
-              onCheckedChange={setIsAgency}
-            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Password */}
-      <div data-tour="profile-password">
-        <PasswordSection hasPassword={hasPassword} />
+      {/* Agency Features & Password */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card data-tour="profile-agency" className="border-amber-300 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-amber-900">
+              <Building2 className="h-5 w-5 text-amber-600" />
+              Agency Features
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium text-amber-900">Enable Agency Features</p>
+                <p className="text-sm text-amber-700">
+                  Gives you the ability to add and manage team member permissions. This will also enable Client Pay, a feature that allows you to select services for your client, but allowing them to make online payment.
+                </p>
+              </div>
+              <Switch
+                checked={isAgency}
+                onCheckedChange={setIsAgency}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div data-tour="profile-password">
+          <PasswordSection hasPassword={hasPassword} />
+        </div>
       </div>
 
-      {/* Address */}
-      <Card data-tour="profile-address">
-        <CardHeader>
-          <CardTitle>Address</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="addr1">Address Line 1</Label>
-            <Input
-              id="addr1"
-              value={formData.addr1}
-              onChange={(e) => setFormData({ ...formData, addr1: e.target.value })}
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="addr2">Address Line 2</Label>
-            <Input
-              id="addr2"
-              value={formData.addr2}
-              onChange={(e) => setFormData({ ...formData, addr2: e.target.value })}
-              className="mt-1"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="city">City</Label>
-              <Input
-                id="city"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                maxLength={2}
-                className="mt-1"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="postalCode">Postal Code</Label>
-              <Input
-                id="postalCode"
-                value={formData.postalCode}
-                onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="countryCode">Country</Label>
-              <select
-                id="countryCode"
-                value={formData.countryCode}
-                onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
-              >
-                <option value="US">United States</option>
-                <option value="CA">Canada</option>
-                <option value="GB">United Kingdom</option>
-                <option value="AU">Australia</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </form>
   )
 }

@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { companyMembers } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { CompanyForm } from '../company-form'
+import { CompanyNav } from '@/components/company/company-nav'
 
 export default async function AddCompanyPage() {
   const session = await getEffectiveSession()
@@ -17,6 +18,9 @@ export default async function AddCompanyPage() {
   return (
     <CompanyForm
       notice={membership ? 'This brand will be created under your personal account and will not be shared with any teams you belong to.' : undefined}
+      headerExtra={
+        <CompanyNav companyUuid="" companyName="" disabled />
+      }
     />
   )
 }

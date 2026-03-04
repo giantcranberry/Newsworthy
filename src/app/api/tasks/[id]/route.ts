@@ -80,6 +80,8 @@ export async function PUT(
     const stageId = formData.get('stageId') ? parseInt(formData.get('stageId') as string) : undefined
     const companyIdRaw = formData.get('companyId') as string | null
     const companyId = companyIdRaw !== null ? (companyIdRaw ? parseInt(companyIdRaw) : null) : undefined
+    const assignedToRaw = formData.get('assignedTo') as string | null
+    const assignedTo = assignedToRaw !== null ? (assignedToRaw ? parseInt(assignedToRaw) : null) : undefined
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -101,6 +103,7 @@ export async function PUT(
     if (priority) updates.priority = priority
     if (stageId !== undefined) updates.stageId = stageId
     if (companyId !== undefined) updates.companyId = companyId
+    if (assignedTo !== undefined) updates.assignedTo = assignedTo
 
     const [task] = await db
       .update(kanbanTasks)

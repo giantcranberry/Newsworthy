@@ -3,33 +3,36 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Users,
   Newspaper,
   Building2,
   Settings,
-  ImageIcon,
+  Image,
+  Images,
   ArrowLeft,
   Code,
+  Contact,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CompanyNavProps {
   companyUuid: string
   companyName: string
+  disabled?: boolean
 }
 
 const NAV_ITEMS = [
   { label: 'Edit Brand', href: '', icon: Building2 },
-  { label: 'Share List', href: '/advocacy', icon: Users },
-  { label: 'Pitch List', href: '/pitchlist', icon: Newspaper },
+  { label: 'Logo', href: '/logo', icon: Image },
+  { label: 'PR Contacts', href: '/contacts', icon: Contact },
+  { label: 'Lists', href: '/pitchlist', icon: Newspaper },
   { label: 'Newsroom', href: '/newsroom', icon: Settings },
   { label: 'SEO/AIO', href: '/seo', icon: Code },
-  { label: 'Assets', href: '/assets', icon: ImageIcon },
+  { label: 'Brand Assets', href: '/assets', icon: Images },
 ]
 
-export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
+export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavProps) {
   const pathname = usePathname()
-  const basePath = `/company/${companyUuid}`
+  const basePath = disabled ? '/company/add' : `/company/${companyUuid}`
 
   const activeIndex = NAV_ITEMS.findIndex((item) => {
     const fullHref = `${basePath}${item.href}`
@@ -40,24 +43,30 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
 
   return (
     <nav aria-label="Brand navigation" className="mb-14">
-      <div className="flex items-center justify-between mb-4">
-        <Link
-          href="/company"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          All Brands
-        </Link>
-      </div>
+      {!disabled && (
+        <div className="flex items-center justify-between mb-4">
+          <Link
+            href="/company"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All Brands
+          </Link>
+        </div>
+      )}
       <ol className="flex items-center">
         {NAV_ITEMS.map((item, idx) => {
           const fullHref = `${basePath}${item.href}`
           const isCurrent = idx === activeIndex
           const isVisited = activeIndex >= 0 && idx < activeIndex
           const Icon = item.icon
+          const isFirst = idx === 0
 
           // Detect transition line: this step is visited and the next is current
           const isTransitionLine = isVisited && idx + 1 === activeIndex
+
+          // In disabled mode, only first tab is active
+          const isDisabledTab = disabled && !isFirst
 
           return (
             <li
@@ -65,26 +74,36 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
               className={cn('relative', idx !== NAV_ITEMS.length - 1 && 'flex-1')}
             >
               <div className="flex items-center">
-                <Link
-                  href={fullHref}
-                  className={cn(
-                    'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
-                    isCurrent && 'bg-cyan-700 text-white wizard-step-current',
-                    isVisited && 'bg-emerald-600 text-white hover:bg-emerald-700',
-                    !isCurrent && !isVisited && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400'
-                  )}
-                  title={item.label}
-                >
-                  <Icon className="h-5 w-5" />
-                </Link>
+                {isDisabledTab ? (
+                  <span
+                    className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed"
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </span>
+                ) : (
+                  <Link
+                    href={fullHref}
+                    className={cn(
+                      'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
+                      (isCurrent || (disabled && isFirst)) && 'bg-cyan-700 text-white wizard-step-current',
+                      !disabled && isVisited && 'bg-emerald-600 text-white hover:bg-emerald-700',
+                      !disabled && !isCurrent && !isVisited && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400'
+                    )}
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Link>
+                )}
 
                 {idx !== NAV_ITEMS.length - 1 && (
                   <div
                     className={cn(
                       'h-0.5 w-full',
-                      isTransitionLine && 'wizard-gradient-line',
-                      !isTransitionLine && isVisited && 'bg-emerald-600',
-                      !isTransitionLine && !isVisited && 'bg-gray-200'
+                      disabled && 'bg-gray-200',
+                      !disabled && isTransitionLine && 'wizard-gradient-line',
+                      !disabled && !isTransitionLine && isVisited && 'bg-emerald-600',
+                      !disabled && !isTransitionLine && !isVisited && 'bg-gray-200'
                     )}
                     aria-hidden="true"
                   />
@@ -94,12 +113,13 @@ export function CompanyNav({ companyUuid, companyName }: CompanyNavProps) {
               <span
                 className={cn(
                   'absolute -bottom-6 left-5 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
-                  isCurrent && 'text-cyan-700',
-                  isVisited && 'text-emerald-600',
-                  !isCurrent && !isVisited && 'text-gray-500'
+                  isDisabledTab && 'text-gray-300',
+                  !isDisabledTab && (isCurrent || (disabled && isFirst)) && 'text-cyan-700',
+                  !isDisabledTab && !disabled && isVisited && 'text-emerald-600',
+                  !isDisabledTab && !disabled && !isCurrent && !isVisited && 'text-gray-500'
                 )}
               >
-                {item.label}
+                {isFirst && disabled ? 'Add Brand' : item.label}
               </span>
             </li>
           )

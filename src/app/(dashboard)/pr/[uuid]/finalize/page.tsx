@@ -5,7 +5,6 @@ import { eq, and, asc, ne } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { FinalizeContent } from './finalize-content'
-import { ApprovalSection } from './approval-section'
 import { processReleaseEmails } from '@/lib/release-emails'
 
 async function getReleaseWithDetails(uuid: string, userId: number) {
@@ -94,20 +93,18 @@ export default async function FinalizePage({
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
         distribution={release.distribution}
-      >
-        <WizardNav
-          releaseUuid={uuid}
-          currentStep={8}
-          release={release}
-          company={release.company || undefined}
-          releaseOptions={options || undefined}
-        />
-        <ApprovalSection
-          releaseUuid={uuid}
-          approvals={serializedApprovals}
-          priorApprovers={priorApprovers.filter((p) => p.email)}
-        />
-      </FinalizeContent>
+        initialApprovals={serializedApprovals}
+        priorApprovers={priorApprovers.filter((p) => p.email)}
+        wizardNav={
+          <WizardNav
+            releaseUuid={uuid}
+            currentStep={8}
+            release={release}
+            company={release.company || undefined}
+            releaseOptions={options || undefined}
+          />
+        }
+      />
     </div>
   )
 }

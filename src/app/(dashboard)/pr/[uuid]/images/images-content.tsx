@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import {
   DndContext,
@@ -278,6 +278,7 @@ export function ImagesContent({
   children,
 }: ImagesContentProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   // News Images state
   const newsImageFileInputRef = useRef<HTMLInputElement>(null)
@@ -293,7 +294,20 @@ export function ImagesContent({
   const [newCredits, setNewCredits] = useState('')
 
   // Tab state
-  const [activeTab, setActiveTab] = useState('social-banner')
+  const [activeTab, setActiveTabRaw] = useState('social-banner')
+  const setActiveTab = (tab: string) => {
+    setActiveTabRaw(tab)
+    if (tab === 'news-images') {
+      sessionStorage.setItem(`images-visited-news-${releaseUuid}`, '1')
+    }
+  }
+
+  // Auto-switch to news-images tab if redirected from share page
+  useEffect(() => {
+    if (searchParams.get('tab') === 'news-images') {
+      setActiveTab('news-images')
+    }
+  }, [searchParams])
 
   // Source selector state (null = default dropzone visible)
   const [newsSource, setNewsSource] = useState<ImageSourceTab>(null)
@@ -815,6 +829,12 @@ export function ImagesContent({
         currentStep={4}
         isLoading={isLoadingBanner}
         onSubmit={handleContinue}
+        onNext={() => {
+          if (activeTab === 'social-banner') {
+            setActiveTab('news-images')
+            return false
+          }
+        }}
         canProceed={!!displayBanner}
       />
       {children}
@@ -843,14 +863,14 @@ export function ImagesContent({
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-6">
-        <div className="flex w-full rounded-lg bg-gray-100 p-1">
+        <div className="flex w-full gap-3">
           <button
             type="button"
             onClick={() => setActiveTab('social-banner')}
-            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all cursor-pointer border-2 ${
               activeTab === 'social-banner'
-                ? 'bg-cyan-700 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-cyan-700 text-white border-cyan-700 shadow-sm'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-cyan-600 hover:text-cyan-700'
             }`}
           >
             <Share2 className="h-4 w-4" />
@@ -860,14 +880,14 @@ export function ImagesContent({
           <button
             type="button"
             onClick={() => setActiveTab('news-images')}
-            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all cursor-pointer border-2 ${
               activeTab === 'news-images'
-                ? 'bg-cyan-700 text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-cyan-700 text-white border-cyan-700 shadow-sm'
+                : 'bg-white text-gray-700 border-gray-300 hover:border-cyan-600 hover:text-cyan-700'
             }`}
           >
             <ImageIcon className="h-4 w-4" />
-            News Images
+            News Images - Yes, Now Supporting Multiple Images
             <span className={`text-xs ${activeTab === 'news-images' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
           </button>
         </div>
@@ -993,7 +1013,7 @@ export function ImagesContent({
                     className={newsSource === 'library' ? 'bg-cyan-700 hover:bg-cyan-800' : ''}
                   >
                     <Library className="h-4 w-4" />
-                    Brand Assets
+                    Select from Brand Assets
                   </Button>
                 </div>
               )}

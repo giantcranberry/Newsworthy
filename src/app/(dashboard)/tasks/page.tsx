@@ -13,7 +13,7 @@ export default async function UserTasksPage() {
     apiBase: '/api/tasks',
     title: 'My Tasks',
     showUserFilter: false,
-    showAssignee: false,
+    showAssignee: true,
     canManageStages: true,
     showBrandFilter: true,
   }

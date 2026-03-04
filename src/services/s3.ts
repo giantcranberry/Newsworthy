@@ -112,6 +112,66 @@ export async function deleteLogo(urlOrFilename: string): Promise<void> {
 }
 
 /**
+ * Upload a spokesperson/person headshot
+ */
+export async function uploadPersonHeadshot(
+  file: Buffer,
+  companyId: number,
+  mimeType: string
+): Promise<string> {
+  const processedImage = await sharp(file)
+    .resize(400, 400, {
+      fit: 'cover',
+    })
+    .jpeg({ quality: 90 })
+    .toBuffer()
+
+  const filename = `headshots/${companyId}-${Date.now()}.jpg`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: processedImage,
+      ContentType: 'image/jpeg',
+      ACL: 'public-read',
+    })
+  )
+
+  return `${CDN_BASE_URL}/${filename}`
+}
+
+/**
+ * Upload a contact avatar
+ */
+export async function uploadContactAvatar(
+  file: Buffer,
+  contactId: number,
+  mimeType: string
+): Promise<string> {
+  const processedImage = await sharp(file)
+    .resize(200, 200, {
+      fit: 'cover',
+    })
+    .png()
+    .toBuffer()
+
+  const filename = `avatars/contact-${contactId}-${Date.now()}.png`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: processedImage,
+      ContentType: 'image/png',
+      ACL: 'public-read',
+    })
+  )
+
+  return `${CDN_BASE_URL}/${filename}`
+}
+
+/**
  * Upload a press release image
  */
 export async function uploadPRImage(

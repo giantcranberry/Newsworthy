@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { useTour } from "@/hooks/use-tour"
 
@@ -7,6 +8,22 @@ interface RouteConfig {
   tourId: string
   label: string
   resolver?: () => string
+}
+
+function getDismissedTours(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem("dismissed-tour-fabs") || "[]")
+  } catch {
+    return []
+  }
+}
+
+function dismissTourFab(pathname: string) {
+  const dismissed = getDismissedTours()
+  if (!dismissed.includes(pathname)) {
+    dismissed.push(pathname)
+    localStorage.setItem("dismissed-tour-fabs", JSON.stringify(dismissed))
+  }
 }
 
 const routeTourMap: Record<string, RouteConfig> = {
@@ -48,23 +65,45 @@ const routeTourMap: Record<string, RouteConfig> = {
 export function TourFab() {
   const pathname = usePathname()
   const { startTour } = useTour()
+  const [hidden, setHidden] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    setHidden(getDismissedTours().includes(pathname))
+  }, [pathname])
 
   const route = routeTourMap[pathname]
-  if (!route) return null
+  if (!route || !mounted || hidden) return null
 
   const handleClick = () => {
     const tourId = route.resolver ? route.resolver() : route.tourId
     startTour(tourId)
   }
 
+  const handleDismiss = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    dismissTourFab(pathname)
+    setHidden(true)
+  }
+
   return (
-    <button
-      onClick={handleClick}
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-cyan-800 text-white text-sm font-medium shadow-lg hover:bg-cyan-900 cursor-pointer transition-all hover:shadow-xl"
-    >
-      <i className="fa-light fa-compass text-base" aria-hidden="true" />
-      {route.label}
-      <i className="fa-solid fa-arrow-right text-xs animate-bounce-x" aria-hidden="true" />
-    </button>
+    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-1">
+      <button
+        onClick={handleClick}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-cyan-800 text-white text-sm font-medium shadow-lg hover:bg-cyan-900 cursor-pointer transition-all hover:shadow-xl"
+      >
+        <i className="fa-light fa-compass text-base" aria-hidden="true" />
+        {route.label}
+        <i className="fa-solid fa-arrow-right text-xs animate-bounce-x" aria-hidden="true" />
+      </button>
+      <button
+        onClick={handleDismiss}
+        className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700 text-white text-xs shadow-lg hover:bg-gray-900 cursor-pointer transition-all"
+        title="Dismiss guide for this page"
+      >
+        <i className="fa-solid fa-xmark" aria-hidden="true" />
+      </button>
+    </div>
   )
 }

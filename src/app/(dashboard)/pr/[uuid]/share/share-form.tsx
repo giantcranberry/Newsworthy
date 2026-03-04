@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,15 @@ export function ShareForm({
   children,
 }: ShareFormProps) {
   const router = useRouter()
+
+  // Redirect to news-images tab if user hasn't seen it yet
+  useEffect(() => {
+    const visited = sessionStorage.getItem(`images-visited-news-${releaseUuid}`)
+    if (!visited) {
+      router.replace(`/pr/${releaseUuid}/images?tab=news-images`)
+    }
+  }, [releaseUuid, router])
+
   const [shareWithList, setShareWithList] = useState(initialShareWithList)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

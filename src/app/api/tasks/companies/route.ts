@@ -17,7 +17,7 @@ export async function GET() {
   try {
     // Get companies owned by the user
     const owned = await db
-      .select({ id: company.id, companyName: company.companyName })
+      .select({ id: company.id, uuid: company.uuid, companyName: company.companyName })
       .from(company)
       .where(
         and(
@@ -29,7 +29,7 @@ export async function GET() {
 
     // Get companies where user is a team member
     const memberships = await db
-      .select({ id: company.id, companyName: company.companyName })
+      .select({ id: company.id, uuid: company.uuid, companyName: company.companyName })
       .from(companyMembers)
       .innerJoin(company, eq(companyMembers.companyId, company.id))
       .where(
@@ -42,7 +42,7 @@ export async function GET() {
 
     // Deduplicate
     const seen = new Set<number>()
-    const result: { id: number; companyName: string }[] = []
+    const result: { id: number; uuid: string | null; companyName: string }[] = []
     for (const c of [...owned, ...memberships]) {
       if (!seen.has(c.id)) {
         seen.add(c.id)

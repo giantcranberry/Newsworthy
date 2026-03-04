@@ -12,6 +12,7 @@ interface WizardHeaderProps {
   currentStep: number
   isLoading?: boolean
   onSubmit?: () => void | boolean | Promise<void | boolean>
+  onNext?: () => boolean | void
   canProceed?: boolean
   showSkip?: boolean
   submitLabel?: string
@@ -25,6 +26,7 @@ export function WizardHeader({
   currentStep,
   isLoading = false,
   onSubmit,
+  onNext,
   canProceed = true,
   showSkip = false,
   submitLabel,
@@ -48,6 +50,10 @@ export function WizardHeader({
     : null
 
   const handleNext = async () => {
+    if (onNext) {
+      const result = onNext()
+      if (result === false) return
+    }
     if (onSubmit) {
       const result = await onSubmit()
       if (result === false) return

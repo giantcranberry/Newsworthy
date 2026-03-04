@@ -1,22 +1,12 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { contact, users } from '@/db/schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyForm } from '../company-form'
 import { CompanyNav } from '@/components/company/company-nav'
 import { RssFeedLink } from '@/components/company/rss-feed-link'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
-
-async function getContacts(companyId: number) {
-  return db
-    .select()
-    .from(contact)
-    .where(and(
-      eq(contact.companyId, companyId),
-      sql`${contact.isDeleted} IS NOT TRUE`
-    ))
-}
 
 export default async function CompanyDetailPage({
   params,
@@ -35,7 +25,6 @@ export default async function CompanyDetailPage({
   }
 
   const co = access.company
-  const contacts = await getContacts(co.id)
 
   // Check if the owner is an agency user
   const owner = await db.query.users.findFirst({
@@ -52,7 +41,6 @@ export default async function CompanyDetailPage({
         uuid: co.uuid,
         companyName: co.companyName,
         website: co.website || '',
-        logoUrl: co.logoUrl || '',
         addr1: co.addr1 || '',
         addr2: co.addr2 || '',
         city: co.city || '',
@@ -62,13 +50,6 @@ export default async function CompanyDetailPage({
         phone: co.phone || '',
         email: co.email || '',
       }}
-      contacts={contacts.map((c) => ({
-        uuid: c.uuid || '',
-        name: c.name,
-        title: c.title || '',
-        email: c.email || '',
-        phone: c.phone || '',
-      }))}
       isAgency={isAgency}
       headerExtra={
         <>

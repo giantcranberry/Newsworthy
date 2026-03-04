@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { getEffectiveSession } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
@@ -28,6 +29,13 @@ export default async function SeoPage({
       </div>
 
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm font-medium text-blue-900">SEO & AI: Get the most out of your news marketing efforts.</p>
+        <p className="text-sm text-blue-800 mt-1">
+          By completing the <Link href={`/company/${co.uuid}/newsroom`} className="font-medium underline hover:text-blue-950">Newsroom settings</Link> you will have done most of the required work here. This section is optional, however spending some time on this page will boost your SEO and AI visibility. You will get out of it what you put into it.
+        </p>
+      </div>
 
       <SeoForm
         readOnly={isReadOnly}

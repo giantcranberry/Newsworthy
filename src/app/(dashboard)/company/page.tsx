@@ -1,6 +1,6 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { company, brandCredits, companyMembers } from "@/db/schema";
+import { company, brandCredits, companyMembers, users } from "@/db/schema";
 import { eq, and, desc, sql, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,20 @@ export default async function CompaniesPage() {
     creditsRecord[key] = value;
   }
 
+  // Check which companies have agency features (owner has isAgency)
+  const ownerIds = [...new Set(companies.map((c) => c.userId))];
+  const agencyRecord: Record<number, boolean> = {};
+  if (ownerIds.length > 0) {
+    const agencyUsers = await db
+      .select({ id: users.id, isAgency: users.isAgency })
+      .from(users)
+      .where(inArray(users.id, ownerIds));
+    const agencySet = new Set(agencyUsers.filter((u) => u.isAgency).map((u) => u.id));
+    for (const co of companies) {
+      agencyRecord[co.id] = agencySet.has(co.userId);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -137,6 +151,7 @@ export default async function CompaniesPage() {
         }))}
         creditsByCompany={creditsRecord}
         rolesByCompany={roleMap}
+        agencyByCompany={agencyRecord}
       />
     </div>
   );

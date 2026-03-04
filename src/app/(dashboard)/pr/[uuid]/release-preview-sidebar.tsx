@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Monitor, Tablet, Smartphone } from 'lucide-react'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
 import { ResizeHandle } from '@/components/ui/resize-handle'
@@ -54,6 +54,9 @@ const DEVICE_SNAP_WIDTHS: Record<DeviceMode, number> = {
 
 export function ReleasePreviewSidebar() {
   const { uuid } = useParams<{ uuid: string }>()
+  const searchParams = useSearchParams()
+  const isWizardComplete = searchParams.get('wizard') === 'complete'
+
   const [data, setData] = useState<PreviewData | null>(null)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -174,6 +177,11 @@ export function ReleasePreviewSidebar() {
       clearInterval(interval)
     }
   }, [fetchPreview])
+
+  // Hide sidebar on submission complete view (preview is shown inline)
+  if (isWizardComplete) {
+    return null
+  }
 
   return (
     <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: panelWidth }}>

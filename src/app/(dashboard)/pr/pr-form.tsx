@@ -1111,7 +1111,7 @@ export function PRForm({
       <div data-tour="pr-create-brand-contact" className="p-6 space-y-5">
         <div>
           <h3 className="font-medium text-gray-900">Brand & Contact</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Select the Brand and Primary Media Contact for this Release</p>
+          <p className="text-sm text-gray-600 mt-0.5">Select the Brand and Primary PR Contact for this Release</p>
         </div>
           <div>
             <Label htmlFor="company">Select Brand <span className="text-xs font-normal text-gray-500">(Required)</span></Label>

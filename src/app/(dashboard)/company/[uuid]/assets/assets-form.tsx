@@ -483,7 +483,7 @@ export function AssetsForm({
               <VideoOff className={`h-5 w-5 shrink-0 ${videoShortsOptOut ? 'text-amber-600' : 'text-gray-400'}`} />
               <div>
                 <p className="text-sm font-medium text-gray-900">Video Shorts Opt Out</p>
-                <p className="text-xs text-gray-500">Do not create video shorts for this brand.</p>
+                <p className="text-xs text-gray-500">The NewsRamp service will create video shorts based on your press release. These video shorts provide additional visibility for your content, receiving upwards of 1k views in the first week after your release goes out. You can opt out of this included service here.</p>
               </div>
             </div>
             <Switch
@@ -581,7 +581,7 @@ export function AssetsForm({
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <Label htmlFor="upload-title">Alt Description *</Label>
+                        <Label htmlFor="upload-title">Description / Caption *</Label>
                         <Input
                           id="upload-title"
                           value={uploadTitle}
@@ -670,7 +670,7 @@ export function AssetsForm({
                     </div>
                     <div className="flex-1 space-y-3">
                       <div>
-                        <Label htmlFor="unsplash-title">Alt Description *</Label>
+                        <Label htmlFor="unsplash-title">Description / Caption *</Label>
                         <Input
                           id="unsplash-title"
                           value={uploadTitle}
@@ -897,7 +897,7 @@ export function AssetsForm({
 
           <div className="grid gap-4 py-2">
             <div>
-              <Label htmlFor="edit-title">Alt Description *</Label>
+              <Label htmlFor="edit-title">Description / Caption *</Label>
               <Input
                 id="edit-title"
                 value={editTitle}
