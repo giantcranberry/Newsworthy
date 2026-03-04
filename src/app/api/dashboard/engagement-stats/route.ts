@@ -5,12 +5,15 @@ import { releases, companyMembers, company } from '@/db/schema'
 import { eq, and, or, isNull, inArray } from 'drizzle-orm'
 import { queryIndex } from '@/lib/opensearch'
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const { searchParams } = new URL(request.url)
+  const filterCompanyId = searchParams.get('companyId')
 
   // Get all company IDs the user has access to
   const ownedCompanies = await db.query.company.findMany({
@@ -29,16 +32,33 @@ export async function GET() {
     ]),
   ]
 
+  // If filtering by company, verify user has access
+  const targetCompanyIds = filterCompanyId
+    ? allCompanyIds.includes(Number(filterCompanyId)) ? [Number(filterCompanyId)] : []
+    : allCompanyIds
+
+  if (filterCompanyId && targetCompanyIds.length === 0) {
+    return NextResponse.json({ stats: [], interval: 'month' })
+  }
+
   // Get all sent releases with prhash_ids
+  const releaseFilter = filterCompanyId
+    ? and(
+        inArray(releases.companyId, targetCompanyIds),
+        or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
+        eq(releases.status, 'sent'),
+      )
+    : and(
+        or(
+          eq(releases.userId, userId),
+          allCompanyIds.length > 0 ? inArray(releases.companyId, allCompanyIds) : undefined,
+        ),
+        or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
+        eq(releases.status, 'sent'),
+      )
+
   const sentReleases = await db.query.releases.findMany({
-    where: and(
-      or(
-        eq(releases.userId, userId),
-        allCompanyIds.length > 0 ? inArray(releases.companyId, allCompanyIds) : undefined,
-      ),
-      or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
-      eq(releases.status, 'sent'),
-    ),
+    where: releaseFilter,
     columns: { prhashId: true, releasedAt: true },
   })
 

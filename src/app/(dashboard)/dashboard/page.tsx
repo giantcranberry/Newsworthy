@@ -151,7 +151,7 @@ async function getPendingInvites(email: string) {
 async function getDashboardData(userId: number) {
   // Get user's owned companies (need this first for release queries)
   const ownedCompanies = await db.query.company.findMany({
-    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false), eq(company.isArchived, false)),
   });
 
   // Get team member companies
@@ -166,7 +166,7 @@ async function getDashboardData(userId: number) {
   let sharedCompanies: typeof ownedCompanies = [];
   if (sharedIds.length > 0) {
     sharedCompanies = await db.query.company.findMany({
-      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false), eq(company.isArchived, false)),
     });
   }
 
@@ -396,7 +396,11 @@ export default async function DashboardPage() {
       </div>
 
       {/* Engagement Chart */}
-      {stats.published > 0 && <EngagementChart />}
+      {stats.published > 0 && (
+        <EngagementChart
+          brands={companies.map((co) => ({ id: co.id, name: co.companyName }))}
+        />
+      )}
 
       {/* Quick Actions */}
       {!canCreate && <div data-tour="dashboard-empty" className="hidden" />}
