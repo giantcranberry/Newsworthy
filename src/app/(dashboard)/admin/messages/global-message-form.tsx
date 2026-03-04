@@ -78,7 +78,7 @@ export function GlobalMessageForm({ message, onSuccess, onCancel }: GlobalMessag
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">
           {error}
         </div>
       )}
@@ -125,14 +125,14 @@ export function GlobalMessageForm({ message, onSuccess, onCancel }: GlobalMessag
           value={expiresAt}
           onChange={(e) => setExpiresAt(e.target.value)}
         />
-        <p className="text-xs text-gray-500">Leave empty for no expiration</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Leave empty for no expiration</p>
       </div>
 
       {message && (
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
           <div>
             <Label htmlFor="isActive" className="font-medium">Active</Label>
-            <p className="text-sm text-gray-500">Inactive messages are hidden from all users</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Inactive messages are hidden from all users</p>
           </div>
           <Switch
             id="isActive"
@@ -146,7 +146,7 @@ export function GlobalMessageForm({ message, onSuccess, onCancel }: GlobalMessag
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-cyan-800 hover:bg-cyan-900 text-white">
+        <Button type="submit" disabled={isLoading} className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

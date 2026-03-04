@@ -105,27 +105,27 @@ export function ShareListForm({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Info Card */}
       <Card>
-        <CardHeader className="bg-gray-50">
+        <CardHeader className="bg-gray-50 dark:bg-gray-950">
           <CardTitle className="text-base flex items-center gap-2">
             <Info className="h-4 w-4 text-blue-500" />
             About Your Share List
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
-          <p className="text-gray-700">
+          <p className="text-gray-700 dark:text-gray-300">
             Leverage your internal teams and stakeholders to amplify your company news in a controlled and measurable way.
           </p>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">How it works:</h4>
-            <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">How it works:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <li>Customize the welcome email below that will be sent to your subscribers</li>
               <li>Add email addresses for employees, partners, vendors and stakeholders</li>
               <li>Your welcome email will be sent one time to new subscribers</li>
@@ -133,7 +133,7 @@ export function ShareListForm({
               <li>Track engagement through the subscriber list below</li>
             </ol>
           </div>
-          <div className="bg-blue-50 text-blue-800 text-xs p-3 rounded-lg">
+          <div className="bg-blue-50 text-blue-800 dark:text-blue-400 text-xs p-3 rounded-lg">
             You can create different Share Lists for each Brand Profile. Subscribers can unsubscribe at any time.
           </div>
         </CardContent>
@@ -148,22 +148,22 @@ export function ShareListForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             When you add contacts to your Share List, we'll send them this welcome email. You can customize the message below.
           </p>
 
           <div>
             <Label className="font-semibold">Email Preview</Label>
-            <div className="mt-1 bg-gray-50 border rounded-lg p-4 text-sm text-gray-700 space-y-3">
+            <div className="mt-1 bg-gray-50 dark:bg-gray-950 border rounded-lg p-4 text-sm text-gray-700 dark:text-gray-300 space-y-3">
               <p>
                 You have been added to the <u>{companyName}</u> Share List on Newsworthy.ai.
               </p>
-              <p className="text-red-600">{inviteMsg}</p>
+              <p className="text-red-600 dark:text-red-400">{inviteMsg}</p>
               <p>
                 Sincerely,<br />
                 {companyName}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 You can unsubscribe from this list at anytime by clicking the unsubscribe link below.
               </p>
             </div>
@@ -205,17 +205,17 @@ export function ShareListForm({
         <CardContent className="pt-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h4 className="text-sm font-semibold text-gray-700 mb-1">Format Options:</h4>
-              <ul className="text-xs text-gray-500 space-y-0.5">
-                <li><code className="bg-gray-100 px-1 rounded">email@example.com</code></li>
-                <li><code className="bg-gray-100 px-1 rounded">email@example.com,FirstName</code></li>
-                <li><code className="bg-gray-100 px-1 rounded">email@example.com,,LastName</code></li>
-                <li><code className="bg-gray-100 px-1 rounded">email@example.com,FirstName,LastName</code></li>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Format Options:</h4>
+              <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com</code></li>
+                <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName</code></li>
+                <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,,LastName</code></li>
+                <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName</code></li>
               </ul>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-              <p className="text-xs text-amber-800 font-semibold">Limits:</p>
-              <ul className="text-xs text-amber-700 list-disc list-inside">
+              <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold">Limits:</p>
+              <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside">
                 <li>Maximum 100 subscribers at a time</li>
                 <li>One email address per line</li>
               </ul>
@@ -257,10 +257,10 @@ export function ShareListForm({
             <div className="flex items-center gap-3">
               <Users className="h-5 w-5 text-gray-400" />
               <div>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-gray-900 dark:text-gray-100">
                   {totalSubscribers} Subscriber{totalSubscribers !== 1 ? 's' : ''}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   View, edit, and manage your Share List members
                 </p>
               </div>

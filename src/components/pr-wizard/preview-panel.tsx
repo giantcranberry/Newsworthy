@@ -60,10 +60,10 @@ export function PreviewPanel({
   const videoEmbedUrl = release?.videoUrl ? getYouTubeEmbedUrl(release.videoUrl) : null
 
   return (
-    <div className="bg-white">
+    <div className="bg-white dark:bg-gray-900">
       {/* Hero Banner */}
       {banner && (
-        <div className="relative w-full aspect-[1200/630] overflow-hidden bg-gray-100">
+        <div className="relative w-full aspect-[1200/630] overflow-hidden bg-gray-100 dark:bg-gray-800">
           <Image
             src={banner.url}
             alt={banner.caption || 'Social banner'}
@@ -77,7 +77,7 @@ export function PreviewPanel({
       <article className={cn('flex flex-col', compact ? 'px-4 py-4 gap-3' : 'px-6 py-6 gap-5')}>
         {/* Title */}
         <h1 id="preview-title" className={cn(
-          'font-serif font-medium text-gray-900',
+          'font-serif font-medium text-gray-900 dark:text-gray-100',
           compact ? 'text-2xl leading-snug' : 'text-2xl lg:text-4xl'
         )}>
           {release?.title || 'Untitled Press Release'}
@@ -101,7 +101,7 @@ export function PreviewPanel({
 
         {/* Abstract */}
         <p id="preview-abstract" className={cn(
-          'font-light text-gray-700',
+          'font-light text-gray-700 dark:text-gray-300',
           compact ? 'text-sm' : 'text-base md:text-xl'
         )}>
           {release?.abstract || 'No abstract provided.'}
@@ -111,7 +111,7 @@ export function PreviewPanel({
         <div>
           {/* Dateline */}
           <div className="flex mb-3">
-            <p className={cn('text-gray-600', compact && 'text-xs')}>
+            <p className={cn('text-gray-600 dark:text-gray-400', compact && 'text-xs')}>
               {release?.location || 'Location'} (Newsworthy.ai) {formatDate()}
             </p>
           </div>
@@ -135,7 +135,7 @@ export function PreviewPanel({
               )}
               {release?.pullquote && (
                 <blockquote id="preview-pullquote" className={cn(
-                  'border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700',
+                  'border-l-4 border-cyan-700 bg-gray-50 dark:bg-gray-950 italic text-gray-700 dark:text-gray-300',
                   deviceMode === 'mobile'
                     ? 'pl-4 py-3 text-sm'
                     : compact ? 'pl-3 py-2 text-xs' : 'pl-4 py-3 text-sm'
@@ -150,7 +150,7 @@ export function PreviewPanel({
           <div
             id="preview-body"
             className={cn(
-              'article max-w-none prose prose-gray prose-p:text-gray-800 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 prose-strong:text-gray-900 prose-blockquote:text-gray-600',
+              'article max-w-none prose prose-gray prose-p:text-gray-800 dark:text-gray-200 prose-li:list-item prose-li:pb-0 prose-li:marker:text-slate-950 prose-ol:list-decimal prose-a:text-sky-600 prose-a:hover:text-sky-500 prose-headings:text-gray-900 dark:text-gray-100 prose-strong:text-gray-900 dark:text-gray-100 prose-blockquote:text-gray-600 dark:text-gray-400',
               compact
                 ? 'prose-sm prose-h2:text-base'
                 : 'prose-p:text-base prose-h2:text-xl'
@@ -162,11 +162,11 @@ export function PreviewPanel({
         {/* FAQ section */}
         {faqs && faqs.length > 0 && (
           <div className={cn(
-            'border-t border-gray-200',
+            'border-t border-gray-200 dark:border-gray-800',
             compact ? 'pt-3 mt-3' : 'pt-5 mt-5'
           )}>
             <h3 className={cn(
-              'font-semibold text-gray-900 mb-3',
+              'font-semibold text-gray-900 dark:text-gray-100 mb-3',
               compact ? 'text-sm' : 'text-lg'
             )}>
               Frequently Asked Questions
@@ -175,13 +175,13 @@ export function PreviewPanel({
               {faqs.map((faq, i) => (
                 <div key={i}>
                   <dt className={cn(
-                    'font-medium text-gray-900',
+                    'font-medium text-gray-900 dark:text-gray-100',
                     compact ? 'text-xs' : 'text-sm'
                   )}>
                     {faq.question}
                   </dt>
                   <dd className={cn(
-                    'text-gray-600 mt-1',
+                    'text-gray-600 dark:text-gray-400 mt-1',
                     compact ? 'text-xs' : 'text-sm'
                   )}>
                     {faq.answer}
@@ -208,7 +208,7 @@ export function PreviewPanel({
               </div>
             ) : (
               <div className={cn(
-                'rounded bg-gray-100 flex items-center justify-center',
+                'rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center',
                 compact ? 'w-[80px] h-[60px]' : 'w-[150px] h-[100px]'
               )}>
                 <span className="text-gray-400 text-xs">No logo</span>
@@ -216,7 +216,7 @@ export function PreviewPanel({
             )}
             <div className="pt-3">
               <h4 className={cn(
-                'font-semibold text-gray-900',
+                'font-semibold text-gray-900 dark:text-gray-100',
                 compact ? 'text-sm' : 'text-xl'
               )}>
                 {company?.companyName || 'Company Name'}

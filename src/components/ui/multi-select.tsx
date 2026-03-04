@@ -105,10 +105,10 @@ export function MultiSelect({
   }
 
   const dropdown = (
-    <div id="multiselect-dropdown" style={dropdownStyle} className="bg-white border border-gray-200 rounded-md shadow-lg">
+    <div id="multiselect-dropdown" style={dropdownStyle} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
       <div className="max-h-64 overflow-y-auto">
         {filteredOptions.length === 0 ? (
-          <div className="px-3 py-2 text-sm text-gray-600">No results found</div>
+          <div className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400">No results found</div>
         ) : (
           filteredOptions.map(opt => {
             const isSelected = selected.includes(opt.value)
@@ -119,10 +119,10 @@ export function MultiSelect({
                 onClick={() => !isDisabled && toggleOption(opt.value)}
                 className={`px-3 py-2 text-sm cursor-pointer flex items-center gap-2 ${
                   isSelected
-                    ? 'bg-gray-50 text-cyan-800'
+                    ? 'bg-gray-50 text-cyan-800 dark:bg-gray-800 dark:text-cyan-400'
                     : isDisabled
-                      ? 'text-gray-300 cursor-not-allowed'
-                      : 'hover:bg-gray-50'
+                      ? 'text-gray-300 cursor-not-allowed dark:text-gray-600'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 <input
@@ -130,7 +130,7 @@ export function MultiSelect({
                   checked={isSelected}
                   disabled={isDisabled}
                   onChange={() => {}}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 dark:border-gray-600"
                 />
                 {opt.label}
               </div>
@@ -139,7 +139,7 @@ export function MultiSelect({
         )}
       </div>
       {maxItems && (
-        <div className="px-3 py-2 text-xs text-gray-600 border-t border-gray-100">
+        <div className="px-3 py-2 text-xs text-gray-600 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
           {selected.length}/{maxItems} selected
         </div>
       )}
@@ -153,17 +153,17 @@ export function MultiSelect({
           setIsOpen(true)
           inputRef.current?.focus()
         }}
-        className="min-h-[38px] w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 cursor-text flex items-center gap-2"
+        className="min-h-[38px] w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 cursor-text flex items-center gap-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
       >
         <div className="flex-1 flex flex-wrap gap-1 items-center">
           {selectedOptions.map(opt => (
             <span
               key={opt.value}
-              className="inline-flex items-center gap-1 bg-cyan-800/10 text-cyan-800 px-2 py-0.5 rounded text-xs"
+              className="inline-flex items-center gap-1 bg-cyan-800/10 text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-400 px-2 py-0.5 rounded text-xs"
             >
               {opt.label}
               <X
-                className="h-3 w-3 cursor-pointer hover:text-cyan-800"
+                className="h-3 w-3 cursor-pointer hover:text-cyan-800 dark:hover:text-cyan-300"
                 onClick={(e) => removeOption(opt.value, e)}
               />
             </span>
@@ -182,7 +182,7 @@ export function MultiSelect({
             className="flex-1 min-w-[60px] outline-none bg-transparent text-sm"
           />
         </div>
-        <ChevronDown className={`h-4 w-4 text-gray-500 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
 
       {isOpen && mounted && createPortal(dropdown, document.body)}

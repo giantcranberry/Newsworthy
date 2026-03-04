@@ -40,15 +40,15 @@ export default async function CartPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-          <p className="text-gray-500">Review your items before checkout</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Shopping Cart</h1>
+          <p className="text-gray-500 dark:text-gray-400">Review your items before checkout</p>
         </div>
 
         <Card>
           <CardContent className="py-16 text-center">
             <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Your cart is empty</h3>
-            <p className="mt-2 text-gray-500">Add some products to get started</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">Your cart is empty</h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">Add some products to get started</p>
             <div className="mt-6">
               <Link href="/payment/paygo">
                 <Button>
@@ -67,8 +67,8 @@ export default async function CartPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Shopping Cart</h1>
-        <p className="text-gray-500">Review your items before checkout</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Shopping Cart</h1>
+        <p className="text-gray-500 dark:text-gray-400">Review your items before checkout</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -79,8 +79,8 @@ export default async function CartPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{item.productName}</h3>
-                    <p className="text-sm text-gray-500">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.productName}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {item.productType} {item.productCredits && `- ${item.productCredits} credits`}
                     </p>
                   </div>
@@ -89,7 +89,7 @@ export default async function CartPage() {
                       <p className="font-medium">
                         ${(item.totalPrice / 100).toFixed(2)}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         Qty: {item.quantity}
                       </p>
                     </div>
@@ -128,7 +128,7 @@ export default async function CartPage() {
                 Checkout
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                 Secure checkout powered by Stripe
               </p>
             </CardContent>

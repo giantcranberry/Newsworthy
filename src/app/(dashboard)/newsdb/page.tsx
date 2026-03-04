@@ -42,8 +42,8 @@ export default async function NewsDbPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Media Database</h1>
-          <p className="text-gray-500">Find and connect with journalists and media contacts</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Media Database</h1>
+          <p className="text-gray-500 dark:text-gray-400">Find and connect with journalists and media contacts</p>
         </div>
         <Link href="/newsdb/search">
           <Button>
@@ -58,11 +58,11 @@ export default async function NewsDbPage() {
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Database className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">NewsDB Credits</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">NewsDB Credits</p>
                 <p className="text-2xl font-bold">{stats.credits}</p>
               </div>
             </div>
@@ -78,11 +78,11 @@ export default async function NewsDbPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <List className="h-5 w-5 text-green-600" />
+              <div className="h-10 w-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <List className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pitch Lists</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Pitch Lists</p>
                 <p className="text-xl font-bold">{stats.listCount}</p>
               </div>
             </div>
@@ -92,11 +92,11 @@ export default async function NewsDbPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                 <Users className="h-5 w-5 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Saved Contacts</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Saved Contacts</p>
                 <p className="text-xl font-bold">{stats.contactCount}</p>
               </div>
             </div>
@@ -106,11 +106,11 @@ export default async function NewsDbPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-10 w-10 rounded-lg bg-orange-100 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                 <Mail className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Pitches Sent</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Pitches Sent</p>
                 <p className="text-xl font-bold">0</p>
               </div>
             </div>
@@ -163,29 +163,29 @@ export default async function NewsDbPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center mb-3">
-                <Search className="h-6 w-6 text-blue-600" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-3">
+                <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <h3 className="font-medium">1. Search</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Find journalists by name, outlet, or topic
               </p>
             </div>
             <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
-                <Users className="h-6 w-6 text-green-600" />
+              <div className="mx-auto h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-3">
+                <Users className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <h3 className="font-medium">2. Save to List</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Build targeted lists for your campaigns
               </p>
             </div>
             <div className="text-center">
-              <div className="mx-auto h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center mb-3">
+              <div className="mx-auto h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-3">
                 <Mail className="h-6 w-6 text-purple-600" />
               </div>
               <h3 className="font-medium">3. Pitch</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Export contacts or send pitches directly
               </p>
             </div>

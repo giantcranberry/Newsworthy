@@ -47,7 +47,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
         <div className="flex items-center justify-between mb-4">
           <Link
             href="/company"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             All Brands
@@ -76,7 +76,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
               <div className="flex items-center">
                 {isDisabledTab ? (
                   <span
-                    className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-200 bg-gray-100 text-gray-300 cursor-not-allowed"
+                    className="relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 text-gray-300 cursor-not-allowed"
                     title={item.label}
                   >
                     <Icon className="h-5 w-5" />
@@ -88,7 +88,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
                       'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
                       (isCurrent || (disabled && isFirst)) && 'bg-cyan-700 text-white wizard-step-current',
                       !disabled && isVisited && 'bg-emerald-600 text-white hover:bg-emerald-700',
-                      !disabled && !isCurrent && !isVisited && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400'
+                      !disabled && !isCurrent && !isVisited && 'border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:border-gray-400'
                     )}
                     title={item.label}
                   >
@@ -100,10 +100,10 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
                   <div
                     className={cn(
                       'h-0.5 w-full',
-                      disabled && 'bg-gray-200',
+                      disabled && 'bg-gray-200 dark:bg-gray-700',
                       !disabled && isTransitionLine && 'wizard-gradient-line',
                       !disabled && !isTransitionLine && isVisited && 'bg-emerald-600',
-                      !disabled && !isTransitionLine && !isVisited && 'bg-gray-200'
+                      !disabled && !isTransitionLine && !isVisited && 'bg-gray-200 dark:bg-gray-700'
                     )}
                     aria-hidden="true"
                   />
@@ -116,7 +116,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
                   isDisabledTab && 'text-gray-300',
                   !isDisabledTab && (isCurrent || (disabled && isFirst)) && 'text-cyan-700',
                   !isDisabledTab && !disabled && isVisited && 'text-emerald-600',
-                  !isDisabledTab && !disabled && !isCurrent && !isVisited && 'text-gray-500'
+                  !isDisabledTab && !disabled && !isCurrent && !isVisited && 'text-gray-500 dark:text-gray-400'
                 )}
               >
                 {isFirst && disabled ? 'Add Brand' : item.label}

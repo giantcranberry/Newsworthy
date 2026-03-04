@@ -500,10 +500,10 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
   return (
     <fieldset disabled={readOnly} className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 border border-green-200 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 border border-green-200 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Organization JSON-LD Card */}
@@ -512,7 +512,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
           <CardTitle>Organization JSON-LD</CardTitle>
           <CardDescription>
             Structured data markup for your organization. You shouldn&apos;t need to change anything in here. Just make sure your Newsroom settings are up to date. Edit the JSON below, then
-            copy the snippet into your website&apos;s <code className="text-sm bg-gray-100 px-1 py-0.5 rounded">&lt;head&gt;</code> tag
+            copy the snippet into your website&apos;s <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">&lt;head&gt;</code> tag
             to help search engines and AI models understand your organization.
           </CardDescription>
         </CardHeader>
@@ -546,10 +546,10 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
             </Button>
           </div>
 
-          <div className="flex items-start gap-2 text-sm text-gray-500 bg-blue-50 border border-blue-100 rounded-lg p-3">
+          <div className="flex items-start gap-2 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 border border-blue-100 rounded-lg p-3">
             <Info className="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" />
             <p>
-              <strong className="text-gray-700">What is JSON-LD?</strong> JSON-LD is a structured data format used by
+              <strong className="text-gray-700 dark:text-gray-300">What is JSON-LD?</strong> JSON-LD is a structured data format used by
               Google, Bing, and AI tools to understand your organization. We will include this
               in your press release page HTML to improve search visibility and AI-generated answers about your brand.
             </p>
@@ -558,7 +558,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
       </Card>
 
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p className="text-sm text-blue-800">
+        <p className="text-sm text-blue-800 dark:text-blue-400">
           Everything you add below will be used to optimize your content for AI and SEO. Most of this data will be hidden from people reading your press releases, but it will be available to AI models and search engines to provide additional context about your organization.
         </p>
       </div>
@@ -569,7 +569,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-purple-900">Prefill Using AI Search</p>
-              <p className="text-sm text-purple-700 mt-0.5">
+              <p className="text-sm text-purple-700 dark:text-purple-400 mt-0.5">
                 {companyData.website
                   ? `We'll visit ${companyData.website} and use AI to fill in as many fields as possible.`
                   : 'Enter your website URL and we\'ll use AI to fill in as many fields as possible.'}
@@ -581,7 +581,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
               value={prefillWebsite}
               onChange={(e) => setPrefillWebsite(e.target.value)}
               placeholder="https://yourcompany.com"
-              className="bg-white"
+              className="bg-white dark:bg-gray-900"
             />
           )}
           <Button
@@ -589,7 +589,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
             onClick={handlePrefill}
             disabled={isPrefilling || (!companyData.website && !prefillWebsite)}
             variant="outline"
-            className="border-purple-300 text-purple-700 hover:bg-purple-100"
+            className="border-purple-300 text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:bg-purple-900/30"
           >
             {isPrefilling ? (
               <>
@@ -610,7 +610,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-gray-500" />
+            <Globe className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             <CardTitle>Newsroom Meta Defaults</CardTitle>
           </div>
           <CardDescription>
@@ -692,7 +692,7 @@ export function SeoForm({ readOnly, companyUuid, savedJsonLd, savedSeo, companyD
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Bot className="h-5 w-5 text-gray-500" />
+            <Bot className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             <CardTitle>AI/LLM Optimization</CardTitle>
           </div>
           <CardDescription>
@@ -779,7 +779,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="founded-year" className="text-xs text-gray-500">Founded Year</Label>
+                  <Label htmlFor="founded-year" className="text-xs text-gray-500 dark:text-gray-400">Founded Year</Label>
                   <HelpTip
                     title="Founded Year"
                     content="The year your company was founded or incorporated. This is one of the most commonly asked facts about companies. Use the four-digit year (e.g., '2015'). If your company was founded as a different entity and later renamed or restructured, use the original founding year."
@@ -794,7 +794,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="hq-location" className="text-xs text-gray-500">HQ Location</Label>
+                  <Label htmlFor="hq-location" className="text-xs text-gray-500 dark:text-gray-400">HQ Location</Label>
                   <HelpTip
                     title="HQ Location"
                     content="Your company's primary headquarters location. Use the format 'City, State' for US companies or 'City, Country' for international companies. Examples: 'San Francisco, CA', 'London, UK', 'Toronto, Canada'. If you have multiple headquarters, list the primary one here."
@@ -809,7 +809,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="employee-count" className="text-xs text-gray-500">Employee Count</Label>
+                  <Label htmlFor="employee-count" className="text-xs text-gray-500 dark:text-gray-400">Employee Count</Label>
                   <HelpTip
                     title="Employee Count"
                     content="Your approximate number of employees. You can use exact numbers ('1,250') or ranges ('1,000-5,000'). Common range formats: '1-10', '11-50', '51-200', '201-500', '501-1,000', '1,001-5,000', '5,001-10,000', '10,000+'. Update this when headcount changes significantly."
@@ -824,7 +824,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="industry" className="text-xs text-gray-500">Industry</Label>
+                  <Label htmlFor="industry" className="text-xs text-gray-500 dark:text-gray-400">Industry</Label>
                   <HelpTip
                     title="Industry"
                     content="Your company's primary industry or sector. Be specific enough to be useful but broad enough to be accurate. Examples: 'Enterprise SaaS', 'Healthcare Technology', 'Financial Services', 'E-commerce', 'Clean Energy', 'Cybersecurity'. You can list multiple if needed, separated by commas."
@@ -839,7 +839,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="stock-ticker" className="text-xs text-gray-500">Stock Ticker (optional)</Label>
+                  <Label htmlFor="stock-ticker" className="text-xs text-gray-500 dark:text-gray-400">Stock Ticker (optional)</Label>
                   <HelpTip
                     title="Stock Ticker"
                     content="Your company's stock exchange and ticker symbol, if publicly traded. Use the format 'EXCHANGE: TICKER' (e.g., 'NASDAQ: AAPL', 'NYSE: GS', 'LSE: BP'). Leave blank if your company is private. This helps AI models and search engines link financial data to your company."
@@ -861,7 +861,7 @@ These facts help AI models answer specific questions like 'When was [company] fo
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Braces className="h-5 w-5 text-gray-500" />
+            <Braces className="h-5 w-5 text-gray-500 dark:text-gray-400" />
             <CardTitle>Additional Schema Markup</CardTitle>
           </div>
           <CardDescription>
@@ -890,7 +890,7 @@ This schema helps your business appear in Google's local search results, Maps, a
               <div className="ml-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="latitude" className="text-xs text-gray-500">Latitude</Label>
+                    <Label htmlFor="latitude" className="text-xs text-gray-500 dark:text-gray-400">Latitude</Label>
                     <HelpTip
                       title="Latitude"
                       content="The geographic latitude of your business location in decimal degrees. Example: 37.7749 for San Francisco. You can find this by searching your address on Google Maps, right-clicking on the pin, and copying the first number from the coordinates shown."
@@ -905,7 +905,7 @@ This schema helps your business appear in Google's local search results, Maps, a
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="longitude" className="text-xs text-gray-500">Longitude</Label>
+                    <Label htmlFor="longitude" className="text-xs text-gray-500 dark:text-gray-400">Longitude</Label>
                     <HelpTip
                       title="Longitude"
                       content="The geographic longitude of your business location in decimal degrees. Example: -122.4194 for San Francisco. This is the second number shown when you right-click a location on Google Maps. Western hemisphere longitudes are negative."
@@ -920,7 +920,7 @@ This schema helps your business appear in Google's local search results, Maps, a
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="opening-hours" className="text-xs text-gray-500">Opening Hours</Label>
+                    <Label htmlFor="opening-hours" className="text-xs text-gray-500 dark:text-gray-400">Opening Hours</Label>
                     <HelpTip
                       title="Opening Hours"
                       content="Your business hours in schema.org format. Use two-letter day abbreviations (Mo, Tu, We, Th, Fr, Sa, Su) followed by the time range in 24-hour format.
@@ -942,7 +942,7 @@ Use commas to separate multiple schedules."
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="price-range" className="text-xs text-gray-500">Price Range</Label>
+                    <Label htmlFor="price-range" className="text-xs text-gray-500 dark:text-gray-400">Price Range</Label>
                     <HelpTip
                       title="Price Range"
                       content="An approximate price range for your products or services using dollar signs. This appears in Google search results and Knowledge Panels.
@@ -966,7 +966,7 @@ You can also use a specific range like '$10-$50' if that better describes your p
             )}
           </div>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-200 dark:border-gray-800" />
 
           {/* Spokesperson / CEO Section */}
           <div className="space-y-4">
@@ -992,7 +992,7 @@ This should be someone who publicly represents the company — typically the CEO
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="person-name" className="text-xs text-gray-500">Name</Label>
+                      <Label htmlFor="person-name" className="text-xs text-gray-500 dark:text-gray-400">Name</Label>
                       <HelpTip
                         title="Person Name"
                         content="The full name of your company's spokesperson or CEO as it should appear in search results. Use the name they are publicly known by (e.g., 'Tim Cook' not 'Timothy Donald Cook'). This should match how the person is referenced in press releases and media."
@@ -1007,7 +1007,7 @@ This should be someone who publicly represents the company — typically the CEO
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Label htmlFor="person-title" className="text-xs text-gray-500">Job Title</Label>
+                      <Label htmlFor="person-title" className="text-xs text-gray-500 dark:text-gray-400">Job Title</Label>
                       <HelpTip
                         title="Job Title"
                         content="The person's official job title at your company. Use the full title (e.g., 'Chief Executive Officer' rather than 'CEO'). This appears in schema markup and may be displayed in Google Knowledge Panels."
@@ -1024,7 +1024,7 @@ This should be someone who publicly represents the company — typically the CEO
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs text-gray-500">Photo</Label>
+                    <Label className="text-xs text-gray-500 dark:text-gray-400">Photo</Label>
                     <HelpTip
                       title="Person Photo"
                       content="A professional headshot of this person. This image may be used in search engine Knowledge Panels and rich results. Use a high-quality photo (at least 400x400 pixels, square crop preferred). You can upload an image or paste a URL."
@@ -1050,7 +1050,7 @@ This should be someone who publicly represents the company — typically the CEO
                       className="relative group cursor-pointer flex-shrink-0"
                     >
                       {isUploadingHeadshot ? (
-                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                        <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                           <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                         </div>
                       ) : config.schemas.person.image ? (
@@ -1061,8 +1061,8 @@ This should be someone who publicly represents the company — typically the CEO
                           </div>
                         </div>
                       ) : (
-                        <div className="h-16 w-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 group-hover:border-cyan-600 flex items-center justify-center transition-colors">
-                          <Camera className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
+                        <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 group-hover:border-cyan-600 flex items-center justify-center transition-colors">
+                          <Camera className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 dark:text-cyan-400 transition-colors" />
                         </div>
                       )}
                     </button>
@@ -1081,7 +1081,7 @@ This should be someone who publicly represents the company — typically the CEO
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Label className="text-xs text-gray-500">Social Profile URLs</Label>
+                    <Label className="text-xs text-gray-500 dark:text-gray-400">Social Profile URLs</Label>
                     <HelpTip
                       title="Social Profile URLs"
                       content="Links to this person's official social media profiles. These are used in the schema.org 'sameAs' property to help search engines verify and connect the person's identity across platforms.
@@ -1128,7 +1128,7 @@ Only add profiles that are actively maintained and publicly represent this perso
             )}
           </div>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-200 dark:border-gray-800" />
 
           {/* FAQ Schema Section */}
           <div className="space-y-4">
@@ -1160,13 +1160,13 @@ Best practices:
             </div>
 
             {config.schemas.faq.length === 0 && (
-              <p className="text-sm text-gray-500">No FAQ items added yet. Click &quot;Add Question&quot; to start.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">No FAQ items added yet. Click &quot;Add Question&quot; to start.</p>
             )}
 
             {config.schemas.faq.map((item, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+              <div key={index} className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Question {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Question {index + 1}</span>
                   <Button
                     type="button"
                     variant="outline"
@@ -1192,7 +1192,7 @@ Best practices:
             ))}
           </div>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-200 dark:border-gray-800" />
 
           {/* BreadcrumbList Section */}
           <div className="flex items-center gap-2">
@@ -1204,7 +1204,7 @@ Best practices:
             <div className="flex items-center gap-2">
               <div>
                 <Label htmlFor="breadcrumb-enabled" className="font-medium">BreadcrumbList Schema</Label>
-                <p className="text-xs text-gray-500">Auto-generated from your newsroom structure.</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Auto-generated from your newsroom structure.</p>
               </div>
               <HelpTip
                 title="BreadcrumbList Schema"

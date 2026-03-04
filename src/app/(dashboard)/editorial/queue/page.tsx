@@ -45,11 +45,11 @@ export default async function EditorialQueuePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Editorial Queue</h1>
-          <p className="text-gray-600">Press releases pending editorial review</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Editorial Queue</h1>
+          <p className="text-gray-600 dark:text-gray-400">Press releases pending editorial review</p>
         </div>
         <div className="flex items-center gap-2">
-          <span data-tour="queue-pending-count" className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800">
+          <span data-tour="queue-pending-count" className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
             <Clock className="h-4 w-4" />
             {queueItems.length} pending
           </span>
@@ -60,8 +60,8 @@ export default async function EditorialQueuePage() {
         <Card data-tour="queue-empty">
           <CardContent className="py-16 text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">All caught up!</h3>
-            <p className="mt-2 text-gray-600">No press releases pending review.</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">All caught up!</h3>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">No press releases pending review.</p>
           </CardContent>
         </Card>
       ) : (

@@ -112,7 +112,7 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
   return (
     <div data-tour="enhanced-queue-list" className="space-y-3">
       {message && (
-        <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+        <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800 dark:text-green-400' : 'bg-red-50 text-red-800 dark:text-red-400'}`}>
           {message.text}
           <button onClick={() => setMessage(null)} className="ml-2 font-medium underline">Dismiss</button>
         </div>
@@ -122,7 +122,7 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
         <Card key={item.releaseId} className="overflow-hidden" {...(index === 0 ? { "data-tour": "enhanced-queue-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 {item.title || 'Untitled Release'}
               </h3>
               {index === 0 ? (
@@ -134,7 +134,7 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
               )}
             </div>
 
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               Released: {formatDate(item.releasedAt)}
             </p>
 
@@ -157,7 +157,7 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="text-xs h-8 text-amber-700 border-amber-300 hover:bg-amber-50"
+                className="text-xs h-8 text-amber-700 dark:text-amber-400 border-amber-300 hover:bg-amber-50"
                 onClick={() => handleResetStandard(item)}
                 disabled={loading[`reset-${item.releaseId}`]}
               >

@@ -114,7 +114,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">
           {error}
         </div>
       )}
@@ -133,7 +133,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
             </option>
           ))}
         </Select>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           Global products are available to all accounts. Partner products are only available to that partner's accounts.
         </p>
       </div>
@@ -166,7 +166,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
         <div className="space-y-2">
           <Label htmlFor="price">Price (USD) *</Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">$</span>
             <Input
               id="price"
               type="number"
@@ -208,7 +208,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
             onChange={(e) => handleChange('icon', e.target.value)}
             placeholder="e.g., Zap or fab fa-yahoo"
           />
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Lucide icons: Zap, Sparkles, Star, Crown, Rocket, Target<br />
             Font Awesome: fab fa-yahoo, fas fa-newspaper, etc.
           </p>
@@ -252,10 +252,10 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
           <div>
             <Label htmlFor="isActive" className="font-medium">Active</Label>
-            <p className="text-sm text-gray-500">Make this product available for purchase</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Make this product available for purchase</p>
           </div>
           <Switch
             id="isActive"
@@ -264,10 +264,10 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
           />
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
           <div>
             <Label htmlFor="isUpgrade" className="font-medium">PR Upgrade Product</Label>
-            <p className="text-sm text-gray-500">Show this product on the PR upgrades page</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Show this product on the PR upgrades page</p>
           </div>
           <Switch
             id="isUpgrade"
@@ -276,10 +276,10 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
           />
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
           <div>
             <Label htmlFor="isSoloUpgrade" className="font-medium">Exclusive Upgrade</Label>
-            <p className="text-sm text-gray-500">Cannot be combined with other upgrades</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Cannot be combined with other upgrades</p>
           </div>
           <Switch
             id="isSoloUpgrade"

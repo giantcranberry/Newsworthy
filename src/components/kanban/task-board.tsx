@@ -62,11 +62,11 @@ function TaskCard({
 
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-gray-300 hover:shadow-sm transition-all ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+      className={`bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 cursor-pointer hover:border-gray-300 dark:border-gray-700 hover:shadow-sm dark:shadow-gray-900/50 transition-all ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start gap-2">
-        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 flex-1">{task.title}</h4>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 line-clamp-2 flex-1">{task.title}</h4>
         {task.priority && task.priority !== 'medium' && (() => {
           const p = getPriorityConfig(task.priority)
           return (
@@ -79,28 +79,28 @@ function TaskCard({
 
       <div className="mt-2 flex items-center gap-2 flex-wrap">
         {task.companyName && (
-          <span className="inline-flex items-center gap-1 text-xs text-cyan-700 bg-cyan-50 rounded-full px-2 py-0.5">
+          <span className="inline-flex items-center gap-1 text-xs text-cyan-700 bg-cyan-50 dark:bg-cyan-900/30 rounded-full px-2 py-0.5">
             <Building2 className="h-3 w-3" />
             {task.companyName}
           </span>
         )}
 
         {showAssignee && assigneeName && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5">
             <i className="fa-light fa-circle-user text-xs" aria-hidden="true" />
             {assigneeName}
           </span>
         )}
 
         {task.files && task.files.length > 0 && (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <FileText className="h-3 w-3" />
             {task.files.length}
           </span>
         )}
 
         {task.noteCount && task.noteCount > 0 ? (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <MessageSquare className="h-3 w-3" />
             {task.noteCount}
           </span>
@@ -176,16 +176,16 @@ function DroppableStageColumn({
   })
 
   return (
-    <div {...(isFirst ? { "data-tour": "tasks-first-column" } : {})} className={`flex flex-col w-72 min-w-72 rounded-lg border transition-colors ${isOver ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
+    <div {...(isFirst ? { "data-tour": "tasks-first-column" } : {})} className={`flex flex-col w-72 min-w-72 rounded-lg border transition-colors ${isOver ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800'}`}>
       {/* Column header */}
-      <div className="p-3 border-b border-gray-200">
+      <div className="p-3 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <div
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ backgroundColor: stage.color }}
           />
-          <h3 className="text-sm font-semibold text-gray-700 flex-1">{stage.name}</h3>
-          <span className="text-xs text-gray-400 bg-gray-200 rounded-full px-2 py-0.5">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1">{stage.name}</h3>
+          <span className="text-xs text-gray-400 bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-0.5">
             {tasks.length}
           </span>
         </div>
@@ -439,7 +439,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading task board...</div>
+        <div className="text-gray-500 dark:text-gray-400">Loading task board...</div>
       </div>
     )
   }
@@ -448,7 +448,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
     <div className="space-y-4">
       {/* Top bar */}
       <div data-tour="tasks-topbar" className="flex items-center gap-3 flex-wrap">
-        <h1 className="text-2xl font-bold text-gray-900">{config.title}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{config.title}</h1>
         <div className="ml-auto flex items-center gap-2">
           {/* Brand Filter */}
           {config.showBrandFilter && companies.length > 0 && (
@@ -496,7 +496,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
             </Button>
           )}
 
-          <Button data-tour="tasks-new" onClick={handleNewTask} className="bg-cyan-800 hover:bg-cyan-900 text-white">
+          <Button data-tour="tasks-new" onClick={handleNewTask} className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white">
             <Plus className="h-4 w-4 mr-2" />
             New Task
           </Button>

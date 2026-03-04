@@ -70,7 +70,7 @@ export function ImageCarousel({ images, compact = false, deviceMode = 'desktop' 
     <>
       {/* Inline carousel */}
       <figure className="mb-2">
-        <div className="relative overflow-hidden rounded-lg group bg-gray-50">
+        <div className="relative overflow-hidden rounded-lg group bg-gray-50 dark:bg-gray-950">
           {/* Slide track */}
           <div
             className="flex transition-transform duration-300 ease-in-out"
@@ -181,7 +181,7 @@ export function ImageCarousel({ images, compact = false, deviceMode = 'desktop' 
               <button
                 onClick={prevLightbox}
                 aria-label="Previous image"
-                className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 hover:bg-white/40 p-2.5 text-white transition-colors cursor-pointer"
+                className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white dark:bg-gray-900/20 hover:bg-white dark:bg-gray-900/40 p-2.5 text-white transition-colors cursor-pointer"
               >
                 <ChevronLeft className="h-8 w-8" />
               </button>
@@ -190,7 +190,7 @@ export function ImageCarousel({ images, compact = false, deviceMode = 'desktop' 
               <button
                 onClick={nextLightbox}
                 aria-label="Next image"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 hover:bg-white/40 p-2.5 text-white transition-colors cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white dark:bg-gray-900/20 hover:bg-white dark:bg-gray-900/40 p-2.5 text-white transition-colors cursor-pointer"
               >
                 <ChevronRight className="h-8 w-8" />
               </button>
@@ -219,7 +219,7 @@ export function ImageCarousel({ images, compact = false, deviceMode = 'desktop' 
                   aria-label={`Go to image ${i + 1}`}
                   className={cn(
                     'h-2 w-2 rounded-full transition-colors cursor-pointer',
-                    i === lightboxIndex ? 'bg-white' : 'bg-white/30 hover:bg-white/50'
+                    i === lightboxIndex ? 'bg-white dark:bg-gray-900' : 'bg-white dark:bg-gray-900/30 hover:bg-white dark:bg-gray-900/50'
                   )}
                 />
               ))}

@@ -73,8 +73,8 @@ export default async function ImagePage({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">News Images</h1>
-        <p className="text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">News Images</h1>
+        <p className="text-gray-500 dark:text-gray-400">
           Add images for your press release
         </p>
       </div>

@@ -55,10 +55,10 @@ export default async function PartnerReleasesPage({
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {partner?.company || partner?.brandName || 'Partner'} Press Releases
             </h1>
-            <p className="text-gray-500">No users registered under this partner yet.</p>
+            <p className="text-gray-500 dark:text-gray-400">No users registered under this partner yet.</p>
           </div>
           <PartnerSelector partners={managedPartners} currentPartnerId={currentPartnerId} />
         </div>
@@ -113,10 +113,10 @@ export default async function PartnerReleasesPage({
     <div className="space-y-6">
       <div data-tour="partner-releases-header" className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {partner?.company || partner?.brandName || 'Partner'} Press Releases
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {total} release{total !== 1 ? 's' : ''} total
           </p>
         </div>

@@ -43,7 +43,7 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        <div className="rounded-lg border border-gray-200 bg-white p-6 space-y-3">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-3">
           <div className="flex items-center gap-3">
             <Skeleton className="h-10 w-10 rounded-full" />
             <div className="space-y-1.5">
@@ -59,8 +59,8 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
 
   if (!post) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-        <p className="text-sm text-gray-500">Post not found or you don&apos;t have access.</p>
+      <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-8 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400">Post not found or you don&apos;t have access.</p>
       </div>
     )
   }
@@ -68,7 +68,7 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
   return (
     <div className="space-y-6">
       {/* Post */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <div className="flex items-start gap-3">
           <Link href={`/community/profile/${post.userId}`}>
             <UserAvatar name={post.userName} avatar={post.userAvatar} size="md" />
@@ -77,7 +77,7 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/community/profile/${post.userId}`}
-                className="font-medium text-gray-900 hover:text-cyan-800"
+                className="font-medium text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400"
               >
                 {post.userName}
               </Link>
@@ -91,8 +91,8 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-              <Link href={`/community/boards/${post.boardSlug}`} className="hover:text-cyan-800" style={{ color: post.boardColor }}>
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <Link href={`/community/boards/${post.boardSlug}`} className="hover:text-cyan-800 dark:text-cyan-400" style={{ color: post.boardColor }}>
                 {post.boardName}
               </Link>
               <span>&middot;</span>
@@ -107,13 +107,13 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-800 whitespace-pre-wrap break-words prose prose-sm max-w-none">
+        <div className="mt-4 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words prose prose-sm max-w-none">
           {post.body}
         </div>
 
         <PostImages images={post.images || []} />
 
-        <div className="mt-4 border-t border-gray-100 pt-3">
+        <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
           <ReactionBar
             targetType="post"
             targetId={post.id}
@@ -123,8 +123,8 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
       </div>
 
       {/* Comment form */}
-      <div className="rounded-lg border border-gray-200 bg-white p-4">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
           {comments.length > 0 ? `${comments.length} Comments` : 'Comments'}
         </h3>
         <CommentForm postUuid={uuid} onCommentAdded={fetchComments} />
@@ -132,7 +132,7 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
 
       {/* Comments */}
       {comments.length > 0 && (
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
           <CommentThread
             comments={comments}
             postUuid={uuid}

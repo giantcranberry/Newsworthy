@@ -49,10 +49,10 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  owner: 'bg-amber-100 text-amber-800',
-  brand_admin: 'bg-purple-100 text-purple-800',
-  collaborator: 'bg-blue-100 text-blue-800',
-  client: 'bg-gray-100 text-gray-700',
+  owner: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400',
+  brand_admin: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400',
+  collaborator: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400',
+  client: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
 }
 
 export function TeamSection({ companyUuid }: { companyUuid: string }) {
@@ -244,11 +244,11 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b text-left">
-                  <th className="pb-2 pr-4 font-medium text-gray-500">Name</th>
-                  <th className="pb-2 pr-4 font-medium text-gray-500">Email</th>
-                  <th className="pb-2 pr-4 font-medium text-gray-500">Role</th>
+                  <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Name</th>
+                  <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Email</th>
+                  <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Role</th>
                   {canManageTeam && (
-                    <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>
+                    <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right">Actions</th>
                   )}
                 </tr>
               </thead>
@@ -256,8 +256,8 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                 {/* Owner row */}
                 {owner && (
                   <tr className="border-b">
-                    <td className="py-2 pr-4 font-medium text-gray-900">{owner.name}</td>
-                    <td className="py-2 pr-4 text-gray-600">{owner.email}</td>
+                    <td className="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{owner.name}</td>
+                    <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{owner.email}</td>
                     <td className="py-2 pr-4">
                       <Badge variant="secondary" className={ROLE_COLORS.owner}>
                         {ROLE_LABELS.owner}
@@ -269,8 +269,8 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                 {/* Members */}
                 {members.map((m) => (
                   <tr key={m.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4 font-medium text-gray-900">{m.name}</td>
-                    <td className="py-2 pr-4 text-gray-600">{m.email}</td>
+                    <td className="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">{m.name}</td>
+                    <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{m.email}</td>
                     <td className="py-2 pr-4">
                       <Badge variant="secondary" className={ROLE_COLORS[m.role] || ROLE_COLORS.client}>
                         {ROLE_LABELS[m.role] || m.role}
@@ -282,7 +282,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                           <button
                             type="button"
                             onClick={() => openEditRole(m)}
-                            className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                            className="p-1 text-gray-400 hover:text-blue-600 dark:text-blue-400 transition-colors"
                             title="Change role"
                           >
                             <Pencil className="h-4 w-4" />
@@ -290,7 +290,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                           <button
                             type="button"
                             onClick={() => openRemoveMember(m)}
-                            className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                            className="p-1 text-gray-400 hover:text-red-600 dark:text-red-400 transition-colors"
                             title="Remove member"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -313,15 +313,15 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
           {/* Pending Invites */}
           {canManageTeam && invites.length > 0 && (
             <div className="mt-6">
-              <h4 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-1.5">
+              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
                 <Mail className="h-4 w-4" />
                 Pending Invitations
               </h4>
               <div className="space-y-2">
                 {invites.map((inv) => (
-                  <div key={inv.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                  <div key={inv.id} className="flex items-center justify-between py-2 px-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700">{inv.email}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{inv.email}</span>
                       <Badge variant="secondary" className={ROLE_COLORS[inv.role] || ROLE_COLORS.client}>
                         {ROLE_LABELS[inv.role] || inv.role}
                       </Badge>
@@ -333,7 +333,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
                     <button
                       type="button"
                       onClick={() => openRemoveInvite(inv)}
-                      className="text-sm text-gray-400 hover:text-red-600 transition-colors"
+                      className="text-sm text-gray-400 hover:text-red-600 dark:text-red-400 transition-colors"
                       title="Cancel invitation"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -357,7 +357,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
           </DialogHeader>
 
           {inviteError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{inviteError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{inviteError}</div>
           )}
 
           <div className="grid gap-4 py-2">
@@ -395,7 +395,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
               type="button"
               onClick={handleSendInvite}
               disabled={isSendingInvite || !inviteEmail.trim()}
-              className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             >
               {isSendingInvite ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -419,7 +419,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
           </DialogHeader>
 
           {editError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{editError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{editError}</div>
           )}
 
           <div className="py-2">
@@ -467,7 +467,7 @@ export function TeamSection({ companyUuid }: { companyUuid: string }) {
           </DialogHeader>
 
           {removeError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{removeError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{removeError}</div>
           )}
 
           <DialogFooter>

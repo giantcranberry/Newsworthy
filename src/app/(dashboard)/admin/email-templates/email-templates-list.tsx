@@ -110,26 +110,26 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
             Back
           </Button>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">{editing.name}</h2>
-            <p className="text-xs text-gray-500 font-mono">{editing.slug}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{editing.name}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{editing.slug}</p>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:text-red-400 text-sm">
             {error}
           </div>
         )}
         {success && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 dark:text-green-400 text-sm">
             {success}
           </div>
         )}
 
-        <div className="bg-white border border-slate-200 rounded-lg p-6 space-y-5">
+        <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-lg p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-medium text-gray-700">Template Name</Label>
+              <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">Template Name</Label>
               <Input
                 id="name"
                 value={editName}
@@ -138,7 +138,7 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="subject" className="text-sm font-medium text-gray-700">Email Subject</Label>
+              <Label htmlFor="subject" className="text-sm font-medium text-gray-700 dark:text-gray-300">Email Subject</Label>
               <Input
                 id="subject"
                 value={editSubject}
@@ -149,7 +149,7 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description" className="text-sm font-medium text-gray-700">Description</Label>
+            <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</Label>
             <Input
               id="description"
               value={editDescription}
@@ -160,15 +160,15 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
           </div>
 
           {editing.variables && (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-              <p className="text-xs font-medium text-gray-600 mb-1">Available Variables</p>
-              <p className="text-xs text-gray-500 font-mono">{editing.variables}</p>
+            <div className="p-3 bg-slate-50 border border-slate-200 dark:border-gray-800 rounded-lg">
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Available Variables</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{editing.variables}</p>
             </div>
           )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-sm font-medium text-gray-700">HTML Body</Label>
+              <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">HTML Body</Label>
               <Button
                 variant="outline"
                 size="sm"
@@ -180,7 +180,7 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
               </Button>
             </div>
             {previewMode ? (
-              <div className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+              <div className="border border-slate-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
                 <iframe
                   srcDoc={editHtmlBody}
                   className="w-full h-[500px] border-0"
@@ -192,30 +192,30 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
               <textarea
                 value={editHtmlBody}
                 onChange={(e) => setEditHtmlBody(e.target.value)}
-                className="w-full h-[500px] font-mono text-sm border border-slate-200 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent resize-y"
+                className="w-full h-[500px] font-mono text-sm border border-slate-200 dark:border-gray-800 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent resize-y"
                 spellCheck={false}
               />
             )}
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-700">Plain Text Body (fallback)</Label>
+            <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Plain Text Body (fallback)</Label>
             <textarea
               value={editTextBody}
               onChange={(e) => setEditTextBody(e.target.value)}
-              className="w-full h-40 font-mono text-sm border border-slate-200 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent resize-y"
+              className="w-full h-40 font-mono text-sm border border-slate-200 dark:border-gray-800 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent resize-y"
               spellCheck={false}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-gray-800">
             <Button variant="outline" onClick={cancelEditing} className="cursor-pointer">
               Cancel
             </Button>
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-cyan-800 hover:bg-cyan-900 text-white cursor-pointer"
+              className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white cursor-pointer"
             >
               {saving ? (
                 <>
@@ -245,9 +245,9 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
         />
       </div>
 
-      <div data-tour="email-templates-list" className="bg-white border border-slate-200 rounded-lg divide-y divide-slate-200">
+      <div data-tour="email-templates-list" className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-lg divide-y divide-slate-200">
         {filtered.length === 0 ? (
-          <div data-tour="email-templates-empty" className="p-8 text-center text-gray-500 text-sm">
+          <div data-tour="email-templates-empty" className="p-8 text-center text-gray-500 dark:text-gray-400 text-sm">
             No templates found.
           </div>
         ) : (
@@ -258,14 +258,14 @@ export function EmailTemplatesList({ templates: initialTemplates }: { templates:
               {...(index === 0 ? { "data-tour": "email-templates-first-item" } : {})}
             >
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-50 text-cyan-700">
+                <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-900">{template.name}</h3>
-                  <p className="text-xs text-gray-500 font-mono">{template.slug}</p>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{template.name}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">{template.slug}</p>
                   {template.description && (
-                    <p className="text-xs text-gray-500 mt-0.5">{template.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{template.description}</p>
                   )}
                 </div>
               </div>

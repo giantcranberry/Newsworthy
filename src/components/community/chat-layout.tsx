@@ -46,10 +46,10 @@ export function ChatLayout({ currentUserId, initialConversationUuid }: ChatLayou
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] rounded-lg border border-gray-200 bg-white overflow-hidden">
+    <div className="flex h-[calc(100vh-12rem)] rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
       {/* Conversation list sidebar */}
       <div className={cn(
-        'w-80 flex-shrink-0 border-r border-gray-200 flex flex-col',
+        'w-80 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 flex flex-col',
         activeUuid ? 'hidden md:flex' : 'flex'
       )}>
         <ConversationList

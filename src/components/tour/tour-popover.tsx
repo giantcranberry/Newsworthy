@@ -286,17 +286,17 @@ export function TourPopover({
         {/* Progress + close */}
         <div className="px-6 pt-5 pb-1">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-[11px] font-semibold text-cyan-800 uppercase tracking-wider">
+            <span className="text-[11px] font-semibold text-cyan-800 dark:text-cyan-400 uppercase tracking-wider">
               Step {currentIndex + 1} of {totalSteps}
             </span>
             <button
               onClick={onClose}
-              className="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-1.5">
+          <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5">
             <div
               className="bg-cyan-700 h-1.5 rounded-full transition-all duration-300 ease-out"
               style={{
@@ -308,19 +308,19 @@ export function TourPopover({
 
         {/* Title + description */}
         <div className="px-6 pt-4 pb-5">
-          <h3 className="text-base font-bold text-gray-900 leading-tight">
+          <h3 className="text-base font-bold text-gray-900 dark:text-gray-100 leading-tight">
             {step.title}
           </h3>
-          <p className="mt-2.5 text-sm text-gray-600 leading-relaxed">
+          <p className="mt-2.5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             {step.description}
           </p>
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-800">
           <button
             onClick={onClose}
-            className="text-sm text-gray-400 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+            className="text-sm text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 px-3 py-2 rounded-lg transition-colors cursor-pointer"
           >
             Skip tour
           </button>
@@ -328,7 +328,7 @@ export function TourPopover({
             {!isFirst && (
               <button
                 onClick={onPrev}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back
@@ -336,7 +336,7 @@ export function TourPopover({
             )}
             <button
               onClick={onNext}
-              className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-white bg-cyan-800 rounded-lg hover:bg-cyan-900 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-4 py-2 text-sm font-semibold text-white bg-cyan-800 dark:bg-cyan-600 rounded-lg hover:bg-cyan-900 dark:hover:bg-cyan-700 transition-colors cursor-pointer"
             >
               {isLast ? "Finish" : "Next"}
               {!isLast && <ChevronRight className="w-4 h-4" />}

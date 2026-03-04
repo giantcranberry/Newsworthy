@@ -48,8 +48,8 @@ export function FollowersList({ userId, type }: FollowersListProps) {
 
   if (users.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-6 text-center">
-        <p className="text-sm text-gray-500">
+      <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-6 text-center">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {type === 'followers' ? 'No followers yet' : 'Not following anyone yet'}
         </p>
       </div>
@@ -62,13 +62,13 @@ export function FollowersList({ userId, type }: FollowersListProps) {
         <Link
           key={user.id}
           href={`/community/profile/${user.id}`}
-          className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 hover:border-gray-300 transition-colors"
+          className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 hover:border-gray-300 dark:border-gray-700 transition-colors"
         >
           <UserAvatar name={user.name} avatar={user.avatar} size="md" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-900">{user.name}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
             {user.acctHandle && (
-              <p className="text-xs text-gray-500">@{user.acctHandle}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">@{user.acctHandle}</p>
             )}
             {user.location && (
               <p className="text-xs text-gray-400">{user.location}</p>

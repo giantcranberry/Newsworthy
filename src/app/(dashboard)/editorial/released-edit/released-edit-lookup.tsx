@@ -79,14 +79,14 @@ export function ReleasedEditLookup() {
           <Button
             data-tour="released-edit-submit"
             type="submit"
-            className="bg-cyan-800 text-white hover:bg-cyan-900"
+            className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             disabled={loading || !prId.trim()}
           >
             {loading ? 'Looking up...' : 'Find Release'}
           </Button>
         </form>
         {error && (
-          <p className="mt-3 text-sm text-red-600">{error}</p>
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
       </CardContent>
     </Card>

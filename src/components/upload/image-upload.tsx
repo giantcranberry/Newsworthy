@@ -109,7 +109,7 @@ export function ImageUpload({
             variant="ghost"
             size="sm"
             onClick={handleClear}
-            className="text-gray-500"
+            className="text-gray-500 dark:text-gray-400"
           >
             <X className="h-4 w-4" />
             Remove
@@ -118,7 +118,7 @@ export function ImageUpload({
       </div>
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
       {showPreview && preview && (
@@ -144,8 +144,8 @@ export function UploadingOverlay({ isUploading, children }: UploadingImageProps)
     <div className="relative">
       {children}
       {isUploading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Loader2 className="h-4 w-4 animate-spin" />
             Uploading...
           </div>

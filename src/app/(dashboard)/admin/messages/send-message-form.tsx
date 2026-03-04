@@ -143,7 +143,7 @@ export function SendMessageForm({ preselectedUser, editingMessage, onSuccess, on
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">
           {error}
         </div>
       )}
@@ -151,7 +151,7 @@ export function SendMessageForm({ preselectedUser, editingMessage, onSuccess, on
       {editingMessage ? (
         <div className="space-y-2">
           <Label>Recipient</Label>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {editingMessage.recipientEmail}
             {editingMessage.recipientFirstName && ` (${editingMessage.recipientFirstName} ${editingMessage.recipientLastName || ''})`}
           </p>
@@ -173,18 +173,18 @@ export function SendMessageForm({ preselectedUser, editingMessage, onSuccess, on
               disabled={!!preselectedUser}
             />
             {showResults && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map((user) => (
                   <button
                     key={user.id}
                     type="button"
-                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm cursor-pointer"
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 text-sm cursor-pointer"
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => selectUser(user)}
                   >
                     <span className="font-medium">{user.email}</span>
                     {user.firstName && (
-                      <span className="text-gray-500 ml-2">
+                      <span className="text-gray-500 dark:text-gray-400 ml-2">
                         ({user.firstName} {user.lastName || ''})
                       </span>
                     )}
@@ -194,7 +194,7 @@ export function SendMessageForm({ preselectedUser, editingMessage, onSuccess, on
             )}
           </div>
           {selectedUser && !preselectedUser && (
-            <p className="text-xs text-green-600">
+            <p className="text-xs text-green-600 dark:text-green-400">
               Sending to: {selectedUser.email}
               {selectedUser.firstName && ` (${selectedUser.firstName} ${selectedUser.lastName || ''})`}
             </p>
@@ -240,7 +240,7 @@ export function SendMessageForm({ preselectedUser, editingMessage, onSuccess, on
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-cyan-800 hover:bg-cyan-900 text-white">
+        <Button type="submit" disabled={isLoading} className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -159,13 +159,13 @@ export function ShareForm({
                 rows={5}
                 className="mt-1 font-mono text-sm"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Add up to 100 emails at a time. Use commas to include first and last names.
               </p>
             </div>
 
             {addResult && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+              <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 dark:text-green-400 rounded-lg text-sm">
                 <Check className="h-4 w-4" />
                 Added {addResult.added} subscriber{addResult.added === 1 ? '' : 's'}
                 {addResult.skipped > 0 && ` (${addResult.skipped} skipped - already in list or invalid)`}
@@ -216,7 +216,7 @@ export function ShareForm({
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
               {error}
             </div>
           )}
@@ -231,7 +231,7 @@ export function ShareForm({
                 'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
                 shareWithList
                   ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300',
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700',
                 listCount === 0 && 'opacity-50 cursor-not-allowed'
               )}
             >
@@ -244,17 +244,17 @@ export function ShareForm({
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                shareWithList ? 'bg-emerald-100' : 'bg-gray-100'
+                shareWithList ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-gray-800'
               )}>
                 <Share2 className={cn(
                   'h-6 w-6',
-                  shareWithList ? 'text-emerald-600' : 'text-gray-500'
+                  shareWithList ? 'text-emerald-600' : 'text-gray-500 dark:text-gray-400'
                 )} />
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Share with My List
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {listCount === 0
                   ? 'Add subscribers above to enable sharing'
                   : `Email this release to ${listCount} subscriber${listCount === 1 ? '' : 's'} when published`
@@ -270,7 +270,7 @@ export function ShareForm({
                 'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
                 !shareWithList
                   ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700'
               )}
             >
               {!shareWithList && (
@@ -282,26 +282,26 @@ export function ShareForm({
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                !shareWithList ? 'bg-emerald-100' : 'bg-gray-100'
+                !shareWithList ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-gray-800'
               )}>
                 <X className={cn(
                   'h-6 w-6',
-                  !shareWithList ? 'text-emerald-600' : 'text-gray-500'
+                  !shareWithList ? 'text-emerald-600' : 'text-gray-500 dark:text-gray-400'
                 )} />
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
                 Skip Sharing
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Continue without sharing to your list
               </p>
             </button>
           </div>
 
           {shareWithList && listCount > 0 && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-gray-900 mb-2">What happens next?</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">What happens next?</h4>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                 <li>• Your {listCount} subscriber{listCount === 1 ? '' : 's'} will receive an email when the release is published</li>
                 <li>• They can easily share the news on their social networks</li>
                 <li>• Track engagement from your dashboard</li>

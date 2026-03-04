@@ -72,8 +72,8 @@ export function ReactionBar({
             className={cn(
               'inline-flex items-center gap-0.5 rounded-full px-2 py-1 text-xs transition-colors cursor-pointer',
               active
-                ? 'bg-cyan-100 text-cyan-800 border border-cyan-300'
-                : 'bg-gray-50 text-gray-500 border border-transparent hover:bg-gray-100'
+                ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-400 border border-cyan-300'
+                : 'bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400 border border-transparent hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
             )}
           >
             <span>{emoji.icon}</span>
@@ -81,7 +81,7 @@ export function ReactionBar({
         )
       })}
       {reactionCount > 0 && (
-        <span className="text-xs text-gray-500 ml-1">{reactionCount}</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">{reactionCount}</span>
       )}
     </div>
   )

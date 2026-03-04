@@ -67,14 +67,14 @@ export default async function AdminBrandsPage({
       {/* Header */}
       <Link
         href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Admin
       </Link>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Brand Management</h1>
-        <p className="text-gray-600">View and manage all brands ({totalCount})</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Brand Management</h1>
+        <p className="text-gray-600 dark:text-gray-400">View and manage all brands ({totalCount})</p>
       </div>
 
       <BrandSearchForm />
@@ -86,33 +86,33 @@ export default async function AdminBrandsPage({
             <table className="w-full">
               <thead data-tour="admin-brands-columns">
                 <tr className="border-b text-left">
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-16">ID</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Brand</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 max-w-[240px]">Website</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Location</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Owner</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-24">Status</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 w-40">Actions</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-16">ID</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Brand</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 max-w-[240px]">Website</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Location</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Owner</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Status</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-40">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {brands.map((brand, index) => (
-                  <tr key={brand.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors" {...(index === 0 ? { "data-tour": "admin-brands-first-row" } : {})}>
-                    <td className="py-3 px-4 text-sm text-gray-600">{brand.id}</td>
+                  <tr key={brand.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "admin-brands-first-row" } : {})}>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{brand.id}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {brand.logoUrl ? (
                           <img
                             src={brand.logoUrl.includes('RESIZE') ? brand.logoUrl.replace('RESIZE', 'resize=width:100') : brand.logoUrl}
                             alt={brand.companyName}
-                            className="h-8 w-8 rounded object-contain bg-gray-50"
+                            className="h-8 w-8 rounded object-contain bg-gray-50 dark:bg-gray-950"
                           />
                         ) : (
-                          <div className="h-8 w-8 rounded bg-gray-100 flex items-center justify-center">
+                          <div className="h-8 w-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                             <Building2 className="h-4 w-4 text-gray-400" />
                           </div>
                         )}
-                        <span className="text-sm font-medium text-gray-900">{brand.companyName}</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{brand.companyName}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm max-w-[240px] truncate">
@@ -121,7 +121,7 @@ export default async function AdminBrandsPage({
                           href={brand.website.startsWith('http') ? brand.website : `https://${brand.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-600 hover:text-cyan-800 flex items-center gap-1"
+                          className="text-gray-600 dark:text-gray-400 hover:text-cyan-800 dark:text-cyan-400 flex items-center gap-1"
                         >
                           {brand.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}
                           <ExternalLink className="h-3 w-3" />
@@ -130,16 +130,16 @@ export default async function AdminBrandsPage({
                         <span className="text-gray-400">—</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {brand.city && brand.state
                         ? `${brand.city}, ${brand.state}`
                         : brand.city || brand.state || '—'}
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {brand.ownerEmail ? (
                         <Link
                           href={`/admin/users/${brand.userId}`}
-                          className="text-gray-600 hover:text-cyan-800"
+                          className="text-gray-600 dark:text-gray-400 hover:text-cyan-800 dark:text-cyan-400"
                         >
                           {brand.ownerEmail}
                         </Link>
@@ -149,16 +149,16 @@ export default async function AdminBrandsPage({
                     </td>
                     <td className="py-3 px-4">
                       {brand.isDeleted ? (
-                        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                        <span className="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
                           Deleted
                         </span>
                       ) : brand.isArchived ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
                           <Archive className="h-3 w-3" />
                           Archived
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                        <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
                           Active
                         </span>
                       )}
@@ -166,13 +166,13 @@ export default async function AdminBrandsPage({
                     <td className="py-3 px-4">
                       <div className="flex gap-2" {...(index === 0 ? { "data-tour": "admin-brands-actions" } : {})}>
                         <Link href={`/admin/brands/${brand.uuid}`}>
-                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">
                             View
                           </button>
                         </Link>
                         {!brand.isDeleted && (
                           <Link href={`/company/${brand.uuid}`}>
-                            <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                            <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">
                               Edit
                             </button>
                           </Link>
@@ -183,7 +183,7 @@ export default async function AdminBrandsPage({
                 ))}
                 {brands.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="py-8 text-center text-sm text-gray-600">
+                    <td colSpan={7} className="py-8 text-center text-sm text-gray-600 dark:text-gray-400">
                       {searchQuery ? 'No brands found matching your search.' : 'No brands found.'}
                     </td>
                   </tr>

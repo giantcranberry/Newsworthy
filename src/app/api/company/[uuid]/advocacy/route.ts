@@ -1,9 +1,14 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, advocacyGroups, advocates } from '@/db/schema'
+import { company, advocacyGroups, crmContacts } from '@/db/schema'
 import { eq, and, desc, sql, inArray } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
+import { createHash } from 'crypto'
+
+function getMd5(email: string) {
+  return createHash('md5').update(email.toLowerCase()).digest('hex')
+}
 
 const DEFAULT_INVITE_MSG =
   'The purpose of this advocacy group is to help bring more attention to our press releases. As a member of this advocacy group, you will be notified via email when we distribute a new press release — with an invitation to share the news with your social networks.'
@@ -38,7 +43,7 @@ async function getOrCreateGroup(companyId: number, userId: number, companyName: 
   return group
 }
 
-// GET: Fetch advocacy group + paginated advocates
+// GET: Fetch advocacy group + paginated advocates from crm_contacts
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> }
@@ -64,24 +69,24 @@ export async function GET(
   const page = parseInt(searchParams.get('page') || '1')
   const perPage = 40
 
+  const baseFilter = and(
+    eq(crmContacts.companyId, co.id),
+    inArray(crmContacts.contactType, ['advocate', 'both']),
+    sql`${crmContacts.isDeleted} IS NOT TRUE`
+  )
+
   const allAdvocates = await db
     .select()
-    .from(advocates)
-    .where(and(
-      eq(advocates.groupId, group.id),
-      sql`${advocates.isDeleted} IS NOT TRUE`
-    ))
-    .orderBy(desc(advocates.createdAt))
+    .from(crmContacts)
+    .where(baseFilter)
+    .orderBy(desc(crmContacts.createdAt))
     .limit(perPage)
     .offset((page - 1) * perPage)
 
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(advocates)
-    .where(and(
-      eq(advocates.groupId, group.id),
-      sql`${advocates.isDeleted} IS NOT TRUE`
-    ))
+    .from(crmContacts)
+    .where(baseFilter)
   const totalCount = Number(countRow?.count || 0)
 
   return NextResponse.json({
@@ -99,7 +104,7 @@ export async function GET(
   })
 }
 
-// POST: Add advocates from email list
+// POST: Add advocates from email list → crm_contacts
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> }
@@ -119,8 +124,6 @@ export async function POST(
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
 
-  const group = await getOrCreateGroup(co.id, userId, co.companyName)
-
   const { emails } = await request.json()
 
   if (!emails || typeof emails !== 'string') {
@@ -137,6 +140,7 @@ export async function POST(
 
   let added = 0
   let skipped = 0
+  const seenInBatch = new Set<string>()
 
   for (const line of lines) {
     const parts = line.split(',').map((s: string) => s.trim())
@@ -147,30 +151,51 @@ export async function POST(
       continue
     }
 
+    const emailMd5 = getMd5(email)
+
+    // Within-batch dedup
+    if (seenInBatch.has(emailMd5)) {
+      skipped++
+      continue
+    }
+    seenInBatch.add(emailMd5)
+
     const firstName = parts[1] || null
     const lastName = parts[2] || null
 
-    // Check for duplicate
-    const existing = await db.query.advocates.findFirst({
+    // Check for duplicate in crm_contacts for this company
+    const existing = await db.query.crmContacts.findFirst({
       where: and(
-        eq(advocates.email, email),
-        eq(advocates.groupId, group.id)
+        eq(crmContacts.md5, emailMd5),
+        eq(crmContacts.companyId, co.id),
+        sql`${crmContacts.isDeleted} IS NOT TRUE`
       ),
     })
 
     if (existing) {
-      skipped++
+      // If exists as media only, upgrade to 'both'
+      if (existing.contactType === 'media') {
+        await db.update(crmContacts)
+          .set({ contactType: 'both', updatedAt: new Date() })
+          .where(eq(crmContacts.id, existing.id))
+        added++
+      } else {
+        skipped++
+      }
       continue
     }
 
-    await db.insert(advocates).values({
-      groupId: group.id,
-      userId: co.userId,
+    await db.insert(crmContacts).values({
       uuid: randomUUID().replace(/-/g, ''),
+      userId: co.userId,
+      companyId: co.id,
+      contactType: 'advocate',
       email,
+      md5: emailMd5,
       firstName,
       lastName,
       fullName: [firstName, lastName].filter(Boolean).join(' ') || null,
+      source: 'upload',
     })
 
     added++
@@ -214,7 +239,7 @@ export async function PUT(
   return NextResponse.json({ success: true })
 }
 
-// PATCH: Edit an advocate
+// PATCH: Edit an advocate → crm_contacts
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -244,10 +269,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
   }
 
-  const advocate = await db.query.advocates.findFirst({
+  const advocate = await db.query.crmContacts.findFirst({
     where: and(
-      eq(advocates.id, advocateId),
-      eq(advocates.userId, co.userId)
+      eq(crmContacts.id, advocateId),
+      eq(crmContacts.companyId, co.id)
     ),
   })
 
@@ -256,20 +281,21 @@ export async function PATCH(
   }
 
   const normalizedEmail = email.trim().toLowerCase()
+  const newMd5 = getMd5(normalizedEmail)
 
-  // Check for duplicate email within the same group (only if email changed)
-  if (normalizedEmail !== advocate.email) {
-    const duplicate = await db.query.advocates.findFirst({
+  // Check for duplicate email within the same company (only if email changed)
+  if (newMd5 !== advocate.md5) {
+    const duplicate = await db.query.crmContacts.findFirst({
       where: and(
-        eq(advocates.email, normalizedEmail),
-        eq(advocates.groupId, advocate.groupId!),
-        sql`${advocates.isDeleted} IS NOT TRUE`
+        eq(crmContacts.md5, newMd5),
+        eq(crmContacts.companyId, co.id),
+        sql`${crmContacts.isDeleted} IS NOT TRUE`
       ),
     })
 
     if (duplicate) {
       return NextResponse.json(
-        { error: 'This email address already exists in this advocacy group' },
+        { error: 'This email address already exists in your contacts' },
         { status: 409 }
       )
     }
@@ -278,21 +304,22 @@ export async function PATCH(
   const fName = firstName?.trim() || null
   const lName = lastName?.trim() || null
 
-  await db.update(advocates)
+  await db.update(crmContacts)
     .set({
       email: normalizedEmail,
+      md5: newMd5,
       firstName: fName,
       lastName: lName,
       fullName: [fName, lName].filter(Boolean).join(' ') || null,
       unsubscribeAt: unsubscribed ? (advocate.unsubscribeAt || new Date()) : null,
       updatedAt: new Date(),
     })
-    .where(eq(advocates.id, advocate.id))
+    .where(eq(crmContacts.id, advocate.id))
 
   return NextResponse.json({ success: true })
 }
 
-// DELETE: Soft-delete an advocate
+// DELETE: Soft-delete advocates → crm_contacts
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -322,11 +349,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'No valid IDs provided' }, { status: 400 })
     }
 
-    await db.update(advocates)
+    await db.update(crmContacts)
       .set({ isDeleted: true, updatedAt: new Date() })
       .where(and(
-        inArray(advocates.id, ids),
-        eq(advocates.userId, co.userId)
+        inArray(crmContacts.id, ids),
+        eq(crmContacts.companyId, co.id)
       ))
 
     return NextResponse.json({ success: true, deleted: ids.length })
@@ -337,10 +364,10 @@ export async function DELETE(
     return NextResponse.json({ error: 'advocateId or advocateIds is required' }, { status: 400 })
   }
 
-  const advocate = await db.query.advocates.findFirst({
+  const advocate = await db.query.crmContacts.findFirst({
     where: and(
-      eq(advocates.id, advocateId),
-      eq(advocates.userId, co.userId)
+      eq(crmContacts.id, advocateId),
+      eq(crmContacts.companyId, co.id)
     ),
   })
 
@@ -348,9 +375,9 @@ export async function DELETE(
     return NextResponse.json({ error: 'Advocate not found' }, { status: 404 })
   }
 
-  await db.update(advocates)
+  await db.update(crmContacts)
     .set({ isDeleted: true, updatedAt: new Date() })
-    .where(eq(advocates.id, advocate.id))
+    .where(eq(crmContacts.id, advocate.id))
 
   return NextResponse.json({ success: true })
 }

@@ -127,27 +127,27 @@ export function PitchListForm({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Info Card */}
       <Card>
-        <CardHeader className="bg-gray-50">
+        <CardHeader className="bg-gray-50 dark:bg-gray-950">
           <CardTitle className="text-base flex items-center gap-2">
             <Info className="h-4 w-4 text-blue-500" />
             About Media Pitch Lists
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
-          <p className="text-gray-700">
+          <p className="text-gray-700 dark:text-gray-300">
             Build and manage your media contact list for targeted press release distribution and media outreach.
           </p>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">How it works:</h4>
-            <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">How it works:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <li>Add media contacts individually or import in bulk</li>
               <li>Include publication domain and name for better organization</li>
               <li>Use your pitch list when distributing press releases</li>
@@ -168,21 +168,21 @@ export function PitchListForm({
         <CardContent className="pt-4 space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <p className="text-sm text-gray-500 mb-3">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                 Add multiple contacts at once by entering one email per line. You can optionally include first and last names.
               </p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Format Options:</h4>
-                  <ul className="text-xs text-gray-500 space-y-0.5">
-                    <li><code className="bg-gray-100 px-1 rounded">email@example.com</code></li>
-                    <li><code className="bg-gray-100 px-1 rounded">email@example.com,FirstName</code></li>
-                    <li><code className="bg-gray-100 px-1 rounded">email@example.com,FirstName,LastName</code></li>
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Format Options:</h4>
+                  <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com</code></li>
+                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName</code></li>
+                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName</code></li>
                   </ul>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-xs text-amber-800 font-semibold">Limits:</p>
-                  <ul className="text-xs text-amber-700 list-disc list-inside">
+                  <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold">Limits:</p>
+                  <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside">
                     <li>Maximum 50 contacts at a time</li>
                     <li>One email address per line</li>
                     <li>Duplicates are automatically skipped</li>
@@ -239,10 +239,10 @@ export function PitchListForm({
             <div className="flex items-center gap-3">
               <Newspaper className="h-5 w-5 text-gray-400" />
               <div>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-gray-900 dark:text-gray-100">
                   {totalContacts} Contact{totalContacts !== 1 ? 's' : ''}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   View, search, and manage your media pitch contacts
                 </p>
               </div>
@@ -268,7 +268,7 @@ export function PitchListForm({
           </DialogHeader>
 
           {contactError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{contactError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{contactError}</div>
           )}
 
           <div className="grid gap-4 py-2">

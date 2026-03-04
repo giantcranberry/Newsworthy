@@ -75,8 +75,8 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
 
   return (
     <div className={cn(
-      'rounded-lg border bg-white p-4',
-      pinned ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'
+      'rounded-lg border bg-white dark:bg-gray-900 p-4',
+      pinned ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200 dark:border-gray-800'
     )}>
       {/* Header */}
       <div className="flex items-start justify-between">
@@ -88,7 +88,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
             <div className="flex items-center gap-2 flex-wrap">
               <Link
                 href={`/community/profile/${post.userId}`}
-                className="font-medium text-gray-900 hover:text-cyan-800 text-sm"
+                className="font-medium text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400 text-sm"
               >
                 {post.userName}
               </Link>
@@ -102,12 +102,12 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
               {showBoard && (
                 <>
                   <Link
                     href={`/community/boards/${post.boardSlug}`}
-                    className="hover:text-cyan-800"
+                    className="hover:text-cyan-800 dark:text-cyan-400"
                     style={{ color: post.boardColor }}
                   >
                     {post.boardName}
@@ -129,15 +129,15 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
         {(isOwner || isAdmin) && (
           <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-40 p-1 bg-white">
+            <PopoverContent align="end" className="w-40 p-1 bg-white dark:bg-gray-900">
               {isAdmin && (
                 <button
                   onClick={handlePin}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                 >
                   <Pin className="h-4 w-4" />
                   {pinned ? 'Unpin' : 'Pin'}
@@ -147,7 +147,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
                 <Link
                   href={`/community/posts/${post.uuid}`}
                   onClick={() => setMenuOpen(false)}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                 >
                   <Pencil className="h-4 w-4" />
                   Edit
@@ -155,7 +155,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
               )}
               <button
                 onClick={handleDelete}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 hover:bg-red-50"
+                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -166,7 +166,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
       </div>
 
       {/* Body */}
-      <div className="mt-3 text-sm text-gray-800 whitespace-pre-wrap break-words prose prose-sm max-w-none">
+      <div className="mt-3 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words prose prose-sm max-w-none">
         {post.body}
       </div>
 
@@ -174,7 +174,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
       <PostImages images={post.images} />
 
       {/* Footer */}
-      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">
         <ReactionBar
           targetType="post"
           targetId={post.id}
@@ -184,7 +184,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
 
         <Link
           href={`/community/posts/${post.uuid}`}
-          className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-cyan-800 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 hover:text-cyan-800 dark:text-cyan-400 transition-colors"
         >
           <MessageSquare className="h-4 w-4" />
           {post.commentCount > 0 ? `${post.commentCount} comments` : 'Comment'}

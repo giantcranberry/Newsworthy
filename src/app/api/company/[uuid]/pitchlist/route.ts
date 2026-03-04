@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, pitchGroups, pitchList } from '@/db/schema'
+import { company, pitchGroups, crmContacts } from '@/db/schema'
 import { eq, and, desc, sql, isNotNull, isNull, inArray } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
@@ -39,7 +39,7 @@ async function getOrCreateGroup(companyId: number, userId: number, companyName: 
   return group
 }
 
-// GET: Fetch pitch group + paginated contacts + stats
+// GET: Fetch pitch group + paginated contacts from crm_contacts + stats
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -66,32 +66,33 @@ export async function GET(
   const perPage = 40
 
   const notDeleted = and(
-    eq(pitchList.groupId, group.id),
-    sql`${pitchList.isDeleted} IS NOT TRUE`
+    eq(crmContacts.companyId, co.id),
+    inArray(crmContacts.contactType, ['media', 'both']),
+    sql`${crmContacts.isDeleted} IS NOT TRUE`
   )
 
   const contacts = await db
     .select()
-    .from(pitchList)
+    .from(crmContacts)
     .where(notDeleted)
-    .orderBy(desc(pitchList.createdAt))
+    .orderBy(desc(crmContacts.createdAt))
     .limit(perPage)
     .offset((page - 1) * perPage)
 
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
+    .from(crmContacts)
     .where(notDeleted)
 
   const [bouncedRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
-    .where(and(notDeleted, isNotNull(pitchList.bouncedAt)))
+    .from(crmContacts)
+    .where(and(notDeleted, isNotNull(crmContacts.bouncedAt)))
 
   const [unsubRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
-    .where(and(notDeleted, isNotNull(pitchList.unsubscribeAt)))
+    .from(crmContacts)
+    .where(and(notDeleted, isNotNull(crmContacts.unsubscribeAt)))
 
   const total = Number(countRow?.count || 0)
   const bounced = Number(bouncedRow?.count || 0)
@@ -112,7 +113,7 @@ export async function GET(
   })
 }
 
-// POST: Add contacts (bulk or single)
+// POST: Add contacts (bulk or single) → crm_contacts
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -132,7 +133,6 @@ export async function POST(
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
 
-  const group = await getOrCreateGroup(co.id, userId, co.companyName)
   const body = await request.json()
 
   // Single contact add
@@ -149,28 +149,49 @@ export async function POST(
       return NextResponse.json({ error: 'Publication domain is required' }, { status: 400 })
     }
 
-    const emailMd5 = getMd5(email.trim())
+    const normalizedEmail = email.trim().toLowerCase()
+    const emailMd5 = getMd5(normalizedEmail)
 
-    // Check for duplicate
-    const existing = await db.query.pitchList.findFirst({
+    // Check for duplicate in crm_contacts for this company
+    const existing = await db.query.crmContacts.findFirst({
       where: and(
-        eq(pitchList.md5, emailMd5),
-        eq(pitchList.groupId, group.id)
+        eq(crmContacts.md5, emailMd5),
+        eq(crmContacts.companyId, co.id),
+        sql`${crmContacts.isDeleted} IS NOT TRUE`
       ),
     })
 
     if (existing) {
+      // If exists as advocate only, upgrade to 'both'
+      if (existing.contactType === 'advocate') {
+        await db.update(crmContacts)
+          .set({
+            contactType: 'both',
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            fullName: `${firstName.trim()} ${lastName.trim()}`,
+            tld: tld.trim().toLowerCase(),
+            publication: publication?.trim() || existing.publication,
+            phone: phone?.trim() || existing.phone,
+            notes: notes?.trim() || existing.notes,
+            updatedAt: new Date(),
+          })
+          .where(eq(crmContacts.id, existing.id))
+
+        return NextResponse.json({ success: true, contact: existing })
+      }
       return NextResponse.json({ error: 'A contact with this email already exists in your pitch list' }, { status: 409 })
     }
 
-    const [newContact] = await db.insert(pitchList).values({
-      groupId: group.id,
-      companyId: co.id,
-      userId,
+    const [newContact] = await db.insert(crmContacts).values({
       uuid: randomUUID().replace(/-/g, ''),
+      userId,
+      companyId: co.id,
+      contactType: 'media',
       firstName: firstName.trim(),
       lastName: lastName.trim(),
-      email: email.trim().toLowerCase(),
+      fullName: `${firstName.trim()} ${lastName.trim()}`,
+      email: normalizedEmail,
       md5: emailMd5,
       tld: tld.trim().toLowerCase(),
       publication: publication?.trim() || null,
@@ -199,6 +220,7 @@ export async function POST(
 
   let added = 0
   let skipped = 0
+  const seenInBatch = new Set<string>()
 
   for (const line of lines) {
     const parts = line.split(',').map((s: string) => s.trim())
@@ -209,29 +231,47 @@ export async function POST(
       continue
     }
 
-    const firstName = parts[1] || null
-    const lastName = parts[2] || null
     const emailMd5 = getMd5(email)
 
-    const existing = await db.query.pitchList.findFirst({
+    // Within-batch dedup
+    if (seenInBatch.has(emailMd5)) {
+      skipped++
+      continue
+    }
+    seenInBatch.add(emailMd5)
+
+    const firstName = parts[1] || null
+    const lastName = parts[2] || null
+
+    const existing = await db.query.crmContacts.findFirst({
       where: and(
-        eq(pitchList.md5, emailMd5),
-        eq(pitchList.groupId, group.id)
+        eq(crmContacts.md5, emailMd5),
+        eq(crmContacts.companyId, co.id),
+        sql`${crmContacts.isDeleted} IS NOT TRUE`
       ),
     })
 
     if (existing) {
-      skipped++
+      // If exists as advocate only, upgrade to 'both'
+      if (existing.contactType === 'advocate') {
+        await db.update(crmContacts)
+          .set({ contactType: 'both', updatedAt: new Date() })
+          .where(eq(crmContacts.id, existing.id))
+        added++
+      } else {
+        skipped++
+      }
       continue
     }
 
-    await db.insert(pitchList).values({
-      groupId: group.id,
-      companyId: co.id,
-      userId,
+    await db.insert(crmContacts).values({
       uuid: randomUUID().replace(/-/g, ''),
+      userId,
+      companyId: co.id,
+      contactType: 'media',
       firstName,
       lastName,
+      fullName: [firstName, lastName].filter(Boolean).join(' ') || null,
       email,
       md5: emailMd5,
       source: 'upload',
@@ -243,7 +283,7 @@ export async function POST(
   return NextResponse.json({ success: true, added, skipped })
 }
 
-// PUT: Update a contact
+// PUT: Update a contact → crm_contacts
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -263,7 +303,6 @@ export async function PUT(
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
 
-  const group = await getOrCreateGroup(co.id, userId, co.companyName)
   const body = await request.json()
   const { contactUuid, firstName, lastName, email, tld, publication, phone, notes, unsubscribed } = body
 
@@ -280,10 +319,11 @@ export async function PUT(
     return NextResponse.json({ error: 'Publication domain is required' }, { status: 400 })
   }
 
-  const contact = await db.query.pitchList.findFirst({
-    where: isAdmin
-      ? and(eq(pitchList.uuid, contactUuid), eq(pitchList.companyId, co.id))
-      : and(eq(pitchList.uuid, contactUuid), eq(pitchList.userId, userId)),
+  const contact = await db.query.crmContacts.findFirst({
+    where: and(
+      eq(crmContacts.uuid, contactUuid),
+      eq(crmContacts.companyId, co.id)
+    ),
   })
 
   if (!contact) {
@@ -293,13 +333,13 @@ export async function PUT(
   const normalizedEmail = email.trim().toLowerCase()
   const newMd5 = getMd5(normalizedEmail)
 
-  // Check for duplicate email within the same group (only if email changed)
+  // Check for duplicate email within the same company (only if email changed)
   if (newMd5 !== contact.md5) {
-    const duplicate = await db.query.pitchList.findFirst({
+    const duplicate = await db.query.crmContacts.findFirst({
       where: and(
-        eq(pitchList.md5, newMd5),
-        eq(pitchList.groupId, group.id),
-        sql`${pitchList.isDeleted} IS NOT TRUE`
+        eq(crmContacts.md5, newMd5),
+        eq(crmContacts.companyId, co.id),
+        sql`${crmContacts.isDeleted} IS NOT TRUE`
       ),
     })
 
@@ -311,10 +351,11 @@ export async function PUT(
     }
   }
 
-  await db.update(pitchList)
+  await db.update(crmContacts)
     .set({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      fullName: `${firstName.trim()} ${lastName.trim()}`,
       email: normalizedEmail,
       md5: newMd5,
       tld: tld.trim().toLowerCase(),
@@ -324,12 +365,12 @@ export async function PUT(
       unsubscribeAt: unsubscribed ? (contact.unsubscribeAt || new Date()) : null,
       updatedAt: new Date(),
     })
-    .where(eq(pitchList.id, contact.id))
+    .where(eq(crmContacts.id, contact.id))
 
   return NextResponse.json({ success: true })
 }
 
-// DELETE: Soft-delete a contact
+// DELETE: Soft-delete contacts → crm_contacts
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
@@ -359,11 +400,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'No valid UUIDs provided' }, { status: 400 })
     }
 
-    await db.update(pitchList)
+    await db.update(crmContacts)
       .set({ isDeleted: true, updatedAt: new Date() })
       .where(and(
-        inArray(pitchList.uuid, uuids),
-        isAdmin ? eq(pitchList.companyId, co.id) : eq(pitchList.userId, userId)
+        inArray(crmContacts.uuid, uuids),
+        eq(crmContacts.companyId, co.id)
       ))
 
     return NextResponse.json({ success: true, deleted: uuids.length })
@@ -374,19 +415,20 @@ export async function DELETE(
     return NextResponse.json({ error: 'contactUuid or contactUuids is required' }, { status: 400 })
   }
 
-  const contact = await db.query.pitchList.findFirst({
-    where: isAdmin
-      ? and(eq(pitchList.uuid, contactUuid), eq(pitchList.companyId, co.id))
-      : and(eq(pitchList.uuid, contactUuid), eq(pitchList.userId, userId)),
+  const contact = await db.query.crmContacts.findFirst({
+    where: and(
+      eq(crmContacts.uuid, contactUuid),
+      eq(crmContacts.companyId, co.id)
+    ),
   })
 
   if (!contact) {
     return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
   }
 
-  await db.update(pitchList)
+  await db.update(crmContacts)
     .set({ isDeleted: true, updatedAt: new Date() })
-    .where(eq(pitchList.id, contact.id))
+    .where(eq(crmContacts.id, contact.id))
 
   return NextResponse.json({ success: true })
 }

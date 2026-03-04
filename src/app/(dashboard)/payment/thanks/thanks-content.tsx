@@ -57,41 +57,41 @@ export function ThanksContent({ cartUuid, userEmail }: ThanksContentProps) {
     <div className="max-w-lg mx-auto">
       <Card>
         <CardContent className="py-12 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="mx-auto h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
+            <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Thank You!</h1>
-          <p className="text-gray-500 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Thank You!</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             An email receipt has been sent to {userEmail}.
           </p>
 
           {/* Credit Balances — only show once webhook has processed */}
           {!fulfilled && !timedOut && cartUuid && (
-            <div className="flex items-center justify-center gap-2 text-gray-500 mb-8">
+            <div className="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400 mb-8">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-sm">Updating your credit balance...</span>
             </div>
           )}
 
           {timedOut && !fulfilled && (
-            <p className="text-sm text-gray-500 mb-8">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
               Your payment was successful. Credits will appear on your dashboard shortly.
             </p>
           )}
 
           {fulfilled && balance && (
             <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">{balance.prCredits}</p>
-                <p className="text-sm text-gray-500">PR Credits</p>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{balance.prCredits}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">PR Credits</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">{balance.yahooCredits}</p>
-                <p className="text-sm text-gray-500">Yahoo Credits</p>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{balance.yahooCredits}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Yahoo Credits</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">{balance.enhancedCredits}</p>
-                <p className="text-sm text-gray-500">Enhanced Credits</p>
+              <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{balance.enhancedCredits}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Enhanced Credits</p>
               </div>
             </div>
           )}
@@ -99,7 +99,7 @@ export function ThanksContent({ cartUuid, userEmail }: ThanksContentProps) {
           <div className="flex flex-col gap-3">
             {fulfilled && balance && balance.prCredits > 0 && (
               <Link href="/pr/create">
-                <Button className="w-full bg-cyan-800 text-white hover:bg-cyan-900">
+                <Button className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
                   Distribute a Press Release
                 </Button>
               </Link>

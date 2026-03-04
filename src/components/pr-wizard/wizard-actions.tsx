@@ -71,7 +71,7 @@ export function WizardActions({
   const nextLabel = submitLabel || (isLastStep ? 'Finish' : 'Next')
 
   return (
-    <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+    <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800">
       <div>
         {prevPath && (
           <Button
@@ -103,7 +103,7 @@ export function WizardActions({
           type={onSubmit ? 'button' : 'submit'}
           onClick={onSubmit ? handleNext : undefined}
           disabled={isLoading || !canProceed}
-          className="bg-cyan-800 text-white hover:bg-cyan-900 disabled:opacity-50"
+          className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 disabled:opacity-50"
         >
           {isLoading ? (
             <>

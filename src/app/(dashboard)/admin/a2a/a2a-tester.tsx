@@ -131,7 +131,7 @@ export function A2ATester({ endpoint }: Props) {
 
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">{error}</p>
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           </div>
         )}
 
@@ -141,9 +141,9 @@ export function A2ATester({ endpoint }: Props) {
               <Badge variant={result.status?.state === 'completed' ? 'default' : 'destructive'}>
                 {result.status?.state}
               </Badge>
-              <span className="text-xs text-gray-500">Task: {result.id}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">Task: {result.id}</span>
             </div>
-            <pre className="p-4 bg-gray-50 rounded-lg overflow-auto max-h-96 text-xs font-mono">
+            <pre className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg overflow-auto max-h-96 text-xs font-mono">
               {JSON.stringify(result, null, 2)}
             </pre>
           </div>

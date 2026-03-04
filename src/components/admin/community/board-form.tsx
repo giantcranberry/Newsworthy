@@ -95,7 +95,7 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:text-red-400">{error}</div>
       )}
 
       <div className="space-y-2">
@@ -140,7 +140,7 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
             placeholder="fa-light fa-message"
           />
           {iconClass && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               <i className={iconClass} /> Preview
             </div>
           )}
@@ -154,7 +154,7 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
               id="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              className="h-9 w-12 cursor-pointer rounded border border-gray-300"
+              className="h-9 w-12 cursor-pointer rounded border border-gray-300 dark:border-gray-700"
             />
             <Input
               value={color}
@@ -176,10 +176,10 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
         />
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+      <div className="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-800 p-4">
         <div>
           <Label htmlFor="staffOnly" className="text-sm font-medium">Staff Only Posting</Label>
-          <p className="text-xs text-gray-500">Only Newsworthy team can create posts</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">Only Newsworthy team can create posts</p>
         </div>
         <Switch
           id="staffOnly"
@@ -192,7 +192,7 @@ export function BoardForm({ board, onSave, onCancel }: BoardFormProps) {
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" disabled={saving} className="bg-cyan-800 text-white hover:bg-cyan-900">
+        <Button type="submit" disabled={saving} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           {saving ? 'Saving...' : board ? 'Update Board' : 'Create Board'}
         </Button>
       </div>

@@ -101,7 +101,7 @@ function ImageCredits({ image }: { image: ImageAsset }) {
             href={image.sourceLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-gray-600"
+            className="underline hover:text-gray-600 dark:text-gray-400"
           >
             {name}
           </a>
@@ -110,7 +110,7 @@ function ImageCredits({ image }: { image: ImageAsset }) {
             href="https://unsplash.com?utm_source=newsworthy&utm_medium=referral"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-gray-600"
+            className="underline hover:text-gray-600 dark:text-gray-400"
           >
             Unsplash
           </a>
@@ -469,10 +469,10 @@ export function AssetsForm({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Video Shorts Opt Out */}
@@ -482,8 +482,8 @@ export function AssetsForm({
             <div className="flex items-center gap-3">
               <VideoOff className={`h-5 w-5 shrink-0 ${videoShortsOptOut ? 'text-amber-600' : 'text-gray-400'}`} />
               <div>
-                <p className="text-sm font-medium text-gray-900">Video Shorts Opt Out</p>
-                <p className="text-xs text-gray-500">The NewsRamp service will create video shorts based on your press release. These video shorts provide additional visibility for your content, receiving upwards of 1k views in the first week after your release goes out. You can opt out of this included service here.</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Video Shorts Opt Out</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">The NewsRamp service will create video shorts based on your press release. These video shorts provide additional visibility for your content, receiving upwards of 1k views in the first week after your release goes out. You can opt out of this included service here.</p>
               </div>
             </div>
             <Switch
@@ -498,20 +498,20 @@ export function AssetsForm({
       {/* Filter Cards */}
       <div className="grid grid-cols-2 gap-4">
         <Link href={`/company/${companyUuid}/assets?filter=news`}>
-          <Card className={`cursor-pointer transition-colors ${filter === 'news' ? 'ring-2 ring-cyan-700' : 'hover:bg-gray-50'}`}>
+          <Card className={`cursor-pointer transition-colors ${filter === 'news' ? 'ring-2 ring-cyan-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}>
             <CardContent className="pt-4 pb-4 text-center">
               <Newspaper className="h-5 w-5 text-cyan-700 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-gray-900">{counts.news}</p>
-              <p className="text-xs text-gray-500">News Images</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{counts.news}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">News Images</p>
             </CardContent>
           </Card>
         </Link>
         <Link href={`/company/${companyUuid}/assets?filter=social`}>
-          <Card className={`cursor-pointer transition-colors ${filter === 'social' ? 'ring-2 ring-purple-500' : 'hover:bg-gray-50'}`}>
+          <Card className={`cursor-pointer transition-colors ${filter === 'social' ? 'ring-2 ring-purple-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}>
             <CardContent className="pt-4 pb-4 text-center">
               <Share2 className="h-5 w-5 text-purple-500 mx-auto mb-1" />
-              <p className="text-2xl font-bold text-gray-900">{counts.social}</p>
-              <p className="text-xs text-gray-500">Social Images</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{counts.social}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Social Images</p>
             </CardContent>
           </Card>
         </Link>
@@ -526,20 +526,20 @@ export function AssetsForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Upload images to your media asset library. These images can be attached to press releases.
             JPEG, PNG, or WebP up to 5MB. Images are automatically optimized.
           </p>
 
           <Tabs value={activeUploadTab} onValueChange={(v) => { setActiveUploadTab(v as 'upload' | 'unsplash'); handleCancelUpload(); setSelectedPhoto(null); setUnsplashQuery(''); setUnsplashResults([]); setUnsplashError(null) }}>
-            <div className="flex w-full rounded-lg bg-gray-100 p-1">
+            <div className="flex w-full rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
               <button
                 type="button"
                 onClick={() => { setActiveUploadTab('upload'); handleCancelUpload(); setSelectedPhoto(null); setUnsplashQuery(''); setUnsplashResults([]); setUnsplashError(null) }}
                 className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
                   activeUploadTab === 'upload'
-                    ? 'bg-cyan-700 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-cyan-700 text-white shadow-sm dark:shadow-gray-900/50'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100'
                 }`}
               >
                 <Upload className="h-4 w-4" />
@@ -550,8 +550,8 @@ export function AssetsForm({
                 onClick={() => { setActiveUploadTab('unsplash'); handleCancelUpload() }}
                 className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
                   activeUploadTab === 'unsplash'
-                    ? 'bg-cyan-700 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-cyan-700 text-white shadow-sm dark:shadow-gray-900/50'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100'
                 }`}
               >
                 <Search className="h-4 w-4" />
@@ -571,7 +571,7 @@ export function AssetsForm({
               {pendingFile && pendingPreview ? (
                 <div className="space-y-4">
                   <div className="flex gap-4">
-                    <div className="w-40 h-28 relative rounded-lg overflow-hidden border bg-gray-50 shrink-0">
+                    <div className="w-40 h-28 relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950 shrink-0">
                       <Image
                         src={pendingPreview}
                         alt="Preview"
@@ -624,14 +624,14 @@ export function AssetsForm({
                   onDrop={handleDrop}
                   className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
                     isDragOver
-                      ? 'border-cyan-700 bg-cyan-50'
-                      : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                      ? 'border-cyan-700 bg-cyan-50 dark:bg-cyan-900/30'
+                      : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 hover:border-cyan-700 hover:bg-cyan-50 dark:bg-cyan-900/30/50'
                   }`}
                 >
-                  <div className="rounded-full bg-gray-100 p-3 mb-3">
+                  <div className="rounded-full bg-gray-100 dark:bg-gray-800 p-3 mb-3">
                     <Upload className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Drop an image here, or <span className="text-cyan-700">browse</span>
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
@@ -653,13 +653,13 @@ export function AssetsForm({
               </div>
 
               {unsplashError && (
-                <p className="text-sm text-red-600">{unsplashError}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{unsplashError}</p>
               )}
 
               {selectedPhoto ? (
                 <div className="space-y-4">
                   <div className="flex gap-4">
-                    <div className="w-40 h-28 relative rounded-lg overflow-hidden border bg-gray-50 shrink-0">
+                    <div className="w-40 h-28 relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950 shrink-0">
                       <Image
                         src={selectedPhoto.urls.small}
                         alt={selectedPhoto.alt_description || 'Unsplash photo'}
@@ -718,7 +718,7 @@ export function AssetsForm({
                           <button
                             key={photo.id}
                             onClick={() => handleSelectPhoto(photo)}
-                            className="group relative rounded-lg overflow-hidden border bg-gray-50 hover:ring-2 hover:ring-cyan-700 transition-all text-left"
+                            className="group relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950 hover:ring-2 hover:ring-cyan-700 transition-all text-left"
                           >
                             <div className="aspect-[4/3] relative">
                               <Image
@@ -731,7 +731,7 @@ export function AssetsForm({
                               />
                             </div>
                             <div className="p-1.5">
-                              <p className="text-xs text-gray-500 truncate">{photo.user.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{photo.user.name}</p>
                             </div>
                           </button>
                         ))}
@@ -780,7 +780,7 @@ export function AssetsForm({
             <>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {images.map((img) => (
-                  <div key={img.id} className="group relative border rounded-lg overflow-hidden bg-gray-50">
+                  <div key={img.id} className="group relative border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-950">
                     <div className="aspect-[4/3] relative">
                       <Image
                         src={resizedUrl(img.url, 300)}
@@ -793,7 +793,7 @@ export function AssetsForm({
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                         <button
                           onClick={() => { setViewImage(img); setShowViewModal(true) }}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:text-green-600 shadow-sm"
+                          className="p-2 bg-white dark:bg-gray-900 rounded-full text-gray-700 dark:text-gray-300 hover:text-green-600 dark:text-green-400 shadow-sm dark:shadow-gray-900/50"
                           title="View"
                         >
                           <Eye className="h-4 w-4" />
@@ -801,7 +801,7 @@ export function AssetsForm({
                         {!readOnly && (
                           <button
                             onClick={() => openEdit(img)}
-                            className="p-2 bg-white rounded-full text-gray-700 hover:text-cyan-700 shadow-sm"
+                            className="p-2 bg-white dark:bg-gray-900 rounded-full text-gray-700 dark:text-gray-300 hover:text-cyan-700 shadow-sm dark:shadow-gray-900/50"
                             title="Edit"
                           >
                             <Pencil className="h-4 w-4" />
@@ -810,7 +810,7 @@ export function AssetsForm({
                         {!readOnly && (
                           <button
                             onClick={() => openDelete(img)}
-                            className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 shadow-sm"
+                            className="p-2 bg-white dark:bg-gray-900 rounded-full text-gray-700 dark:text-gray-300 hover:text-red-600 dark:text-red-400 shadow-sm dark:shadow-gray-900/50"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -819,7 +819,7 @@ export function AssetsForm({
                       </div>
                     </div>
                     <div className="p-2">
-                      <p className="text-xs font-medium text-gray-700 truncate">
+                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
                         {img.title || 'Untitled'}
                       </p>
                       <ImageCredits image={img} />
@@ -840,7 +840,7 @@ export function AssetsForm({
                   {currentPage > 1 ? (
                     <Link
                       href={`/company/${companyUuid}/assets?filter=${filter}&page=${currentPage - 1}`}
-                      className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+                      className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Previous
@@ -852,14 +852,14 @@ export function AssetsForm({
                     </span>
                   )}
 
-                  <span className="text-sm text-gray-500 px-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400 px-2">
                     Page {currentPage} of {totalPages}
                   </span>
 
                   {currentPage < totalPages ? (
                     <Link
                       href={`/company/${companyUuid}/assets?filter=${filter}&page=${currentPage + 1}`}
-                      className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+                      className="inline-flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                     >
                       Next
                       <ChevronRight className="h-4 w-4" />
@@ -892,7 +892,7 @@ export function AssetsForm({
           </DialogHeader>
 
           {editError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{editError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{editError}</div>
           )}
 
           <div className="grid gap-4 py-2">
@@ -947,11 +947,11 @@ export function AssetsForm({
                       return (
                         <>
                           Photo by{' '}
-                          <a href={viewImage.sourceLink} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+                          <a href={viewImage.sourceLink} target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:text-gray-400">
                             {match[1]}
                           </a>
                           {' '}on{' '}
-                          <a href="https://unsplash.com?utm_source=newsworthy&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">
+                          <a href="https://unsplash.com?utm_source=newsworthy&utm_medium=referral" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 dark:text-gray-400">
                             Unsplash
                           </a>
                         </>
@@ -995,7 +995,7 @@ export function AssetsForm({
 
           {deleteImage && (
             <div className="py-2">
-              <div className="w-full h-32 relative rounded-lg overflow-hidden border bg-gray-50">
+              <div className="w-full h-32 relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950">
                 <Image
                   src={resizedUrl(deleteImage.url, 600)}
                   alt={deleteImage.title || 'Image'}
@@ -1004,7 +1004,7 @@ export function AssetsForm({
                 />
               </div>
               {deleteImage.title && (
-                <p className="text-sm text-gray-700 mt-2">{deleteImage.title}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{deleteImage.title}</p>
               )}
             </div>
           )}

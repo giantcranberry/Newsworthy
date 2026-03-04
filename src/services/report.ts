@@ -103,7 +103,7 @@ const CIRCUIT_CATEGORY_IDS = {
 
 // --- OpenSearch query helpers ---
 
-async function getClipsTotalStats(prhashIds: string[]): Promise<{ pageviews: Record<string, number>; shares: Record<string, number> }> {
+export async function getClipsTotalStats(prhashIds: string[]): Promise<{ pageviews: Record<string, number>; shares: Record<string, number> }> {
   const pageviews: Record<string, number> = {}
   const shares: Record<string, number> = {}
 

@@ -137,27 +137,27 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
   return (
     <fieldset disabled={readOnly} className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Info Card */}
       <Card>
-        <CardHeader className="bg-gray-50">
+        <CardHeader className="bg-gray-50 dark:bg-gray-950">
           <CardTitle className="text-base flex items-center gap-2">
             <Info className="h-4 w-4 text-blue-500" />
             About Your Newsroom
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
-          <p className="text-gray-700">
+          <p className="text-gray-700 dark:text-gray-300">
             Your newsroom is a public-facing page that showcases your press releases, company information, and media resources.
           </p>
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Newsroom features:</h4>
-            <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Newsroom features:</h4>
+            <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <li>Branded public page for your press releases</li>
               <li>Social media and blog links for media contacts</li>
               <li>Cloud storage links for press kits and media assets</li>
@@ -167,14 +167,14 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           {newsroomUrl && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-blue-800">Your Newsroom URL</p>
-                <p className="text-sm text-blue-700 font-mono">{newsroomUrl}</p>
+                <p className="text-xs font-semibold text-blue-800 dark:text-blue-400">Your Newsroom URL</p>
+                <p className="text-sm text-blue-700 dark:text-blue-400 font-mono">{newsroomUrl}</p>
               </div>
               <a
                 href={newsroomUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-400"
               >
                 <ExternalLink className="h-4 w-4" />
               </a>
@@ -195,7 +195,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <div>
             <Label htmlFor="nrUri" className="font-semibold">Newsroom Address *</Label>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm text-gray-500 whitespace-nowrap">newsworthy.ai/newsroom/</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">newsworthy.ai/newsroom/</span>
               <Input
                 id="nrUri"
                 value={formData.nrUri}
@@ -223,7 +223,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
               <span className="text-xs text-gray-400">{formData.nrUri.length}/32</span>
             </div>
             {slugStatus === 'taken' && (
-              <p className="text-xs text-red-600 mt-1">This newsroom address is already taken.</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">This newsroom address is already taken.</p>
             )}
           </div>
 
@@ -276,7 +276,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Add your social media profiles. These will be displayed on your newsroom page.
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -395,7 +395,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </div>
           <div>
             <Label htmlFor="website" className="inline-flex items-center gap-1.5">
-              <i className="fa-solid fa-globe text-gray-500" aria-hidden="true" />
+              <i className="fa-solid fa-globe text-gray-500 dark:text-gray-400" aria-hidden="true" />
               Website
             </Label>
             <Input
@@ -419,7 +419,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Link to public folders containing press kits, logos, and other media assets.
           </p>
           <div>
@@ -476,12 +476,12 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Embed your Google My Business location on your newsroom and press releases.
           </p>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs font-semibold text-amber-800 mb-1">How to get your embed code:</p>
-            <ol className="list-decimal list-inside text-xs text-amber-700 space-y-0.5">
+            <p className="text-xs font-semibold text-amber-800 dark:text-amber-400 mb-1">How to get your embed code:</p>
+            <ol className="list-decimal list-inside text-xs text-amber-700 dark:text-amber-400 space-y-0.5">
               <li>Go to <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Maps</a> and search for your business</li>
               <li>Click the <strong>Share</strong> button</li>
               <li>Select the <strong>Embed a map</strong> tab</li>
@@ -504,7 +504,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </div>
           {formData.gmb && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">Preview:</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Preview:</p>
               <div
                 className="rounded-lg overflow-hidden border"
                 dangerouslySetInnerHTML={{ __html: formData.gmb }}
@@ -523,7 +523,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             If you work with a PR or marketing agency, add their contact information here.
           </p>
           <div className="grid grid-cols-2 gap-4">

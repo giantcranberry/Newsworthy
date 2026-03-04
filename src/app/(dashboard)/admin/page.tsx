@@ -49,8 +49,8 @@ export default async function AdminPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-500">Manage users, content, and settings</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Admin Dashboard</h1>
+        <p className="text-gray-500 dark:text-gray-400">Manage users, content, and settings</p>
       </div>
 
       {/* PR Lookup */}
@@ -68,12 +68,12 @@ export default async function AdminPage() {
         <Card data-tour="admin-stat-users">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
-                <p className="text-sm text-gray-500">Users</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.users}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Users</p>
               </div>
             </div>
           </CardContent>
@@ -82,12 +82,12 @@ export default async function AdminPage() {
         <Card data-tour="admin-stat-releases">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                <FileText className="h-6 w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.releases}</p>
-                <p className="text-sm text-gray-500">Releases</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.releases}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Releases</p>
               </div>
             </div>
           </CardContent>
@@ -96,12 +96,12 @@ export default async function AdminPage() {
         <Card data-tour="admin-stat-companies">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                 <Building2 className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.companies}</p>
-                <p className="text-sm text-gray-500">Companies</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.companies}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Companies</p>
               </div>
             </div>
           </CardContent>
@@ -110,12 +110,12 @@ export default async function AdminPage() {
         <Card data-tour="admin-stat-partners">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-orange-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
                 <Briefcase className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.partners}</p>
-                <p className="text-sm text-gray-500">Partners</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.partners}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Partners</p>
               </div>
             </div>
           </CardContent>
@@ -187,7 +187,7 @@ export default async function AdminPage() {
                 <h3 className="font-medium text-yellow-900">
                   {stats.pendingReleases} release{stats.pendingReleases !== 1 ? 's' : ''} pending review
                 </h3>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm text-yellow-700 dark:text-yellow-400">
                   Press releases are waiting for editorial approval
                 </p>
               </div>

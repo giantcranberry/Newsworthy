@@ -89,23 +89,23 @@ export function ApprovalResponse({
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 text-center">
           <div className="mb-4">
             {submitted === 'approved' ? (
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8 text-green-600" />
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
             ) : (
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-                <XCircle className="w-8 h-8 text-red-600" />
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
+                <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
               </div>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
             Thank You!
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {submitted === 'approved'
               ? 'Your approval has been recorded. The press release author has been notified.'
               : 'Your response has been recorded. The press release author has been notified.'}
@@ -116,9 +116,9 @@ export function ApprovalResponse({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
-      <header className="bg-white border-b">
+      <header className="bg-white dark:bg-gray-900 border-b">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <Image
             src="/logo.svg"
@@ -135,20 +135,20 @@ export function ApprovalResponse({
         <Card className="mb-6 border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-full">
+                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-blue-900">Approval Requested</h2>
-                <p className="text-blue-700 mt-1">
+                <p className="text-blue-700 dark:text-blue-400 mt-1">
                   {approverName ? `Hi ${approverName}, your` : 'Your'} approval has been requested for the press release below.
                   Please review and provide your response.
                 </p>
                 {notes && (
-                  <div className="mt-3 p-3 bg-white rounded-md border border-blue-200">
-                    <p className="text-sm text-gray-600">
+                  <div className="mt-3 p-3 bg-white dark:bg-gray-900 rounded-md border border-blue-200">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       <span className="font-medium">Message from requestor:</span> "{notes}"
                     </p>
                   </div>
@@ -161,7 +161,7 @@ export function ApprovalResponse({
         {/* Press Release Preview */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="text-sm text-gray-500 font-normal">Press Release Preview</CardTitle>
+            <CardTitle className="text-sm text-gray-500 dark:text-gray-400 font-normal">Press Release Preview</CardTitle>
           </CardHeader>
           <CardContent>
             <article className="space-y-6">
@@ -177,21 +177,21 @@ export function ApprovalResponse({
                     unoptimized
                   />
                 ) : (
-                  <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
                     <span className="text-gray-400 text-xs">Logo</span>
                   </div>
                 )}
-                <span className="font-medium text-gray-900">{company.name}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100">{company.name}</span>
               </div>
 
               {/* Title */}
-              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900">
+              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
                 {release.title}
               </h1>
 
               {/* Banner */}
               {banner && (
-                <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100">
+                <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={banner.url}
                     alt={banner.caption || 'Press release banner'}
@@ -203,18 +203,18 @@ export function ApprovalResponse({
               )}
 
               {/* Abstract */}
-              <p className="text-lg font-light text-gray-700">
+              <p className="text-lg font-light text-gray-700 dark:text-gray-300">
                 {release.abstract}
               </p>
 
               {/* Dateline */}
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {release.location} (Newsworthy.ai) {formatDate()}
               </p>
 
               {/* Body */}
               <div
-                className="prose prose-sm max-w-none prose-p:text-gray-800 prose-headings:text-gray-900 prose-a:text-blue-600"
+                className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400"
                 dangerouslySetInnerHTML={{ __html: release.body }}
               />
             </article>
@@ -228,7 +228,7 @@ export function ApprovalResponse({
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm flex items-center gap-2">
+              <div className="p-3 bg-red-50 text-red-700 dark:text-red-400 rounded-md text-sm flex items-center gap-2">
                 <XCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -274,7 +274,7 @@ export function ApprovalResponse({
                 onClick={() => handleSubmit(false)}
                 disabled={isSubmitting}
                 variant="outline"
-                className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                className="flex-1 border-red-300 text-red-600 dark:text-red-400 hover:bg-red-50"
               >
                 {isSubmitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -287,7 +287,7 @@ export function ApprovalResponse({
               </Button>
             </div>
 
-            <p className="text-xs text-gray-500 text-center pt-2">
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
               By clicking Approve, you confirm that you have reviewed the press release
               and authorize its distribution.
             </p>

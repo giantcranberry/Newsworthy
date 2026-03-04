@@ -1,12 +1,13 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { company, brandCredits, companyMembers, users } from "@/db/schema";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import { company, brandCredits, companyMembers, users, releases } from "@/db/schema";
+import { eq, and, desc, sql, inArray, or, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { CompanyList } from "./company-list";
 import { getUserCompanyIds } from "@/lib/team-auth";
+import { getClipsTotalStats } from "@/services/report";
 
 async function getUserCompanies(userId: number) {
   // Get companies owned by the user
@@ -105,6 +106,54 @@ export default async function CompaniesPage() {
     creditsRecord[key] = value;
   }
 
+  // Fetch engagement stats per company
+  const engagementRecord: Record<number, { views: number; shares: number; total: number }> = {};
+  if (companyIds.length > 0) {
+    const sentReleases = await db.query.releases.findMany({
+      where: and(
+        inArray(releases.companyId, companyIds),
+        or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
+        eq(releases.status, 'sent'),
+      ),
+      columns: { companyId: true, prhashId: true },
+    });
+
+    const prhashIds = sentReleases
+      .map((r) => r.prhashId)
+      .filter((id): id is string => !!id);
+
+    if (prhashIds.length > 0) {
+      // Map prhash_id -> companyId
+      const prhashToCompany: Record<string, number> = {};
+      for (const r of sentReleases) {
+        if (r.prhashId && r.companyId) prhashToCompany[r.prhashId] = r.companyId;
+      }
+
+      try {
+        const { pageviews, shares } = await getClipsTotalStats(prhashIds);
+
+        for (const [prhashId, views] of Object.entries(pageviews)) {
+          const cid = prhashToCompany[prhashId];
+          if (!cid) continue;
+          if (!engagementRecord[cid]) engagementRecord[cid] = { views: 0, shares: 0, total: 0 };
+          engagementRecord[cid].views += views;
+        }
+        for (const [prhashId, shareCount] of Object.entries(shares)) {
+          const cid = prhashToCompany[prhashId];
+          if (!cid) continue;
+          if (!engagementRecord[cid]) engagementRecord[cid] = { views: 0, shares: 0, total: 0 };
+          engagementRecord[cid].shares += shareCount;
+        }
+        for (const cid of Object.keys(engagementRecord)) {
+          const e = engagementRecord[Number(cid)];
+          e.total = e.views + e.shares;
+        }
+      } catch (err) {
+        console.error('Company engagement stats error:', err);
+      }
+    }
+  }
+
   // Check which companies have agency features (owner has isAgency)
   const ownerIds = [...new Set(companies.map((c) => c.userId))];
   const agencyRecord: Record<number, boolean> = {};
@@ -124,14 +173,14 @@ export default async function CompaniesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Brands</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Brands</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Manage your company and brand profiles
           </p>
         </div>
         {canCreate && (
           <Link href="/company/add" data-tour="brands-add">
-            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
               <Plus className="h-4 w-4" />
               Add Brand
             </Button>
@@ -152,6 +201,7 @@ export default async function CompaniesPage() {
         creditsByCompany={creditsRecord}
         rolesByCompany={roleMap}
         agencyByCompany={agencyRecord}
+        engagementByCompany={engagementRecord}
       />
     </div>
   );

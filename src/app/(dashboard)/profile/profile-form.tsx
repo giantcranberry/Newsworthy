@@ -87,11 +87,11 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
   return (
     <form onSubmit={handleSubmit} className="-mt-6 space-y-8">
       {/* Sticky Action Bar */}
-      <div data-tour="profile-actionbar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="profile-actionbar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">Account Settings</h1>
-            <p className="text-sm text-gray-600 mt-0.5">Manage your profile and preferences</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">Account Settings</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Manage your profile and preferences</p>
           </div>
           <div data-tour="profile-save" className="flex items-center gap-2 flex-shrink-0">
             <Button
@@ -106,7 +106,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
             <Button
               type="submit"
               disabled={isLoading}
-              className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -122,12 +122,12 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
       {/* Profile Information */}
       <Card data-tour="profile-info">
         <CardHeader>
-          <CardTitle>Profile Information <span className="text-sm font-normal text-gray-500">(Who do we contact with regard to your account.)</span></CardTitle>
+          <CardTitle>Profile Information <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Who do we contact with regard to your account.)</span></CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <Label>Email</Label>
-            <Input value={email} disabled className="mt-1 bg-gray-50" />
+            <Input value={email} disabled className="mt-1 bg-gray-50 dark:bg-gray-950" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -189,8 +189,8 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
           </div>
 
           {/* Address */}
-          <div className="border-t border-gray-200 pt-4 mt-4">
-            <h3 className="text-base font-semibold text-gray-900 mb-4">Address</h3>
+          <div className="border-t border-gray-200 dark:border-gray-800 pt-4 mt-4">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">Address</h3>
 
             <div className="space-y-4">
               <div>
@@ -251,7 +251,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
                     id="countryCode"
                     value={formData.countryCode}
                     onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 px-3 py-2 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
                   >
                     <option value="US">United States</option>
                     <option value="CA">Canada</option>
@@ -299,7 +299,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-amber-900">Enable Agency Features</p>
-                <p className="text-sm text-amber-700">
+                <p className="text-sm text-amber-700 dark:text-amber-400">
                   Gives you the ability to add and manage team member permissions. This will also enable Client Pay, a feature that allows you to select services for your client, but allowing them to make online payment.
                 </p>
               </div>
@@ -417,21 +417,21 @@ function IntegrationsSection() {
         {/* Slack */}
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded bg-purple-100 flex items-center justify-center">
-              <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-700" fill="currentColor">
+            <div className="h-9 w-9 rounded bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-purple-700 dark:text-purple-400" fill="currentColor">
                 <path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zm1.271 0a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zm0 1.271a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zm10.124 2.521a2.528 2.528 0 0 1 2.52-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.52V8.834zm-1.271 0a2.528 2.528 0 0 1-2.521 2.521 2.528 2.528 0 0 1-2.521-2.521V2.522A2.528 2.528 0 0 1 15.166 0a2.528 2.528 0 0 1 2.521 2.522v6.312zm-2.521 10.124a2.528 2.528 0 0 1 2.521 2.52A2.528 2.528 0 0 1 15.166 24a2.528 2.528 0 0 1-2.521-2.522v-2.52h2.521zm0-1.271a2.528 2.528 0 0 1-2.521-2.521 2.528 2.528 0 0 1 2.521-2.521h6.312A2.528 2.528 0 0 1 24 15.166a2.528 2.528 0 0 1-2.522 2.521h-6.312z"/>
               </svg>
             </div>
             <div>
-              <p className="font-medium text-gray-900">Slack</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Slack</p>
               {loading ? (
-                <p className="text-sm text-gray-500">Checking...</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Checking...</p>
               ) : slackStatus.connected ? (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-green-600 dark:text-green-400">
                   Connected to {slackStatus.teamName || 'workspace'} &middot; #{slackStatus.channelName || 'channel'}
                 </p>
               ) : (
-                <p className="text-sm text-gray-500">Receive notifications in Slack</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications in Slack</p>
               )}
             </div>
           </div>
@@ -443,7 +443,7 @@ function IntegrationsSection() {
                 size="sm"
                 onClick={() => handleDisconnect('slack')}
                 disabled={disconnecting === 'slack'}
-                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
               >
                 {disconnecting === 'slack' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
               </Button>
@@ -452,7 +452,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => { window.location.href = '/api/slack/connect' }}
-                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -460,22 +460,22 @@ function IntegrationsSection() {
           )}
         </div>
 
-        <div className="border-t border-gray-100" />
+        <div className="border-t border-gray-100 dark:border-gray-800" />
 
         {/* Google Calendar */}
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded bg-blue-100 flex items-center justify-center">
-              <Calendar className="h-5 w-5 text-blue-700" />
+            <div className="h-9 w-9 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Google Calendar</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Google Calendar</p>
               {loading ? (
-                <p className="text-sm text-gray-500">Checking...</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Checking...</p>
               ) : gcalConnected ? (
-                <p className="text-sm text-green-600">Connected</p>
+                <p className="text-sm text-green-600 dark:text-green-400">Connected</p>
               ) : (
-                <p className="text-sm text-gray-500">Sync events to Google Calendar</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Sync events to Google Calendar</p>
               )}
             </div>
           </div>
@@ -487,7 +487,7 @@ function IntegrationsSection() {
                 size="sm"
                 onClick={() => handleDisconnect('google-calendar')}
                 disabled={disconnecting === 'google-calendar'}
-                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
               >
                 {disconnecting === 'google-calendar' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
               </Button>
@@ -496,7 +496,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => { window.location.href = '/api/google-calendar/connect' }}
-                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -504,24 +504,24 @@ function IntegrationsSection() {
           )}
         </div>
 
-        <div className="border-t border-gray-100" />
+        <div className="border-t border-gray-100 dark:border-gray-800" />
 
         {/* Google Chat */}
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded bg-green-100 flex items-center justify-center">
-              <MessageCircle className="h-5 w-5 text-green-700" />
+            <div className="h-9 w-9 rounded bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <MessageCircle className="h-5 w-5 text-green-700 dark:text-green-400" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">Google Chat</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">Google Chat</p>
               {loading ? (
-                <p className="text-sm text-gray-500">Checking...</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Checking...</p>
               ) : gchatStatus.connected ? (
-                <p className="text-sm text-green-600">
+                <p className="text-sm text-green-600 dark:text-green-400">
                   Connected{gchatStatus.spaceName ? ` to ${gchatStatus.spaceName}` : ''}
                 </p>
               ) : (
-                <p className="text-sm text-gray-500">Send notifications to Google Chat</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Send notifications to Google Chat</p>
               )}
             </div>
           </div>
@@ -533,7 +533,7 @@ function IntegrationsSection() {
                 size="sm"
                 onClick={() => handleDisconnect('google-chat')}
                 disabled={disconnecting === 'google-chat'}
-                className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="cursor-pointer text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
               >
                 {disconnecting === 'google-chat' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Disconnect'}
               </Button>
@@ -542,7 +542,7 @@ function IntegrationsSection() {
                 type="button"
                 size="sm"
                 onClick={() => setGchatDialogOpen(true)}
-                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 Connect
               </Button>
@@ -561,7 +561,7 @@ function IntegrationsSection() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               In Google Chat, open your Space &rarr; Apps &amp; integrations &rarr; Webhooks &rarr; Create a webhook. Copy the URL and paste it below.
             </p>
             <div>
@@ -597,7 +597,7 @@ function IntegrationsSection() {
                 type="button"
                 onClick={handleGchatConnect}
                 disabled={gchatSaving}
-                className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900"
+                className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 {gchatSaving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save
@@ -673,17 +673,17 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
       </CardHeader>
       <CardContent>
         {!hasPassword && (
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             Your account was created with Google or LinkedIn. Set a password to also sign in with email.
           </p>
         )}
 
         <div className="space-y-4">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
           )}
           {success && (
-            <div className="p-3 text-sm text-green-700 bg-green-50 rounded-lg">{success}</div>
+            <div className="p-3 text-sm text-green-700 dark:text-green-400 bg-green-50 rounded-lg">{success}</div>
           )}
 
           {hasPassword && (
@@ -699,7 +699,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
                 <button
                   type="button"
                   onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-400 cursor-pointer"
                   tabIndex={-1}
                 >
                   {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -721,7 +721,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
               <button
                 type="button"
                 onClick={() => setShowNew(!showNew)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-400 cursor-pointer"
                 tabIndex={-1}
               >
                 {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -744,7 +744,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
             type="button"
             onClick={handlePasswordSubmit}
             disabled={isLoading}
-            className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+            className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
           >
             {isLoading ? (
               <>

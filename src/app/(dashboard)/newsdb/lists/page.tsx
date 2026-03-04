@@ -49,8 +49,8 @@ export default async function NewsDbListsPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Pitch Lists</h1>
-            <p className="text-gray-500">Manage your media contact lists</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Pitch Lists</h1>
+            <p className="text-gray-500 dark:text-gray-400">Manage your media contact lists</p>
           </div>
         </div>
         <Button>
@@ -64,8 +64,8 @@ export default async function NewsDbListsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <List className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No lists yet</h3>
-            <p className="mt-2 text-gray-500">
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No lists yet</h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">
               Create your first list to start organizing contacts
             </p>
             <div className="mt-6">
@@ -83,14 +83,14 @@ export default async function NewsDbListsPage() {
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <List className="h-5 w-5 text-blue-600" />
+                    <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <List className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
                         {list.groupName || 'Unnamed List'}
                       </h3>
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                         <Users className="h-3 w-3" />
                         {list.contactCount} contact{list.contactCount !== 1 ? 's' : ''}
                       </p>

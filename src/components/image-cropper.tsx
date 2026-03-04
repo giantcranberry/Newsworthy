@@ -330,7 +330,7 @@ export function ImageCropper({
 
         {mode === 'news' ? (
           <>
-            <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+            <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
               <Cropper
                 image={imageSrc}
                 crop={crop}
@@ -354,14 +354,14 @@ export function ImageCropper({
                 />
                 <ZoomIn className="h-4 w-4 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-500 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                 Use the slider to zoom, drag the image to reposition
               </p>
             </div>
           </>
         ) : fitMode === 'crop' ? (
           <>
-            <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+            <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
               <Cropper
                 image={imageSrc}
                 crop={crop}
@@ -386,14 +386,14 @@ export function ImageCropper({
                 />
                 <ZoomIn className="h-4 w-4 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-500 text-center">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                 Use the slider to zoom, drag the image to reposition
               </p>
             </div>
           </>
         ) : (
           <div className="space-y-4">
-            <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+            <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
               {fitPreview ? (
                 <img
                   src={fitPreview}
@@ -407,7 +407,7 @@ export function ImageCropper({
                 </div>
               )}
             </div>
-            <p className="text-sm text-gray-500 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
               Your image will be centered with a blurred background fill
             </p>
           </div>

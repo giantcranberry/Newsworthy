@@ -32,7 +32,7 @@ export function DashboardShell({ children, canCreateContent = true }: { children
 
   return (
     <TourProvider>
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
         {/* Mobile sidebar via Sheet */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="w-64 p-0" showCloseButton={false}>

@@ -66,10 +66,10 @@ export default async function PartnerDashboardPage({
     <div className="space-y-6">
       <div data-tour="partner-header" className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {partner?.company || partner?.brandName || 'Partner'} Dashboard
           </h1>
-          <p className="text-gray-500">Overview of your partner account</p>
+          <p className="text-gray-500 dark:text-gray-400">Overview of your partner account</p>
         </div>
         <PartnerSelector partners={managedPartners} currentPartnerId={currentPartnerId} />
       </div>
@@ -78,12 +78,12 @@ export default async function PartnerDashboardPage({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600" />
+              <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
-                <p className="text-sm text-gray-500">Users</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalUsers}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Users</p>
               </div>
             </div>
           </CardContent>
@@ -92,12 +92,12 @@ export default async function PartnerDashboardPage({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                <FileText className="h-6 w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{totalReleases}</p>
-                <p className="text-sm text-gray-500">Total Releases</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalReleases}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Releases</p>
               </div>
             </div>
           </CardContent>
@@ -106,12 +106,12 @@ export default async function PartnerDashboardPage({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-purple-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
                 <Send className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{totalSent}</p>
-                <p className="text-sm text-gray-500">Sent Releases</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalSent}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Sent Releases</p>
               </div>
             </div>
           </CardContent>

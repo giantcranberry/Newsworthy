@@ -104,7 +104,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
 
   if (isStaffOnlyBoard) {
     return (
-      <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+      <div className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 p-4 text-sm text-gray-500 dark:text-gray-400">
         <ShieldAlert className="h-5 w-5 flex-shrink-0 text-gray-400" />
         <p>Only the Newsworthy team can create posts in this board. You can still view and comment on existing posts.</p>
       </div>
@@ -112,7 +112,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-white p-4">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
       <Textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
@@ -125,7 +125,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
       {selectedFiles.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {selectedFiles.map((file, i) => (
-            <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-lg border border-gray-200">
+            <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={URL.createObjectURL(file)}
@@ -144,7 +144,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">
         <div className="flex items-center gap-2">
           {boards.length > 1 && (
             <Select
@@ -180,7 +180,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={selectedFiles.length >= MAX_IMAGES}
-            className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-600 dark:text-gray-400 disabled:opacity-40 disabled:cursor-not-allowed"
             title={selectedFiles.length >= MAX_IMAGES ? `Maximum ${MAX_IMAGES} images` : 'Add images'}
           >
             <ImagePlus className="h-4 w-4" />
@@ -191,7 +191,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
           type="submit"
           size="sm"
           disabled={!body.trim() || submitting}
-          className="gap-1.5 bg-cyan-800 text-white hover:bg-cyan-900"
+          className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Send className="h-3.5 w-3.5" />
           {submitting ? 'Posting...' : 'Post'}

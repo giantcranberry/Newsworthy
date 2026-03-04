@@ -59,8 +59,8 @@ export default async function SocialPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Social Banner</h1>
-        <p className="text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Social Banner</h1>
+        <p className="text-gray-500 dark:text-gray-400">
           Upload an image optimized for social media sharing
         </p>
       </div>

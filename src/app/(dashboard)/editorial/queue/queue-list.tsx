@@ -143,7 +143,7 @@ export function QueueList({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Link href={`/editorial/review/${item.releaseUuid}`}>
-                    <h3 className="text-base font-semibold text-gray-900 hover:text-cyan-800 cursor-pointer">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400 cursor-pointer">
                       {item.title || 'Untitled Release'}
                     </h3>
                   </Link>
@@ -156,11 +156,11 @@ export function QueueList({
                   )}
                 </div>
 
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {item.companyName} &mdash; {item.userEmail}
                 </p>
 
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Submitted {formatDate(item.submitted)}
                   {' / '}
                   For Release {formatDate(item.releaseAt)}
@@ -169,9 +169,9 @@ export function QueueList({
                 {/* Checkout Status */}
                 {item.checkedout && item.editorId && (
                   <p className="text-xs mt-1">
-                    <span className="text-amber-700 font-semibold">CHECKED OUT</span>
+                    <span className="text-amber-700 dark:text-amber-400 font-semibold">CHECKED OUT</span>
                     {' '}
-                    <span className="text-gray-500">
+                    <span className="text-gray-500 dark:text-gray-400">
                       {formatDate(item.checkedout)} <em>({item.editorName})</em>
                     </span>
                   </p>
@@ -182,7 +182,7 @@ export function QueueList({
                   {isCheckedOutByMe(item) && (
                     <>
                       <Link href={`/editorial/edit/${item.releaseId}`}>
-                        <Button size="sm" className="bg-cyan-800 text-white hover:bg-cyan-900 text-xs h-7">
+                        <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7">
                           Edit / Approve
                         </Button>
                       </Link>
@@ -213,7 +213,7 @@ export function QueueList({
                   {isNotCheckedOut(item) && (
                     <Button
                       size="sm"
-                      className="bg-cyan-800 text-white hover:bg-cyan-900 text-xs h-7"
+                      className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 text-xs h-7"
                       onClick={() => handleCheckout(item)}
                       disabled={loading[`checkout-${item.queueId}`]}
                     >

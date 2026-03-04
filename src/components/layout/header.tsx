@@ -90,12 +90,12 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const badgeText = unreadCount > 99 ? '99+' : unreadCount.toString()
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-950">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden text-gray-700"
+        className="lg:hidden text-gray-700 dark:text-gray-300"
         onClick={onMenuClick}
       >
         <Menu className="h-5 w-5" />
@@ -107,7 +107,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
           <div data-tour="header-actions" className="flex items-center gap-2">
             {/* Quick create */}
             <Link href="/pr/create">
-              <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+              <Button size="sm" className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700 cursor-pointer">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">New Release</span>
               </Button>
@@ -115,7 +115,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
 
             {/* Credits */}
             <Link href="/payment/paygo">
-              <Button variant="outline" size="sm" className="gap-2 text-gray-700">
+              <Button variant="outline" size="sm" className="gap-2 text-gray-700 dark:text-gray-300">
                 <CreditCard className="h-4 w-4" />
                 <span className="hidden sm:inline">Buy Credits</span>
               </Button>
@@ -126,7 +126,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
         {/* Chat */}
         <Link
           href="/community/chat"
-          className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+          className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
         >
           <MessageCircle className="h-5 w-5" />
           {chatUnreadCount > 0 && (
@@ -142,7 +142,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
             <button
               type="button"
               data-tour="header-notifications"
-              className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer outline-none"
+              className="relative inline-flex items-center justify-center size-9 rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer outline-none"
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
@@ -152,14 +152,14 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
               )}
             </button>
           </PopoverTrigger>
-          <PopoverContent id={notificationsId} align="end" className="w-80 p-0 bg-white border-gray-200">
-            <div className="p-3 border-b border-gray-100">
-              <h3 className="font-semibold text-sm text-gray-900">Notifications</h3>
+          <PopoverContent id={notificationsId} align="end" className="w-80 p-0 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+            <div className="p-3 border-b border-gray-100 dark:border-gray-800">
+              <h3 className="font-semibold text-sm text-gray-900 dark:text-gray-100">Notifications</h3>
             </div>
 
             <div className="max-h-72 overflow-y-auto">
               {previewMessages.length === 0 ? (
-                <div className="p-6 text-center text-sm text-gray-500">
+                <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400">
                   No unread messages
                 </div>
               ) : (
@@ -168,34 +168,34 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
                     key={`${msg.type}-${msg.id}`}
                     href="/inbox"
                     onClick={() => setPopoverOpen(false)}
-                    className="flex items-start gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                    className="flex items-start gap-3 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-b border-gray-50 dark:border-gray-800 last:border-0"
                   >
                     <div className="mt-0.5 flex-shrink-0">
                       {msg.type === 'global' ? (
-                        <Globe className="h-4 w-4 text-cyan-600" />
+                        <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                       ) : (
                         <User className="h-4 w-4 text-gray-400" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">{msg.subject}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{msg.subject}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {msg.senderName} &middot; {new Date(msg.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex-shrink-0 mt-1">
-                      <div className="h-2 w-2 rounded-full bg-cyan-600" />
+                      <div className="h-2 w-2 rounded-full bg-cyan-600 dark:bg-cyan-400" />
                     </div>
                   </Link>
                 ))
               )}
             </div>
 
-            <div className="p-2 border-t border-gray-100">
+            <div className="p-2 border-t border-gray-100 dark:border-gray-800">
               <Link
                 href="/inbox"
                 onClick={() => setPopoverOpen(false)}
-                className="block w-full text-center text-sm font-medium text-cyan-800 hover:text-cyan-900 py-1.5 rounded-md hover:bg-gray-50 transition-colors"
+                className="block w-full text-center text-sm font-medium text-cyan-800 hover:text-cyan-900 dark:text-cyan-400 dark:hover:text-cyan-300 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 View All Messages
               </Link>

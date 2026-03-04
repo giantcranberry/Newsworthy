@@ -14,8 +14,8 @@ export default async function ReleasedEditPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Released Press Release</h1>
-        <p className="text-gray-600">Look up a released press release by ID to edit its content</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Edit Released Press Release</h1>
+        <p className="text-gray-600 dark:text-gray-400">Look up a released press release by ID to edit its content</p>
       </div>
 
       <ReleasedEditLookup />

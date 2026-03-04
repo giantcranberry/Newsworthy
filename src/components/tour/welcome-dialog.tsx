@@ -20,11 +20,11 @@ export function WelcomeDialog({ open, onSkip, onStartTour }: WelcomeDialogProps)
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onSkip() }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-cyan-50 mb-2">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-cyan-50 dark:bg-cyan-900/30 mb-2">
             <i className="fa-light fa-compass text-2xl text-cyan-700" aria-hidden="true" />
           </div>
           <DialogTitle className="text-center text-xl">Welcome to Newsworthy!</DialogTitle>
-          <DialogDescription className="text-center text-gray-600">
+          <DialogDescription className="text-center text-gray-600 dark:text-gray-400">
             Your press release distribution platform. Would you like a quick guided tour to get familiar with the dashboard and key features?
           </DialogDescription>
         </DialogHeader>
@@ -38,7 +38,7 @@ export function WelcomeDialog({ open, onSkip, onStartTour }: WelcomeDialogProps)
           </Button>
           <Button
             onClick={onStartTour}
-            className="bg-cyan-800 hover:bg-cyan-900 text-white cursor-pointer gap-2"
+            className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white cursor-pointer gap-2"
           >
             <i className="fa-light fa-compass text-sm" aria-hidden="true" />
             Take the Tour

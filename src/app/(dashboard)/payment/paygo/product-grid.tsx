@@ -104,14 +104,14 @@ export function ProductGrid({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Buy Credits</h1>
-          <p className="text-gray-500">Select products to add to your cart</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Buy Credits</h1>
+          <p className="text-gray-500 dark:text-gray-400">Select products to add to your cart</p>
         </div>
         {selected.size > 0 && (
           <button
             onClick={handleCheckout}
             disabled={loading}
-            className="relative flex items-center gap-2 rounded-lg bg-cyan-800 px-4 py-2.5 text-white transition-colors hover:bg-cyan-900 disabled:opacity-50"
+            className="relative flex items-center gap-2 rounded-lg bg-cyan-800 dark:bg-cyan-600 px-4 py-2.5 text-white transition-colors hover:bg-cyan-900 dark:hover:bg-cyan-700 disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -135,29 +135,29 @@ export function ProductGrid({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {credits?.remainingPr || 0}
               </p>
-              <p className="text-sm text-gray-500">PR Credits</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">PR Credits</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {credits?.remainingYahoo || 0}
               </p>
-              <p className="text-sm text-gray-500">Yahoo Credits</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Yahoo Credits</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {credits?.remainingEnhanced || 0}
               </p>
-              <p className="text-sm text-gray-500">Enhanced Credits</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Enhanced Credits</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {credits?.remainingConcierge || 0}
               </p>
-              <p className="text-sm text-gray-500">Concierge Credits</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Concierge Credits</p>
             </div>
           </div>
         </CardContent>
@@ -168,7 +168,7 @@ export function ProductGrid({
         <h2 className="text-lg font-semibold mb-4">PR Credit Packages</h2>
         {prCredits.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-gray-500">
+            <CardContent className="py-8 text-center text-gray-500 dark:text-gray-400">
               No PR credit packages available
             </CardContent>
           </Card>
@@ -205,30 +205,30 @@ export function ProductGrid({
 
       {/* Sticky Cart Footer */}
       {selected.size > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t shadow-lg z-50">
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <ShoppingCart className="h-5 w-5 text-gray-600" />
+              <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               <div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 dark:text-gray-100">
                   {selected.size} {selected.size === 1 ? 'item' : 'items'} selected
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {selectedProducts.map(p => p.displayName || p.shortName).join(', ')}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <p className="text-sm text-gray-500">Total</p>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   ${(total / 100).toFixed(2)}
                 </p>
               </div>
               <Button
                 onClick={handleCheckout}
                 disabled={loading}
-                className="bg-cyan-800 text-white hover:bg-cyan-900 px-8"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 px-8"
                 size="lg"
               >
                 {loading ? (
@@ -268,14 +268,14 @@ function ProductCard({
         disabled
           ? 'opacity-50 pointer-events-none'
           : isSelected
-            ? 'ring-2 ring-cyan-600 bg-cyan-50/30 cursor-pointer'
+            ? 'ring-2 ring-cyan-600 bg-cyan-50 dark:bg-cyan-900/30/30 cursor-pointer'
             : 'hover:shadow-md cursor-pointer'
       }`}
       onClick={disabled ? undefined : onToggle}
     >
       {product.isPrimary && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="bg-cyan-800 text-white text-xs px-3 py-1 rounded-full">
+          <span className="bg-cyan-800 dark:bg-cyan-600 text-white text-xs px-3 py-1 rounded-full">
             Recommended
           </span>
         </div>
@@ -292,7 +292,7 @@ function ProductCard({
         </div>
         {product.description && (
           <div
-            className="text-sm text-gray-500 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 [&_p]:text-gray-500 [&_p]:my-1"
+            className="text-sm text-gray-500 dark:text-gray-400 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 dark:text-gray-400 [&_p]:text-gray-500 dark:text-gray-400 [&_p]:my-1"
             dangerouslySetInnerHTML={{ __html: product.description }}
           />
         )}
@@ -302,13 +302,13 @@ function ProductCard({
           ${((product.price || 0) / 100).toFixed(2)}
         </div>
         {product.productCredits && (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {product.productCredits} {product.productCredits === 1 ? 'Credit' : 'Credits'}
           </p>
         )}
         <Button
           variant={isSelected ? 'default' : 'outline'}
-          className={`w-full mt-4 ${isSelected ? 'bg-cyan-800 hover:bg-cyan-900' : ''}`}
+          className={`w-full mt-4 ${isSelected ? 'bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700' : ''}`}
           onClick={(e) => {
             e.stopPropagation()
             onToggle()

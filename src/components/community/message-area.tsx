@@ -94,10 +94,10 @@ export function MessageArea({
   return (
     <>
       {/* Header */}
-      <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-gray-200 dark:border-gray-800 px-4 py-3">
         <button
           onClick={onBack}
-          className="md:hidden text-gray-500 hover:text-gray-900 cursor-pointer"
+          className="md:hidden text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 cursor-pointer"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -109,7 +109,7 @@ export function MessageArea({
               return (
                 <>
                   <UserAvatar name={otherMsg.userName} avatar={otherMsg.userAvatar} size="sm" />
-                  <span className="text-sm font-medium text-gray-900">{otherMsg.userName}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{otherMsg.userName}</span>
                 </>
               )
             })()}
@@ -150,8 +150,8 @@ export function MessageArea({
                   className={cn(
                     'max-w-[70%] rounded-2xl px-4 py-2 text-sm',
                     isOwn
-                      ? 'bg-cyan-800 text-white'
-                      : 'bg-gray-100 text-gray-900'
+                      ? 'bg-cyan-800 dark:bg-cyan-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
                   )}
                 >
                   {msg.isDeleted ? (
@@ -171,20 +171,20 @@ export function MessageArea({
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="border-t border-gray-200 px-4 py-3">
+      <form onSubmit={handleSend} className="border-t border-gray-200 dark:border-gray-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+            className="flex-1 rounded-full border border-gray-300 dark:border-gray-700 px-4 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
           />
           <Button
             type="submit"
             size="icon"
             disabled={!inputValue.trim() || sending}
-            className="h-9 w-9 rounded-full bg-cyan-800 text-white hover:bg-cyan-900"
+            className="h-9 w-9 rounded-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
           >
             <Send className="h-4 w-4" />
           </Button>

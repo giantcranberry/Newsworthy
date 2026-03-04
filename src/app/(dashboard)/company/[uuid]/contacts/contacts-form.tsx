@@ -229,38 +229,38 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left">
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Name</th>
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Title</th>
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Email</th>
-                    <th className="pb-2 pr-4 font-medium text-gray-500">Phone</th>
-                    {!readOnly && <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>}
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Name</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Title</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Email</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Phone</th>
+                    {!readOnly && <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody>
                   {contactsList.map((c) => (
                     <tr key={c.uuid} className="border-b last:border-0">
-                      <td className="py-2 pr-4 font-medium text-gray-900">
+                      <td className="py-2 pr-4 font-medium text-gray-900 dark:text-gray-100">
                         <div className="flex items-center gap-2">
                           {c.avatar ? (
                             <img src={c.avatar} alt="" className="h-7 w-7 rounded-full object-cover flex-shrink-0" />
                           ) : (
-                            <div className="h-7 w-7 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                            <div className="h-7 w-7 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
                               <User className="h-3.5 w-3.5 text-gray-400" />
                             </div>
                           )}
                           {c.name}
                         </div>
                       </td>
-                      <td className="py-2 pr-4 text-gray-600">{c.title || '\u2014'}</td>
-                      <td className="py-2 pr-4 text-gray-600">{c.email || '\u2014'}</td>
-                      <td className="py-2 pr-4 text-gray-600">{c.phone || '\u2014'}</td>
+                      <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{c.title || '\u2014'}</td>
+                      <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{c.email || '\u2014'}</td>
+                      <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{c.phone || '\u2014'}</td>
                       {!readOnly && (
                         <td className="py-2 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
                               onClick={() => openEditContact(c)}
-                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                              className="p-1 text-gray-400 hover:text-blue-600 dark:text-blue-400 transition-colors"
                               title="Edit contact"
                             >
                               <Pencil className="h-4 w-4" />
@@ -268,7 +268,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
                             <button
                               type="button"
                               onClick={() => { setDeletingContact(c); setDeleteContactError(null); setShowDeleteContactModal(true) }}
-                              className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                              className="p-1 text-gray-400 hover:text-red-600 dark:text-red-400 transition-colors"
                               title="Remove contact"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -300,7 +300,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
           </DialogHeader>
 
           {contactError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{contactError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{contactError}</div>
           )}
 
           <div className="grid gap-4 py-2">
@@ -332,7 +332,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
                 className="relative group cursor-pointer"
               >
                 {isUploadingAvatar ? (
-                  <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
                     <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                   </div>
                 ) : contactForm.avatar ? (
@@ -343,12 +343,12 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
                     </div>
                   </div>
                 ) : (
-                  <div className="h-16 w-16 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 group-hover:border-cyan-600 flex items-center justify-center transition-colors">
-                    <Camera className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 transition-colors" />
+                  <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 group-hover:border-cyan-600 flex items-center justify-center transition-colors">
+                    <Camera className="h-5 w-5 text-gray-400 group-hover:text-cyan-600 dark:text-cyan-400 transition-colors" />
                   </div>
                 )}
               </button>
-              <p className="text-xs text-gray-500">Upload a contact photo <span className="text-gray-400">(recommended)</span></p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Upload a contact photo <span className="text-gray-400">(recommended)</span></p>
             </div>
 
             <div>
@@ -420,13 +420,13 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
           </DialogHeader>
 
           {deleteContactError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{deleteContactError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{deleteContactError}</div>
           )}
 
           {deletingContact && (
             <div className="py-2">
-              <p className="text-sm font-medium text-gray-900">{deletingContact.name}</p>
-              {deletingContact.email && <p className="text-sm text-gray-500">{deletingContact.email}</p>}
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{deletingContact.name}</p>
+              {deletingContact.email && <p className="text-sm text-gray-500 dark:text-gray-400">{deletingContact.email}</p>}
             </div>
           )}
 

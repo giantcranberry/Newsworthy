@@ -76,13 +76,13 @@ export function FinalizeContent({
       <Card className="border-green-200 bg-green-50">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center text-center py-8">
-            <div className="bg-green-100 p-4 rounded-full mb-4">
-              <Check className="h-8 w-8 text-green-600" />
+            <div className="bg-green-100 dark:bg-green-900/30 p-4 rounded-full mb-4">
+              <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <h3 className="text-xl font-semibold text-green-900 mb-2">
               Press Release Submitted!
             </h3>
-            <p className="text-green-700">
+            <p className="text-green-700 dark:text-green-400">
               Your press release has been submitted for distribution. Redirecting...
             </p>
           </div>
@@ -110,7 +110,7 @@ export function FinalizeContent({
       />
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -119,8 +119,8 @@ export function FinalizeContent({
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <Flag className="h-6 w-6 text-blue-600" />
+            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full">
+              <Flag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <CardTitle>Ready to Submit</CardTitle>
@@ -131,11 +131,11 @@ export function FinalizeContent({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-            <p className="text-sm text-gray-600">Press Release</p>
-            <p className="font-medium text-gray-900">{releaseTitle}</p>
-            <p className="text-sm text-gray-600 mt-2">Distribution</p>
-            <p className="text-sm font-medium text-gray-900">
+          <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg space-y-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400">Press Release</p>
+            <p className="font-medium text-gray-900 dark:text-gray-100">{releaseTitle}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Distribution</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
               {distribution === 'premium' && 'Premium Distribution'}
               {distribution === 'yahoo' && 'Yahoo Finance Distribution'}
               {distribution === 'standard' && 'Standard Distribution'}
@@ -158,7 +158,7 @@ export function FinalizeContent({
                 onCheckedChange={(checked) => setConfirmed(checked === true)}
                 className="h-5 w-5 mt-0.5 border-2 border-gray-400 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600 data-[state=checked]:text-white"
               />
-              <Label htmlFor="confirm" className="text-sm text-gray-700 leading-relaxed cursor-pointer">
+              <Label htmlFor="confirm" className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed cursor-pointer">
                 I confirm that I have reviewed my press release and all information is accurate.
                 I understand that once submitted, the release will be reviewed by Newsworthy.ai editors and distributed according to the selected options.
               </Label>
@@ -166,7 +166,7 @@ export function FinalizeContent({
           </div>
 
           {hasBlockingApprovals && (
-            <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
+            <div className="flex items-center gap-2 p-4 bg-amber-50 border border-amber-200 text-amber-800 dark:text-amber-400 rounded-lg">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
               <p className="text-sm">
                 You have pending or unapproved stakeholder approval requests. All approvals must be approved or deleted before you can submit.
@@ -178,7 +178,7 @@ export function FinalizeContent({
             <Button
               onClick={handleSubmit}
               disabled={!confirmed || isSubmitting || hasBlockingApprovals}
-              className={`flex-1 ${confirmed && !hasBlockingApprovals ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+              className={`flex-1 ${confirmed && !hasBlockingApprovals ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (

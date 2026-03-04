@@ -212,9 +212,9 @@ export function ApprovalSection({
         {/* Approval History */}
         {approvalList.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700">Approval History</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Approval History</h3>
             {/* Legend */}
-            <div className="flex flex-wrap gap-4 text-xs text-gray-600">
+            <div className="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Approved
               </span>
@@ -229,7 +229,7 @@ export function ApprovalSection({
               </span>
             </div>
 
-            <div className="divide-y divide-gray-100 rounded-lg border border-gray-200">
+            <div className="divide-y divide-gray-100 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-800">
               {approvalList.map((approval) => {
                 const isPending = !approval.signedAt
                 const isApproved = approval.approved && !!approval.signedAt
@@ -248,19 +248,19 @@ export function ApprovalSection({
                         <span className="text-sm font-medium">
                           {approval.emailTo || 'Unknown'}
                         </span>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
                           {approval.email}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-600">
+                        <span className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(approval.requestedAt)}
                         </span>
                         {isPending && (
                           <button
                             onClick={() => handleDelete(approval.uuid)}
                             disabled={deletingId === approval.uuid}
-                            className="text-red-400 hover:text-red-600 disabled:opacity-50"
+                            className="text-red-400 hover:text-red-600 dark:text-red-400 disabled:opacity-50"
                             title="Delete request"
                           >
                             {deletingId === approval.uuid ? (
@@ -278,19 +278,19 @@ export function ApprovalSection({
                           href={`/approval/${approval.uuid}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-600 hover:underline"
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                         >
                           View approval link →
                         </a>
                       </div>
                     )}
                     {approval.notes && (
-                      <p className="text-xs text-gray-600 ml-6">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 ml-6">
                         Notes: {approval.notes}
                       </p>
                     )}
                     {approval.signedAt && (
-                      <div className="ml-6 text-xs text-gray-600 space-y-0.5">
+                      <div className="ml-6 text-xs text-gray-600 dark:text-gray-400 space-y-0.5">
                         {approval.signature && (
                           <p>Signature: {approval.signature}</p>
                         )}
@@ -309,14 +309,14 @@ export function ApprovalSection({
 
         {/* Questionnaire */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
             Is Stakeholder Approval Required?
           </h2>
           <div className="space-y-3">
             {QUESTIONS.map((q) => (
               <div key={q.id} className="space-y-1.5">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-gray-700">{q.question}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">{q.question}</p>
                   <div className="flex items-center gap-3 shrink-0">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -325,9 +325,9 @@ export function ApprovalSection({
                         value="yes"
                         checked={answers[q.id] === 'yes'}
                         onChange={() => handleAnswer(q.id, 'yes')}
-                        className="h-4 w-4 text-blue-600 border-gray-300"
+                        className="h-4 w-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700"
                       />
-                      <span className="text-sm text-gray-900">Yes</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100">Yes</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input
@@ -336,9 +336,9 @@ export function ApprovalSection({
                         value="no"
                         checked={answers[q.id] === 'no'}
                         onChange={() => handleAnswer(q.id, 'no')}
-                        className="h-4 w-4 text-blue-600 border-gray-300"
+                        className="h-4 w-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700"
                       />
-                      <span className="text-sm text-gray-900">No</span>
+                      <span className="text-sm text-gray-900 dark:text-gray-100">No</span>
                     </label>
                   </div>
                 </div>
@@ -346,7 +346,7 @@ export function ApprovalSection({
                 {answers[q.id] &&
                   ((q.yesIsNo && answers[q.id] === 'no') ||
                     (!q.yesIsNo && answers[q.id] === 'yes')) && (
-                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md text-xs text-amber-800">
+                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md text-xs text-amber-800 dark:text-amber-400">
                       <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                       <span>{q.guidance}</span>
                     </div>
@@ -358,13 +358,13 @@ export function ApprovalSection({
 
         {/* Approval Request Form */}
         {showForm && (
-          <div className="space-y-4 border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-medium text-gray-700">
+          <div className="space-y-4 border-t border-gray-200 dark:border-gray-800 pt-4">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Request Approval
             </h3>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+              <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 dark:text-red-400 rounded-md text-sm">
                 <XCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -373,7 +373,7 @@ export function ApprovalSection({
             {/* Prior Approvers */}
             {priorApprovers.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm text-gray-600">
+                <Label className="text-sm text-gray-600 dark:text-gray-400">
                   Previous approvers from this brand
                 </Label>
                 <div className="space-y-2">
@@ -414,7 +414,7 @@ export function ApprovalSection({
 
             {/* New Approver */}
             <div className="space-y-3">
-              <div className="flex items-center gap-1.5 text-sm text-gray-600">
+              <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                 <UserPlus className="h-4 w-4" />
                 <span>Add new approver</span>
               </div>
@@ -454,7 +454,7 @@ export function ApprovalSection({
             </div>
 
             {/* Warning */}
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               The approval link will give the recipient access to view the full
               press release content. Only send to trusted stakeholders.
             </p>
@@ -482,7 +482,7 @@ export function ApprovalSection({
 
         {/* Message when all questions are answered and no approval needed */}
         {QUESTIONS.every((q) => answers[q.id]) && !needsApproval && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-md text-sm">
+          <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 dark:text-green-400 rounded-md text-sm">
             <CheckCircle2 className="h-4 w-4" />
             Based on your answers, stakeholder approval does not appear to be
             required. You may proceed with distribution.

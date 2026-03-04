@@ -49,16 +49,16 @@ export default async function EnhancedQueuePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Enhanced Distribution Queue</h1>
-        <p className="text-gray-600">Press releases with enhanced distribution pending processing</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Enhanced Distribution Queue</h1>
+        <p className="text-gray-600 dark:text-gray-400">Press releases with enhanced distribution pending processing</p>
       </div>
 
       {items.length === 0 ? (
         <Card data-tour="enhanced-queue-empty">
           <CardContent className="py-16 text-center">
             <CheckCircle className="mx-auto h-12 w-12 text-green-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">All caught up!</h3>
-            <p className="mt-2 text-gray-600">No releases in enhanced distribution queue.</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">All caught up!</h3>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">No releases in enhanced distribution queue.</p>
           </CardContent>
         </Card>
       ) : (

@@ -138,11 +138,11 @@ export default async function UserDetailPage({
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {user.profile?.firstName} {user.profile?.lastName}
             </h1>
-            <p className="text-gray-500">
-              <a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">
+            <p className="text-gray-500 dark:text-gray-400">
+              <a href={`mailto:${user.email}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                 {user.email}
               </a>
               {' '}<span className="text-gray-400">|</span>{' '}
@@ -173,18 +173,18 @@ export default async function UserDetailPage({
             <CardTitle className="text-base">Details</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-500">Joined:</span> {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Joined:</span> {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
             {user.lastSeen && (
-              <p><span className="text-gray-500">Last Seen:</span> {new Date(user.lastSeen).toLocaleDateString()}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Last Seen:</span> {new Date(user.lastSeen).toLocaleDateString()}</p>
             )}
             {user.loginCount && (
-              <p><span className="text-gray-500">Login Count:</span> {user.loginCount}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Login Count:</span> {user.loginCount}</p>
             )}
             <div className="flex flex-wrap gap-1 pt-2">
-              {user.isAdmin && <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs">Admin</span>}
-              {user.isEditor && <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">Editor</span>}
-              {user.isStaff && <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs">Staff</span>}
-              {user.emailVerified && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-xs">Verified</span>}
+              {user.isAdmin && <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs">Admin</span>}
+              {user.isEditor && <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs">Editor</span>}
+              {user.isStaff && <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs">Staff</span>}
+              {user.emailVerified && <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs">Verified</span>}
             </div>
           </CardContent>
         </Card>
@@ -194,10 +194,10 @@ export default async function UserDetailPage({
             <CardTitle className="text-base">Credits</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-500">Account Credits:</span> <strong>{accountCredits.toLocaleString()}</strong></p>
-            <p><span className="text-gray-500">PR Credits:</span> {user.subscription?.remainingPr || 0}</p>
-            <p><span className="text-gray-500">Enhanced:</span> {user.subscription?.remainingPluspr || 0}</p>
-            <p><span className="text-gray-500">NewsDB:</span> {user.subscription?.newsdbCredits || 0}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Account Credits:</span> <strong>{accountCredits.toLocaleString()}</strong></p>
+            <p><span className="text-gray-500 dark:text-gray-400">PR Credits:</span> {user.subscription?.remainingPr || 0}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Enhanced:</span> {user.subscription?.remainingPluspr || 0}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">NewsDB:</span> {user.subscription?.newsdbCredits || 0}</p>
           </CardContent>
         </Card>
 
@@ -207,15 +207,15 @@ export default async function UserDetailPage({
           </CardHeader>
           <CardContent className="text-sm">
             {recentReleases.length === 0 ? (
-              <p className="text-gray-500">No published releases</p>
+              <p className="text-gray-500 dark:text-gray-400">No published releases</p>
             ) : (
               <ul className="space-y-2">
                 {recentReleases.map((pr) => (
                   <li key={pr.id}>
-                    <Link href={`/pr/${pr.uuid}`} className="text-blue-600 hover:underline">
+                    <Link href={`/pr/${pr.uuid}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                       {pr.title || 'Untitled'}
                     </Link>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {pr.releasedAt && new Date(pr.releasedAt).toLocaleDateString()}
                     </p>
                   </li>

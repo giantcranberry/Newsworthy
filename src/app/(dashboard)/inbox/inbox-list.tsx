@@ -135,15 +135,15 @@ export function InboxList() {
   return (
     <div>
       {/* Filter tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
+      <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-gray-800 rounded-lg p-1 w-fit">
         {filters.map((f) => (
           <button
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors cursor-pointer ${
               filter === f.value
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm dark:shadow-gray-900/50'
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100'
             }`}
           >
             {f.label}
@@ -155,7 +155,7 @@ export function InboxList() {
         <Card>
           <CardContent className="p-12 text-center">
             <Inbox className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               {filter === 'unread' ? 'No unread messages' :
                filter === 'archived' ? 'No archived messages' :
                'Your inbox is empty'}
@@ -172,12 +172,12 @@ export function InboxList() {
             const isActionLoading = (action: string) => actionLoading === `${msg.type}-${msg.id}-${action}`
 
             return (
-              <Card key={key} className={!msg.isRead ? 'border-cyan-200 bg-cyan-50/30' : ''}>
+              <Card key={key} className={!msg.isRead ? 'border-cyan-200 bg-cyan-50 dark:bg-cyan-900/30/30' : ''}>
                 <CardContent className="p-0">
                   {/* Message header - clickable */}
                   <button
                     onClick={() => toggleExpand(msg)}
-                    className="w-full text-left p-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                    className="w-full text-left p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950/50 transition-colors"
                   >
                     <div className="flex items-start gap-3">
                       {/* Unread dot */}
@@ -192,24 +192,24 @@ export function InboxList() {
                       {/* Icon */}
                       <div className="flex-shrink-0 mt-0.5">
                         {msg.type === 'global' ? (
-                          <Globe className="h-4 w-4 text-cyan-600" />
+                          <Globe className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
                         ) : (
-                          <User className="h-4 w-4 text-gray-500" />
+                          <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         )}
                       </div>
 
                       {/* Content */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className={`text-sm ${!msg.isRead ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'}`}>
+                          <span className={`text-sm ${!msg.isRead ? 'font-semibold text-gray-900 dark:text-gray-100' : 'font-medium text-gray-700 dark:text-gray-300'}`}>
                             {msg.subject}
                           </span>
                           {msg.type === 'global' && (
-                            <Badge className="bg-cyan-100 text-cyan-700 text-xs">Announcement</Badge>
+                            <Badge className="bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 text-xs">Announcement</Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-gray-500">{msg.senderName}</span>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">{msg.senderName}</span>
                           <span className="text-xs text-gray-400">&middot;</span>
                           <span className="text-xs text-gray-400">
                             {new Date(msg.createdAt).toLocaleDateString()}
@@ -230,15 +230,15 @@ export function InboxList() {
 
                   {/* Expanded body */}
                   {isExpanded && (
-                    <div className="px-4 pb-4 border-t border-gray-100">
+                    <div className="px-4 pb-4 border-t border-gray-100 dark:border-gray-800">
                       <div
-                        className="prose prose-sm max-w-none mt-3 text-gray-700"
+                        className="prose prose-sm max-w-none mt-3 text-gray-700 dark:text-gray-300"
                         dangerouslySetInnerHTML={{ __html: msg.body }}
                       />
 
                       {/* Reply success */}
                       {replySuccess === key && (
-                        <div className="mt-3 p-2 text-sm text-green-700 bg-green-50 rounded-md">
+                        <div className="mt-3 p-2 text-sm text-green-700 dark:text-green-400 bg-green-50 rounded-md">
                           Reply sent successfully
                         </div>
                       )}
@@ -267,7 +267,7 @@ export function InboxList() {
                               size="sm"
                               onClick={() => handleReply(msg)}
                               disabled={replySending || !replyText.trim()}
-                              className="gap-1 text-xs bg-cyan-800 hover:bg-cyan-900 text-white"
+                              className="gap-1 text-xs bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white"
                             >
                               {replySending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
                               Send Reply
@@ -277,7 +277,7 @@ export function InboxList() {
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
                         {canReply && !isReplying && (
                           <Button
                             variant="outline"
@@ -318,7 +318,7 @@ export function InboxList() {
                           size="sm"
                           onClick={(e) => { e.stopPropagation(); handleAction(msg.id, msg.type, 'delete') }}
                           disabled={isActionLoading('delete')}
-                          className="gap-1 text-xs text-red-600 hover:text-red-700"
+                          className="gap-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                         >
                           {isActionLoading('delete') ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
                           Delete

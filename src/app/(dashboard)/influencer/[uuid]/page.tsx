@@ -67,15 +67,15 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
                 className="h-24 w-24 rounded-full object-cover"
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-3xl">
+              <div className="h-24 w-24 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium text-3xl">
                 {profile.name?.[0] || '?'}
               </div>
             )}
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {profile.name || 'Unnamed Influencer'}
               </h1>
-              <div className="flex items-center gap-6 mt-4 text-sm text-gray-500">
+              <div className="flex items-center gap-6 mt-4 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <Briefcase className="h-4 w-4" />
                   {profile.completedJobs || 0} jobs completed
@@ -98,7 +98,7 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
             <CardTitle>About</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 whitespace-pre-wrap">{profile.bio}</p>
+            <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{profile.bio}</p>
           </CardContent>
         </Card>
       )}
@@ -110,8 +110,8 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
           <Card>
             <CardContent className="py-12 text-center">
               <ShoppingCart className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">No services listed</h3>
-              <p className="mt-2 text-gray-500">
+              <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No services listed</h3>
+              <p className="mt-2 text-gray-500 dark:text-gray-400">
                 This influencer hasn&apos;t added any services yet.
               </p>
             </CardContent>
@@ -123,9 +123,9 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-medium text-gray-900">{item.handle || 'Service'}</h3>
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100">{item.handle || 'Service'}</h3>
                       {item.description && (
-                        <p className="text-sm text-gray-500 mt-1">{item.description}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{item.description}</p>
                       )}
                       {item.audienceSize && (
                         <p className="text-xs text-gray-400 mt-2">
@@ -135,7 +135,7 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
                     </div>
                     <div className="text-right">
                       {item.threshold && (
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
                           ${item.threshold.toFixed(2)}
                         </p>
                       )}
@@ -161,7 +161,7 @@ export default async function InfluencerProfilePage({ params }: PageProps) {
             <CardTitle>Contact This Influencer</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
               Interested in working with this influencer? Send them a message to get started.
             </p>
             <Button>

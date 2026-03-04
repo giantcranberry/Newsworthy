@@ -93,12 +93,12 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
   return (
     <form onSubmit={handleSubmit} className="max-w-4xl mx-auto -mt-6 space-y-8">
       {/* Sticky Action Bar */}
-      <div data-tour="brand-form-action-bar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="brand-form-action-bar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{title}</h1>
             {description && (
-              <p className="text-sm text-gray-600 mt-0.5">{description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{description}</p>
             )}
           </div>
           {!readOnly && (
@@ -115,7 +115,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
               <Button
                 type="submit"
                 disabled={isLoading || !formData.companyName}
-                className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+                className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -131,8 +131,8 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
 
       {notice && (
         <div className="flex items-start gap-2.5 rounded-lg border border-blue-200 bg-blue-50 p-3">
-          <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-blue-800">{notice}</p>
+          <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-800 dark:text-blue-400">{notice}</p>
         </div>
       )}
 
@@ -281,7 +281,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
                 value={formData.countryCode}
                 onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
                 disabled={readOnly}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-500"
+                className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 px-3 py-2 shadow-sm dark:shadow-gray-900/50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800 disabled:text-gray-500 dark:text-gray-400"
               >
                 <option value="US">United States</option>
                 <option value="CA">Canada</option>

@@ -108,7 +108,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
       {children}
 
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
           {error}
         </div>
       )}
@@ -117,13 +117,13 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
         <Card>
           <CardContent className="py-10">
             <div className="text-center space-y-6">
-              <div className="mx-auto w-14 h-14 rounded-full bg-cyan-50 flex items-center justify-center">
-                <Sparkles className="h-7 w-7 text-cyan-600" />
+              <div className="mx-auto w-14 h-14 rounded-full bg-cyan-50 dark:bg-cyan-900/30 flex items-center justify-center">
+                <Sparkles className="h-7 w-7 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div className="space-y-3">
-                <h2 className="text-2xl font-bold text-gray-900">AI Discovery Optimization</h2>
-                <p className="text-base font-medium text-gray-500">Optional (Recommended)</p>
-                <p className="text-sm text-gray-600 max-w-lg mx-auto leading-relaxed">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">AI Discovery Optimization</h2>
+                <p className="text-base font-medium text-gray-500 dark:text-gray-400">Optional (Recommended)</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-lg mx-auto leading-relaxed">
                   AI will analyze your press release and identify questions people are likely asking
                   AI assistants (ChatGPT, Perplexity, Google AI Overviews) where your release fills
                   an information gap. These FAQs help AI systems discover and cite your news.
@@ -132,7 +132,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
               <Button
                 onClick={handleGenerate}
                 size="lg"
-                className="bg-cyan-800 text-white hover:bg-cyan-900"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 <Sparkles className="h-4 w-4" />
                 Generate FAQs
@@ -146,8 +146,8 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
         <Card>
           <CardContent className="py-12">
             <div className="text-center space-y-3">
-              <Loader2 className="h-8 w-8 animate-spin text-cyan-600 mx-auto" />
-              <p className="text-sm text-gray-600">Analyzing your press release and generating FAQs...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400 mx-auto" />
+              <p className="text-sm text-gray-600 dark:text-gray-400">Analyzing your press release and generating FAQs...</p>
             </div>
           </CardContent>
         </Card>
@@ -158,13 +158,13 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
           {faqs.map((faq, index) => (
             <Card key={index}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-500">
+                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Question {index + 1}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Question</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Question</label>
                   <Textarea
                     value={faq.question}
                     onChange={(e) => updateFaq(index, 'question', e.target.value)}
@@ -173,7 +173,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">Answer</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">Answer</label>
                   <Textarea
                     value={faq.answer}
                     onChange={(e) => updateFaq(index, 'answer', e.target.value)}
@@ -197,7 +197,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
             <Button
               onClick={saveFaqs}
               disabled={isSaving}
-              className="bg-cyan-800 text-white hover:bg-cyan-900"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             >
               {isSaving ? (
                 <>

@@ -62,10 +62,10 @@ export default async function PartnerUsersPage({
     <div className="space-y-6">
       <div data-tour="partner-users-header" className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {partner?.company || partner?.brandName || 'Partner'} Users
           </h1>
-          <p className="text-gray-500">
+          <p className="text-gray-500 dark:text-gray-400">
             {partnerUsers.length} registered user{partnerUsers.length !== 1 ? 's' : ''}
           </p>
         </div>

@@ -125,7 +125,7 @@ export function CategoryForm({ category, circuits, parentOptions, onSuccess, onC
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">
           {error}
         </div>
       )}
@@ -151,7 +151,7 @@ export function CategoryForm({ category, circuits, parentOptions, onSuccess, onC
           required
           maxLength={64}
         />
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-gray-400">
           URL-friendly identifier. Auto-generated from name.
         </p>
       </div>
@@ -170,23 +170,23 @@ export function CategoryForm({ category, circuits, parentOptions, onSuccess, onC
       {circuits.length > 0 && (
         <div className="space-y-2">
           <Label>Circuits</Label>
-          <div className="rounded-md border border-gray-200 p-3 space-y-2 max-h-48 overflow-y-auto">
+          <div className="rounded-md border border-gray-200 dark:border-gray-800 p-3 space-y-2 max-h-48 overflow-y-auto">
             {circuits.map((c) => (
               <label
                 key={c.id}
-                className="flex items-center gap-2 cursor-pointer text-sm text-gray-900 hover:bg-gray-50 rounded px-1 py-0.5"
+                className="flex items-center gap-2 cursor-pointer text-sm text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 rounded px-1 py-0.5"
               >
                 <Checkbox
                   checked={formData.circuitIds.includes(c.id)}
                   onCheckedChange={() => toggleCircuit(c.id)}
-                  className="border-gray-300 data-[state=checked]:bg-cyan-700 data-[state=checked]:border-cyan-700"
+                  className="border-gray-300 dark:border-gray-700 data-[state=checked]:bg-cyan-700 data-[state=checked]:border-cyan-700"
                 />
                 {c.name}
               </label>
             ))}
           </div>
           {formData.circuitIds.length > 0 && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {formData.circuitIds.length} circuit{formData.circuitIds.length !== 1 ? 's' : ''} selected
             </p>
           )}
@@ -230,7 +230,7 @@ export function CategoryForm({ category, circuits, parentOptions, onSuccess, onC
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-cyan-800 text-white hover:bg-cyan-900">
+        <Button type="submit" disabled={isLoading} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -81,7 +81,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
         <Card key={item.id} className="overflow-hidden" {...(index === 0 ? { "data-tour": "pending-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
                 {item.title || 'Untitled Release'}
               </h3>
               {index === 0 ? (
@@ -93,13 +93,13 @@ export function PendingList({ items }: { items: PendingItem[] }) {
               )}
             </div>
 
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               For Release {formatDate(item.releaseAt)}
             </p>
 
             {pullConfirm === item.id ? (
               <div className="bg-red-50 rounded-md p-3">
-                <p className="text-sm font-medium text-red-800 mb-2">
+                <p className="text-sm font-medium text-red-800 dark:text-red-400 mb-2">
                   Are you sure you want to pull this release back to draft?
                 </p>
                 <div className="flex gap-2">
@@ -124,14 +124,14 @@ export function PendingList({ items }: { items: PendingItem[] }) {
             ) : (
               <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "pending-actions" } : {})}>
                 <Link href={`/editorial/edit/${item.id}`}>
-                  <Button size="sm" className="bg-cyan-800 text-white hover:bg-cyan-900 h-7 text-xs">
+                  <Button size="sm" className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 h-7 text-xs">
                     Edit
                   </Button>
                 </Link>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-xs h-7 text-amber-700 border-amber-300 hover:bg-amber-50"
+                  className="text-xs h-7 text-amber-700 dark:text-amber-400 border-amber-300 hover:bg-amber-50"
                   onClick={() => setPullConfirm(item.id)}
                 >
                   Pull

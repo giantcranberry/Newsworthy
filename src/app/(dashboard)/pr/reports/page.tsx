@@ -57,8 +57,8 @@ export default async function ReportsPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-          <p className="text-gray-600">View clipping reports for your published releases</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Reports</h1>
+          <p className="text-gray-600 dark:text-gray-400">View clipping reports for your published releases</p>
         </div>
         {userCompanies.length > 1 && (
           <div data-tour="reports-brand-filter">
@@ -74,10 +74,10 @@ export default async function ReportsPage({
         <Card data-tour="reports-empty">
           <CardContent className="py-16 text-center">
             <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No Published Releases Yet</h3>
-            <p className="mt-2 text-gray-600">Once your releases are published, reports will appear here.</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Published Releases Yet</h3>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Once your releases are published, reports will appear here.</p>
             <Link href="/pr/create">
-              <Button className="mt-6 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+              <Button className="mt-6 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
                 Create a Release
               </Button>
             </Link>
@@ -85,27 +85,27 @@ export default async function ReportsPage({
         </Card>
       ) : (
         <>
-          <div data-tour="reports-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead data-tour="reports-columns" className="bg-gray-50">
+          <div data-tour="reports-table" className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead data-tour="reports-columns" className="bg-gray-50 dark:bg-gray-950">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Date Released
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Press Release Title
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Reports
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
                 {paginated.map((r, index) => {
                   const ready = reportReady(r.releasedAt)
                   return (
-                    <tr key={r.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "reports-first-row" } : {})}>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                    <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950" {...(index === 0 ? { "data-tour": "reports-first-row" } : {})}>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {r.releasedAt
                           ? new Date(r.releasedAt).toLocaleDateString('en-US', {
                               year: 'numeric',
@@ -114,10 +114,10 @@ export default async function ReportsPage({
                             })
                           : '—'}
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                         <div className="max-w-lg truncate">{r.title || 'Untitled'}</div>
                         {r.company?.companyName && (
-                          <div className="text-xs text-gray-500 mt-0.5">{r.company.companyName}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{r.company.companyName}</div>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-right text-sm">
@@ -168,7 +168,7 @@ export default async function ReportsPage({
                   </Button>
                 </Link>
               )}
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Page {page} of {totalPages}
               </span>
               {page < totalPages && (

@@ -80,7 +80,7 @@ function EditMetadataDialog({
   const [imgCredits, setImgCredits] = useState(image.imgCredits || '')
 
   return (
-    <div className="space-y-3 p-3 border rounded-lg bg-white">
+    <div className="space-y-3 p-3 border rounded-lg bg-white dark:bg-gray-900">
       <div>
         <Label htmlFor={`edit-title-${image.id}`}>Alt Description *</Label>
         <Input
@@ -158,9 +158,9 @@ function SortableImageCard({
 
   return (
     <div ref={setNodeRef} style={style} className="relative">
-      <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
+      <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-900/50">
         {/* Image thumbnail */}
-        <div className="relative aspect-video bg-gray-50">
+        <div className="relative aspect-video bg-gray-50 dark:bg-gray-950">
           <Image
             src={resizedUrl(ri.image.url)}
             alt={ri.image.title || 'Release image'}
@@ -171,7 +171,7 @@ function SortableImageCard({
           {/* Primary badge */}
           {isFirst && (
             <div className="absolute top-2 left-2">
-              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-xs font-medium px-2 py-0.5 rounded-full">
                 <Star className="h-3 w-3" />
                 Primary
               </span>
@@ -184,7 +184,7 @@ function SortableImageCard({
               type="button"
               variant="secondary"
               size="icon"
-              className="h-7 w-7 bg-white/90 hover:bg-white"
+              className="h-7 w-7 bg-white dark:bg-gray-900/90 hover:bg-white dark:bg-gray-900"
               onClick={() => onEdit(ri.imageId)}
               title="Edit details"
             >
@@ -194,7 +194,7 @@ function SortableImageCard({
               type="button"
               variant="secondary"
               size="icon"
-              className="h-7 w-7 bg-white/90 hover:bg-white text-red-600 hover:text-red-700"
+              className="h-7 w-7 bg-white dark:bg-gray-900/90 hover:bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
               onClick={() => onDelete(ri.imageId)}
               disabled={isDeleting === ri.imageId}
               title="Remove image"
@@ -210,11 +210,11 @@ function SortableImageCard({
           {/* Drag handle */}
           {canDrag && (
             <div
-              className="absolute bottom-2 left-2 cursor-grab active:cursor-grabbing bg-white/90 rounded p-1"
+              className="absolute bottom-2 left-2 cursor-grab active:cursor-grabbing bg-white dark:bg-gray-900/90 rounded p-1"
               {...attributes}
               {...listeners}
             >
-              <GripVertical className="h-4 w-4 text-gray-500" />
+              <GripVertical className="h-4 w-4 text-gray-500 dark:text-gray-400" />
             </div>
           )}
         </div>
@@ -229,11 +229,11 @@ function SortableImageCard({
             />
           ) : (
             <>
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                 {ri.image.title || <span className="text-gray-400 italic">No description</span>}
               </p>
               {ri.image.imgCredits && (
-                <p className="text-xs text-gray-500 truncate">{ri.image.imgCredits}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{ri.image.imgCredits}</p>
               )}
             </>
           )}
@@ -513,7 +513,7 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
               {error}
             </div>
           )}
@@ -522,7 +522,7 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
           {pendingFile && (
             <div className="border rounded-lg p-4 bg-blue-50 space-y-3">
               {pendingPreview && (
-                <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100">
+                <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <img
                     src={pendingPreview}
                     alt="Selected image preview"
@@ -530,7 +530,7 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
                   />
                 </div>
               )}
-              <h4 className="text-sm font-medium text-gray-900">Image Details</h4>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Image Details</h4>
               <div>
                 <Label htmlFor="new-title">Alt Description *</Label>
                 <Input
@@ -579,8 +579,8 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
 
           {/* Image Library Selector */}
           {showLibrary && availableLibraryImages.length > 0 && (
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your library</h4>
+            <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your library</h4>
               <div className="grid grid-cols-4 gap-3">
                 {availableLibraryImages.map((img) => (
                   <button
@@ -588,7 +588,7 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
                     type="button"
                     onClick={() => handleSelectFromLibrary(img)}
                     disabled={isUploading}
-                    className="relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-gray-300 transition-colors"
+                    className="relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-gray-300 dark:border-gray-700 transition-colors"
                   >
                     <Image
                       src={resizedUrl(img.url)}
@@ -633,11 +633,11 @@ export function ImageForm({ releaseUuid, releaseImages: initialImages, imageLibr
             </DndContext>
           ) : (
             <div
-              className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-gray-300 transition-colors"
+              className="border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-gray-300 dark:border-gray-700 transition-colors"
               onClick={() => fileInputRef.current?.click()}
             >
               <ImageIcon className="h-12 w-12 mb-3" />
-              <p className="text-sm font-medium text-gray-500">No images added yet</p>
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No images added yet</p>
               <p className="text-xs text-gray-400 mt-1">
                 Click to upload or use the Image Library button above
               </p>

@@ -44,8 +44,8 @@ function CreditRows({ credits }: { credits: CreditsByType }) {
       {CREDIT_LABELS.map(({ key, label }) => (
         credits[key] > 0 && (
           <div key={key} className="flex items-center justify-between">
-            <span className="text-sm text-gray-600">{label}</span>
-            <span className="text-sm font-semibold text-gray-900">{credits[key]}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{credits[key]}</span>
           </div>
         )
       ))}
@@ -62,27 +62,27 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Card
-          className="transition-colors hover:bg-gray-50 cursor-pointer h-full"
+          className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer h-full"
           onClick={(e) => {
             e.preventDefault()
             setOpen(!open)
           }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
               PR Credits
             </CardTitle>
             <FaIcon icon={faCoins} className="h-6 w-6 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">{allCredits.totalPr}</div>
-            <p className="text-xs text-gray-600">Click to see all credits</p>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{allCredits.totalPr}</div>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Click to see all credits</p>
           </CardContent>
         </Card>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-0" align="start">
         <div className="p-3 border-b">
-          <p className="text-sm font-semibold text-gray-900">Credit Breakdown</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Credit Breakdown</p>
         </div>
 
         <div className="divide-y">
@@ -91,7 +91,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
             <div className="p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <User className="h-3.5 w-3.5 text-gray-400" />
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{allCredits.brands.length > 1 ? 'My Account / Unallocated' : 'My Account'}</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{allCredits.brands.length > 1 ? 'My Account / Unallocated' : 'My Account'}</p>
               </div>
               <div className="space-y-1.5">
                 <CreditRows credits={allCredits.personal} />
@@ -104,7 +104,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
             <div key={brand.companyId} className="p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <Building2 className="h-3.5 w-3.5 text-gray-400" />
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide truncate">{brand.companyName}</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide truncate">{brand.companyName}</p>
               </div>
               <div className="space-y-1.5">
                 <CreditRows credits={brand.credits} />
@@ -124,7 +124,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
           <div className="p-3 border-t">
             <Link
               href="/credits/manage"
-              className="text-xs text-cyan-700 hover:text-cyan-900 font-medium"
+              className="text-xs text-cyan-700 hover:text-cyan-900 dark:hover:text-cyan-300 font-medium"
               onClick={() => setOpen(false)}
             >
               Manage/Purchase Credits

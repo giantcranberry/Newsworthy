@@ -63,13 +63,13 @@ export function PartnerReleasesList({
   const statusBadge = (status: string) => {
     switch (status) {
       case 'sent':
-        return <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Sent</span>
+        return <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">Sent</span>
       case 'review':
-        return <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">In Review</span>
+        return <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:text-yellow-400">In Review</span>
       case 'start':
-        return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">Draft</span>
+        return <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">Draft</span>
       default:
-        return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">{status}</span>
+        return <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">{status}</span>
     }
   }
 
@@ -78,8 +78,8 @@ export function PartnerReleasesList({
       <Card data-tour="partner-releases-empty">
         <CardContent className="py-16 text-center">
           <FileText className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No Press Releases Yet</h3>
-          <p className="mt-2 text-gray-600">
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Press Releases Yet</h3>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             No press releases have been created by partner users yet.
           </p>
         </CardContent>
@@ -97,7 +97,7 @@ export function PartnerReleasesList({
             const userId = e.target.value ? parseInt(e.target.value) : null
             router.push(buildUrl({ user: userId, status: currentStatus, partnerId: currentPartnerId }))
           }}
-          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
         >
           <option value="">All Users</option>
           {users.map((u) => (
@@ -113,7 +113,7 @@ export function PartnerReleasesList({
             const status = e.target.value || null
             router.push(buildUrl({ user: currentUser, status, partnerId: currentPartnerId }))
           }}
-          className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+          className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -124,34 +124,34 @@ export function PartnerReleasesList({
       </div>
 
       {releases.length === 0 ? (
-        <p className="text-sm text-gray-500">No releases match your filters.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No releases match your filters.</p>
       ) : (
         <>
-          <div data-tour="partner-releases-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div data-tour="partner-releases-table" className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+              <thead className="bg-gray-50 dark:bg-gray-950">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Title
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                     Reports
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
                 {releases.map((r, index) => (
-                  <tr key={r.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "partner-releases-first-row" } : {})}>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                  <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950" {...(index === 0 ? { "data-tour": "partner-releases-first-row" } : {})}>
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       {(r.releasedAt || r.createdAt)
                         ? new Date(r.releasedAt || r.createdAt!).toLocaleDateString('en-US', {
                             year: 'numeric',
@@ -160,16 +160,16 @@ export function PartnerReleasesList({
                           })
                         : '—'}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                       <div className="max-w-md truncate">{r.title || 'Untitled'}</div>
                       {r.companyName && (
-                        <div className="text-xs text-gray-500 mt-0.5">{r.companyName}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{r.companyName}</div>
                       )}
                     </td>
-                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                    <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                       <Link
                         href={buildUrl({ user: r.userId, status: currentStatus, partnerId: currentPartnerId })}
-                        className="text-cyan-700 hover:text-cyan-900"
+                        className="text-cyan-700 hover:text-cyan-900 dark:hover:text-cyan-300"
                       >
                         {r.userName}
                       </Link>
@@ -223,7 +223,7 @@ export function PartnerReleasesList({
                   </Button>
                 </Link>
               )}
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Page {page} of {totalPages}
               </span>
               {page < totalPages && (

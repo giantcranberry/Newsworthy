@@ -47,11 +47,11 @@ export default async function PartnerDetailPage({
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {partner.company || partner.brandName || 'Unnamed Partner'}
           </h1>
           {partner.handle && (
-            <p className="text-gray-500">@{partner.handle}</p>
+            <p className="text-gray-500 dark:text-gray-400">@{partner.handle}</p>
           )}
         </div>
       </div>
@@ -63,26 +63,26 @@ export default async function PartnerDetailPage({
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             {partner.handle && (
-              <p><span className="text-gray-500">Handle:</span> @{partner.handle}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Handle:</span> @{partner.handle}</p>
             )}
             {partner.partnerType && (
-              <p><span className="text-gray-500">Type:</span> {partner.partnerType}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Type:</span> {partner.partnerType}</p>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">Status:</span>
+              <span className="text-gray-500 dark:text-gray-400">Status:</span>
               <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                 partner.isActive
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-600'
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
               }`}>
                 {partner.isActive ? 'Active' : 'Inactive'}
               </span>
             </div>
-            <p><span className="text-gray-500">Created:</span> {partner.createdAt ? new Date(partner.createdAt).toLocaleDateString() : 'N/A'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Created:</span> {partner.createdAt ? new Date(partner.createdAt).toLocaleDateString() : 'N/A'}</p>
             {partner.publisherUrl && (
               <p>
-                <span className="text-gray-500">Publisher URL:</span>{' '}
-                <a href={partner.publisherUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                <span className="text-gray-500 dark:text-gray-400">Publisher URL:</span>{' '}
+                <a href={partner.publisherUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
                   {partner.publisherUrl}
                 </a>
               </p>
@@ -96,20 +96,20 @@ export default async function PartnerDetailPage({
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             {partner.contactName && (
-              <p><span className="text-gray-500">Contact:</span> {partner.contactName}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Contact:</span> {partner.contactName}</p>
             )}
             {partner.contactEmail && (
-              <p><span className="text-gray-500">Contact Email:</span> {partner.contactEmail}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Contact Email:</span> {partner.contactEmail}</p>
             )}
             {partner.email && (
-              <p><span className="text-gray-500">Email:</span> {partner.email}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Email:</span> {partner.email}</p>
             )}
             {partner.phone && (
-              <p><span className="text-gray-500">Phone:</span> {partner.phone}</p>
+              <p><span className="text-gray-500 dark:text-gray-400">Phone:</span> {partner.phone}</p>
             )}
             {(partner.addr1 || partner.addr2 || partner.csz) && (
               <div>
-                <span className="text-gray-500">Address:</span>
+                <span className="text-gray-500 dark:text-gray-400">Address:</span>
                 {partner.addr1 && <p>{partner.addr1}</p>}
                 {partner.addr2 && <p>{partner.addr2}</p>}
                 {partner.csz && <p>{partner.csz}</p>}
@@ -127,13 +127,13 @@ export default async function PartnerDetailPage({
           </CardHeader>
           <CardContent className="text-sm space-y-2">
             <p>
-              <span className="text-gray-500">Base Price:</span>{' '}
+              <span className="text-gray-500 dark:text-gray-400">Base Price:</span>{' '}
               {partner.basePrice !== null ? `$${(partner.basePrice / 100).toFixed(2)}` : 'Not set'}
             </p>
-            <p><span className="text-gray-500">Free PRs:</span> {partner.freePrs ?? 0}</p>
-            <p><span className="text-gray-500">Feed Length:</span> {partner.feedLength ?? 'Not set'}</p>
-            <p><span className="text-gray-500">Backfill:</span> {partner.backfill || 'Not set'}</p>
-            <p><span className="text-gray-500">Include NewsDB:</span> {partner.includeNewsdb ? 'Yes' : 'No'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Free PRs:</span> {partner.freePrs ?? 0}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Feed Length:</span> {partner.feedLength ?? 'Not set'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Backfill:</span> {partner.backfill || 'Not set'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Include NewsDB:</span> {partner.includeNewsdb ? 'Yes' : 'No'}</p>
           </CardContent>
         </Card>
       </div>

@@ -46,7 +46,7 @@ export function DeleteReleaseButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 cursor-pointer transition-colors hover:text-red-700 hover:bg-red-50">
+        <button className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 cursor-pointer transition-colors hover:text-red-700 dark:text-red-400 hover:bg-red-50">
           <Trash2 className="h-3.5 w-3.5" />
           Delete
         </button>
@@ -66,7 +66,7 @@ export function DeleteReleaseButton({
           </Button>
           <Button
             variant="outline"
-            className="cursor-pointer border-red-400 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+            className="cursor-pointer border-red-400 bg-red-50 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/30 hover:text-red-700 dark:text-red-400"
             onClick={handleDelete}
             disabled={isDeleting}
           >

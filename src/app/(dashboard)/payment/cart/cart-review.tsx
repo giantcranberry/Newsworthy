@@ -128,8 +128,8 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Review Your Order</h1>
-          <p className="text-gray-500">Review your items before proceeding to payment</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Review Your Order</h1>
+          <p className="text-gray-500 dark:text-gray-400">Review your items before proceeding to payment</p>
         </div>
       </div>
 
@@ -145,20 +145,20 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
           {items.map((item) => (
             <div key={item.id} className="flex items-start justify-between gap-4 pb-4 border-b last:border-0 last:pb-0">
               <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-gray-900">{item.productName}</h4>
+                <h4 className="font-medium text-gray-900 dark:text-gray-100">{item.productName}</h4>
                 {item.productDescription && (
                   <div
-                    className="text-sm text-gray-500 mt-1 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 [&_p]:text-gray-500 [&_p]:my-1"
+                    className="text-sm text-gray-500 dark:text-gray-400 mt-1 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 dark:text-gray-400 [&_p]:text-gray-500 dark:text-gray-400 [&_p]:my-1"
                     dangerouslySetInnerHTML={{ __html: item.productDescription }}
                   />
                 )}
                 {item.productCredits && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {item.productCredits} {item.productCredits === 1 ? 'Credit' : 'Credits'}
                   </p>
                 )}
               </div>
-              <p className="font-semibold text-gray-900 whitespace-nowrap">
+              <p className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                 ${(item.price / 100).toFixed(2)}
               </p>
             </div>
@@ -166,8 +166,8 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
 
           {/* Total */}
           <div className="flex items-center justify-between pt-4 border-t-2">
-            <p className="text-lg font-bold text-gray-900">Total</p>
-            <p className="text-2xl font-bold text-gray-900">${(total / 100).toFixed(2)}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-gray-100">Total</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">${(total / 100).toFixed(2)}</p>
           </div>
         </CardContent>
       </Card>
@@ -205,12 +205,12 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
       {!clientSecret ? (
         <div className="space-y-3">
           {error && (
-            <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
           )}
           <Button
             onClick={handleProceedToPayment}
             disabled={loading || (companies.length > 0 && companyId === '')}
-            className="w-full bg-cyan-800 text-white hover:bg-cyan-900"
+            className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             size="lg"
           >
             {loading ? (
@@ -225,7 +225,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
               </>
             )}
           </Button>
-          <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
             <Lock className="h-3 w-3" />
             Payments secured by Stripe
           </div>
@@ -234,15 +234,15 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
           {isAgency && (
             <div className="space-y-3 pt-2">
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-gray-200" />
+                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
                 <span className="text-sm text-gray-400">or</span>
-                <div className="flex-1 h-px bg-gray-200" />
+                <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
               </div>
 
               {!generatedLink ? (
                 <>
                   {linkError && (
-                    <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{linkError}</div>
+                    <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{linkError}</div>
                   )}
                   <Button
                     onClick={handleGenerateLink}
@@ -266,10 +266,10 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
                 </>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Payment link generated — share with your client:</p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Payment link generated — share with your client:</p>
                   <div className="flex items-center gap-2">
-                    <div className="flex-1 min-w-0 p-3 bg-gray-50 border rounded-lg">
-                      <p className="text-sm text-gray-600 truncate">{generatedLink}</p>
+                    <div className="flex-1 min-w-0 p-3 bg-gray-50 dark:bg-gray-950 border rounded-lg">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{generatedLink}</p>
                     </div>
                     <Button
                       onClick={handleCopyLink}
@@ -278,7 +278,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
                       className="shrink-0"
                     >
                       {linkCopied ? (
-                        <Check className="h-4 w-4 text-green-600" />
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )}
@@ -362,13 +362,13 @@ function CheckoutForm({ total, cartUuid }: { total: number; cartUuid: string }) 
       </Card>
 
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
       )}
 
       <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full bg-cyan-800 text-white hover:bg-cyan-900"
+        className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         size="lg"
       >
         {isProcessing ? (
@@ -384,7 +384,7 @@ function CheckoutForm({ total, cartUuid }: { total: number; cartUuid: string }) 
         )}
       </Button>
 
-      <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
+      <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         <Lock className="h-3 w-3" />
         Payments secured by Stripe
       </div>

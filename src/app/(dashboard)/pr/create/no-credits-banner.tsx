@@ -9,13 +9,13 @@ export function NoCreditsBanner({ canPurchase = true }: { canPurchase?: boolean 
   return (
     <Card className="border-amber-200 bg-amber-50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-amber-800">
+        <CardTitle className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
           <CreditCard className="h-5 w-5" />
           Press Release Credits Required
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-gray-700">
+        <p className="text-gray-700 dark:text-gray-300">
           {canPurchase
             ? 'You need press release credits to create and distribute a press release. Purchase credits to get started.'
             : 'This brand has no press release credits. Please contact the brand owner or a brand admin to purchase credits.'}
@@ -24,28 +24,28 @@ export function NoCreditsBanner({ canPurchase = true }: { canPurchase?: boolean 
         {canPurchase && (
           <>
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <FileText className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Single Press Release</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Single Press Release</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Purchase a single credit for one press release distribution.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                     <Sparkles className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900">Credit Bundle</h3>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">Credit Bundle</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       Save money with a bundle of credits for multiple releases.
                     </p>
                   </div>

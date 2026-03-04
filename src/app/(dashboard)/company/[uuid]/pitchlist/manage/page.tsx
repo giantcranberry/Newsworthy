@@ -1,68 +1,68 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { pitchGroups, pitchList } from '@/db/schema'
-import { eq, and, desc, sql, isNotNull, isNull, ilike } from 'drizzle-orm'
+import { crmContacts } from '@/db/schema'
+import { eq, and, desc, sql, isNotNull, isNull, ilike, or, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
 import { ContactList } from './contact-list'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
-async function getGroup(companyId: number) {
-  return db.query.pitchGroups.findFirst({
-    where: eq(pitchGroups.coId, companyId),
-  })
-}
-
-async function getContacts(groupId: number, page: number, perPage: number, query: string, status: string) {
+async function getContacts(companyId: number, page: number, perPage: number, query: string, status: string) {
   const offset = (page - 1) * perPage
 
   const baseFilter = and(
-    eq(pitchList.groupId, groupId),
-    sql`${pitchList.isDeleted} IS NOT TRUE`
+    eq(crmContacts.companyId, companyId),
+    inArray(crmContacts.contactType, ['media', 'both']),
+    sql`${crmContacts.isDeleted} IS NOT TRUE`
   )
 
   let combinedFilter = baseFilter
 
   if (query) {
-    combinedFilter = and(combinedFilter, ilike(pitchList.email, `%${query}%`))
+    combinedFilter = and(combinedFilter, or(
+      ilike(crmContacts.email, `%${query}%`),
+      ilike(crmContacts.firstName, `%${query}%`),
+      ilike(crmContacts.lastName, `%${query}%`),
+      ilike(crmContacts.publication, `%${query}%`)
+    ))
   }
 
   if (status === 'active') {
-    combinedFilter = and(combinedFilter, isNull(pitchList.bouncedAt), isNull(pitchList.unsubscribeAt))
+    combinedFilter = and(combinedFilter, isNull(crmContacts.bouncedAt), isNull(crmContacts.unsubscribeAt))
   } else if (status === 'bounced') {
-    combinedFilter = and(combinedFilter, isNotNull(pitchList.bouncedAt))
+    combinedFilter = and(combinedFilter, isNotNull(crmContacts.bouncedAt))
   } else if (status === 'unsubscribed') {
-    combinedFilter = and(combinedFilter, isNotNull(pitchList.unsubscribeAt))
+    combinedFilter = and(combinedFilter, isNotNull(crmContacts.unsubscribeAt))
   }
 
   const items = await db
     .select()
-    .from(pitchList)
+    .from(crmContacts)
     .where(combinedFilter)
-    .orderBy(desc(pitchList.createdAt))
+    .orderBy(desc(crmContacts.createdAt))
     .limit(perPage)
     .offset(offset)
 
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
+    .from(crmContacts)
     .where(combinedFilter)
 
   // Stats are always unfiltered
   const [totalRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
+    .from(crmContacts)
     .where(baseFilter)
 
   const [bouncedRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
-    .where(and(baseFilter, isNotNull(pitchList.bouncedAt)))
+    .from(crmContacts)
+    .where(and(baseFilter, isNotNull(crmContacts.bouncedAt)))
 
   const [unsubRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
-    .where(and(baseFilter, isNotNull(pitchList.unsubscribeAt)))
+    .from(crmContacts)
+    .where(and(baseFilter, isNotNull(crmContacts.unsubscribeAt)))
 
   const total = Number(totalRow?.count || 0)
   const filtered = Number(countRow?.count || 0)
@@ -103,16 +103,13 @@ export default async function ManageContactsPage({
   const co = access.company
   const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
-  const group = await getGroup(co.id)
-  if (!group) notFound()
-
-  const data = await getContacts(group.id, page, perPage, query, status)
+  const data = await getContacts(co.id, page, perPage, query, status)
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Manage Media Contacts</h1>
-        <p className="text-gray-500">{co.companyName}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Manage Media Contacts</h1>
+        <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />

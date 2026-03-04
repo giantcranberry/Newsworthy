@@ -42,19 +42,19 @@ async function getUserReleases(userId: number) {
 function getStatusColor(status: string) {
   switch (status) {
     case "sent":
-      return "bg-green-100 text-green-800";
+      return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400";
     case "review":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400";
     case "approved":
-      return "bg-blue-100 text-blue-800";
+      return "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400";
     case "hold":
-      return "bg-amber-100 text-amber-800";
+      return "bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400";
     case "draft":
     case "draftnxt":
     case "start":
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200";
     default:
-      return "bg-gray-100 text-gray-800";
+      return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200";
   }
 }
 
@@ -123,12 +123,12 @@ export default async function PressReleasesPage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Press Releases</h1>
-          <p className="text-gray-600">Manage your press releases</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Press Releases</h1>
+          <p className="text-gray-600 dark:text-gray-400">Manage your press releases</p>
         </div>
         {canCreate && (
           <Link href="/pr/create" data-tour="pr-new-release">
-            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
               <Plus className="h-4 w-4" />
               New Release
             </Button>
@@ -140,28 +140,28 @@ export default async function PressReleasesPage({
       <div data-tour="pr-filters" className="flex gap-2">
         <Link href="/pr">
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            !filter ? "bg-cyan-800/10 text-cyan-800" : "text-gray-700 hover:bg-gray-100"
+            !filter ? "bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             All ({counts.all})
           </button>
         </Link>
         <Link href="/pr?filter=drafts">
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            filter === "drafts" ? "bg-gray-200 text-gray-800" : "text-gray-700 hover:bg-gray-100"
+            filter === "drafts" ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             Drafts ({counts.drafts})
           </button>
         </Link>
         <Link href="/pr?filter=review">
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            filter === "review" ? "bg-yellow-100 text-yellow-800" : "text-gray-700 hover:bg-gray-100"
+            filter === "review" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             In Review ({counts.review})
           </button>
         </Link>
         <Link href="/pr?filter=published">
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            filter === "published" ? "bg-green-100 text-green-800" : "text-gray-700 hover:bg-gray-100"
+            filter === "published" ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             Published ({counts.published})
           </button>
@@ -173,17 +173,17 @@ export default async function PressReleasesPage({
         <Card data-tour="pr-empty">
           <CardContent className="py-16 text-center">
             <FileText className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
               {filter ? `No ${filter} releases` : "No press releases yet"}
             </h3>
-            <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
               {filter
                 ? "Try a different filter or create a new release."
                 : "Get started by creating your first press release."}
             </p>
             {canCreate && (
               <Link href="/pr/create">
-                <Button className="mt-6 gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+                <Button className="mt-6 gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
                   <Plus className="h-4 w-4" />
                   Create Release
                 </Button>
@@ -274,25 +274,25 @@ export default async function PressReleasesPage({
                           {getStatusLabel(release.status)}
                         </span>
                         {release.distribution && (
-                          <span className="text-xs text-gray-600">
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
                             {release.distribution}
                           </span>
                         )}
                       </div>
                       <Link href={`/pr/${release.uuid}`} className="cursor-pointer">
-                        <h3 className="text-lg font-semibold text-gray-900 hover:text-cyan-800 group-hover:text-cyan-800 truncate">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400 group-hover:text-cyan-800 dark:text-cyan-400 truncate">
                           {release.title || "Untitled Release"}
                         </h3>
                       </Link>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         {release.company?.companyName}
                       </p>
                       {release.abstract && (
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
                           {release.abstract}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 dark:text-gray-400">
                         <span>
                           Created:{" "}
                           {new Date(release.createdAt!).toLocaleDateString()}
@@ -312,7 +312,7 @@ export default async function PressReleasesPage({
                         release.status,
                       ) && (
                         <Link href={`/pr/${release.uuid}`}>
-                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">
                             <Edit className="h-3.5 w-3.5" />
                             Edit
                           </button>
@@ -333,7 +333,7 @@ export default async function PressReleasesPage({
                           ).padStart(2, "0")}${release.id}/${release.slug}`}
                           target="_blank"
                         >
-                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">
                             <Eye className="h-3.5 w-3.5" />
                             View
                           </button>

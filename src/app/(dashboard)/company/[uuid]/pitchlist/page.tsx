@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { pitchGroups, pitchList, advocacyGroups, advocates } from '@/db/schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { pitchGroups, advocacyGroups, crmContacts } from '@/db/schema'
+import { eq, and, sql, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { randomUUID } from 'crypto'
 import { CompanyNav } from '@/components/company/company-nav'
@@ -29,13 +29,14 @@ async function getOrCreatePitchGroup(companyId: number, userId: number, companyN
   return group
 }
 
-async function getTotalPitchContacts(groupId: number) {
+async function getTotalPitchContacts(companyId: number) {
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(pitchList)
+    .from(crmContacts)
     .where(and(
-      eq(pitchList.groupId, groupId),
-      sql`${pitchList.isDeleted} IS NOT TRUE`
+      eq(crmContacts.companyId, companyId),
+      inArray(crmContacts.contactType, ['media', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`
     ))
 
   return Number(countRow?.count || 0)
@@ -60,13 +61,14 @@ async function getOrCreateAdvocacyGroup(companyId: number, userId: number, compa
   return group
 }
 
-async function getTotalSubscribers(groupId: number) {
+async function getTotalSubscribers(companyId: number) {
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(advocates)
+    .from(crmContacts)
     .where(and(
-      eq(advocates.groupId, groupId),
-      sql`${advocates.isDeleted} IS NOT TRUE`
+      eq(crmContacts.companyId, companyId),
+      inArray(crmContacts.contactType, ['advocate', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`
     ))
 
   return Number(countRow?.count || 0)
@@ -88,21 +90,21 @@ export default async function PitchListPage({
   const co = access.company
   const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
-  const [pitchGroup, advocacyGroup] = await Promise.all([
+  const [_pitchGroup, advocacyGroup] = await Promise.all([
     getOrCreatePitchGroup(co.id, userId, co.companyName),
     getOrCreateAdvocacyGroup(co.id, userId, co.companyName),
   ])
 
   const [totalContacts, totalSubscribers] = await Promise.all([
-    getTotalPitchContacts(pitchGroup.id),
-    getTotalSubscribers(advocacyGroup.id),
+    getTotalPitchContacts(co.id),
+    getTotalSubscribers(co.id),
   ])
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Distribution</h1>
-        <p className="text-gray-500">{co.companyName}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Distribution</h1>
+        <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />

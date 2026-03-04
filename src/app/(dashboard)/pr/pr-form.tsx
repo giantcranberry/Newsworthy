@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  { ssr: false, loading: () => <div className="h-[800px] bg-gray-50 rounded border border-gray-200 animate-pulse" /> },
+  { ssr: false, loading: () => <div className="h-[800px] bg-gray-50 dark:bg-gray-950 rounded border border-gray-200 dark:border-gray-800 animate-pulse" /> },
 );
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -721,12 +721,12 @@ export function PRForm({
     <div className={showPreview ? "flex gap-6" : ""}>
     <div className={showPreview ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
       {/* Sticky Action Bar */}
-      <div data-tour="pr-create-action-bar" className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4">
+      <div data-tour="pr-create-action-bar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{pageTitle}</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{pageTitle}</h1>
             {pageDescription && (
-              <p className="text-sm text-gray-600 mt-0.5">{pageDescription}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{pageDescription}</p>
             )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -773,7 +773,7 @@ export function PRForm({
                 !formData.location ||
                 !!dateError
               }
-              className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -792,7 +792,7 @@ export function PRForm({
       {readOnly && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-amber-600" />
-          <p className="text-sm text-amber-800">
+          <p className="text-sm text-amber-800 dark:text-amber-400">
             This release cannot be edited because it has status{" "}
             <strong className="capitalize">{initialData?.status}</strong>.
           </p>
@@ -806,14 +806,14 @@ export function PRForm({
           <Card className="border border-blue-200/60 bg-blue-50/30">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <FileText className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
                     Import from Document
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Upload a Word doc or Google Docs URL
                   </p>
                 </div>
@@ -833,12 +833,12 @@ export function PRForm({
           <Card className="border border-purple-200/60 bg-purple-50/30">
             <CardContent className="py-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
+                <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                   <Sparkles className="h-5 w-5 text-purple-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-medium text-gray-900">Generate with AI</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900 dark:text-gray-100">Generate with AI</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Tell us about your news and we'll draft it
                   </p>
                 </div>
@@ -876,7 +876,7 @@ export function PRForm({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-blue-600" />
+              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Import from Document
             </DialogTitle>
             <DialogDescription>
@@ -888,8 +888,8 @@ export function PRForm({
           <div className="space-y-4 py-4">
             {importError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                <p className="text-sm text-red-800">{importError}</p>
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-400">{importError}</p>
               </div>
             )}
 
@@ -905,17 +905,17 @@ export function PRForm({
                 <Upload className="h-4 w-4" />
                 Choose .docx file...
               </Button>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Supports .doc and .docx files
               </p>
             </div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
+                <div className="w-full border-t border-gray-200 dark:border-gray-800" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-600">or</span>
+                <span className="bg-white dark:bg-gray-900 px-2 text-gray-600 dark:text-gray-400">or</span>
               </div>
             </div>
 
@@ -941,13 +941,13 @@ export function PRForm({
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Document must be publicly shared (Anyone with the link can view)
               </p>
             </div>
 
             {isImporting && (
-              <div className="flex items-center justify-center gap-2 py-4 text-blue-600">
+              <div className="flex items-center justify-center gap-2 py-4 text-blue-600 dark:text-blue-400">
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span className="text-sm">Analyzing document...</span>
               </div>
@@ -973,8 +973,8 @@ export function PRForm({
           <div className="space-y-4 py-4">
             {importError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                <p className="text-sm text-red-800">{importError}</p>
+                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5" />
+                <p className="text-sm text-red-800 dark:text-red-400">{importError}</p>
               </div>
             )}
 
@@ -988,14 +988,14 @@ export function PRForm({
                 onChange={(e) => setAiDraftSourceUrl(e.target.value)}
                 disabled={isGeneratingDraft || isFetchingUrl}
               />
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Have a blog post or event page? We'll use it to help generate
                 your press release.
               </p>
             </div>
 
-            <div className="bg-purple-50 rounded-md p-3 text-sm text-gray-600 border border-purple-100">
-              <p className="font-medium text-gray-700 mb-2">
+            <div className="bg-purple-50 rounded-md p-3 text-sm text-gray-600 dark:text-gray-400 border border-purple-100">
+              <p className="font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Add details about your news:
               </p>
               <ul className="space-y-1 ml-4 list-disc">
@@ -1022,7 +1022,7 @@ export function PRForm({
                   (optional but recommended)
                 </li>
               </ul>
-              <p className="mt-2 text-gray-600 italic">
+              <p className="mt-2 text-gray-600 dark:text-gray-400 italic">
                 You can use bullet points or free-form text.{" "}
                 {aiDraftSourceUrl.trim()
                   ? "This will be combined with the content from your URL."
@@ -1041,7 +1041,7 @@ export function PRForm({
 
             <div className="flex items-center justify-between">
               <p
-                className={`text-xs ${aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim() ? "text-amber-600" : "text-green-600"}`}
+                className={`text-xs ${aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH && !aiDraftSourceUrl.trim() ? "text-amber-600" : "text-green-600 dark:text-green-400"}`}
               >
                 {aiDraftSourceUrl.trim()
                   ? "URL provided - additional details optional"
@@ -1068,7 +1068,7 @@ export function PRForm({
                     (aiDraftInput.length < MIN_DRAFT_INPUT_LENGTH &&
                       !aiDraftSourceUrl.trim())
                   }
-                  className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+                  className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
                 >
                   {isFetchingUrl ? (
                     <>
@@ -1105,16 +1105,16 @@ export function PRForm({
       </Dialog>
 
       {/* Unified Form Container */}
-      <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-100">
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 divide-y divide-gray-100 dark:divide-gray-800">
 
       {/* Brand & Contact */}
       <div data-tour="pr-create-brand-contact" className="p-6 space-y-5">
         <div>
-          <h3 className="font-medium text-gray-900">Brand & Contact</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Select the Brand and Primary PR Contact for this Release</p>
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Brand & Contact</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Select the Brand and Primary PR Contact for this Release</p>
         </div>
           <div>
-            <Label htmlFor="company">Select Brand <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+            <Label htmlFor="company">Select Brand <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
             <Select
               id="company"
               value={selectedCompanyId.toString()}
@@ -1146,11 +1146,11 @@ export function PRForm({
           {selectedCompany && (
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="contact">Primary Contact <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+                <Label htmlFor="contact">Primary Contact <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
                 <button
                   type="button"
                   onClick={() => setShowContactModal(true)}
-                  className="inline-flex items-center gap-1 text-xs text-cyan-800 hover:text-cyan-800 cursor-pointer"
+                  className="inline-flex items-center gap-1 text-xs text-cyan-800 dark:text-cyan-400 hover:text-cyan-800 dark:text-cyan-400 cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Contact
@@ -1184,12 +1184,12 @@ export function PRForm({
       {/* Release Details */}
       <div data-tour="pr-create-release-details" className="p-6 space-y-5">
         <div>
-          <h3 className="font-medium text-gray-900">Release Details</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Set your headline, summary, and schedule</p>
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Release Details</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Set your headline, summary, and schedule</p>
         </div>
           <div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="title">Headline <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+              <Label htmlFor="title">Headline <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
               <HelpTip title="Headline Tips" content={HELP_TEXT.headline} />
             </div>
             <Textarea
@@ -1203,7 +1203,7 @@ export function PRForm({
               rows={2}
               maxLength={180}
             />
-            <p className="mt-1 text-xs text-gray-600">
+            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
               {formData.title.length}/180 characters
               {formData.title.length > 60 && (
                 <span className="text-amber-600 ml-2">
@@ -1216,7 +1216,7 @@ export function PRForm({
 
           <div>
             <div className="flex justify-between items-center">
-              <Label htmlFor="abstract">Summary / Abstract <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+              <Label htmlFor="abstract">Summary / Abstract <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
               <HelpTip title="Abstract Tips" content={HELP_TEXT.abstract} />
             </div>
             <Textarea
@@ -1230,7 +1230,7 @@ export function PRForm({
               rows={3}
               maxLength={350}
             />
-            <p className="mt-1 text-xs text-gray-600">
+            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
               {formData.abstract.length}/350 characters
             </p>
           </div>
@@ -1256,7 +1256,7 @@ export function PRForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="location">Location (Dateline) <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+                <Label htmlFor="location">Location (Dateline) <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
                 <HelpTip title="Location Tips" content={HELP_TEXT.location} />
               </div>
               <Input
@@ -1271,7 +1271,7 @@ export function PRForm({
               />
             </div>
             <div>
-              <Label htmlFor="timezone">Timezone <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+              <Label htmlFor="timezone">Timezone <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
               <Select
                 id="timezone"
                 value={formData.timezone}
@@ -1292,7 +1292,7 @@ export function PRForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="releaseDate">Release Date <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+                <Label htmlFor="releaseDate">Release Date <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
                 <HelpTip
                   title="Release Date Tips"
                   content={HELP_TEXT.releaseDate}
@@ -1322,7 +1322,7 @@ export function PRForm({
               />
             </div>
             <div>
-              <Label htmlFor="releaseTime">Release Time <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+              <Label htmlFor="releaseTime">Release Time <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
               <Input
                 id="releaseTime"
                 type="time"
@@ -1347,20 +1347,20 @@ export function PRForm({
             </div>
           </div>
           {dateError && (
-            <p className="text-sm text-red-600 mt-1">{dateError}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 mt-1">{dateError}</p>
           )}
       </div>
 
       {/* Categories & Regions */}
       <div data-tour="pr-create-categories" className="p-6 space-y-5">
         <div>
-          <h3 className="font-medium text-gray-900">Categories & Regions</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Choose relevant topics and target markets</p>
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Categories & Regions</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Choose relevant topics and target markets</p>
         </div>
           {topCategories.length > 0 && (
             <div>
               <div className="flex justify-between items-center">
-                <Label htmlFor="topcat">Primary Category <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+                <Label htmlFor="topcat">Primary Category <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
                 <HelpTip title="Category Tips" content={HELP_TEXT.categories} />
               </div>
               <Select
@@ -1405,12 +1405,12 @@ export function PRForm({
       <div data-tour="pr-create-content" className="p-6 space-y-4">
         <div className="flex justify-between items-center">
           <div>
-            <h3 className="font-medium text-gray-900">Content <span className="text-xs font-normal text-gray-500">(Required)</span></h3>
-            <p className="text-sm text-gray-600 mt-0.5">Write or paste your press release body</p>
+            <h3 className="font-medium text-gray-900 dark:text-gray-100">Content <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Write or paste your press release body</p>
           </div>
           <HelpTip title="Content Tips" content={HELP_TEXT.body} />
         </div>
-          <p className="text-xs text-gray-600 mb-2">Minimum 200 words</p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Minimum 200 words</p>
           <Editor
             apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
             onInit={(evt, editor) => (editorRef.current = editor)}
@@ -1447,8 +1447,8 @@ export function PRForm({
       {/* Additional Links */}
       <div data-tour="pr-create-links" className="p-6 space-y-5">
         <div>
-          <h3 className="font-medium text-gray-900">Additional Links</h3>
-          <p className="text-sm text-gray-600 mt-0.5">Add video, landing page, or media kit URLs</p>
+          <h3 className="font-medium text-gray-900 dark:text-gray-100">Additional Links</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">Add video, landing page, or media kit URLs</p>
         </div>
           <div>
             <div className="flex justify-between items-center">
@@ -1465,7 +1465,7 @@ export function PRForm({
               placeholder="https://youtube.com/watch?v=..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               YouTube or other video URL
             </p>
           </div>
@@ -1488,7 +1488,7 @@ export function PRForm({
               placeholder="https://yourwebsite.com/campaign"
               className="mt-1"
             />
-            <p className="text-xs text-gray-600 mt-1">Must include https://</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Must include https://</p>
           </div>
 
           <div>
@@ -1506,7 +1506,7 @@ export function PRForm({
               placeholder="https://drive.google.com/..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
               Dropbox, Google Drive, or Box public URL
             </p>
           </div>
@@ -1532,15 +1532,15 @@ export function PRForm({
             {isLoadingSuggestions && (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-cyan-700 mb-4" />
-                <p className="text-gray-600">Analyzing your press release...</p>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-gray-600 dark:text-gray-400">Analyzing your press release...</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   Generating expert suggestions
                 </p>
               </div>
             )}
 
             {suggestionsError && (
-              <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+              <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <span>{suggestionsError}</span>
               </div>
@@ -1552,15 +1552,15 @@ export function PRForm({
                 <div className="space-y-6">
                   {/* Headline Suggestions */}
                   <div className="space-y-4">
-                    <h3 className="font-semibold text-gray-900">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                       Headline Suggestions
                     </h3>
 
-                    <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-1">
+                    <div className="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">
                         Current Headline
                       </p>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
                         {formData.title || "Untitled"}
                       </p>
                     </div>
@@ -1576,25 +1576,25 @@ export function PRForm({
                             });
                             setShowSuggestions(false);
                           }}
-                          className="p-4 border border-gray-200 rounded-lg hover:border-cyan-600 hover:bg-gray-50 transition-colors cursor-pointer"
+                          className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-cyan-600 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors cursor-pointer"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-cyan-800/10 p-2 rounded-full shrink-0">
+                            <div className="bg-cyan-800/10 dark:bg-cyan-400/10 p-2 rounded-full shrink-0">
                               <Lightbulb className="h-4 w-4 text-cyan-700" />
                             </div>
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium px-2 py-0.5 bg-cyan-800/10 text-cyan-800 rounded">
+                                <span className="text-xs font-medium px-2 py-0.5 bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400 rounded">
                                   {suggestion.strategy}
                                 </span>
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs text-gray-600 dark:text-gray-400">
                                   Click to use
                                 </span>
                               </div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
                                 {suggestion.headline}
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {suggestion.explanation}
                               </p>
                             </div>
@@ -1608,10 +1608,10 @@ export function PRForm({
                   {suggestedAbstract && !formData.abstract?.trim() && (
                     <div className="space-y-3 border-t pt-6">
                       <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           Suggested Abstract
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           No abstract provided. Here's a suggested summary for
                           your press release:
                         </p>
@@ -1626,22 +1626,22 @@ export function PRForm({
                           setSuggestedAbstract(null);
                           toast.success("Abstract applied to form");
                         }}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer"
+                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-green-400 hover:bg-green-50 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="bg-green-100 p-2 rounded-full shrink-0">
-                            <Lightbulb className="h-4 w-4 text-green-600" />
+                          <div className="bg-green-100 dark:bg-green-900/30 p-2 rounded-full shrink-0">
+                            <Lightbulb className="h-4 w-4 text-green-600 dark:text-green-400" />
                           </div>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 Click to use
                               </span>
-                              <span className="text-xs text-gray-600">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 ({suggestedAbstract.length}/350 chars)
                               </span>
                             </div>
-                            <p className="text-sm text-gray-900">
+                            <p className="text-sm text-gray-900 dark:text-gray-100">
                               {suggestedAbstract}
                             </p>
                           </div>
@@ -1654,10 +1654,10 @@ export function PRForm({
                   {suggestedPullquote && !formData.pullquote?.trim() && (
                     <div className="space-y-3 border-t pt-6">
                       <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           Suggested Notable Quote
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           No pullquote provided. Here's a suggested quote from
                           your content:
                         </p>
@@ -1672,19 +1672,19 @@ export function PRForm({
                           setSuggestedPullquote(null);
                           toast.success("Pullquote applied to form");
                         }}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer"
+                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="bg-purple-100 p-2 rounded-full shrink-0">
+                          <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full shrink-0">
                             <Lightbulb className="h-4 w-4 text-purple-600" />
                           </div>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-600">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">
                                 Click to use
                               </span>
                             </div>
-                            <p className="font-medium text-gray-900 italic">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 italic">
                               "{suggestedPullquote}"
                             </p>
                           </div>
@@ -1697,10 +1697,10 @@ export function PRForm({
                   {brandableChunks.length > 0 && (
                     <div className="space-y-4 border-t pt-6">
                       <div>
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           Brandable Chunks Analysis
                         </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           Content segments that search engines and AI will
                           likely extract for indexing
                         </p>
@@ -1710,49 +1710,49 @@ export function PRForm({
                         {brandableChunks.map((chunk, index) => (
                           <div
                             key={index}
-                            className="p-4 border border-gray-200 rounded-lg"
+                            className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
                           >
                             <div className="space-y-3">
                               <div className="flex items-center justify-between gap-3">
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                   Chunk {index + 1}
                                 </p>
                                 <span
                                   className={`text-xs font-medium px-2 py-1 rounded shrink-0 ${
                                     chunk.brandability === "High"
-                                      ? "bg-green-100 text-green-700"
+                                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                                       : chunk.brandability === "Medium"
-                                        ? "bg-amber-100 text-amber-700"
-                                        : "bg-red-100 text-red-700"
+                                        ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                                        : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                                   }`}
                                 >
                                   {chunk.brandability} Brandability
                                 </span>
                               </div>
 
-                              <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                                <p className="text-xs font-medium text-gray-600 mb-2">
+                              <div className="bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded p-3">
+                                <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                                   Content
                                 </p>
-                                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                                   {chunk.chunkContent}
                                 </p>
                               </div>
 
                               <div className="bg-amber-50 border border-amber-200 rounded p-3">
-                                <p className="text-xs font-medium text-amber-800 mb-1">
+                                <p className="text-xs font-medium text-amber-800 dark:text-amber-400 mb-1">
                                   Issue
                                 </p>
-                                <p className="text-sm text-amber-700">
+                                <p className="text-sm text-amber-700 dark:text-amber-400">
                                   {chunk.currentIssue}
                                 </p>
                               </div>
 
                               <div className="bg-green-50 border border-green-200 rounded p-3">
-                                <p className="text-xs font-medium text-green-800 mb-1">
+                                <p className="text-xs font-medium text-green-800 dark:text-green-400 mb-1">
                                   Recommendation
                                 </p>
-                                <p className="text-sm text-green-700">
+                                <p className="text-sm text-green-700 dark:text-green-400">
                                   {chunk.recommendation}
                                 </p>
                               </div>
@@ -1763,7 +1763,7 @@ export function PRForm({
                     </div>
                   )}
 
-                  <p className="text-xs text-gray-600 text-center pt-2">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 text-center pt-2">
                     These suggestions are AI-generated. Review and adapt them to
                     fit your brand voice and messaging goals.
                   </p>
@@ -1780,26 +1780,26 @@ export function PRForm({
           onClick={() => setShowContactModal(false)}
         >
           <div
-            className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4"
+            className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <h3 className="font-semibold text-lg text-gray-900">Add New Contact</h3>
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">Add New Contact</h3>
               <button
                 onClick={() => setShowContactModal(false)}
-                className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <div className="p-4 space-y-4">
               {contactError && (
-                <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-2 rounded">
                   {contactError}
                 </div>
               )}
               <div>
-                <Label htmlFor="contactName">Contact Name <span className="text-xs font-normal text-gray-500">(Required)</span></Label>
+                <Label htmlFor="contactName">Contact Name <span className="text-xs font-normal text-gray-500 dark:text-gray-400">(Required)</span></Label>
                 <Input
                   id="contactName"
                   value={contactForm.name}
@@ -1853,7 +1853,7 @@ export function PRForm({
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 p-4 border-t border-gray-100">
+            <div className="flex justify-end gap-2 p-4 border-t border-gray-100 dark:border-gray-800">
               <Button
                 type="button"
                 variant="outline"
@@ -1869,7 +1869,7 @@ export function PRForm({
                 type="button"
                 onClick={handleCreateContact}
                 disabled={savingContact}
-                className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {savingContact ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -1890,13 +1890,13 @@ export function PRForm({
       <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: previewWidth }}>
         <div data-tour="pr-create-preview" className="sticky top-0 h-screen flex">
           <ResizeHandle onResize={handlePreviewResize} />
-          <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-medium text-gray-900">Live Preview</h3>
-              <p className="text-xs text-gray-600 mt-0.5">See how your press release will appear once published</p>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Live Preview</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">See how your press release will appear once published</p>
             </div>
-            <div className="inline-flex items-center rounded-md border border-gray-300 bg-white shrink-0">
+            <div className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0">
               {([
                 { mode: 'desktop' as const, icon: Monitor, label: 'Desktop' },
                 { mode: 'tablet' as const, icon: Tablet, label: 'Tablet' },
@@ -1910,10 +1910,10 @@ export function PRForm({
                     'inline-flex items-center px-2 py-1.5 cursor-pointer transition-colors',
                     i === 0 && 'rounded-l-md',
                     i === 2 && 'rounded-r-md',
-                    i > 0 && 'border-l border-gray-300',
+                    i > 0 && 'border-l border-gray-300 dark:border-gray-700',
                     previewDevice === mode
-                      ? 'bg-cyan-800/10 text-cyan-800'
-                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                      ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400'
+                      : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />

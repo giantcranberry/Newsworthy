@@ -56,25 +56,25 @@ function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white sm:bg-gradient-to-br sm:from-slate-50 sm:to-slate-100">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 sm:bg-gradient-to-br sm:from-slate-50 sm:to-slate-100 dark:sm:from-gray-950 dark:sm:to-gray-900">
       <div className="flex-1 flex flex-col sm:items-center sm:justify-center px-6 py-8 sm:py-12">
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-6">
-          <Image src="/logo.svg" alt="Newsworthy" width={260} height={49} priority />
+          <Image src="/logo.svg" alt="Newsworthy" width={260} height={49} priority className="dark:brightness-0 dark:invert" />
         </div>
 
         {/* Card */}
-        <div className="w-full sm:max-w-md sm:bg-white sm:rounded-2xl sm:shadow-xl sm:border sm:border-slate-200 sm:p-8">
+        <div className="w-full sm:max-w-md sm:bg-white dark:bg-gray-900 sm:rounded-2xl sm:shadow-xl sm:border sm:border-slate-200 dark:border-gray-800 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8 sm:mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Create your account</h1>
-            <p className="mt-2 text-base sm:text-sm text-gray-500">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Create your account</h1>
+            <p className="mt-2 text-base sm:text-sm text-gray-500 dark:text-gray-400">
               Get started with Newsworthy
             </p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:text-red-400 text-sm">
               {error}
             </div>
           )}
@@ -86,14 +86,14 @@ function RegisterForm() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-medium text-gray-900">Check your email</h3>
-              <p className="mt-2 text-sm text-gray-500">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Check your email</h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 We sent a verification link to <strong>{email}</strong>
               </p>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Click the link to verify your account and get started.
               </p>
-              <Link href="/login" className="mt-6 inline-block text-sm font-semibold text-cyan-800 hover:text-cyan-900">
+              <Link href="/login" className="mt-6 inline-block text-sm font-semibold text-cyan-800 dark:text-cyan-400 hover:text-cyan-900 dark:hover:text-cyan-300">
                 Back to sign in
               </Link>
             </div>
@@ -102,7 +102,7 @@ function RegisterForm() {
               <form onSubmit={handleRegister} className="space-y-5">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       First Name
                     </Label>
                     <div className="relative">
@@ -114,12 +114,12 @@ function RegisterForm() {
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="First"
                         required
-                        className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 focus:border-cyan-600 focus:ring-cyan-600"
+                        className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Last Name
                     </Label>
                     <Input
@@ -128,13 +128,13 @@ function RegisterForm() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Last"
-                      className="h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 focus:border-cyan-600 focus:ring-cyan-600"
+                      className="h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Email Address
                   </Label>
                   <div className="relative">
@@ -146,13 +146,13 @@ function RegisterForm() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
-                      className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 focus:border-cyan-600 focus:ring-cyan-600"
+                      className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Password
                   </Label>
                   <div className="relative">
@@ -165,12 +165,12 @@ function RegisterForm() {
                       placeholder="At least 8 characters"
                       required
                       minLength={8}
-                      className="pl-12 sm:pl-10 pr-12 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 focus:border-cyan-600 focus:ring-cyan-600"
+                      className="pl-12 sm:pl-10 pr-12 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
                       tabIndex={-1}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
@@ -185,7 +185,7 @@ function RegisterForm() {
 
                 <Button
                   type="submit"
-                  className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 text-white hover:bg-cyan-900 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
+                  className="w-full h-14 sm:h-11 text-base sm:text-sm font-semibold bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 rounded-xl sm:rounded-lg transition-colors cursor-pointer"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -201,10 +201,10 @@ function RegisterForm() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
+                  <div className="w-full border-t border-gray-200 dark:border-gray-800" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-gray-500">Or sign up with</span>
+                  <span className="bg-white dark:bg-gray-900 px-2 text-gray-500 dark:text-gray-400">Or sign up with</span>
                 </div>
               </div>
 
@@ -212,7 +212,7 @@ function RegisterForm() {
                 <Button
                   variant="outline"
                   onClick={() => handleOAuthLogin('google')}
-                  className="w-full h-12 sm:h-10 rounded-xl sm:rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  className="w-full h-12 sm:h-10 rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer"
                 >
                   <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <path
@@ -237,7 +237,7 @@ function RegisterForm() {
                 <Button
                   variant="outline"
                   onClick={() => handleOAuthLogin('linkedin')}
-                  className="w-full h-12 sm:h-10 rounded-xl sm:rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer"
+                  className="w-full h-12 sm:h-10 rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer"
                 >
                   <svg className="h-5 w-5 mr-2" fill="#0A66C2" viewBox="0 0 24 24">
                     <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
@@ -246,9 +246,9 @@ function RegisterForm() {
                 </Button>
               </div>
 
-              <p className="mt-8 sm:mt-6 text-center text-base sm:text-sm text-gray-500">
+              <p className="mt-8 sm:mt-6 text-center text-base sm:text-sm text-gray-500 dark:text-gray-400">
                 Already have an account?{' '}
-                <Link href="/login" className="font-semibold text-cyan-800 hover:text-cyan-900">
+                <Link href="/login" className="font-semibold text-cyan-800 dark:text-cyan-400 hover:text-cyan-900 dark:hover:text-cyan-300">
                   Sign in
                 </Link>
               </p>

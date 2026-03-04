@@ -161,21 +161,21 @@ export function ReviewForm({
     <>
       {/* Header */}
       <div className="space-y-3">
-        <Link href="/editorial/queue" className="inline-flex items-center text-sm text-cyan-800 hover:text-cyan-900 font-medium">
+        <Link href="/editorial/queue" className="inline-flex items-center text-sm text-cyan-800 dark:text-cyan-400 hover:text-cyan-900 dark:hover:text-cyan-300 font-medium">
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Queue
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">Review Release</h1>
-            <p className="text-gray-500">#{release.id}</p>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Review Release</h1>
+            <p className="text-gray-500 dark:text-gray-400">#{release.id}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link href={`/editorial/edit/${release.id}`}>
               <Button variant="outline">Edit Release</Button>
             </Link>
             {!isCheckedOut && !isCheckedOutByOther && (
-              <Button onClick={handleCheckout} className="bg-cyan-800 text-white hover:bg-cyan-900">
+              <Button onClick={handleCheckout} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
                 Check Out for Review
               </Button>
             )}
@@ -185,7 +185,7 @@ export function ReviewForm({
               </span>
             )}
             {isCheckedOut && (
-              <span className="text-sm text-green-700 font-medium">
+              <span className="text-sm text-green-700 dark:text-green-400 font-medium">
                 Checked out by you
               </span>
             )}
@@ -201,49 +201,49 @@ export function ReviewForm({
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <Building2 className="h-3.5 w-3.5" />
                 Company
               </div>
-              <p className="text-sm font-medium text-gray-700">{company.companyName}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{company.companyName}</p>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <User className="h-3.5 w-3.5" />
                 Author
               </div>
-              <p className="text-sm font-medium text-gray-700">{user.email}</p>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.email}</p>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <Calendar className="h-3.5 w-3.5" />
                 Submitted
               </div>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {queue.submitted ? new Date(queue.submitted).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <Calendar className="h-3.5 w-3.5" />
                 Release Date
               </div>
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {release.releaseAt ? new Date(release.releaseAt).toLocaleDateString() : 'Immediate'}
               </p>
             </div>
           </div>
           {(categoryNames.length > 0 || regionNames.length > 0) && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
               {categoryNames.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                     <Tag className="h-3.5 w-3.5" />
                     Categories
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {categoryNames.map((name) => (
-                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
                         {name}
                       </span>
                     ))}
@@ -252,13 +252,13 @@ export function ReviewForm({
               )}
               {regionNames.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                     <MapPin className="h-3.5 w-3.5" />
                     Regions
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {regionNames.map((name) => (
-                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                      <span key={name} className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
                         {name}
                       </span>
                     ))}
@@ -278,9 +278,9 @@ export function ReviewForm({
           </CardHeader>
           <CardContent className="space-y-3">
             {releaseNotes.map((rn) => (
-              <div key={rn.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-                <p className="text-sm text-gray-700">{rn.note}</p>
-                <p className="text-xs text-gray-500 mt-1">
+              <div key={rn.id} className="border-b border-gray-100 dark:border-gray-800 pb-3 last:border-0 last:pb-0">
+                <p className="text-sm text-gray-700 dark:text-gray-300">{rn.note}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {rn.fromName} &mdash; {rn.createdAt ? new Date(rn.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}
                 </p>
               </div>
@@ -294,17 +294,17 @@ export function ReviewForm({
         <CardHeader>
           <CardTitle>{release.title || 'Untitled Release'}</CardTitle>
           {release.abstract && (
-            <CardDescription className="text-base text-gray-700">{release.abstract}</CardDescription>
+            <CardDescription className="text-base text-gray-700 dark:text-gray-300">{release.abstract}</CardDescription>
           )}
         </CardHeader>
         <CardContent>
           {release.body ? (
             <div
-              className="prose prose-sm prose-gray max-w-none prose-a:text-cyan-800"
+              className="prose prose-sm prose-gray max-w-none prose-a:text-cyan-800 dark:text-cyan-400"
               dangerouslySetInnerHTML={{ __html: release.body }}
             />
           ) : (
-            <p className="text-gray-500 italic">No content</p>
+            <p className="text-gray-500 dark:text-gray-400 italic">No content</p>
           )}
         </CardContent>
       </Card>
@@ -326,7 +326,7 @@ export function ReviewForm({
                     id="score"
                     value={score}
                     onChange={(e) => setScore(e.target.value)}
-                    className="mt-1 w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                    className="mt-1 w-full h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
                   >
                     <option value="5">5 - Exceptional</option>
                     <option value="4">4 - Average</option>
@@ -340,7 +340,7 @@ export function ReviewForm({
                     id="distribution"
                     value={distribution}
                     onChange={(e) => setDistribution(e.target.value)}
-                    className="mt-1 w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                    className="mt-1 w-full h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
                   >
                     <option value="standard">Standard</option>
                     <option value="yahoo">Yahoo</option>
@@ -353,9 +353,9 @@ export function ReviewForm({
                       type="checkbox"
                       checked={feature}
                       onChange={(e) => setFeature(e.target.checked)}
-                      className="rounded border-gray-300 text-cyan-800 focus:ring-cyan-700"
+                      className="rounded border-gray-300 dark:border-gray-700 text-cyan-800 dark:text-cyan-400 focus:ring-cyan-700"
                     />
-                    <span className="text-sm text-gray-700">Feature Release</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Feature Release</span>
                   </label>
                 </div>
               </div>
@@ -367,7 +367,7 @@ export function ReviewForm({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add notes for the author or internal reference..."
-                  className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm text-gray-700 placeholder:text-gray-400"
+                  className="mt-1 w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
 
@@ -437,7 +437,7 @@ export function ReviewForm({
                   </Button>
                 )}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 <strong>Hold:</strong> Places the release on editorial hold (requires notes). <strong>Reject:</strong> Returns to draft status. <strong>Disown:</strong> Removes your checkout so another editor can claim it.
               </p>
             </CardContent>

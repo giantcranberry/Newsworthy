@@ -46,13 +46,13 @@ function extractPrId(input: string): string {
 }
 
 const statusColors: Record<string, string> = {
-  sent: 'bg-green-100 text-green-800',
-  review: 'bg-yellow-100 text-yellow-800',
-  approved: 'bg-blue-100 text-blue-800',
-  hold: 'bg-amber-100 text-amber-800',
-  draft: 'bg-gray-100 text-gray-800',
-  draftnxt: 'bg-gray-100 text-gray-800',
-  start: 'bg-gray-100 text-gray-800',
+  sent: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400',
+  review: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400',
+  approved: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400',
+  hold: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400',
+  draft: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
+  draftnxt: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
+  start: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
 }
 
 const statusLabels: Record<string, string> = {
@@ -204,7 +204,7 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
           </div>
           <Button
             type="submit"
-            className="bg-cyan-800 text-white hover:bg-cyan-900"
+            className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             disabled={loading || !input.trim()}
           >
             {loading ? 'Looking up...' : 'Lookup'}
@@ -212,34 +212,34 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
         </form>
 
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         )}
 
         {result && (
           <div className="space-y-3 pt-2">
             {/* Release Info */}
-            <div className="rounded-lg border border-gray-200 p-4">
+            <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-3 min-w-0">
                   <div className="h-9 w-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <FileText className="h-4 w-4 text-green-700" />
+                    <FileText className="h-4 w-4 text-green-700 dark:text-green-400" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                       {result.release.title || 'Untitled'}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-gray-500">ID: {result.release.id}</span>
-                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[result.release.status] || 'bg-gray-100 text-gray-800'}`}>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">ID: {result.release.id}</span>
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusColors[result.release.status] || 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'}`}>
                         {statusLabels[result.release.status] || result.release.status}
                       </span>
                       {result.release.distribution && (
-                        <span className="inline-flex items-center rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                        <span className="inline-flex items-center rounded-full bg-cyan-50 dark:bg-cyan-900/30 px-2 py-0.5 text-xs font-medium text-cyan-700">
                           {result.release.distribution}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                       {result.release.createdAt && (
                         <span>Created: {new Date(result.release.createdAt).toLocaleDateString()}</span>
                       )}
@@ -291,25 +291,25 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
 
             {/* User Info */}
             {result.user && (
-              <div className="rounded-lg border border-gray-200 p-4">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                      <User className="h-4 w-4 text-blue-700" />
+                      <User className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {result.user.firstName || result.user.lastName
                           ? [result.user.firstName, result.user.lastName].filter(Boolean).join(' ')
                           : result.user.email}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {result.user.firstName || result.user.lastName ? result.user.email : `User ID: ${result.user.id}`}
                       </p>
                       <div className="flex gap-1 mt-1">
-                        {result.user.isAdmin && <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">Admin</span>}
-                        {result.user.isEditor && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">Editor</span>}
-                        {result.user.isStaff && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-medium">Staff</span>}
+                        {result.user.isAdmin && <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-[10px] font-medium">Admin</span>}
+                        {result.user.isEditor && <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-[10px] font-medium">Editor</span>}
+                        {result.user.isStaff && <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-[10px] font-medium">Staff</span>}
                       </div>
                     </div>
                   </div>
@@ -325,23 +325,23 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
 
             {/* Brand Info */}
             {result.brand && (
-              <div className="rounded-lg border border-gray-200 p-4">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
                     {result.brand.logoUrl ? (
                       <img
                         src={result.brand.logoUrl.includes('RESIZE') ? result.brand.logoUrl.replace('RESIZE', 'resize=width:200') : result.brand.logoUrl}
                         alt={result.brand.companyName}
-                        className="h-9 w-9 rounded-lg object-contain bg-gray-50 flex-shrink-0"
+                        className="h-9 w-9 rounded-lg object-contain bg-gray-50 dark:bg-gray-950 flex-shrink-0"
                       />
                     ) : (
                       <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                        <Building2 className="h-4 w-4 text-purple-700" />
+                        <Building2 className="h-4 w-4 text-purple-700 dark:text-purple-400" />
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{result.brand.companyName}</p>
-                      <p className="text-xs text-gray-500">Brand ID: {result.brand.id}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.brand.companyName}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Brand ID: {result.brand.id}</p>
                     </div>
                   </div>
                   <Link href={`/admin/brands/${result.brand.uuid}`}>
@@ -358,17 +358,17 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
             {isAdmin && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <ArrowUpCircle className="h-4 w-4 text-amber-700" />
+                  <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ArrowUpCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-amber-900">Change Distribution</p>
-                    <p className="text-xs text-amber-700 mt-0.5">
+                    <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                       Current: <span className="font-medium">{result.release.distribution || 'none'}</span>
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       <SelectRoot value={upgradeTarget} onValueChange={setUpgradeTarget}>
-                        <SelectTrigger className="w-48 h-8 text-xs bg-white">
+                        <SelectTrigger className="w-48 h-8 text-xs bg-white dark:bg-gray-900">
                           <SelectValue placeholder="Select distribution" />
                         </SelectTrigger>
                         <SelectContent>
@@ -394,7 +394,7 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                       </Button>
                     </div>
                     {upgradeSuccess && (
-                      <p className="text-xs text-green-700 mt-2 font-medium">{upgradeSuccess}</p>
+                      <p className="text-xs text-green-700 dark:text-green-400 mt-2 font-medium">{upgradeSuccess}</p>
                     )}
                   </div>
                 </div>
@@ -405,8 +405,8 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
             {isAdmin && ['enhanced', 'yahoo'].includes(result.release.distribution || '') && (
               <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <LinkIcon className="h-4 w-4 text-blue-700" />
+                  <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <LinkIcon className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-blue-900">Report URL</p>
@@ -416,14 +416,14 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                           href={result.reportUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-blue-700 underline break-all"
+                          className="text-xs text-blue-700 dark:text-blue-400 underline break-all"
                         >
                           {result.reportUrl}
                         </a>
-                        <p className="text-xs text-blue-600 mt-2 mb-1">Replace with a new URL:</p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 mb-1">Replace with a new URL:</p>
                       </div>
                     ) : (
-                      <p className="text-xs text-blue-700 mt-0.5 mb-1">No report URL set</p>
+                      <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5 mb-1">No report URL set</p>
                     )}
                     <div className="flex items-center gap-2">
                       <Input
@@ -431,7 +431,7 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                         placeholder="Enter report URL"
                         value={reportUrlInput}
                         onChange={(e) => setReportUrlInput(e.target.value)}
-                        className="flex-1 h-8 text-xs bg-white"
+                        className="flex-1 h-8 text-xs bg-white dark:bg-gray-900"
                       />
                       <Button
                         size="sm"
@@ -443,7 +443,7 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                       </Button>
                     </div>
                     {reportUrlMessage && (
-                      <p className={`text-xs mt-2 font-medium ${reportUrlMessage.includes('saved') ? 'text-green-700' : 'text-red-700'}`}>
+                      <p className={`text-xs mt-2 font-medium ${reportUrlMessage.includes('saved') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                         {reportUrlMessage}
                       </p>
                     )}

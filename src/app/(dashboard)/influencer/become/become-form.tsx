@@ -75,7 +75,7 @@ export function BecomeInfluencerForm({ userEmail }: BecomeInfluencerFormProps) {
               value={formData.bio}
               onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
               placeholder="Tell potential clients about your background and expertise"
-              className="mt-1 w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="mt-1 w-full h-32 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm dark:shadow-gray-900/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
             />
           </div>
 
@@ -101,7 +101,7 @@ export function BecomeInfluencerForm({ userEmail }: BecomeInfluencerFormProps) {
               placeholder="Optional alternative email for business inquiries"
               className="mt-1"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Your primary email is: {userEmail}
             </p>
           </div>

@@ -60,8 +60,8 @@ const CREDIT_LABELS: { key: keyof CreditsByType; label: string }[] = [
 function CreditRow({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-center justify-between py-2">
-      <span className="text-sm text-gray-600">{label}</span>
-      <Badge variant={count > 0 ? 'default' : 'secondary'} className={count > 0 ? 'bg-cyan-800' : ''}>
+      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+      <Badge variant={count > 0 ? 'default' : 'secondary'} className={count > 0 ? 'bg-cyan-800 dark:bg-cyan-600' : ''}>
         {count}
       </Badge>
     </div>
@@ -139,8 +139,8 @@ export function ManageCreditsContent({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Credits</h1>
-          <p className="text-gray-600">View your credit balances and allocate credits to brands.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Manage Credits</h1>
+          <p className="text-gray-600 dark:text-gray-400">View your credit balances and allocate credits to brands.</p>
         </div>
         <div className="flex items-center gap-3">
           {hasPersonalCredits && companies.length > 0 && (
@@ -154,7 +154,7 @@ export function ManageCreditsContent({
             </Button>
           )}
           <Link href="/payment/paygo">
-            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
               <FaIcon icon={faCoins} className="h-4 w-4" />
               Purchase Credits
             </Button>
@@ -189,7 +189,7 @@ export function ManageCreditsContent({
       {/* Per-brand Credits */}
       {allCredits.brands.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900">Brand Credits</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Brand Credits</h2>
           <div className="grid gap-4 md:grid-cols-2">
             {allCredits.brands.map((brand) => (
               <Card key={brand.companyId}>
@@ -217,7 +217,7 @@ export function ManageCreditsContent({
         <Card>
           <CardContent className="py-8 text-center">
             <Building2 className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               No credits allocated to brands yet.
               {hasPersonalCredits && companies.length > 0 && ' Use the "Allocate to Brand" button to assign credits.'}
             </p>
@@ -237,7 +237,7 @@ export function ManageCreditsContent({
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Credit Type</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Credit Type</label>
               <SelectRoot
                 value={selectedType}
                 onValueChange={(v) => {
@@ -260,7 +260,7 @@ export function ManageCreditsContent({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">Brand</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Brand</label>
               <SelectRoot
                 value={selectedCompany}
                 onValueChange={(v) => {
@@ -282,7 +282,7 @@ export function ManageCreditsContent({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Amount {selectedType && `(max ${maxAmount})`}
               </label>
               <Input
@@ -298,7 +298,7 @@ export function ManageCreditsContent({
               />
             </div>
 
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
           </div>
 
           <DialogFooter>
@@ -312,7 +312,7 @@ export function ManageCreditsContent({
             <Button
               onClick={handleAllocate}
               disabled={!selectedType || !selectedCompany || !amount || isSubmitting}
-              className="bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
             >
               {isSubmitting ? 'Allocating...' : 'Allocate Credits'}
             </Button>

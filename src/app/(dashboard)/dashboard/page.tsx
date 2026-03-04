@@ -25,8 +25,12 @@ import { faNewspaper } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faBuilding } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faClipboardCheck } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faChartBar } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
+import { faEye } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
+import { faBullseye } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { CreditsCard } from "./credits-card";
 import { PendingInvites } from "./pending-invites";
+import { getClipsTotalStats } from "@/services/report";
+import { EngagementChart } from "./engagement-chart";
 
 interface CreditsByType {
   pr: number
@@ -204,9 +208,11 @@ async function getDashboardData(userId: number) {
     ),
   });
 
+  const sentReleases = allReleases.filter((r) => r.status === "sent");
+
   const stats = {
     total: allReleases.length,
-    published: allReleases.filter((r) => r.status === "sent").length,
+    published: sentReleases.length,
     drafts: allReleases.filter(
       (r) =>
         r.status === "draftnxt" || r.status === "draft" || r.status === "start",
@@ -214,12 +220,43 @@ async function getDashboardData(userId: number) {
     inReview: allReleases.filter((r) => r.status === "review").length,
   };
 
+  // Fetch engagement stats from OpenSearch
+  let totalPageviews = 0;
+  let totalShares = 0;
+  let lifetimeEcpc: string | null = null;
+
+  const prhashIds = sentReleases
+    .map((r) => r.prhashId)
+    .filter((id): id is string => !!id);
+
+  if (prhashIds.length > 0) {
+    try {
+      const { pageviews, shares } = await getClipsTotalStats(prhashIds);
+      totalPageviews = Object.values(pageviews).reduce((sum, v) => sum + v, 0);
+      totalShares = Object.values(shares).reduce((sum, v) => sum + v, 0);
+
+      const totalEngagement = totalPageviews + totalShares;
+      if (totalEngagement > 0) {
+        const cost = sentReleases.length * 129;
+        lifetimeEcpc = (Math.floor((cost / totalEngagement) * 100) / 100).toFixed(2);
+      }
+    } catch (err) {
+      console.error("Dashboard engagement stats error:", err);
+    }
+  }
+
   return {
     releases: userReleases,
     companies: userCompanies,
     subscription,
     allCredits,
     stats,
+    engagement: {
+      pageviews: totalPageviews,
+      shares: totalShares,
+      total: totalPageviews + totalShares,
+      lifetimeEcpc,
+    },
   };
 }
 
@@ -227,7 +264,7 @@ export default async function DashboardPage() {
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
 
-  const { releases, companies, subscription, allCredits, stats } =
+  const { releases, companies, subscription, allCredits, stats, engagement } =
     await getDashboardData(userId);
 
   const userEmail = session?.user?.email?.toLowerCase() || '';
@@ -253,14 +290,14 @@ export default async function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+          <p className="text-gray-600 dark:text-gray-400">
             Welcome back! Here&apos;s what&apos;s happening.
           </p>
         </div>
         {canCreate && (
           <Link href="/pr/create">
-            <Button className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
               <Plus className="h-4 w-4" />
               New Release
             </Button>
@@ -269,18 +306,18 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div data-tour="dashboard-stats" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+      <div data-tour="dashboard-stats" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <Link href="/pr" data-tour="dashboard-stat-releases">
-          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+          <Card className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Total Releases
               </CardTitle>
               <FaIcon icon={faNewspaper} className="h-6 w-6 text-cyan-700" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.total}</div>
-              <p className="text-xs text-gray-600">
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {stats.published} published, {stats.drafts} drafts
               </p>
             </CardContent>
@@ -288,16 +325,16 @@ export default async function DashboardPage() {
         </Link>
 
         <Link href="/company" data-tour="dashboard-stat-brands">
-          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+          <Card className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 Brands
               </CardTitle>
               <FaIcon icon={faFlag} className="h-6 w-6 text-indigo-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{companies.length}</div>
-              <p className="text-xs text-gray-600">Active brand profiles</p>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{companies.length}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Active brand profiles</p>
             </CardContent>
           </Card>
         </Link>
@@ -307,20 +344,59 @@ export default async function DashboardPage() {
         </div>
 
         <Link href="/pr?filter=review" data-tour="dashboard-stat-review">
-          <Card className="transition-colors hover:bg-gray-50 cursor-pointer h-full">
+          <Card className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer h-full">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                 In Review
               </CardTitle>
               <FaIcon icon={faClipboardCheck} className="h-6 w-6 text-rose-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900">{stats.inReview}</div>
-              <p className="text-xs text-gray-600">Pending editorial review</p>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.inReview}</div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Pending editorial review</p>
             </CardContent>
           </Card>
         </Link>
+
+        <Link href="/pr/reports">
+          <Card className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer h-full">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Engagement
+              </CardTitle>
+              <FaIcon icon={faEye} className="h-6 w-6 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {engagement.total.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {engagement.pageviews.toLocaleString()} views, {engagement.shares.toLocaleString()} shares
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Card className="dark:bg-gray-950 h-full">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Lifetime eCPC*
+            </CardTitle>
+            <FaIcon icon={faBullseye} className="h-6 w-6 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {engagement.lifetimeEcpc ? `$${engagement.lifetimeEcpc}` : 'N/A'}
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400" title="Assumes standard distribution rate of $129 per release. Calculated on trackable engagement numbers.">
+              Cost per engagement
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Engagement Chart */}
+      {stats.published > 0 && <EngagementChart />}
 
       {/* Quick Actions */}
       {!canCreate && <div data-tour="dashboard-empty" className="hidden" />}
@@ -335,7 +411,7 @@ export default async function DashboardPage() {
               <Link
                 href="/pr/create"
                 data-tour="dashboard-action-new-release"
-                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 p-3 sm:p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
+                className="flex flex-col items-center justify-center gap-2 sm:gap-3 rounded-xl border border-cyan-700 bg-cyan-800/10 dark:bg-cyan-400/10 p-3 sm:p-4 text-center transition-colors hover:bg-cyan-800/20 cursor-pointer"
               >
                 <FaIcon icon={faFilePlus} className="h-6 w-6 sm:h-8 sm:w-8 text-cyan-700" />
                 <span className="text-sm font-semibold text-cyan-700">New Release</span>
@@ -377,7 +453,7 @@ export default async function DashboardPage() {
               <CardTitle className="text-base sm:text-lg">Recent Releases</CardTitle>
               <Link
                 href="/pr"
-                className="text-sm text-cyan-800 hover:underline cursor-pointer"
+                className="text-sm text-cyan-800 dark:text-cyan-400 hover:underline cursor-pointer"
               >
                 View all
               </Link>
@@ -388,7 +464,7 @@ export default async function DashboardPage() {
             {releases.length === 0 ? (
               <div className="py-8 text-center">
                 <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <p className="mt-2 text-sm text-gray-600">No releases yet</p>
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">No releases yet</p>
                 {canCreate && (
                   <Link href="/pr/create">
                     <Button variant="outline" size="sm" className="mt-4">
@@ -403,26 +479,26 @@ export default async function DashboardPage() {
                   <Link
                     key={release.id}
                     href={`/pr/${release.uuid}`}
-                    className="block rounded-lg border p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="block rounded-lg border p-3 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors cursor-pointer"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                        <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                           {release.title || "Untitled"}
                         </h4>
-                        <p className="text-xs text-gray-600 truncate">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                           {release.company?.companyName}
                         </p>
                       </div>
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
                           release.status === "sent"
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
                             : release.status === "review"
-                              ? "bg-yellow-100 text-yellow-800"
+                              ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400"
                               : release.status === "approved"
-                                ? "bg-blue-100 text-blue-800"
-                                : "bg-gray-100 text-gray-800"
+                                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                         }`}
                       >
                         {release.status === "sent"
@@ -448,7 +524,7 @@ export default async function DashboardPage() {
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-base sm:text-lg">Your Brands</CardTitle>
                 <Link href="/company">
-                  <Button variant="outline" size="sm" className="cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-200 hover:text-gray-900 text-xs sm:text-sm">
+                  <Button variant="outline" size="sm" className="cursor-pointer border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 dark:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 text-xs sm:text-sm">
                     Manage Brands
                   </Button>
                 </Link>
@@ -460,7 +536,7 @@ export default async function DashboardPage() {
                   <Link
                     key={co.id}
                     href={`/company/${co.uuid}`}
-                    className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/50 p-3 transition-colors hover:bg-gray-100 cursor-pointer sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:p-4 sm:text-center"
+                    className="flex items-center gap-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/50 p-3 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 cursor-pointer sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:p-4 sm:text-center"
                   >
                     {co.logoUrl ? (
                       <img
@@ -469,15 +545,15 @@ export default async function DashboardPage() {
                         className="h-10 w-10 rounded-full object-cover shrink-0 sm:h-12 sm:w-12"
                       />
                     ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 shrink-0 sm:h-12 sm:w-12">
-                        <FaIcon icon={faFlag} className="h-5 w-5 text-gray-500 sm:h-6 sm:w-6" />
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 sm:h-12 sm:w-12">
+                        <FaIcon icon={faFlag} className="h-5 w-5 text-gray-500 dark:text-gray-400 sm:h-6 sm:w-6" />
                       </div>
                     )}
                     <div className="min-w-0 flex-1 sm:w-full sm:flex-initial">
-                      <p className="text-sm font-semibold text-gray-900 truncate">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {co.companyName}
                       </p>
-                      <p className="text-xs text-gray-600 truncate">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
                         {co.website || "No website"}
                       </p>
                     </div>

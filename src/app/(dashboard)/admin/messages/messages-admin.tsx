@@ -108,12 +108,12 @@ export function MessagesAdmin() {
 
   const getStatusBadge = (msg: GlobalMessage) => {
     if (!msg.isActive) {
-      return <Badge className="bg-gray-100 text-gray-700">Inactive</Badge>
+      return <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">Inactive</Badge>
     }
     if (msg.expiresAt && new Date(msg.expiresAt) < new Date()) {
-      return <Badge className="bg-amber-100 text-amber-700">Expired</Badge>
+      return <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Expired</Badge>
     }
-    return <Badge className="bg-green-100 text-green-700">Active</Badge>
+    return <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Active</Badge>
   }
 
   if (isLoading) {
@@ -130,7 +130,7 @@ export function MessagesAdmin() {
         <button
           onClick={() => setActiveTab('global')}
           className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            activeTab === 'global' ? 'bg-cyan-800/10 text-cyan-800' : 'text-gray-700 hover:bg-gray-100'
+            activeTab === 'global' ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
           }`}
         >
           <Globe className="h-4 w-4" />
@@ -139,7 +139,7 @@ export function MessagesAdmin() {
         <button
           onClick={() => setActiveTab('sent')}
           className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-            activeTab === 'sent' ? 'bg-cyan-800/10 text-cyan-800' : 'text-gray-700 hover:bg-gray-100'
+            activeTab === 'sent' ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
           }`}
         >
           <Send className="h-4 w-4" />
@@ -153,7 +153,7 @@ export function MessagesAdmin() {
             <Button
               data-tour="messages-create-global"
               onClick={() => { setEditingMessage(null); setGlobalDialogOpen(true) }}
-              className="gap-2 bg-cyan-800 hover:bg-cyan-900 text-white"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white"
             >
               <Plus className="h-4 w-4" />
               Create Global Message
@@ -162,7 +162,7 @@ export function MessagesAdmin() {
 
           {globals.length === 0 ? (
             <Card data-tour="messages-global-empty">
-              <CardContent className="p-8 text-center text-gray-500">
+              <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
                 No global messages yet. Create one to broadcast to all users.
               </CardContent>
             </Card>
@@ -175,9 +175,9 @@ export function MessagesAdmin() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           {getStatusBadge(msg)}
-                          <h3 className="font-medium text-gray-900 truncate">{msg.subject}</h3>
+                          <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">{msg.subject}</h3>
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           Created {new Date(msg.createdAt).toLocaleDateString()}
                           {msg.expiresAt && (
                             <> &middot; Expires {new Date(msg.expiresAt).toLocaleDateString()}</>
@@ -199,7 +199,7 @@ export function MessagesAdmin() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleDeactivate(msg.id)}
-                            className="gap-1 text-red-600 hover:text-red-700"
+                            className="gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                           >
                             <XCircle className="h-3 w-3" />
                             Deactivate
@@ -209,7 +209,7 @@ export function MessagesAdmin() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleReactivate(msg.id)}
-                            className="gap-1 text-green-600 hover:text-green-700"
+                            className="gap-1 text-green-600 dark:text-green-400 hover:text-green-700 dark:text-green-400"
                           >
                             Reactivate
                           </Button>
@@ -218,7 +218,7 @@ export function MessagesAdmin() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteGlobal(msg.id)}
-                          className="gap-1 text-red-600 hover:text-red-700"
+                          className="gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                         >
                           <Trash2 className="h-3 w-3" />
                           Delete
@@ -239,7 +239,7 @@ export function MessagesAdmin() {
             <Button
               data-tour="messages-send"
               onClick={() => { setEditingSentMessage(null); setSendDialogOpen(true) }}
-              className="gap-2 bg-cyan-800 hover:bg-cyan-900 text-white"
+              className="gap-2 bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white"
             >
               <Mail className="h-4 w-4" />
               Send Message
@@ -248,7 +248,7 @@ export function MessagesAdmin() {
 
           {sent.length === 0 ? (
             <Card data-tour="messages-sent-empty">
-              <CardContent className="p-8 text-center text-gray-500">
+              <CardContent className="p-8 text-center text-gray-500 dark:text-gray-400">
                 No individual messages sent yet.
               </CardContent>
             </Card>
@@ -259,22 +259,22 @@ export function MessagesAdmin() {
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-gray-900 truncate">{msg.subject}</h3>
-                        <p className="text-sm text-gray-600">
+                        <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">{msg.subject}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           To: {msg.recipientEmail}
                           {msg.recipientFirstName && ` (${msg.recipientFirstName} ${msg.recipientLastName || ''})`}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             {new Date(msg.createdAt).toLocaleDateString()}
                           </span>
                           {msg.isRead ? (
-                            <Badge className="bg-green-100 text-green-700 text-xs">Read</Badge>
+                            <Badge className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs">Read</Badge>
                           ) : (
-                            <Badge className="bg-blue-100 text-blue-700 text-xs">Unread</Badge>
+                            <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs">Unread</Badge>
                           )}
                           {msg.emailSent && (
-                            <Badge className="bg-purple-100 text-purple-700 text-xs">Email Sent</Badge>
+                            <Badge className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs">Email Sent</Badge>
                           )}
                         </div>
                       </div>
@@ -294,7 +294,7 @@ export function MessagesAdmin() {
                           variant="outline"
                           size="sm"
                           onClick={() => handleDeleteSent(msg.id)}
-                          className="gap-1 text-red-600 hover:text-red-700"
+                          className="gap-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                         >
                           <Trash2 className="h-3 w-3" />
                           Delete

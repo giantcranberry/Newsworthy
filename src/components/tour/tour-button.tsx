@@ -91,7 +91,7 @@ export function TourFab() {
     <div className="fixed bottom-6 right-6 z-50 flex items-center gap-1">
       <button
         onClick={handleClick}
-        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-cyan-800 text-white text-sm font-medium shadow-lg hover:bg-cyan-900 cursor-pointer transition-all hover:shadow-xl"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-cyan-800 dark:bg-cyan-600 text-white text-sm font-medium shadow-lg hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer transition-all hover:shadow-xl"
       >
         <i className="fa-light fa-compass text-base" aria-hidden="true" />
         {route.label}

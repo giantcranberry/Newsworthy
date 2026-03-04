@@ -46,8 +46,8 @@ export function CommunityHome({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Community</h1>
-        <p className="text-gray-600">Connect, share ideas, and discuss with other members</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Community</h1>
+        <p className="text-gray-600 dark:text-gray-400">Connect, share ideas, and discuss with other members</p>
       </div>
 
       {/* Boards grid */}

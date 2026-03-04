@@ -79,12 +79,12 @@ export function WizardHeader({
   const nextLabel = submitLabel || (isLastStep ? 'Finish' : 'Next')
 
   return (
-    <div className="sticky top-0 z-10 bg-white border-b border-gray-200 -mx-6 px-6 py-4 -mt-6 mb-6">
+    <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4 -mt-6 mb-6">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-gray-800 truncate">{title}</h1>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200 truncate">{title}</h1>
           {description && (
-            <p className="text-sm text-gray-500 mt-0.5">{description}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -115,7 +115,7 @@ export function WizardHeader({
               type="button"
               onClick={handleNext}
               disabled={isLoading || !canProceed}
-              className="bg-cyan-800 text-white hover:bg-cyan-900 disabled:opacity-50"
+              className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 disabled:opacity-50"
             >
               {isLoading ? (
                 <>

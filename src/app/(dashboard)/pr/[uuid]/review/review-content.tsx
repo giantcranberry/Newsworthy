@@ -623,7 +623,7 @@ export function ReviewContent({
       {errors.length > 0 && (
         <Card className="border-red-200">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-red-800">
+            <CardTitle className="text-base flex items-center gap-2 text-red-800 dark:text-red-400">
               <AlertCircle className="h-5 w-5" />
               Required ({errors.length})
             </CardTitle>
@@ -638,16 +638,16 @@ export function ReviewContent({
                   className="flex items-start justify-between p-3 bg-red-50 rounded-lg"
                 >
                   <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                    <Icon className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium text-red-900">{item.label}</p>
-                      <p className="text-sm text-red-700">{item.description}</p>
+                      <p className="text-sm text-red-700 dark:text-red-400">{item.description}</p>
                     </div>
                   </div>
                   {item.editPath && (
                     <button
                       onClick={() => router.push(item.editPath!)}
-                      className="text-sm text-red-700 hover:text-red-900 hover:underline shrink-0 ml-2"
+                      className="text-sm text-red-700 dark:text-red-400 hover:text-red-900 hover:underline shrink-0 ml-2"
                     >
                       Fix
                     </button>
@@ -664,7 +664,7 @@ export function ReviewContent({
       {warnings.length > 0 && (
         <Card className="border-amber-200">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-amber-800">
+            <CardTitle className="text-base flex items-center gap-2 text-amber-800 dark:text-amber-400">
               <AlertTriangle className="h-5 w-5" />
               Recommended ({warnings.length})
             </CardTitle>
@@ -682,7 +682,7 @@ export function ReviewContent({
                     <Icon className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium text-amber-900">{item.label}</p>
-                      <p className="text-sm text-amber-700">
+                      <p className="text-sm text-amber-700 dark:text-amber-400">
                         {item.description}
                       </p>
                     </div>
@@ -690,7 +690,7 @@ export function ReviewContent({
                   {item.editPath && (
                     <button
                       onClick={() => router.push(item.editPath!)}
-                      className="text-sm text-amber-700 hover:text-amber-900 hover:underline shrink-0 ml-2"
+                      className="text-sm text-amber-700 dark:text-amber-400 hover:text-amber-900 hover:underline shrink-0 ml-2"
                     >
                       Add
                     </button>
@@ -707,7 +707,7 @@ export function ReviewContent({
       {infos.length > 0 && (
         <Card className="border-blue-200">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-blue-800">
+            <CardTitle className="text-base flex items-center gap-2 text-blue-800 dark:text-blue-400">
               <Info className="h-5 w-5" />
               Suggestions ({infos.length})
             </CardTitle>
@@ -722,10 +722,10 @@ export function ReviewContent({
                   className="flex items-start justify-between p-3 bg-blue-50 rounded-lg"
                 >
                   <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />
+                    <Icon className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
                     <div>
                       <p className="font-medium text-blue-900">{item.label}</p>
-                      <p className="text-sm text-blue-700">
+                      <p className="text-sm text-blue-700 dark:text-blue-400">
                         {item.description}
                       </p>
                     </div>
@@ -733,7 +733,7 @@ export function ReviewContent({
                   {item.editPath && (
                     <button
                       onClick={() => router.push(item.editPath!)}
-                      className="text-sm text-blue-700 hover:text-blue-900 hover:underline shrink-0 ml-2"
+                      className="text-sm text-blue-700 dark:text-blue-400 hover:text-blue-900 hover:underline shrink-0 ml-2"
                     >
                       Edit
                     </button>
@@ -753,29 +753,29 @@ export function ReviewContent({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {bodyWordCount}
               </p>
-              <p className="text-xs text-gray-500">Words</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Words</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {images.length}
               </p>
-              <p className="text-xs text-gray-500">Images</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Images</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {stats.categoryCount}
               </p>
-              <p className="text-xs text-gray-500">Categories</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Categories</p>
             </div>
-            <div className="text-center p-3 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="text-center p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {stats.regionCount}
               </p>
-              <p className="text-xs text-gray-500">Regions</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Regions</p>
             </div>
           </div>
         </CardContent>
@@ -786,10 +786,10 @@ export function ReviewContent({
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-blue-600" />
+              <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Expert Optimization Analysis
               {isCached && cachedAt && (
-                <span className="text-xs font-normal text-gray-500 ml-2">
+                <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
                   (cached {new Date(cachedAt).toLocaleDateString()})
                 </span>
               )}
@@ -810,8 +810,8 @@ export function ReviewContent({
         <CardContent className="space-y-6">
           {isLoadingAI && (
             <div className="flex flex-col items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mb-4" />
-              <p className="text-gray-600">Analyzing your press release...</p>
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400 mb-4" />
+              <p className="text-gray-600 dark:text-gray-400">Analyzing your press release...</p>
               <p className="text-sm text-gray-400 mt-1">
                 Generating SEO and content optimization suggestions
               </p>
@@ -819,7 +819,7 @@ export function ReviewContent({
           )}
 
           {aiError && (
-            <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+            <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
               <AlertCircle className="h-5 w-5 shrink-0" />
               <span>{aiError}</span>
             </div>
@@ -831,18 +831,18 @@ export function ReviewContent({
               {(seoScore !== null || aiTrainingScore !== null || aiGroundingScore !== null) && (
                 <div className="grid grid-cols-3 gap-4">
                   {seoScore !== null && (
-                    <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-semibold text-gray-700">SEO</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">SEO</h4>
                         <span className={cn(
                           "text-2xl font-bold",
                           seoScore >= 8 ? "text-emerald-600" :
-                          seoScore >= 5 ? "text-amber-600" : "text-red-600"
+                          seoScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
                         )}>
                           {seoScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
                         <div
                           className={cn(
                             "h-2 rounded-full transition-all",
@@ -853,23 +853,23 @@ export function ReviewContent({
                         />
                       </div>
                       {seoScoreReason && (
-                        <p className="text-xs text-gray-500">{seoScoreReason}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{seoScoreReason}</p>
                       )}
                     </div>
                   )}
                   {aiTrainingScore !== null && (
-                    <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-semibold text-gray-700">AI Training</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Training</h4>
                         <span className={cn(
                           "text-2xl font-bold",
                           aiTrainingScore >= 8 ? "text-emerald-600" :
-                          aiTrainingScore >= 5 ? "text-amber-600" : "text-red-600"
+                          aiTrainingScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
                         )}>
                           {aiTrainingScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
                         <div
                           className={cn(
                             "h-2 rounded-full transition-all",
@@ -880,23 +880,23 @@ export function ReviewContent({
                         />
                       </div>
                       {aiTrainingScoreReason && (
-                        <p className="text-xs text-gray-500">{aiTrainingScoreReason}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{aiTrainingScoreReason}</p>
                       )}
                     </div>
                   )}
                   {aiGroundingScore !== null && (
-                    <div className="p-4 border border-gray-200 rounded-lg">
+                    <div className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-sm font-semibold text-gray-700">AI Grounding</h4>
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300">AI Grounding</h4>
                         <span className={cn(
                           "text-2xl font-bold",
                           aiGroundingScore >= 8 ? "text-emerald-600" :
-                          aiGroundingScore >= 5 ? "text-amber-600" : "text-red-600"
+                          aiGroundingScore >= 5 ? "text-amber-600" : "text-red-600 dark:text-red-400"
                         )}>
                           {aiGroundingScore}<span className="text-sm font-normal text-gray-400">/10</span>
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
                         <div
                           className={cn(
                             "h-2 rounded-full transition-all",
@@ -907,7 +907,7 @@ export function ReviewContent({
                         />
                       </div>
                       {aiGroundingScoreReason && (
-                        <p className="text-xs text-gray-500">{aiGroundingScoreReason}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{aiGroundingScoreReason}</p>
                       )}
                     </div>
                   )}
@@ -917,15 +917,15 @@ export function ReviewContent({
               {/* Alternative Headlines */}
               {aiSuggestions.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Alternative Headlines
                   </h3>
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 mb-1">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                       Current Headline
                     </p>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-gray-100">
                       {currentTitle || "Untitled"}
                     </p>
                   </div>
@@ -940,28 +940,28 @@ export function ReviewContent({
                             "p-4 border rounded-lg transition-colors",
                             isCurrentHeadline
                               ? "border-green-300 bg-green-50/50"
-                              : "border-gray-200 hover:border-blue-300",
+                              : "border-gray-200 dark:border-gray-800 hover:border-blue-300",
                           )}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-blue-100 p-2 rounded-full shrink-0">
-                              <Lightbulb className="h-4 w-4 text-blue-600" />
+                            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full shrink-0">
+                              <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
+                                <span className="text-xs font-medium px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
                                   {suggestion.strategy}
                                 </span>
                               </div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-gray-900 dark:text-gray-100">
                                 {suggestion.headline}
                               </p>
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {suggestion.explanation}
                               </p>
                               <div className="flex items-center justify-end">
                                 {isCurrentHeadline ? (
-                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400">
                                     <CheckCircle className="h-3.5 w-3.5" />
                                     Active
                                   </span>
@@ -995,7 +995,7 @@ export function ReviewContent({
                                       </DialogHeader>
                                       <div className="space-y-3 py-2">
                                         <div>
-                                          <p className="text-xs font-medium text-red-600 mb-1">
+                                          <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-1">
                                             Current:
                                           </p>
                                           <p className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-300">
@@ -1040,13 +1040,13 @@ export function ReviewContent({
               {/* Suggested Abstract */}
               {aiAbstract && !release.abstract && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Suggested Abstract
                   </h3>
                   <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                     <p className="text-green-900">{aiAbstract}</p>
-                    <p className="text-xs text-green-600 mt-2">
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-2">
                       {aiAbstract.length}/350 characters - Add this summary to
                       your press release
                     </p>
@@ -1057,7 +1057,7 @@ export function ReviewContent({
               {/* Suggested Pullquote */}
               {aiPullquote && !release.pullquote && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <Quote className="h-4 w-4" />
                     Suggested Notable Quote
                   </h3>
@@ -1076,11 +1076,11 @@ export function ReviewContent({
               {/* Copy Improvements */}
               {aiCopyImprovements.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
                     Copy Improvement Suggestions
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Specific text changes to strengthen your press release.
                   </p>
                   <div className="space-y-4">
@@ -1094,17 +1094,17 @@ export function ReviewContent({
                             "p-4 border rounded-lg",
                             isAccepted
                               ? "border-green-300 bg-green-50/50"
-                              : "border-gray-200",
+                              : "border-gray-200 dark:border-gray-800",
                           )}
                         >
                           <div className="space-y-3">
                             <div>
-                              <p className="text-xs font-medium text-red-600 uppercase tracking-wide mb-1">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide mb-1">
                                 Original
                               </p>
                               <p
                                 className={cn(
-                                  "text-sm text-gray-700 bg-red-50 p-2 rounded border-l-2 border-red-300",
+                                  "text-sm text-gray-700 dark:text-gray-300 bg-red-50 p-2 rounded border-l-2 border-red-300",
                                   isAccepted && "line-through opacity-60",
                                 )}
                               >
@@ -1115,17 +1115,17 @@ export function ReviewContent({
                               <p className="text-xs font-medium text-emerald-600 uppercase tracking-wide mb-1">
                                 Suggested
                               </p>
-                              <p className="text-sm text-gray-700 bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 bg-emerald-50 p-2 rounded border-l-2 border-emerald-300">
                                 {improvement.improvedText}
                               </p>
                             </div>
                             <div className="flex items-center justify-between">
-                              <p className="text-xs text-gray-500 italic">
+                              <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                                 {improvement.reason}
                               </p>
                               {isAccepted ? (
                                 <div className="flex items-center gap-2">
-                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400">
                                     <CheckCircle className="h-3.5 w-3.5" />
                                     Applied
                                   </span>
@@ -1134,7 +1134,7 @@ export function ReviewContent({
                                     size="sm"
                                     onClick={() => handleUndoImprovement(index)}
                                     disabled={undoingImprovement === index}
-                                    className="text-gray-500 hover:text-gray-700 h-7 px-2"
+                                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300 h-7 px-2"
                                   >
                                     {undoingImprovement === index ? (
                                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1179,7 +1179,7 @@ export function ReviewContent({
                                     </DialogHeader>
                                     <div className="space-y-3 py-2">
                                       <div>
-                                        <p className="text-xs font-medium text-red-600 mb-1">
+                                        <p className="text-xs font-medium text-red-600 dark:text-red-400 mb-1">
                                           Will be replaced:
                                         </p>
                                         <p className="text-sm bg-red-50 p-2 rounded border-l-2 border-red-300">
@@ -1225,11 +1225,11 @@ export function ReviewContent({
               {/* Brandable Chunks */}
               {aiBrandableChunks.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <Tag className="h-4 w-4" />
                     RAG/AI Content Chunks Analysis
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     Content segments that AI systems and search engines will
                     likely extract for indexing.
                   </p>
@@ -1237,7 +1237,7 @@ export function ReviewContent({
                     {aiBrandableChunks.map((chunk, index) => (
                       <div
                         key={index}
-                        className="p-4 border border-gray-200 rounded-lg"
+                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-sm font-medium">
@@ -1249,22 +1249,22 @@ export function ReviewContent({
                               chunk.brandability === "High"
                                 ? "bg-emerald-100 text-emerald-700"
                                 : chunk.brandability === "Medium"
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-red-100 text-red-700",
+                                  ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
                             )}
                           >
                             {chunk.brandability} Brandability
                           </span>
                         </div>
-                        <div className="bg-gray-50 p-3 rounded text-sm text-gray-700 mb-3 max-h-40 overflow-y-auto">
+                        <div className="bg-gray-50 dark:bg-gray-950 p-3 rounded text-sm text-gray-700 dark:text-gray-300 mb-3 max-h-40 overflow-y-auto">
                           {chunk.chunkContent}
                         </div>
                         <div className="text-sm">
-                          <p className="text-gray-600">
+                          <p className="text-gray-600 dark:text-gray-400">
                             <span className="font-medium">Issue:</span>{" "}
                             {chunk.currentIssue}
                           </p>
-                          <p className="text-blue-600 mt-1">
+                          <p className="text-blue-600 dark:text-blue-400 mt-1">
                             <span className="font-medium">Recommendation:</span>{" "}
                             {chunk.recommendation}
                           </p>
@@ -1279,12 +1279,12 @@ export function ReviewContent({
                 aiSuggestions.length === 0 &&
                 aiCopyImprovements.length === 0 &&
                 aiBrandableChunks.length === 0 && (
-                  <p className="text-center text-gray-500 py-4">
+                  <p className="text-center text-gray-500 dark:text-gray-400 py-4">
                     No optimization suggestions available.
                   </p>
                 )}
 
-              <p className="text-xs text-gray-500 text-center pt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
                 These suggestions are AI-generated. Review and adapt them to fit
                 your brand voice and messaging goals.
               </p>
@@ -1292,7 +1292,7 @@ export function ReviewContent({
           )}
 
           {!release.title || !release.body ? (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-gray-500 dark:text-gray-400 py-4">
               Add a headline and body content to receive AI optimization
               suggestions.
             </p>
@@ -1303,8 +1303,8 @@ export function ReviewContent({
       {/* Warning if not complete */}
       {!requiredComplete && (
         <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-red-800">
+          <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-red-800 dark:text-red-400">
             <strong>Cannot proceed.</strong> Please complete all required items
             above before finalizing your press release.
           </div>

@@ -64,8 +64,8 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Search Media Database</h1>
-          <p className="text-gray-500">Find journalists and media contacts</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Search Media Database</h1>
+          <p className="text-gray-500 dark:text-gray-400">Find journalists and media contacts</p>
         </div>
       </div>
 
@@ -79,13 +79,13 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
             <Card>
               <CardContent className="py-12 text-center">
                 <User className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900">No contacts found</h3>
-                <p className="mt-2 text-gray-500">Try adjusting your search criteria</p>
+                <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No contacts found</h3>
+                <p className="mt-2 text-gray-500 dark:text-gray-400">Try adjusting your search criteria</p>
               </CardContent>
             </Card>
           ) : (
             <>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Found {contacts.length} contact{contacts.length !== 1 ? 's' : ''}
               </p>
               <div className="space-y-4">
@@ -94,15 +94,15 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium">
+                          <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium">
                             {contact.firstName?.[0]}{contact.lastName?.[0]}
                           </div>
                           <div>
-                            <h3 className="font-medium text-gray-900">
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">
                               {contact.firstName} {contact.lastName}
                             </h3>
                             {contact.tld && (
-                              <p className="text-sm text-gray-500">{contact.tld}</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{contact.tld}</p>
                             )}
                             {contact.industry && (
                               <p className="text-sm text-gray-400">{contact.industry}</p>
@@ -111,7 +111,7 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
                               {contact.email && (
                                 <a
                                   href={`mailto:${contact.email}`}
-                                  className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                                  className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                                 >
                                   <Mail className="h-3 w-3" />
                                   Email
@@ -122,7 +122,7 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
                                   href={contact.linkedin}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                                  className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                                 >
                                   <Linkedin className="h-3 w-3" />
                                   LinkedIn
@@ -133,7 +133,7 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
                                   href={`https://twitter.com/${contact.twitter}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                                  className="flex items-center gap-1 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                                 >
                                   <Twitter className="h-3 w-3" />
                                   Twitter
@@ -160,8 +160,8 @@ export default async function NewsDbSearchPage({ searchParams }: PageProps) {
         <Card>
           <CardContent className="py-12 text-center">
             <User className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Search for contacts</h3>
-            <p className="mt-2 text-gray-500">Enter a name, email, or publication to get started</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">Search for contacts</h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">Enter a name, email, or publication to get started</p>
           </CardContent>
         </Card>
       )}

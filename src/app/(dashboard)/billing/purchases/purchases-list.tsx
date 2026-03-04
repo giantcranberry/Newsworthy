@@ -26,25 +26,25 @@ function statusBadge(status: string) {
   switch (status) {
     case 'succeeded':
       return (
-        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+        <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
           Paid
         </span>
       )
     case 'pending':
       return (
-        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-700">
+        <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2 py-0.5 text-xs font-medium text-yellow-700 dark:text-yellow-400">
           Pending
         </span>
       )
     case 'failed':
       return (
-        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+        <span className="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
           Failed
         </span>
       )
     default:
       return (
-        <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+        <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-700 dark:text-gray-300">
           {status}
         </span>
       )
@@ -75,7 +75,7 @@ export function PurchasesList() {
       <Card>
         <CardContent className="py-16 text-center">
           <Loader2 className="mx-auto h-8 w-8 text-gray-400 animate-spin" />
-          <p className="mt-4 text-sm text-gray-500">Loading purchases...</p>
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Loading purchases...</p>
         </CardContent>
       </Card>
     )
@@ -85,7 +85,7 @@ export function PurchasesList() {
     return (
       <Card>
         <CardContent className="py-16 text-center">
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </CardContent>
       </Card>
     )
@@ -96,8 +96,8 @@ export function PurchasesList() {
       <Card>
         <CardContent className="py-16 text-center">
           <Receipt className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No Purchases Yet</h3>
-          <p className="mt-2 text-gray-600">
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Purchases Yet</h3>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Your payment history will appear here after your first purchase.
           </p>
         </CardContent>
@@ -106,41 +106,41 @@ export function PurchasesList() {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+        <thead className="bg-gray-50 dark:bg-gray-950">
           <tr>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Date
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Description
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Amount
             </th>
-            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Status
             </th>
-            <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+            <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
               Receipt
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
           {charges.map((charge) => (
-            <tr key={charge.id} className="hover:bg-gray-50">
-              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+            <tr key={charge.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950">
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                 {new Date(charge.created * 1000).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'short',
                   day: 'numeric',
                 })}
               </td>
-              <td className="px-6 py-4 text-sm text-gray-900">
+              <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                 {charge.description || 'Credit purchase'}
               </td>
-              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                 {formatCurrency(charge.amount, charge.currency)}
               </td>
               <td className="whitespace-nowrap px-6 py-4 text-sm">

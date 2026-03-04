@@ -74,7 +74,7 @@ export function ConversationList({
             onClick={() => onSelect(conv.uuid)}
             className={cn(
               'flex w-full items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer',
-              isActive ? 'bg-cyan-50' : 'hover:bg-gray-50'
+              isActive ? 'bg-cyan-50 dark:bg-cyan-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'
             )}
           >
             <UserAvatar
@@ -84,7 +84,7 @@ export function ConversationList({
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between">
-                <span className={cn('text-sm truncate', conv.unreadCount > 0 ? 'font-semibold text-gray-900' : 'text-gray-900')}>
+                <span className={cn('text-sm truncate', conv.unreadCount > 0 ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-900 dark:text-gray-100')}>
                   {conv.otherUser.name}
                 </span>
                 {conv.lastMessage && (
@@ -94,7 +94,7 @@ export function ConversationList({
                 )}
               </div>
               <div className="flex items-center justify-between">
-                <p className={cn('text-xs truncate', conv.unreadCount > 0 ? 'text-gray-800 font-medium' : 'text-gray-500')}>
+                <p className={cn('text-xs truncate', conv.unreadCount > 0 ? 'text-gray-800 dark:text-gray-200 font-medium' : 'text-gray-500 dark:text-gray-400')}>
                   {preview}
                 </p>
                 {conv.unreadCount > 0 && (

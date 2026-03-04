@@ -14,18 +14,18 @@ export function RssFeedLink({ companyUuid }: { companyUuid: string }) {
   }
 
   return (
-    <div className="flex items-center gap-1.5 text-sm text-gray-500">
-      <span className="font-medium text-gray-600">Press Release RSS Feed:</span>
-      <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-600 truncate max-w-xs">
+    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+      <span className="font-medium text-gray-600 dark:text-gray-400">Press Release RSS Feed:</span>
+      <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-400 truncate max-w-xs">
         {feedUrl}
       </code>
       <button
         onClick={handleCopy}
-        className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+        className="text-gray-400 hover:text-gray-600 dark:text-gray-400 transition-colors shrink-0"
         title="Copy RSS feed URL"
       >
         {copied ? (
-          <Check className="h-3.5 w-3.5 text-green-600" />
+          <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
         ) : (
           <Copy className="h-3.5 w-3.5" />
         )}

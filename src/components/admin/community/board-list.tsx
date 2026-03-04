@@ -148,8 +148,8 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
   return (
     <>
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{boards.length} board{boards.length !== 1 ? 's' : ''}</p>
-        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900">
+        <p className="text-sm text-gray-500 dark:text-gray-400">{boards.length} board{boards.length !== 1 ? 's' : ''}</p>
+        <Button onClick={handleCreate} className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           <Plus className="h-4 w-4" />
           Add Board
         </Button>
@@ -163,11 +163,11 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
             onDragStart={() => handleDragStart(idx)}
             onDragOver={(e) => handleDragOver(e, idx)}
             onDragEnd={handleDragEnd}
-            className={`flex items-center gap-3 rounded-lg border bg-white p-4 transition-all ${
-              board.isArchived ? 'border-gray-200 opacity-60' : 'border-gray-200 hover:border-gray-300'
+            className={`flex items-center gap-3 rounded-lg border bg-white dark:bg-gray-900 p-4 transition-all ${
+              board.isArchived ? 'border-gray-200 dark:border-gray-800 opacity-60' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700'
             } ${draggedIdx === idx ? 'shadow-lg' : ''}`}
           >
-            <div className="cursor-grab text-gray-400 hover:text-gray-600">
+            <div className="cursor-grab text-gray-400 hover:text-gray-600 dark:text-gray-400">
               <GripVertical className="h-5 w-5" />
             </div>
 
@@ -180,15 +180,15 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-medium text-gray-900">{board.name}</h3>
+                <h3 className="font-medium text-gray-900 dark:text-gray-100">{board.name}</h3>
                 {board.staffOnly && (
-                  <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-xs text-cyan-700">Staff Only</span>
+                  <span className="rounded-full bg-cyan-100 dark:bg-cyan-900/30 px-2 py-0.5 text-xs text-cyan-700">Staff Only</span>
                 )}
                 {board.isArchived && (
-                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">Archived</span>
+                  <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs text-gray-500 dark:text-gray-400">Archived</span>
                 )}
               </div>
-              <p className="text-sm text-gray-500 truncate">{board.description || 'No description'}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{board.description || 'No description'}</p>
               <p className="text-xs text-gray-400">/{board.slug}</p>
             </div>
 
@@ -197,7 +197,7 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => handleArchiveToggle(board)}
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 title={board.isArchived ? 'Unarchive' : 'Archive'}
               >
                 {board.isArchived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
@@ -206,7 +206,7 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => handleEdit(board)}
-                className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 title="Edit"
               >
                 <Pencil className="h-4 w-4" />
@@ -224,7 +224,7 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
                 variant="ghost"
                 size="icon"
                 onClick={() => handleDelete(board.id)}
-                className="h-8 w-8 text-gray-400 hover:text-red-600"
+                className="h-8 w-8 text-gray-400 hover:text-red-600 dark:text-red-400"
                 title="Delete"
               >
                 <Trash2 className="h-4 w-4" />
@@ -234,15 +234,15 @@ export function BoardList({ boards: initialBoards }: BoardListProps) {
         ))}
 
         {boards.length === 0 && (
-          <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+          <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-8 text-center">
             <i className="fa-light fa-comments text-3xl text-gray-400 mb-2" />
-            <p className="text-sm text-gray-500">No boards yet. Create your first community board.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No boards yet. Create your first community board.</p>
           </div>
         )}
       </div>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-lg bg-white">
+        <DialogContent className="sm:max-w-lg bg-white dark:bg-gray-900">
           <DialogHeader>
             <DialogTitle>{editingBoard ? 'Edit Board' : 'Create Board'}</DialogTitle>
           </DialogHeader>

@@ -72,7 +72,7 @@ export default async function ContactPage({
         src={`https://www.google.com/recaptcha/enterprise.js?render=${RECAPTCHA_SITE_KEY}`}
         strategy="beforeInteractive"
       />
-      <div className="min-h-screen bg-gray-50 flex justify-center p-4 pt-12">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex justify-center p-4 pt-12">
         <div className="max-w-lg w-full">
           {/* Header with company branding */}
           <div className="text-center mb-6">
@@ -83,19 +83,19 @@ export default async function ContactPage({
                 className="max-h-16 mx-auto mb-4 object-contain"
               />
             )}
-            <h1 className="text-2xl font-bold text-gray-900">Contact Us</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Contact Us</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
               Regarding: <span className="font-medium">{releaseTitle}</span>
             </p>
             {companyName && (
-              <p className="text-sm text-gray-500 mt-1">{companyName}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{companyName}</p>
             )}
           </div>
 
           <ContactForm slug={slug} releaseUrl={releaseUrl} recaptchaSiteKey={RECAPTCHA_SITE_KEY} />
 
           <p className="text-center mt-4 text-xs text-gray-400">
-            <a href="https://www.newsworthy.ai/privacy-policy" className="hover:text-gray-600 underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+            <a href="https://www.newsworthy.ai/privacy-policy" className="hover:text-gray-600 dark:text-gray-400 underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
           </p>
         </div>
       </div>

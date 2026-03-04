@@ -16,8 +16,8 @@ export default async function ChatConversationPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Chat</h1>
-        <p className="text-gray-600">Direct messages with other community members</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Chat</h1>
+        <p className="text-gray-600 dark:text-gray-400">Direct messages with other community members</p>
       </div>
 
       <ChatLayout currentUserId={userId} initialConversationUuid={uuid} />

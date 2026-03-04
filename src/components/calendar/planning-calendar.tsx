@@ -361,7 +361,7 @@ export function PlanningCalendar() {
           <Button variant="outline" size="sm" onClick={goToPrevMonth}>
             <i className="fa-light fa-chevron-left" />
           </Button>
-          <h2 className="text-xl font-semibold text-gray-900 min-w-[200px] text-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 min-w-[200px] text-center">
             {MONTH_NAMES[currentMonth]} {currentYear}
           </h2>
           <Button variant="outline" size="sm" onClick={goToNextMonth}>
@@ -373,7 +373,7 @@ export function PlanningCalendar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600">Brand:</label>
+          <label className="text-sm text-gray-600 dark:text-gray-400">Brand:</label>
           <Select
             value={brandFilter}
             onChange={(e) => setBrandFilter(e.target.value)}
@@ -390,11 +390,11 @@ export function PlanningCalendar() {
           {!gcalLoading && (
             gcalConnected ? (
               <div className="flex items-center gap-2 ml-2">
-                <Badge className="bg-green-100 text-green-800 border-green-200">
+                <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-200">
                   <i className="fa-light fa-check mr-1" />
                   Calendar Connected
                 </Badge>
-                <Button variant="ghost" size="sm" onClick={handleDisconnectGcal} className="text-xs text-gray-500">
+                <Button variant="ghost" size="sm" onClick={handleDisconnectGcal} className="text-xs text-gray-500 dark:text-gray-400">
                   Disconnect
                 </Button>
               </div>
@@ -411,11 +411,11 @@ export function PlanningCalendar() {
       </div>
 
       {/* Calendar Grid */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200">
+        <div className="grid grid-cols-7 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
           {DAY_NAMES.map((day) => (
-            <div key={day} className="px-2 py-2 text-center text-xs font-semibold text-gray-600 uppercase">
+            <div key={day} className="px-2 py-2 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
               {day}
             </div>
           ))}
@@ -432,15 +432,15 @@ export function PlanningCalendar() {
                 key={idx}
                 onClick={() => openDayDialog(cell.dateStr)}
                 className={cn(
-                  'min-h-[100px] sm:min-h-[120px] border-b border-r border-gray-100 p-1.5 cursor-pointer transition-colors hover:bg-gray-50',
-                  !cell.isCurrentMonth && 'bg-gray-50/50',
+                  'min-h-[100px] sm:min-h-[120px] border-b border-r border-gray-100 dark:border-gray-800 p-1.5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950',
+                  !cell.isCurrentMonth && 'bg-gray-50 dark:bg-gray-950/50',
                   idx % 7 === 0 && 'border-l-0',
                 )}
               >
                 <div className={cn(
                   'text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full',
                   isToday && 'bg-cyan-700 text-white',
-                  !isToday && cell.isCurrentMonth && 'text-gray-900',
+                  !isToday && cell.isCurrentMonth && 'text-gray-900 dark:text-gray-100',
                   !isToday && !cell.isCurrentMonth && 'text-gray-400',
                 )}>
                   {cell.day}
@@ -465,7 +465,7 @@ export function PlanningCalendar() {
                     </button>
                   ))}
                   {dayEvents.length > 3 && (
-                    <div className="text-[11px] text-gray-500 px-1.5">
+                    <div className="text-[11px] text-gray-500 dark:text-gray-400 px-1.5">
                       +{dayEvents.length - 3} more
                     </div>
                   )}
@@ -477,7 +477,7 @@ export function PlanningCalendar() {
       </div>
 
       {loading && (
-        <div className="text-center text-sm text-gray-500 mt-4">Loading events...</div>
+        <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-4">Loading events...</div>
       )}
 
       {/* Day Detail Dialog */}
@@ -502,24 +502,24 @@ export function PlanningCalendar() {
               <button
                 key={event.id}
                 onClick={() => openEditForm(event)}
-                className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                className="w-full text-left p-3 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors"
               >
                 <div className="flex items-center gap-2 mb-1">
                   <div
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: getEventTypeColor(event.eventType) }}
                   />
-                  <span className="font-medium text-sm text-gray-900 truncate">{event.title}</span>
+                  <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{event.title}</span>
                 </div>
                 <div className="flex items-center gap-2 ml-[18px]">
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                     {getEventTypeLabel(event.eventType)}
                   </Badge>
                   {event.eventTime && (
-                    <span className="text-xs text-gray-500">{event.eventTime}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{event.eventTime}</span>
                   )}
                   {event.companyName && (
-                    <span className="text-xs text-gray-500">{event.companyName}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{event.companyName}</span>
                   )}
                 </div>
               </button>

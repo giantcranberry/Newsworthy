@@ -18,26 +18,26 @@ export default async function A2AAdminPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">A2A Protocol</h1>
-        <p className="text-gray-500">Agent-to-Agent protocol configuration and testing</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">A2A Protocol</h1>
+        <p className="text-gray-500 dark:text-gray-400">Agent-to-Agent protocol configuration and testing</p>
       </div>
 
       {/* Agent Card Info */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-blue-600" />
+            <div className="h-10 w-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <Bot className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <CardTitle>Newsworthy Agent</CardTitle>
-              <CardDescription>Agent Card served at <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">{appUrl}/.well-known/agent-card.json</code></CardDescription>
+              <CardDescription>Agent Card served at <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{appUrl}/.well-known/agent-card.json</code></CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="h-4 w-4 text-amber-500" />
                 <span className="font-medium text-sm">Capabilities</span>
@@ -48,17 +48,17 @@ export default async function A2AAdminPage() {
                 <Badge variant="secondary">Bearer Auth</Badge>
               </div>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium text-sm">Endpoint</span>
               </div>
-              <code className="text-xs text-gray-600 break-all">{appUrl}/api/a2a</code>
+              <code className="text-xs text-gray-600 dark:text-gray-400 break-all">{appUrl}/api/a2a</code>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <span className="font-medium text-sm">Rate Limit</span>
               </div>
-              <p className="text-sm text-gray-600">60/min (public) &middot; 120/min (authenticated)</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">60/min (public) &middot; 120/min (authenticated)</p>
             </div>
           </div>
         </CardContent>
@@ -77,7 +77,7 @@ export default async function A2AAdminPage() {
                 <Search className="h-4 w-4 text-blue-500" />
                 <span className="font-medium">search_releases</span>
               </div>
-              <p className="text-sm text-gray-600">Search published press releases by keyword, category, region, or date range</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Search published press releases by keyword, category, region, or date range</p>
               <div className="mt-2 flex gap-1">
                 <Badge variant="outline" className="text-xs">text/plain</Badge>
                 <Badge variant="outline" className="text-xs">application/json</Badge>
@@ -88,7 +88,7 @@ export default async function A2AAdminPage() {
                 <Building2 className="h-4 w-4 text-orange-500" />
                 <span className="font-medium">search_brands</span>
               </div>
-              <p className="text-sm text-gray-600">Search brands with published releases and their recent press releases. No contact info exposed.</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Search brands with published releases and their recent press releases. No contact info exposed.</p>
               <div className="mt-2 flex gap-1">
                 <Badge variant="outline" className="text-xs">text/plain</Badge>
                 <Badge variant="outline" className="text-xs">application/json</Badge>
@@ -99,7 +99,7 @@ export default async function A2AAdminPage() {
                 <FileText className="h-4 w-4 text-green-500" />
                 <span className="font-medium">get_release</span>
               </div>
-              <p className="text-sm text-gray-600">Retrieve the full content of a specific press release by UUID or slug</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Retrieve the full content of a specific press release by UUID or slug</p>
               <div className="mt-2 flex gap-1">
                 <Badge variant="outline" className="text-xs">text/plain</Badge>
               </div>
@@ -109,7 +109,7 @@ export default async function A2AAdminPage() {
                 <BarChart3 className="h-4 w-4 text-purple-500" />
                 <span className="font-medium">analyze_release</span>
               </div>
-              <p className="text-sm text-gray-600">Analyze a press release for readability, SEO quality, and key entities</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Analyze a press release for readability, SEO quality, and key entities</p>
               <div className="mt-2 flex gap-1">
                 <Badge variant="outline" className="text-xs">text/plain</Badge>
               </div>
@@ -125,7 +125,7 @@ export default async function A2AAdminPage() {
             <CardTitle>Authenticated Skills</CardTitle>
             <Badge variant="secondary" className="text-xs"><Lock className="h-3 w-3 mr-1" />Bearer Token</Badge>
           </div>
-          <CardDescription>Skills requiring an API key. Manage keys at <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">/settings/api-keys</code></CardDescription>
+          <CardDescription>Skills requiring an API key. Manage keys at <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">/settings/api-keys</code></CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -144,7 +144,7 @@ export default async function A2AAdminPage() {
                   <skill.icon className="h-4 w-4 text-amber-600" />
                   <span className="font-medium">{skill.id}</span>
                 </div>
-                <p className="text-sm text-gray-600">{skill.desc}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{skill.desc}</p>
               </div>
             ))}
           </div>

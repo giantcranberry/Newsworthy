@@ -94,14 +94,14 @@ export default async function AdminUsersPage({
       {/* Header */}
       <Link
         href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Admin
       </Link>
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <p className="text-gray-600">View and manage all users</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">User Management</h1>
+        <p className="text-gray-600 dark:text-gray-400">View and manage all users</p>
       </div>
 
       <UserSearchForm />
@@ -112,7 +112,7 @@ export default async function AdminUsersPage({
           href={`/admin/users${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
-            filter === 'all' ? 'bg-cyan-800/10 text-cyan-800' : 'text-gray-700 hover:bg-gray-100'
+            filter === 'all' ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
           )}
         >
           All ({counts.all})
@@ -121,7 +121,7 @@ export default async function AdminUsersPage({
           href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), filter: 'pending' }).toString()}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
-            filter === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'text-gray-700 hover:bg-gray-100'
+            filter === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
           )}
         >
           Pending ({counts.pending})
@@ -130,7 +130,7 @@ export default async function AdminUsersPage({
           href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), filter: 'verified' }).toString()}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
-            filter === 'verified' ? 'bg-green-100 text-green-800' : 'text-gray-700 hover:bg-gray-100'
+            filter === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
           )}
         >
           Verified ({counts.verified})
@@ -144,50 +144,50 @@ export default async function AdminUsersPage({
             <table className="w-full">
               <thead data-tour="users-columns">
                 <tr className="border-b text-left">
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">ID</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Email</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Verified</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Role</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Created</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500">Actions</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">ID</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Verified</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Created</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {allUsers.map((user, index) => (
-                  <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
-                    <td className="py-3 px-4 text-sm text-gray-600">{user.id}</td>
-                    <td className="py-3 px-4 text-sm font-medium text-gray-900">{user.email}</td>
+                  <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
+                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">{user.email}</td>
                     <td className="py-3 px-4">
                       <VerifyButton userId={user.id} verified={!!user.emailVerified} />
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex gap-1">
                         {user.isAdmin && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
                             <ShieldCheck className="h-3 w-3" />
                             Admin
                           </span>
                         )}
                         {user.isEditor && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900/30 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-400">
                             <Shield className="h-3 w-3" />
                             Editor
                           </span>
                         )}
                         {user.isStaff && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 text-xs font-medium text-purple-700 dark:text-purple-400">
                             Staff
                           </span>
                         )}
                         {!user.isAdmin && !user.isEditor && !user.isStaff && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                             <User className="h-3 w-3" />
                             User
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600">
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3 px-4">
@@ -199,7 +199,7 @@ export default async function AdminUsersPage({
                           />
                         )}
                         <Link href={`/admin/users/${user.id}`}>
-                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900">
+                          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">
                             View
                           </button>
                         </Link>

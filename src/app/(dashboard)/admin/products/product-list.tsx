@@ -195,7 +195,7 @@ export function ProductList({
             </option>
           ))}
         </Select>
-        <Button data-tour="products-add" onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+        <Button data-tour="products-add" onClick={handleCreate} className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
           <Plus className="h-4 w-4" />
           Add Product
         </Button>
@@ -206,8 +206,8 @@ export function ProductList({
         <Card data-tour="products-empty">
           <CardContent className="py-16 text-center">
             <Zap className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No products found</h3>
-            <p className="mt-2 text-gray-600">Create your first upgrade product.</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No products found</h3>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">Create your first upgrade product.</p>
           </CardContent>
         </Card>
       ) : (
@@ -219,36 +219,36 @@ export function ProductList({
                 <div className="flex-1 min-w-0 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="p-2 rounded-lg bg-cyan-800/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
+                      <div className="p-2 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
                         <ProductIcon
                           iconName={product.icon}
-                          className="h-5 w-5 text-cyan-800"
+                          className="h-5 w-5 text-cyan-800 dark:text-cyan-400"
                         />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-gray-900">
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                             {product.displayName || product.shortName}
                           </h3>
                           {product.productType && (
-                            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                            <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                               {product.productType}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
                           {product.partnerId === null ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-green-800">
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-green-800 dark:text-green-400">
                               <Globe className="h-3 w-3" />
                               All Accounts
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
                               {partnerName}
                             </span>
                           )}
                           {product.label && (
-                            <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-xs text-gray-600">
+                            <span className="inline-flex items-center rounded-full border border-gray-200 dark:border-gray-800 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
                               {product.label}
                             </span>
                           )}
@@ -257,14 +257,14 @@ export function ProductList({
                     </div>
 
                     <div className="flex items-center gap-4 flex-shrink-0">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">
                         {formatPrice(product.price)}
                       </p>
-                      <div className="h-6 w-px bg-gray-200" />
+                      <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
                       <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "products-actions" } : {})}>
                         <button
                           onClick={() => handleEdit(product)}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                         >
                           <Pencil className="h-3.5 w-3.5" />
                           Edit
@@ -272,7 +272,7 @@ export function ProductList({
                         <button
                           onClick={() => handleDelete(product.id)}
                           disabled={isDeleting === product.id}
-                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-700"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                           Delete

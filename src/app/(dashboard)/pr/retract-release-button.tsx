@@ -46,7 +46,7 @@ export function RetractReleaseButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="cursor-pointer gap-1.5 text-amber-600 border-amber-300 hover:text-amber-700 hover:bg-amber-50">
+        <Button variant="outline" size="sm" className="cursor-pointer gap-1.5 text-amber-600 border-amber-300 hover:text-amber-700 dark:text-amber-400 hover:bg-amber-50">
           <Undo2 className="h-3.5 w-3.5" />
           Retract
         </Button>
@@ -64,7 +64,7 @@ export function RetractReleaseButton({
           <Button variant="outline" onClick={() => setOpen(false)} className="cursor-pointer">
             Cancel
           </Button>
-          <Button onClick={handleRetract} disabled={isRetracting} className="cursor-pointer bg-cyan-800 text-white hover:bg-cyan-900">
+          <Button onClick={handleRetract} disabled={isRetracting} className="cursor-pointer bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
             {isRetracting ? "Retracting..." : "Retract & Edit"}
           </Button>
         </DialogFooter>

@@ -11,8 +11,8 @@ export default async function PurchasesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Purchases</h1>
-        <p className="text-gray-500">Your payment history and receipts</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Purchases</h1>
+        <p className="text-gray-500 dark:text-gray-400">Your payment history and receipts</p>
       </div>
 
       <PurchasesList />

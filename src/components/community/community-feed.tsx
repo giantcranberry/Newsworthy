@@ -80,7 +80,7 @@ export function CommunityFeed({
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+          <div key={i} className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3">
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-1.5">
@@ -97,9 +97,9 @@ export function CommunityFeed({
 
   if (posts.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
+      <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-8 text-center">
         <i className="fa-light fa-messages text-3xl text-gray-400" />
-        <p className="mt-2 text-sm text-gray-500">Nothing here yet. Be the first.</p>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Nothing here yet. Be the first.</p>
       </div>
     )
   }
@@ -119,7 +119,7 @@ export function CommunityFeed({
 
       {hasMore && (
         <div className="text-center py-4">
-          <Button variant="outline" onClick={loadMore} className="text-gray-600">
+          <Button variant="outline" onClick={loadMore} className="text-gray-600 dark:text-gray-400">
             Load More
           </Button>
         </div>

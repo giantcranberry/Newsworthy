@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 interface NavChild {
   title: string
@@ -85,6 +86,15 @@ const navSections: NavSection[] = [
           { title: 'All Brands', href: '/company', icon: 'fa-light fa-flag' },
           { title: 'Add Brand', href: '/company/add', icon: 'fa-light fa-flag', requiresCreate: true },
           { title: 'AI A2A Keys', href: '/settings/api-keys', icon: 'fa-light fa-key' },
+        ],
+      },
+      {
+        title: 'CRM',
+        href: '/crm',
+        icon: 'fa-light fa-address-book',
+        children: [
+          { title: 'All Contacts', href: '/crm', icon: 'fa-light fa-users' },
+          { title: 'Import Contacts', href: '/crm/import', icon: 'fa-light fa-file-import' },
         ],
       },
       {
@@ -299,49 +309,49 @@ export function Sidebar({
   const accentColor = (roles?: string[], sectionMode?: SidebarMode) =>
     isRoleRestricted(roles) && sectionMode === 'admin'
       ? {
-          active: 'bg-purple-900/10 text-purple-900',
-          activeBold: 'bg-purple-900/10 text-purple-900 font-semibold',
-          header: 'text-purple-900 bg-purple-50',
-          idle: 'text-purple-800 hover:bg-purple-50 hover:text-purple-900',
-          childIdle: 'text-purple-700 hover:bg-purple-50 hover:text-purple-900',
+          active: 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400',
+          activeBold: 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400 font-semibold',
+          header: 'text-purple-900 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20',
+          idle: 'text-purple-800 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
+          childIdle: 'text-purple-700 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
         }
       : {
-          active: 'bg-cyan-800/10 text-cyan-800',
-          activeBold: 'bg-cyan-800/10 text-cyan-800 font-semibold',
-          header: 'text-cyan-800 bg-gray-50',
-          idle: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900',
-          childIdle: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+          active: 'bg-cyan-800/10 text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-400',
+          activeBold: 'bg-cyan-800/10 text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-400 font-semibold',
+          header: 'text-cyan-800 bg-gray-50 dark:text-cyan-400 dark:bg-gray-800',
+          idle: 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100',
+          childIdle: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100',
         }
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className={cn(
-        'flex h-full flex-col border-r border-slate-200 bg-white transition-all duration-200',
+        'flex h-full flex-col border-r border-slate-200 bg-white dark:border-gray-800 dark:bg-gray-950 transition-all duration-200',
         collapsed ? 'w-16' : 'w-64'
       )}>
         {/* Logo */}
         <div className={cn(
-          'flex h-16 items-center border-b border-slate-200',
+          'flex h-16 items-center border-b border-slate-200 dark:border-gray-800',
           collapsed ? 'justify-center px-2' : 'px-6'
         )}>
           <Link href="/dashboard">
             {collapsed ? (
               <Image src="https://cdn.newsramp.app/logos/168-1769471247932.png" alt="Newsworthy" width={28} height={28} priority className="rounded-full" />
             ) : (
-              <Image src="/logo.svg" alt="Newsworthy" width={225} height={42} priority />
+              <Image src="/logo.svg" alt="Newsworthy" width={225} height={42} priority className="dark:brightness-0 dark:invert" />
             )}
           </Link>
         </div>
 
         {/* Collapse toggle */}
         {onToggleCollapse && (
-          <div className={cn('border-b border-slate-200', collapsed ? 'p-2' : 'px-4 py-2')}>
+          <div className={cn('border-b border-slate-200 dark:border-gray-800', collapsed ? 'p-2' : 'px-4 py-2')}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={onToggleCollapse}
                   className={cn(
-                    'flex items-center h-8 rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer transition-colors',
+                    'flex items-center h-8 rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300 cursor-pointer transition-colors',
                     collapsed ? 'justify-center w-full' : 'px-3 gap-3 w-full'
                   )}
                 >
@@ -379,12 +389,12 @@ export function Sidebar({
             return (
               <div key={section.label || `section-${sectionIdx}`}>
                 {section.label && !collapsed && (
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-3">
                     {section.label}
                   </h3>
                 )}
                 {section.label && collapsed && (
-                  <div className="my-2 border-t border-slate-200" />
+                  <div className="my-2 border-t border-slate-200 dark:border-gray-800" />
                 )}
                 <div className="space-y-1">
                   {visibleItems.map((item) => {
@@ -547,7 +557,7 @@ export function Sidebar({
                             isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
                           )}
                         >
-                          <div className={cn('ml-4 pl-3 border-l mt-1 space-y-1', isRoleRestricted(item.roles) ? 'border-purple-200' : 'border-slate-200')}>
+                          <div className={cn('ml-4 pl-3 border-l mt-1 space-y-1', isRoleRestricted(item.roles) ? 'border-purple-200 dark:border-purple-800' : 'border-slate-200 dark:border-gray-700')}>
                             {item.children.filter((child) => !child.requiresCreate || canCreateContent).map((child) => {
                               return (
                                 <Link
@@ -578,25 +588,26 @@ export function Sidebar({
         </nav>
 
         {/* User section */}
-        <div className="border-t border-slate-200 p-2">
+        <div className="border-t border-slate-200 dark:border-gray-800 p-2">
           {collapsed ? (
             <div className="space-y-1">
+              <ThemeToggle collapsed />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
                     href="/profile"
-                    className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                    className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                   >
                     <FaIcon icon="fa-light fa-gear" className="text-base" />
                   </Link>
                 </TooltipTrigger>
-                <TooltipContent side="right">My Profile</TooltipContent>
+                <TooltipContent side="right">My Profile Settings</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => signOut({ callbackUrl: '/login' })}
-                    className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                    className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                   >
                     <FaIcon icon="fa-light fa-right-from-bracket" className="text-base" />
                   </button>
@@ -607,27 +618,30 @@ export function Sidebar({
           ) : (
             <>
               <div className="flex items-center gap-3 rounded-lg px-3 py-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-                  <i className="fa-light fa-circle-user text-xl text-gray-600" aria-hidden="true" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
+                  <i className="fa-light fa-circle-user text-xl text-gray-600 dark:text-gray-400" aria-hidden="true" />
                 </div>
                 <div className="flex-1 truncate">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                     {session?.user?.name || session?.user?.email}
                   </p>
-                  <p className="text-xs text-gray-600 truncate">{session?.user?.email}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{session?.user?.email}</p>
                 </div>
+              </div>
+              <div className="mt-2 px-2 mb-2">
+                <ThemeToggle />
               </div>
               <div className="mt-2 space-y-1">
                 <Link
                   href="/profile"
-                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                  className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                 >
                   <FaIcon icon="fa-light fa-gear" className="w-5 text-center text-base" />
-                  My Profile
+                  My Profile Settings
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+                  className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                 >
                   <FaIcon icon="fa-light fa-right-from-bracket" className="w-5 text-center text-base" />
                   Sign out

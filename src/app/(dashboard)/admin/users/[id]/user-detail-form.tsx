@@ -168,7 +168,7 @@ export function UserDetailForm({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded text-sm">
+            <div className="bg-red-50 text-red-600 dark:text-red-400 p-3 rounded text-sm">
               {error}
             </div>
           )}
@@ -195,18 +195,18 @@ export function UserDetailForm({
           </div>
 
           {canResetPassword && (
-            <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-              <legend className="text-sm font-medium text-gray-700 px-2">Roles & Status</legend>
+            <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+              <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Roles & Status</legend>
               <div className="flex flex-wrap gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={roles.isAdmin}
                     onChange={(e) => setRoles({ ...roles, isAdmin: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-400 focus:ring-red-500"
                   />
                   <span className="text-sm">
-                    <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-xs font-medium">Admin</span>
+                    <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs font-medium">Admin</span>
                   </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -214,10 +214,10 @@ export function UserDetailForm({
                     type="checkbox"
                     checked={roles.isEditor}
                     onChange={(e) => setRoles({ ...roles, isEditor: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
                   />
                   <span className="text-sm">
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">Editor</span>
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">Editor</span>
                   </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -225,10 +225,10 @@ export function UserDetailForm({
                     type="checkbox"
                     checked={roles.isStaff}
                     onChange={(e) => setRoles({ ...roles, isStaff: e.target.checked })}
-                    className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-purple-600 focus:ring-purple-500"
                   />
                   <span className="text-sm">
-                    <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">Staff</span>
+                    <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs font-medium">Staff</span>
                   </span>
                 </label>
                 <div className="w-px bg-gray-300" />
@@ -237,12 +237,12 @@ export function UserDetailForm({
                     type="checkbox"
                     checked={emailVerified}
                     onChange={(e) => setEmailVerified(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-green-600 dark:text-green-400 focus:ring-green-500"
                   />
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     emailVerified
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                   }`}>
                     {emailVerified ? 'Verified' : 'Pending'}
                   </span>
@@ -262,13 +262,13 @@ export function UserDetailForm({
           </div>
 
           <fieldset className="border border-blue-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-blue-700 px-2">
+            <legend className="text-sm font-medium text-blue-700 dark:text-blue-400 px-2">
               PR Credits Management
             </legend>
 
             <div className="bg-blue-50 p-3 rounded flex justify-between items-center">
               <span>
-                <span className="text-gray-600">Current Account Credits:</span>{' '}
+                <span className="text-gray-600 dark:text-gray-400">Current Account Credits:</span>{' '}
                 <strong>{accountCredits.toLocaleString()}</strong>
               </span>
               <Button
@@ -282,9 +282,9 @@ export function UserDetailForm({
             </div>
 
             {showCreditHistory && (
-              <div className="bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
+              <div className="bg-gray-50 dark:bg-gray-950 p-3 rounded max-h-60 overflow-y-auto">
                 {creditHistory.length === 0 ? (
-                  <p className="text-gray-500 text-center py-4">No credit transactions</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-center py-4">No credit transactions</p>
                 ) : (
                   <table className="w-full text-xs">
                     <thead>
@@ -297,19 +297,19 @@ export function UserDetailForm({
                     </thead>
                     <tbody>
                       {creditHistory.map((tx) => (
-                        <tr key={tx.id} className="border-b border-gray-200">
+                        <tr key={tx.id} className="border-b border-gray-200 dark:border-gray-800">
                           <td className="py-1">{new Date(tx.createdAt).toLocaleDateString()}</td>
                           <td className="py-1">
                             {tx.companyId ? (
-                              <span className="text-blue-600">{companies[tx.companyId] || 'Brand'}</span>
+                              <span className="text-blue-600 dark:text-blue-400">{companies[tx.companyId] || 'Brand'}</span>
                             ) : (
-                              <span className="text-gray-500">Account</span>
+                              <span className="text-gray-500 dark:text-gray-400">Account</span>
                             )}
                           </td>
-                          <td className={`py-1 font-medium ${tx.credits > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <td className={`py-1 font-medium ${tx.credits > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                             {tx.credits > 0 ? '+' : ''}{tx.credits}
                           </td>
-                          <td className="py-1 text-gray-500">{tx.notes || '-'}</td>
+                          <td className="py-1 text-gray-500 dark:text-gray-400">{tx.notes || '-'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -328,7 +328,7 @@ export function UserDetailForm({
                 onChange={(e) => setFormData({ ...formData, prCredits: e.target.value })}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Positive to add, negative to subtract (e.g., 10 or -5)
               </p>
             </div>
@@ -410,7 +410,7 @@ export function UserDetailForm({
 
           {canResetPassword && (
             <fieldset className="border border-amber-200 p-4 rounded-lg space-y-3">
-              <legend className="text-sm font-medium text-amber-700 px-2 flex items-center gap-1.5">
+              <legend className="text-sm font-medium text-amber-700 dark:text-amber-400 px-2 flex items-center gap-1.5">
                 <KeyRound className="h-4 w-4" />
                 Reset Password
               </legend>
@@ -427,19 +427,19 @@ export function UserDetailForm({
                   variant="outline"
                   onClick={handleResetPassword}
                   disabled={isResettingPassword || newPassword.length < 8}
-                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                  className="border-amber-300 text-amber-700 dark:text-amber-400 hover:bg-amber-50"
                 >
                   {isResettingPassword ? 'Resetting...' : 'Reset'}
                 </Button>
               </div>
               {passwordResult?.success && (
-                <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 p-2 rounded">
+                <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400 bg-green-50 p-2 rounded">
                   <Check className="h-4 w-4" />
                   Password reset successfully
                 </div>
               )}
               {passwordResult?.error && (
-                <div className="flex items-center gap-2 text-sm text-red-700 bg-red-50 p-2 rounded">
+                <div className="flex items-center gap-2 text-sm text-red-700 dark:text-red-400 bg-red-50 p-2 rounded">
                   <AlertCircle className="h-4 w-4" />
                   {passwordResult.error}
                 </div>

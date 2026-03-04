@@ -50,36 +50,36 @@ export function ProfileView({ profile, currentUserId, isFollowing, isAdmin }: Pr
     <div className="space-y-6">
       <Link
         href="/community"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Community
       </Link>
 
       {/* Profile header */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6">
+      <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6">
         <div className="flex items-start gap-4">
           <UserAvatar name={profile.name} avatar={profile.avatar} size="lg" />
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-bold text-gray-900">{profile.name}</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{profile.name}</h1>
             {profile.acctHandle && (
-              <p className="text-sm text-gray-500">@{profile.acctHandle}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">@{profile.acctHandle}</p>
             )}
             {(profile.company || profile.location) && (
-              <p className="text-sm text-gray-600 mt-0.5">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
                 {[profile.company, profile.location].filter(Boolean).join(' · ')}
               </p>
             )}
             {profile.bio && (
-              <p className="text-sm text-gray-700 mt-2">{profile.bio}</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">{profile.bio}</p>
             )}
 
             <div className="flex items-center gap-4 mt-3 text-sm">
-              <span className="text-gray-600">
-                <strong className="text-gray-900">{profile.followerCount}</strong> followers
+              <span className="text-gray-600 dark:text-gray-400">
+                <strong className="text-gray-900 dark:text-gray-100">{profile.followerCount}</strong> followers
               </span>
-              <span className="text-gray-600">
-                <strong className="text-gray-900">{profile.followingCount}</strong> following
+              <span className="text-gray-600 dark:text-gray-400">
+                <strong className="text-gray-900 dark:text-gray-100">{profile.followingCount}</strong> following
               </span>
             </div>
 
@@ -90,7 +90,7 @@ export function ProfileView({ profile, currentUserId, isFollowing, isAdmin }: Pr
                   variant="outline"
                   size="sm"
                   onClick={handleStartChat}
-                  className="gap-1.5 text-gray-700"
+                  className="gap-1.5 text-gray-700 dark:text-gray-300"
                 >
                   <MessageCircle className="h-4 w-4" />
                   Message
@@ -103,7 +103,7 @@ export function ProfileView({ profile, currentUserId, isFollowing, isAdmin }: Pr
 
       {/* Tabs */}
       <Tabs defaultValue="posts">
-        <TabsList className="bg-gray-100">
+        <TabsList className="bg-gray-100 dark:bg-gray-800">
           <TabsTrigger value="posts">Posts</TabsTrigger>
           <TabsTrigger value="followers">Followers</TabsTrigger>
           <TabsTrigger value="following">Following</TabsTrigger>

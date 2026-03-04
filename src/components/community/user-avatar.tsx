@@ -51,7 +51,7 @@ export function UserAvatar({ name, avatar, size = 'md', className }: UserAvatarP
   return (
     <div
       className={cn(
-        'flex items-center justify-center rounded-full bg-gray-200 text-gray-600 font-medium flex-shrink-0',
+        'flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 font-medium flex-shrink-0',
         sizeClasses[size],
         className
       )}

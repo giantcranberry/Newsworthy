@@ -105,10 +105,10 @@ export function PartnerList({ partners }: PartnerListProps) {
       <Card data-tour="partners-empty">
         <CardContent className="py-16 text-center">
           <Building2 className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
             No partners yet
           </h3>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-gray-600 dark:text-gray-400">
             Add your first partner to get started.
           </p>
         </CardContent>
@@ -120,7 +120,7 @@ export function PartnerList({ partners }: PartnerListProps) {
     <div className="space-y-4">
       {/* Filter, Layout Toggle & Add */}
       <div className="flex items-center justify-between gap-3">
-        <div data-tour="partners-filters" className="inline-flex rounded-md border border-gray-300 bg-white">
+        <div data-tour="partners-filters" className="inline-flex rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
           {(
             [
               { value: "active", label: "Active" },
@@ -132,11 +132,11 @@ export function PartnerList({ partners }: PartnerListProps) {
               key={opt.value}
               onClick={() => setFilter(opt.value)}
               className={`inline-flex items-center px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
-                i > 0 ? "border-l border-gray-300" : ""
+                i > 0 ? "border-l border-gray-300 dark:border-gray-700" : ""
               } ${i === 0 ? "rounded-l-md" : ""} ${i === 2 ? "rounded-r-md" : ""} ${
                 filter === opt.value
-                  ? "bg-cyan-800/10 text-cyan-800"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
               }`}
             >
               {opt.label}
@@ -145,23 +145,23 @@ export function PartnerList({ partners }: PartnerListProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="inline-flex rounded-md border border-gray-300 bg-white">
+          <div className="inline-flex rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
             <button
               onClick={() => setLayout("grid")}
               className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-l-md cursor-pointer transition-colors ${
                 layout === "grid"
-                  ? "bg-cyan-800/10 text-cyan-800"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
               }`}
             >
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button
               onClick={() => setLayout("list")}
-              className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-r-md border-l border-gray-300 cursor-pointer transition-colors ${
+              className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-r-md border-l border-gray-300 dark:border-gray-700 cursor-pointer transition-colors ${
                 layout === "list"
-                  ? "bg-cyan-800/10 text-cyan-800"
-                  : "text-gray-600 hover:bg-gray-50"
+                  ? "bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400"
+                  : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950"
               }`}
             >
               <List className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function PartnerList({ partners }: PartnerListProps) {
           <Button
             data-tour="partners-add"
             onClick={() => setShowAddDialog(true)}
-            className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer"
+            className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             Add Partner
@@ -182,7 +182,7 @@ export function PartnerList({ partners }: PartnerListProps) {
       {filteredPartners.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-gray-500">
+            <p className="text-gray-500 dark:text-gray-400">
               No {filter === "all" ? "" : filter} partners found.
             </p>
           </CardContent>
@@ -193,7 +193,7 @@ export function PartnerList({ partners }: PartnerListProps) {
             <Card key={partner.id} className="overflow-hidden flex flex-col" {...(index === 0 ? { "data-tour": "partners-first-card" } : {})}>
               <CardContent className="p-0 flex flex-col flex-1">
                 {/* Logo Header */}
-                <div className="flex items-center justify-center h-32 bg-gray-50">
+                <div className="flex items-center justify-center h-32 bg-gray-50 dark:bg-gray-950">
                   {partner.logo ? (
                     <img
                       src={partner.logo}
@@ -207,11 +207,11 @@ export function PartnerList({ partners }: PartnerListProps) {
 
                 {/* Content */}
                 <div className="p-4 flex flex-col flex-1">
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                     {partner.company || partner.brandName || "Unnamed Partner"}
                   </h3>
                   {partner.handle && (
-                    <p className="mt-1 text-sm text-gray-600">
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                       @{partner.handle}
                     </p>
                   )}
@@ -221,21 +221,21 @@ export function PartnerList({ partners }: PartnerListProps) {
                     <span
                       className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                         partner.isActive
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-600"
+                          ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                          : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                       }`}
                     >
                       {partner.isActive ? "Active" : "Inactive"}
                     </span>
                     {partner.partnerType && (
-                      <span className="inline-flex items-center rounded-full bg-cyan-800/10 px-2 py-0.5 text-xs font-medium text-cyan-800">
+                      <span className="inline-flex items-center rounded-full bg-cyan-800/10 dark:bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-800 dark:text-cyan-400">
                         {partner.partnerType}
                       </span>
                     )}
                   </div>
 
                   {/* Details */}
-                  <div className="mt-3 text-sm text-gray-600 space-y-1">
+                  <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 space-y-1">
                     {partner.contactEmail && (
                       <p>{partner.contactEmail}</p>
                     )}
@@ -251,7 +251,7 @@ export function PartnerList({ partners }: PartnerListProps) {
                   <div className="mt-auto pt-4" {...(index === 0 ? { "data-tour": "partners-actions" } : {})}>
                     <Link
                       href={`/admin/partners/${partner.id}`}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                     >
                       <Settings className="h-3.5 w-3.5" />
                       Manage
@@ -290,29 +290,29 @@ export function PartnerList({ partners }: PartnerListProps) {
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                             partner.isActive
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-600"
+                              ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                           }`}
                         >
                           {partner.isActive ? "Active" : "Inactive"}
                         </span>
                         {partner.partnerType && (
-                          <span className="inline-flex items-center rounded-full bg-cyan-800/10 px-2 py-0.5 text-xs font-medium text-cyan-800">
+                          <span className="inline-flex items-center rounded-full bg-cyan-800/10 dark:bg-cyan-400/10 px-2 py-0.5 text-xs font-medium text-cyan-800 dark:text-cyan-400">
                             {partner.partnerType}
                           </span>
                         )}
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                         {partner.company ||
                           partner.brandName ||
                           "Unnamed Partner"}
                       </h3>
                       {partner.handle && (
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                           @{partner.handle}
                         </p>
                       )}
-                      <div className="flex items-center gap-4 mt-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-4 mt-3 text-sm text-gray-600 dark:text-gray-400">
                         {partner.contactEmail && (
                           <span>{partner.contactEmail}</span>
                         )}
@@ -330,7 +330,7 @@ export function PartnerList({ partners }: PartnerListProps) {
                     <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "partners-actions" } : {})}>
                       <Link
                         href={`/admin/partners/${partner.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                       >
                         <Settings className="h-3.5 w-3.5" />
                         Manage
@@ -351,7 +351,7 @@ export function PartnerList({ partners }: PartnerListProps) {
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             {createError && (
-              <div className="bg-red-50 text-red-600 p-3 rounded text-sm">
+              <div className="bg-red-50 text-red-600 dark:text-red-400 p-3 rounded text-sm">
                 {createError}
               </div>
             )}
@@ -422,7 +422,7 @@ export function PartnerList({ partners }: PartnerListProps) {
               <Button
                 type="submit"
                 disabled={isCreating}
-                className="bg-cyan-800 text-white hover:bg-cyan-900"
+                className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               >
                 {isCreating ? "Creating..." : "Create Partner"}
               </Button>

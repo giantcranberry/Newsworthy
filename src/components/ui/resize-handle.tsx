@@ -61,7 +61,7 @@ export function ResizeHandle({ onResize, onResizeEnd }: ResizeHandleProps) {
         className={`relative z-10 ml-1 flex flex-col items-center justify-center gap-[3px] w-4 h-10 rounded-full border transition-all duration-150 ${
           active
             ? 'bg-cyan-600 border-cyan-600 shadow-md'
-            : 'bg-white border-gray-300 shadow-sm group-hover:border-cyan-400 group-hover:shadow-md'
+            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 shadow-sm group-hover:border-cyan-400 group-hover:shadow-md'
         }`}
       >
         <span className={`block w-[3px] h-[3px] rounded-full ${active ? 'bg-white' : 'bg-gray-400 group-hover:bg-cyan-500'}`} />

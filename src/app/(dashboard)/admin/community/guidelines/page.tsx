@@ -17,15 +17,15 @@ export default async function AdminGuidelinesPage() {
     <div className="space-y-6">
       <Link
         href="/admin/community"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Community
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Community Guidelines</h1>
-        <p className="text-gray-600">Edit the community rules and guidelines (Markdown supported)</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Community Guidelines</h1>
+        <p className="text-gray-600 dark:text-gray-400">Edit the community rules and guidelines (Markdown supported)</p>
       </div>
 
       <GuidelinesEditor initialBody={guidelines?.body || ''} />

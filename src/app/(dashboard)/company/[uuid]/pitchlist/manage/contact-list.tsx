@@ -333,17 +333,17 @@ export function ContactList({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Back link */}
       <div className="flex items-center justify-between">
         <Link
           href={`/company/${companyUuid}/pitchlist`}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Pitch List Settings
@@ -353,43 +353,43 @@ export function ContactList({
       {/* Stats — click to filter */}
       <div className="grid grid-cols-4 gap-4">
         <Card
-          className={`cursor-pointer transition-colors ${!status ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${!status ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter(status || '')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <Users className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'active' ? 'ring-2 ring-green-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'active' ? 'ring-2 ring-green-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('active')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <UserCheck className="h-5 w-5 text-green-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-            <p className="text-xs text-gray-500">Active</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'bounced' ? 'ring-2 ring-red-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'bounced' ? 'ring-2 ring-red-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('bounced')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <MailX className="h-5 w-5 text-red-400 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-red-600">{stats.bounced}</p>
-            <p className="text-xs text-gray-500">Bounced</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.bounced}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Bounced</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'unsubscribed' ? 'ring-2 ring-amber-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'unsubscribed' ? 'ring-2 ring-amber-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('unsubscribed')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <UserX className="h-5 w-5 text-amber-400 mx-auto mb-1" />
             <p className="text-2xl font-bold text-amber-600">{stats.unsubscribed}</p>
-            <p className="text-xs text-gray-500">Unsubscribed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Unsubscribed</p>
           </CardContent>
         </Card>
       </div>
@@ -397,7 +397,7 @@ export function ContactList({
       {/* Bulk action bar */}
       {!readOnly && someSelected && (
         <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <span className="text-sm font-medium text-red-800">
+          <span className="text-sm font-medium text-red-800 dark:text-red-400">
             {selected.size} contact{selected.size !== 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
@@ -438,7 +438,7 @@ export function ContactList({
               {searchInput && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -448,7 +448,7 @@ export function ContactList({
         </CardHeader>
         <CardContent>
           {(query || status) && (
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               Showing {filtered} result{filtered !== 1 ? 's' : ''}
               {status && <> with status <span className="font-medium capitalize">{status}</span></>}
               {query && <> matching &ldquo;{query}&rdquo;</>}
@@ -470,11 +470,11 @@ export function ContactList({
                           />
                         </th>
                       )}
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Contact</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Publication</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Added</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Status</th>
-                      <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Contact</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Publication</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Added</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                      <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -497,31 +497,31 @@ export function ContactList({
                           <td className="py-2 pr-4">
                             {(c.firstName || c.lastName) && (
                               <>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {[c.firstName, c.lastName].filter(Boolean).join(' ')}
                                 </span>
                                 <br />
                               </>
                             )}
-                            <span className="text-gray-500">{c.email}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{c.email}</span>
                           </td>
-                          <td className="py-2 pr-4 text-gray-600">
+                          <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">
                             {c.publication || c.tld || '—'}
                           </td>
-                          <td className="py-2 pr-4 text-gray-600">{formatDate(c.createdAt)}</td>
+                          <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{formatDate(c.createdAt)}</td>
                           <td className="py-2 pr-4">
                             {rowStatus === 'active' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                                 Active
                               </span>
                             )}
                             {rowStatus === 'bounced' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                                 Bounced
                               </span>
                             )}
                             {rowStatus === 'unsubscribed' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                 Unsubscribed
                               </span>
                             )}
@@ -530,7 +530,7 @@ export function ContactList({
                             <div className="flex items-center justify-end gap-1">
                               <button
                                 onClick={() => openView(c)}
-                                className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                className="p-1 text-gray-400 hover:text-blue-600 dark:text-blue-400 transition-colors"
                                 title="View contact"
                               >
                                 <Eye className="h-4 w-4" />
@@ -538,7 +538,7 @@ export function ContactList({
                               {!readOnly && (
                                 <button
                                   onClick={() => openEdit(c)}
-                                  className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                  className="p-1 text-gray-400 hover:text-blue-600 dark:text-blue-400 transition-colors"
                                   title="Edit contact"
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -547,7 +547,7 @@ export function ContactList({
                               {!readOnly && (
                                 <button
                                   onClick={() => openDelete(c)}
-                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  className="p-1 text-gray-400 hover:text-red-600 dark:text-red-400 transition-colors"
                                   title="Remove contact"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -565,7 +565,7 @@ export function ContactList({
               {/* Pagination */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Rows per page:</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Rows per page:</span>
                   <Select
                     value={String(perPage)}
                     onChange={(e) => handlePerPageChange(e.target.value)}
@@ -578,14 +578,14 @@ export function ContactList({
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {startRecord}–{endRecord} of {filtered}
                   </span>
                   <div className="flex items-center gap-1">
                     {currentPage > 1 ? (
                       <Link
                         href={buildUrl({ page: String(currentPage - 1) })}
-                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 hover:bg-gray-100"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Link>
@@ -598,7 +598,7 @@ export function ContactList({
                     {currentPage < totalPages ? (
                       <Link
                         href={buildUrl({ page: String(currentPage + 1) })}
-                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 hover:bg-gray-100"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Link>
@@ -637,15 +637,15 @@ export function ContactList({
               <div className="space-y-2">
                 {(viewContact.firstName || viewContact.lastName) && (
                   <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase">Name</p>
-                    <p className="text-sm text-gray-900">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Name</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">
                       {[viewContact.firstName, viewContact.lastName].filter(Boolean).join(' ')}
                     </p>
                   </div>
                 )}
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Email</p>
-                  <p className="text-sm text-gray-900">{viewContact.email}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100">{viewContact.email}</p>
                 </div>
               </div>
 
@@ -654,14 +654,14 @@ export function ContactList({
                 <div className="grid grid-cols-2 gap-4">
                   {viewContact.publication && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase">Publication</p>
-                      <p className="text-sm text-gray-900">{viewContact.publication}</p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Publication</p>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{viewContact.publication}</p>
                     </div>
                   )}
                   {viewContact.tld && (
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase">Domain</p>
-                      <p className="text-sm text-gray-900">{viewContact.tld}</p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Domain</p>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{viewContact.tld}</p>
                     </div>
                   )}
                 </div>
@@ -670,51 +670,51 @@ export function ContactList({
               {/* Phone */}
               {viewContact.phone && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Phone</p>
-                  <p className="text-sm text-gray-900">{viewContact.phone}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Phone</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100">{viewContact.phone}</p>
                 </div>
               )}
 
               {/* Notes */}
               {viewContact.notes && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase">Notes</p>
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap">{viewContact.notes}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Notes</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{viewContact.notes}</p>
                 </div>
               )}
 
               {/* Social Profiles */}
               {(viewContact.linkedin || viewContact.twitter || viewContact.facebook || viewContact.instagram || viewContact.crunchbase || viewContact.youtube) && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 uppercase mb-1">Social Profiles</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-1">Social Profiles</p>
                   <div className="flex flex-wrap gap-2">
                     {viewContact.linkedin && (
-                      <a href={viewContact.linkedin} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.linkedin} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         LinkedIn
                       </a>
                     )}
                     {viewContact.twitter && (
-                      <a href={viewContact.twitter} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.twitter} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         Twitter
                       </a>
                     )}
                     {viewContact.facebook && (
-                      <a href={viewContact.facebook} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.facebook} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         Facebook
                       </a>
                     )}
                     {viewContact.instagram && (
-                      <a href={viewContact.instagram} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.instagram} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         Instagram
                       </a>
                     )}
                     {viewContact.crunchbase && (
-                      <a href={viewContact.crunchbase} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.crunchbase} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         Crunchbase
                       </a>
                     )}
                     {viewContact.youtube && (
-                      <a href={viewContact.youtube} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded">
+                      <a href={viewContact.youtube} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 dark:text-blue-400 hover:underline bg-blue-50 px-2 py-1 rounded">
                         YouTube
                       </a>
                     )}
@@ -724,33 +724,33 @@ export function ContactList({
 
               {/* Activity & Status */}
               <div className="border-t pt-3">
-                <p className="text-xs font-medium text-gray-500 uppercase mb-2">Activity</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase mb-2">Activity</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-500">Added:</span>{' '}
-                    <span className="text-gray-900">{formatDate(viewContact.createdAt)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Added:</span>{' '}
+                    <span className="text-gray-900 dark:text-gray-100">{formatDate(viewContact.createdAt)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Source:</span>{' '}
-                    <span className="text-gray-900 capitalize">{viewContact.source || '—'}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Source:</span>{' '}
+                    <span className="text-gray-900 dark:text-gray-100 capitalize">{viewContact.source || '—'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Last Open:</span>{' '}
-                    <span className="text-gray-900">{formatDate(viewContact.lastOpenAt)}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Last Open:</span>{' '}
+                    <span className="text-gray-900 dark:text-gray-100">{formatDate(viewContact.lastOpenAt)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-500">Emails Sent:</span>{' '}
-                    <span className="text-gray-900">{viewContact.emailCount ?? 0}</span>
+                    <span className="text-gray-500 dark:text-gray-400">Emails Sent:</span>{' '}
+                    <span className="text-gray-900 dark:text-gray-100">{viewContact.emailCount ?? 0}</span>
                   </div>
                   {viewContact.bouncedAt && (
                     <div>
-                      <span className="text-gray-500">Bounced:</span>{' '}
-                      <span className="text-red-600">{formatDate(viewContact.bouncedAt)}</span>
+                      <span className="text-gray-500 dark:text-gray-400">Bounced:</span>{' '}
+                      <span className="text-red-600 dark:text-red-400">{formatDate(viewContact.bouncedAt)}</span>
                     </div>
                   )}
                   {viewContact.unsubscribeAt && (
                     <div>
-                      <span className="text-gray-500">Unsubscribed:</span>{' '}
+                      <span className="text-gray-500 dark:text-gray-400">Unsubscribed:</span>{' '}
                       <span className="text-amber-600">{formatDate(viewContact.unsubscribeAt)}</span>
                     </div>
                   )}
@@ -759,12 +759,12 @@ export function ContactList({
 
               {/* Status badge */}
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 uppercase">Status:</span>
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Status:</span>
                 {(() => {
                   const s = getStatus(viewContact)
-                  if (s === 'active') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">Active</span>
-                  if (s === 'bounced') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">Bounced</span>
-                  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Unsubscribed</span>
+                  if (s === 'active') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Active</span>
+                  if (s === 'bounced') return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">Bounced</span>
+                  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">Unsubscribed</span>
                 })()}
               </div>
             </div>
@@ -821,7 +821,7 @@ export function ContactList({
           </DialogHeader>
 
           {editError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{editError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{editError}</div>
           )}
 
           <div className="grid gap-4 py-2">
@@ -936,10 +936,10 @@ export function ContactList({
 
           {deleteContact && (
             <div className="py-2">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {[deleteContact.firstName, deleteContact.lastName].filter(Boolean).join(' ')}
               </p>
-              <p className="text-sm text-gray-500">{deleteContact.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{deleteContact.email}</p>
               {deleteContact.publication && (
                 <p className="text-sm text-gray-400">{deleteContact.publication}</p>
               )}

@@ -40,7 +40,7 @@ export function VerifyButton({
         size="sm"
         onClick={handleToggle}
         disabled={isLoading}
-        className="gap-1.5 bg-green-100 text-green-800 border-green-200 hover:bg-green-50 cursor-pointer"
+        className="gap-1.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-200 hover:bg-green-50 cursor-pointer"
       >
         {isLoading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -58,7 +58,7 @@ export function VerifyButton({
       size="sm"
       onClick={handleToggle}
       disabled={isLoading}
-      className="gap-1.5 bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-50 cursor-pointer"
+      className="gap-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 border-yellow-200 hover:bg-yellow-50 cursor-pointer"
     >
       {isLoading ? (
         <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -266,7 +266,7 @@ export function CategoryList({
           <select
             value={levelFilter}
             onChange={(e) => setLevelFilter(e.target.value as 'top' | 'all')}
-            className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
+            className="h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm"
           >
             <option value="top">Top Level</option>
             <option value="all">All Categories</option>
@@ -276,7 +276,7 @@ export function CategoryList({
             <select
               value={circuitFilter === 'all' ? 'all' : String(circuitFilter)}
               onChange={(e) => setCircuitFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-              className="h-9 rounded-md border border-gray-300 bg-white px-3 text-sm"
+              className="h-9 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-sm"
             >
               <option value="all">All Circuits</option>
               {circuits.map((c) => (
@@ -286,7 +286,7 @@ export function CategoryList({
           )}
         </div>
 
-        <Button data-tour="categories-add" onClick={handleCreate} className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900 cursor-pointer">
+        <Button data-tour="categories-add" onClick={handleCreate} className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
@@ -304,14 +304,14 @@ export function CategoryList({
           <Card>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-gray-900">Circuits</h3>
-                <span className="text-xs text-gray-500">{circuitsWithCounts.length} circuits</span>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Circuits</h3>
+                <span className="text-xs text-gray-500 dark:text-gray-400">{circuitsWithCounts.length} circuits</span>
               </div>
 
               {circuitsWithCounts.length === 0 ? (
-                <p className="text-sm text-gray-500">No circuits defined yet. Add a circuit below.</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">No circuits defined yet. Add a circuit below.</p>
               ) : (
-                <div className="divide-y divide-gray-100">
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
                   {circuitsWithCounts.map((c) => {
                     const isExpanded = expandedCircuit === c.id
                     const circuitCats = categoriesByCircuit.get(c.id) || []
@@ -335,14 +335,14 @@ export function CategoryList({
                               <button
                                 onClick={() => handleRenameCircuit(c.id)}
                                 disabled={circuitLoading}
-                                className="p-1 rounded text-green-600 hover:bg-green-50 cursor-pointer"
+                                className="p-1 rounded text-green-600 dark:text-green-400 hover:bg-green-50 cursor-pointer"
                               >
                                 <Check className="h-4 w-4" />
                               </button>
                               <button
                                 onClick={() => setEditingCircuit(null)}
                                 disabled={circuitLoading}
-                                className="p-1 rounded text-gray-400 hover:bg-gray-100 cursor-pointer"
+                                className="p-1 rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 cursor-pointer"
                               >
                                 <X className="h-4 w-4" />
                               </button>
@@ -351,17 +351,17 @@ export function CategoryList({
                             <>
                               <button
                                 onClick={() => setExpandedCircuit(isExpanded ? null : c.id)}
-                                className="p-0.5 rounded text-gray-400 hover:text-gray-600 cursor-pointer"
+                                className="p-0.5 rounded text-gray-400 hover:text-gray-600 dark:text-gray-400 cursor-pointer"
                               >
                                 <ChevronRight className={`h-3.5 w-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                               </button>
                               <button
                                 onClick={() => setExpandedCircuit(isExpanded ? null : c.id)}
-                                className="flex-1 text-left text-sm text-gray-900 hover:text-cyan-800 cursor-pointer"
+                                className="flex-1 text-left text-sm text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400 cursor-pointer"
                               >
                                 {c.name}
                               </button>
-                              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                              <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                                 {c.count} {c.count === 1 ? 'category' : 'categories'}
                               </span>
                               <button
@@ -370,14 +370,14 @@ export function CategoryList({
                                   setEditingCircuitValue(c.name)
                                 }}
                                 disabled={circuitLoading}
-                                className="p-1 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
+                                className="p-1 rounded text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-600 dark:text-gray-400 cursor-pointer"
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </button>
                               <button
                                 onClick={() => handleDeleteCircuit(c.id, c.name)}
                                 disabled={circuitLoading}
-                                className="p-1 rounded text-red-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                                className="p-1 rounded text-red-400 hover:bg-red-50 hover:text-red-600 dark:text-red-400 cursor-pointer"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
@@ -385,14 +385,14 @@ export function CategoryList({
                           )}
                         </div>
                         {isExpanded && (
-                          <div className="ml-7 mb-2 pl-3 border-l-2 border-gray-200">
+                          <div className="ml-7 mb-2 pl-3 border-l-2 border-gray-200 dark:border-gray-800">
                             {circuitCats.length === 0 ? (
                               <p className="text-xs text-gray-400 py-1">No categories assigned</p>
                             ) : (
                               <div className="space-y-1 py-1">
                                 {circuitCats.map(cat => (
                                   <div key={cat.id} className="flex items-center gap-2 text-xs group">
-                                    <span className="text-gray-700">{cat.name}</span>
+                                    <span className="text-gray-700 dark:text-gray-300">{cat.name}</span>
                                     <span className="text-gray-400 font-mono flex-1">/{cat.slug}</span>
                                     <button
                                       onClick={() => handleUnlinkCategory(c.id, cat.id)}
@@ -415,7 +415,7 @@ export function CategoryList({
               )}
 
               {/* Add New Circuit */}
-              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                 <Input
                   value={newCircuitName}
                   onChange={(e) => setNewCircuitName(e.target.value)}
@@ -445,15 +445,15 @@ export function CategoryList({
         </CollapsibleContent>
       </Collapsible>
 
-      <p className="text-sm text-gray-500">{filtered.length} categories</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400">{filtered.length} categories</p>
 
       {/* Category List */}
       {filtered.length === 0 ? (
         <Card data-tour="categories-empty">
           <CardContent className="py-16 text-center">
             <Tag className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No categories found</h3>
-            <p className="mt-2 text-gray-600">
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No categories found</h3>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
               {currentSearch ? 'Try a different search term.' : 'Create your first category.'}
             </p>
           </CardContent>
@@ -465,31 +465,31 @@ export function CategoryList({
               <div className="flex-1 min-w-0 p-4 sm:px-6">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className="p-2 rounded-lg bg-cyan-800/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
+                    <div className="p-2 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
                       {cat.parentSlug ? (
-                        <FolderTree className="h-5 w-5 text-cyan-800" />
+                        <FolderTree className="h-5 w-5 text-cyan-800 dark:text-cyan-400" />
                       ) : (
-                        <Tag className="h-5 w-5 text-cyan-800" />
+                        <Tag className="h-5 w-5 text-cyan-800 dark:text-cyan-400" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-gray-900">{cat.name}</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{cat.name}</h3>
                         <span className="text-xs text-gray-400 font-mono">/{cat.slug}</span>
                       </div>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {cat.circuits.map(ci => (
-                          <span key={ci.id} className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                          <span key={ci.id} className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                             {ci.name}
                           </span>
                         ))}
                         {cat.parentCategory && cat.parentCategory !== 'top' && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             Parent: {cat.parentCategory}
                           </span>
                         )}
                         {cat.description && (
-                          <span className="text-xs text-gray-500 truncate max-w-xs">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
                             {cat.description}
                           </span>
                         )}
@@ -500,7 +500,7 @@ export function CategoryList({
                   <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "categories-actions" } : {})}>
                     <button
                       onClick={() => handleEdit(cat)}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 cursor-pointer transition-colors hover:bg-gray-100 hover:text-gray-900"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit
@@ -508,7 +508,7 @@ export function CategoryList({
                     <button
                       onClick={() => handleDelete(cat.id)}
                       disabled={isDeleting === cat.id}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-700"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 cursor-pointer transition-colors hover:bg-red-50 hover:text-red-700 dark:text-red-400"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       Delete

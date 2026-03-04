@@ -8,7 +8,7 @@ import dynamic from 'next/dynamic'
 
 const Editor = dynamic(
   () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
-  { ssr: false, loading: () => <div className="h-[500px] bg-gray-50 rounded border border-gray-200 animate-pulse" /> },
+  { ssr: false, loading: () => <div className="h-[500px] bg-gray-50 dark:bg-gray-950 rounded border border-gray-200 dark:border-gray-800 animate-pulse" /> },
 )
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -850,18 +850,18 @@ export function EditorialEditForm({
   return (
     <>
       <div className="space-y-3">
-        <Link href={backHref} className="inline-flex items-center text-sm text-cyan-800 hover:text-cyan-900 font-medium">
+        <Link href={backHref} className="inline-flex items-center text-sm text-cyan-800 dark:text-cyan-400 hover:text-cyan-900 dark:hover:text-cyan-300 font-medium">
           <ArrowLeft className="h-4 w-4 mr-1" />
           {backLabel}
         </Link>
-        <h1 className="text-2xl font-bold text-gray-800">
+        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
           Editorial Edit &mdash; PR #{release.id}
         </h1>
-        <p className="text-sm text-gray-500">{company.name}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{company.name}</p>
       </div>
 
       {message && (
-        <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+        <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800 dark:text-green-400' : 'bg-red-50 text-red-800 dark:text-red-400'}`}>
           {message.text}
         </div>
       )}
@@ -890,7 +890,7 @@ export function EditorialEditForm({
                 id="abstract"
                 value={abstract}
                 onChange={(e) => setAbstract(e.target.value)}
-                className="mt-1 w-full h-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm"
+                className="mt-1 w-full h-20 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm"
                 maxLength={350}
               />
             </div>
@@ -901,7 +901,7 @@ export function EditorialEditForm({
                 id="pullquote"
                 value={pullquote}
                 onChange={(e) => setPullquote(e.target.value)}
-                className="mt-1 w-full h-16 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm"
+                className="mt-1 w-full h-16 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700 resize-none text-sm"
               />
             </div>
 
@@ -952,7 +952,7 @@ export function EditorialEditForm({
           </CardHeader>
           <CardContent className="space-y-4">
             {bannerError && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
                 {bannerError}
               </div>
             )}
@@ -993,7 +993,7 @@ export function EditorialEditForm({
 
                 {fitMode === 'crop' ? (
                   <>
-                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+                    <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                       {cropperImageSrc && (
                         <Cropper
                           image={cropperImageSrc}
@@ -1019,14 +1019,14 @@ export function EditorialEditForm({
                         />
                         <ZoomIn className="h-4 w-4 text-gray-400" />
                       </div>
-                      <p className="text-sm text-gray-500 text-center">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                         Use the slider to zoom, drag the image to reposition
                       </p>
                     </div>
                   </>
                 ) : (
                   <div className="space-y-4">
-                    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                    <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden flex items-center justify-center">
                       {fitPreview ? (
                         <img
                           src={fitPreview}
@@ -1040,7 +1040,7 @@ export function EditorialEditForm({
                         </div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500 text-center">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                       Your image will be centered with a blurred background fill
                     </p>
                   </div>
@@ -1065,7 +1065,7 @@ export function EditorialEditForm({
             {(bannerPreview || currentBanner) && (
               <div className="space-y-3">
                 <div className="max-w-[50%]">
-                  <div className="relative rounded-lg overflow-hidden border bg-gray-50" style={{ aspectRatio: '1200/630' }}>
+                  <div className="relative rounded-lg overflow-hidden border bg-gray-50 dark:bg-gray-950" style={{ aspectRatio: '1200/630' }}>
                     <Image
                       src={bannerPreview ? bannerPreview : resizedUrl(currentBanner!.url)}
                       alt={currentBanner?.title || 'Social banner'}
@@ -1075,24 +1075,24 @@ export function EditorialEditForm({
                     />
                     {bannerPreview && (
                       <div className="absolute top-2 right-2">
-                        <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
+                        <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-0.5 rounded-full">
                           <Check className="h-3 w-3" />
                           New
                         </span>
                       </div>
                     )}
                     {isUploadingBanner && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                        <Loader2 className="h-8 w-8 animate-spin text-cyan-600" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80">
+                        <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
                       </div>
                     )}
                   </div>
                 </div>
                 {currentBanner?.title && !bannerPreview && (
-                  <p className="text-xs text-gray-500">Alt: {currentBanner.title}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Alt: {currentBanner.title}</p>
                 )}
                 {currentBanner?.imgCredits && !bannerPreview && (
-                  <p className="text-xs text-gray-500">Credits: {currentBanner.imgCredits}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Credits: {currentBanner.imgCredits}</p>
                 )}
                 <div className="flex gap-2">
                   {bannerPreview && (
@@ -1101,7 +1101,7 @@ export function EditorialEditForm({
                         type="button"
                         variant="default"
                         size="sm"
-                        className="bg-cyan-800 hover:bg-cyan-900"
+                        className="bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700"
                         onClick={handleSaveBanner}
                         disabled={isUploadingBanner}
                       >
@@ -1149,7 +1149,7 @@ export function EditorialEditForm({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                         onClick={handleRemoveBanner}
                         disabled={isUploadingBanner}
                       >
@@ -1166,12 +1166,12 @@ export function EditorialEditForm({
             {!bannerPreview && !currentBanner && (
               <div
                 onClick={() => bannerFileInputRef.current?.click()}
-                className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50"
+                className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 hover:border-cyan-700 hover:bg-cyan-50 dark:bg-cyan-900/30/50"
               >
-                <div className="rounded-full bg-gray-100 p-3 mb-2">
+                <div className="rounded-full bg-gray-100 dark:bg-gray-800 p-3 mb-2">
                   <Upload className="h-5 w-5 text-gray-400" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Upload a banner image, or <span className="text-cyan-700">browse</span>
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -1190,7 +1190,7 @@ export function EditorialEditForm({
           </CardHeader>
           <CardContent className="space-y-4">
             {imageError && (
-              <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+              <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
                 {imageError}
               </div>
             )}
@@ -1205,7 +1205,7 @@ export function EditorialEditForm({
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+                <div className="relative h-[400px] bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                   {newsCropperSrc && (
                     <Cropper
                       image={newsCropperSrc}
@@ -1231,7 +1231,7 @@ export function EditorialEditForm({
                     />
                     <ZoomIn className="h-4 w-4 text-gray-400" />
                   </div>
-                  <p className="text-sm text-gray-500 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
                     Use the slider to zoom, drag the image to reposition
                   </p>
                 </div>
@@ -1264,8 +1264,8 @@ export function EditorialEditForm({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {releaseImages.map((ri, index) => (
                   <div key={ri.imageId} className="relative">
-                    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
-                      <div className="relative aspect-video bg-gray-100">
+                    <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm dark:shadow-gray-900/50">
+                      <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
                         <Image
                           src={resizedUrl(ri.image.url)}
                           alt={ri.image.title || 'Release image'}
@@ -1275,7 +1275,7 @@ export function EditorialEditForm({
 
                         {index === 0 && (
                           <div className="absolute top-2 left-2">
-                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-xs font-medium px-2 py-0.5 rounded-full">
                               <Star className="h-3 w-3" />
                               Primary
                             </span>
@@ -1287,17 +1287,17 @@ export function EditorialEditForm({
                             type="button"
                             variant="secondary"
                             size="icon"
-                            className="h-7 w-7 bg-white/90 hover:bg-white"
+                            className="h-7 w-7 bg-white dark:bg-gray-900/90 hover:bg-white dark:bg-gray-900"
                             onClick={() => handleStartEdit(ri)}
                             title="Edit details"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <label
-                            className="inline-flex items-center justify-center h-7 w-7 bg-white/90 hover:bg-white rounded-md cursor-pointer"
+                            className="inline-flex items-center justify-center h-7 w-7 bg-white dark:bg-gray-900/90 hover:bg-white dark:bg-gray-900 rounded-md cursor-pointer"
                             title="Replace image"
                           >
-                            <Upload className="h-3.5 w-3.5 text-gray-600" />
+                            <Upload className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                             <input
                               type="file"
                               accept="image/jpeg,image/png,image/webp"
@@ -1313,7 +1313,7 @@ export function EditorialEditForm({
                             type="button"
                             variant="secondary"
                             size="icon"
-                            className="h-7 w-7 bg-white/90 hover:bg-white text-red-600 hover:text-red-700"
+                            className="h-7 w-7 bg-white dark:bg-gray-900/90 hover:bg-white dark:bg-gray-900 text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400"
                             onClick={() => handleDeleteImage(ri.imageId)}
                             disabled={deletingId === ri.imageId}
                             title="Remove image"
@@ -1327,8 +1327,8 @@ export function EditorialEditForm({
                         </div>
 
                         {replacingId === ri.imageId && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                            <Loader2 className="h-6 w-6 animate-spin text-cyan-600" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80">
+                            <Loader2 className="h-6 w-6 animate-spin text-cyan-600 dark:text-cyan-400" />
                           </div>
                         )}
 
@@ -1387,7 +1387,7 @@ export function EditorialEditForm({
             )}
 
             {releaseImages.length === 0 && !pendingFile && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 py-4">
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 py-4">
                 <ImageIcon className="h-5 w-5" />
                 No images attached to this release.
               </div>
@@ -1397,7 +1397,7 @@ export function EditorialEditForm({
             {pendingFile && (
               <div className="border rounded-lg p-4 bg-blue-50 space-y-3">
                 {pendingPreview && (
-                  <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100">
+                  <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                     <img
                       src={pendingPreview}
                       alt="Selected image preview"
@@ -1405,7 +1405,7 @@ export function EditorialEditForm({
                     />
                   </div>
                 )}
-                <h4 className="text-sm font-medium text-gray-900">Image Details</h4>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Image Details</h4>
                 <div>
                   <Label htmlFor="new-title">Alt Description *</Label>
                   <Input
@@ -1461,14 +1461,14 @@ export function EditorialEditForm({
                 onDrop={handleDrop}
                 className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-colors ${
                   isDragOver
-                    ? 'border-cyan-700 bg-cyan-50'
-                    : 'border-gray-300 bg-gray-50 hover:border-cyan-700 hover:bg-cyan-50/50'
+                    ? 'border-cyan-700 bg-cyan-50 dark:bg-cyan-900/30'
+                    : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 hover:border-cyan-700 hover:bg-cyan-50 dark:bg-cyan-900/30/50'
                 }`}
               >
-                <div className="rounded-full bg-gray-100 p-3 mb-2">
+                <div className="rounded-full bg-gray-100 dark:bg-gray-800 p-3 mb-2">
                   <Upload className="h-5 w-5 text-gray-400" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Drop an image here, or <span className="text-cyan-700">browse</span>
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
@@ -1503,7 +1503,7 @@ export function EditorialEditForm({
                   id="primaryContact"
                   value={primaryContactId}
                   onChange={(e) => setPrimaryContactId(e.target.value)}
-                  className="mt-1 w-full h-9 px-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                  className="mt-1 w-full h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
                 >
                   <option value="">Select contact...</option>
                   {contacts.map((c) => (
@@ -1625,7 +1625,7 @@ export function EditorialEditForm({
         <div className="flex items-center gap-3">
           <Button
             type="submit"
-            className="bg-cyan-800 text-white hover:bg-cyan-900"
+            className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             disabled={loading}
           >
             {loading ? (

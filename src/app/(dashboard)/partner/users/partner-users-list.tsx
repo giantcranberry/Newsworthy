@@ -50,8 +50,8 @@ export function PartnerUsersList({
       <Card data-tour="partner-users-empty">
         <CardContent className="py-16 text-center">
           <Users className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">No Users Yet</h3>
-          <p className="mt-2 text-gray-600">No users have registered under this partner yet.</p>
+          <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No Users Yet</h3>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">No users have registered under this partner yet.</p>
         </CardContent>
       </Card>
     )
@@ -70,38 +70,38 @@ export function PartnerUsersList({
       </div>
 
       {users.length === 0 ? (
-        <p className="text-sm text-gray-500">No users match your search.</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">No users match your search.</p>
       ) : (
-        <div data-tour="partner-users-table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div data-tour="partner-users-table" className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead className="bg-gray-50 dark:bg-gray-950">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Name
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Joined
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Releases
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
               {users.map((user, index) => (
-                <tr key={user.id} className="hover:bg-gray-50" {...(index === 0 ? { "data-tour": "partner-users-first-row" } : {})}>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
+                <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950" {...(index === 0 ? { "data-tour": "partner-users-first-row" } : {})}>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                     {user.firstName || user.lastName
                       ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
                       : '—'}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {user.email}
                   </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
@@ -114,7 +114,7 @@ export function PartnerUsersList({
                     {user.releaseCount > 0 ? (
                       <Link
                         href={buildUrl('/partner/releases', { user: user.id.toString() })}
-                        className="text-cyan-700 hover:text-cyan-900 font-medium"
+                        className="text-cyan-700 hover:text-cyan-900 dark:hover:text-cyan-300 font-medium"
                       >
                         {user.releaseCount}
                       </Link>

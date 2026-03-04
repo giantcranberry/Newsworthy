@@ -65,8 +65,8 @@ export default async function InfluencerSearchPage({ searchParams }: PageProps) 
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Search Influencers</h1>
-        <p className="text-gray-500">Find the perfect influencer for your campaign</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Search Influencers</h1>
+        <p className="text-gray-500 dark:text-gray-400">Find the perfect influencer for your campaign</p>
       </div>
 
       {/* Search Form */}
@@ -81,8 +81,8 @@ export default async function InfluencerSearchPage({ searchParams }: PageProps) 
         <Card>
           <CardContent className="py-12 text-center">
             <Users className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No influencers found</h3>
-            <p className="mt-2 text-gray-500">Try adjusting your search criteria</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">No influencers found</h3>
+            <p className="mt-2 text-gray-500 dark:text-gray-400">Try adjusting your search criteria</p>
           </CardContent>
         </Card>
       ) : (
@@ -98,18 +98,18 @@ export default async function InfluencerSearchPage({ searchParams }: PageProps) 
                       className="h-14 w-14 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-14 w-14 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-medium text-xl">
+                    <div className="h-14 w-14 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 font-medium text-xl">
                       {inf.name?.[0] || '?'}
                     </div>
                   )}
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100">
                       {inf.name || 'Unnamed'}
                     </h3>
                     {inf.bio && (
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">{inf.bio}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{inf.bio}</p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
                       <span>{inf.completedJobs || 0} jobs completed</span>
                     </div>
                   </div>
@@ -127,7 +127,7 @@ export default async function InfluencerSearchPage({ searchParams }: PageProps) 
         </div>
       )}
 
-      <p className="text-sm text-gray-500 text-center">
+      <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
         Showing {influencers.length} {influencers.length === 1 ? 'influencer' : 'influencers'}
       </p>
     </div>

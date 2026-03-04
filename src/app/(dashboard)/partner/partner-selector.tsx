@@ -34,7 +34,7 @@ export function PartnerSelector({
     <select
       value={currentPartnerId}
       onChange={handleChange}
-      className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+      className="rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
     >
       {partners.map((p) => (
         <option key={p.id} value={p.id}>

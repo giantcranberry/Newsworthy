@@ -75,10 +75,10 @@ function SortableStageRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 p-3 bg-white border rounded-lg"
+      className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border rounded-lg"
     >
       <div
-        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+        className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:text-gray-400"
         {...attributes}
         {...listeners}
       >
@@ -89,7 +89,7 @@ function SortableStageRow({
         type="color"
         value={stage.color}
         onChange={(e) => onUpdate(stage.id, stage.name, e.target.value)}
-        className="h-8 w-8 rounded border border-gray-300 cursor-pointer p-0"
+        className="h-8 w-8 rounded border border-gray-300 dark:border-gray-700 cursor-pointer p-0"
       />
 
       <Input
@@ -102,7 +102,7 @@ function SortableStageRow({
         variant="ghost"
         size="sm"
         onClick={() => onDelete(stage.id)}
-        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+        className="text-red-500 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
       >
         <Trash2 className="h-4 w-4" />
       </Button>
@@ -261,7 +261,7 @@ export function StageManager({
                 type="color"
                 value={newColor}
                 onChange={(e) => setNewColor(e.target.value)}
-                className="h-9 w-9 rounded border border-gray-300 cursor-pointer p-0"
+                className="h-9 w-9 rounded border border-gray-300 dark:border-gray-700 cursor-pointer p-0"
               />
               <Input
                 placeholder="Stage name"

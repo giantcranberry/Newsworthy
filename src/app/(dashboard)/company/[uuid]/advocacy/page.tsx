@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { advocacyGroups, advocates } from '@/db/schema'
-import { eq, and, sql } from 'drizzle-orm'
+import { advocacyGroups, crmContacts } from '@/db/schema'
+import { eq, and, sql, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { randomUUID } from 'crypto'
 import { CompanyNav } from '@/components/company/company-nav'
@@ -30,13 +30,14 @@ async function getOrCreateGroup(companyId: number, userId: number, companyName: 
   return group
 }
 
-async function getTotalSubscribers(groupId: number) {
+async function getTotalSubscribers(companyId: number) {
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(advocates)
+    .from(crmContacts)
     .where(and(
-      eq(advocates.groupId, groupId),
-      sql`${advocates.isDeleted} IS NOT TRUE`
+      eq(crmContacts.companyId, companyId),
+      inArray(crmContacts.contactType, ['advocate', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`
     ))
 
   return Number(countRow?.count || 0)
@@ -59,13 +60,13 @@ export default async function ShareListPage({
   const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   const group = await getOrCreateGroup(co.id, userId, co.companyName)
-  const totalSubscribers = await getTotalSubscribers(group.id)
+  const totalSubscribers = await getTotalSubscribers(co.id)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">My Share List</h1>
-        <p className="text-gray-500">{co.companyName}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">My Share List</h1>
+        <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
       <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />

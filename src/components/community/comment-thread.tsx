@@ -98,7 +98,7 @@ function CommentNode({
 
   if (comment.isDeleted) {
     return (
-      <div className={cn('text-sm text-gray-400 italic', comment.depth > 0 && 'ml-6 pl-4 border-l border-gray-200')}>
+      <div className={cn('text-sm text-gray-400 italic', comment.depth > 0 && 'ml-6 pl-4 border-l border-gray-200 dark:border-gray-800')}>
         [deleted]
         {children.length > 0 && (
           <div className="mt-2 space-y-3">
@@ -120,7 +120,7 @@ function CommentNode({
   }
 
   return (
-    <div className={cn(comment.depth > 0 && 'ml-6 pl-4 border-l border-gray-200')}>
+    <div className={cn(comment.depth > 0 && 'ml-6 pl-4 border-l border-gray-200 dark:border-gray-800')}>
       <div className="flex items-start gap-2">
         <Link href={`/community/profile/${comment.userId}`}>
           <UserAvatar name={comment.userName} avatar={comment.userAvatar} size="sm" />
@@ -129,13 +129,13 @@ function CommentNode({
           <div className="flex items-center gap-2">
             <Link
               href={`/community/profile/${comment.userId}`}
-              className="text-sm font-medium text-gray-900 hover:text-cyan-800"
+              className="text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-cyan-800 dark:text-cyan-400"
             >
               {comment.userName}
             </Link>
             <span className="text-xs text-gray-400">{timeAgo}</span>
           </div>
-          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap break-words">
+          <p className="mt-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words">
             {comment.body}
           </p>
 
@@ -151,7 +151,7 @@ function CommentNode({
             {comment.depth < MAX_DEPTH && (
               <button
                 onClick={() => setReplying(!replying)}
-                className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-cyan-800 cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-cyan-800 dark:text-cyan-400 cursor-pointer"
               >
                 <Reply className="h-3.5 w-3.5" />
                 Reply
@@ -161,7 +161,7 @@ function CommentNode({
             {comment.depth >= MAX_DEPTH && children.length > 0 && (
               <Link
                 href={`/community/posts/${postUuid}`}
-                className="text-xs text-cyan-700 hover:text-cyan-800"
+                className="text-xs text-cyan-700 hover:text-cyan-800 dark:text-cyan-400"
               >
                 Continue thread...
               </Link>
@@ -170,7 +170,7 @@ function CommentNode({
             {(isOwner || isAdmin) && (
               <button
                 onClick={handleDelete}
-                className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 cursor-pointer"
+                className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 dark:text-red-400 cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

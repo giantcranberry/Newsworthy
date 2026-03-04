@@ -50,12 +50,12 @@ export function GuidelinesEditor({ initialBody }: GuidelinesEditorProps) {
         <Button
           onClick={handleSave}
           disabled={saving}
-          className="gap-2 bg-cyan-800 text-white hover:bg-cyan-900"
+          className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Save className="h-4 w-4" />
           {saving ? 'Saving...' : 'Save Guidelines'}
         </Button>
-        {saved && <span className="text-sm text-green-600">Saved successfully</span>}
+        {saved && <span className="text-sm text-green-600 dark:text-green-400">Saved successfully</span>}
       </div>
     </div>
   )

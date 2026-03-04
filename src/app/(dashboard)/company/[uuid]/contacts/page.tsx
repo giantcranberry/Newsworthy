@@ -38,8 +38,8 @@ export default async function ContactsPage({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">PR Contacts</h1>
-        <p className="text-gray-500">{co.companyName}</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">PR Contacts</h1>
+        <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
         <p className="text-sm text-gray-400 mt-1">These are the contacts that can be added to your press releases for media inquiries. Journalists will use this information to reach out for interviews, quotes, and follow-up questions.</p>
       </div>
 

@@ -62,11 +62,11 @@ const distributionOptions = [
 ]
 
 const statusColors: Record<string, string> = {
-  start: 'bg-gray-100 text-gray-700',
-  draft: 'bg-yellow-100 text-yellow-700',
-  draftnxt: 'bg-orange-100 text-orange-700',
-  review: 'bg-blue-100 text-blue-700',
-  approved: 'bg-green-100 text-green-700',
+  start: 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300',
+  draft: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+  draftnxt: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+  review: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
+  approved: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
   sent: 'bg-emerald-100 text-emerald-700',
 }
 
@@ -252,14 +252,14 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
             {isLoading && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
           </CardTitle>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-500">Status:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">Status:</span>
             <div className="flex gap-1 flex-wrap">
               <button
                 onClick={() => handleStatusFilter('all')}
                 className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                   statusFilter === 'all'
                     ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 dark:bg-gray-700'
                 }`}
               >
                 All
@@ -286,27 +286,27 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
           <table className="w-full">
             <thead>
               <tr className="border-b text-left">
-                <th className="py-3 px-4 font-medium text-gray-500">ID</th>
-                <th className="py-3 px-4 font-medium text-gray-500">Title</th>
-                <th className="py-3 px-4 font-medium text-gray-500">Company</th>
-                <th className="py-3 px-4 font-medium text-gray-500">Author</th>
-                <th className="py-3 px-4 font-medium text-gray-500">Status</th>
-                <th className="py-3 px-4 font-medium text-gray-500">Created</th>
-                <th className="py-3 px-4 font-medium text-gray-500">
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">ID</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Title</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Company</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Author</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Created</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => toggleSort('releaseAt')}
-                    className="flex items-center gap-1 hover:text-gray-900"
+                    className="flex items-center gap-1 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100"
                   >
                     Release <SortIcon field="releaseAt" />
                   </button>
                 </th>
-                <th className="py-3 px-4 font-medium text-gray-500">Actions</th>
+                <th className="py-3 px-4 font-medium text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map(({ release, user, company: comp }) => (
                 <React.Fragment key={release.id}>
-                <tr className="border-b hover:bg-gray-50">
+                <tr className="border-b hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950">
                   <td className="py-3 px-4 text-sm">{release.id}</td>
                   <td className="py-3 px-4 text-sm max-w-xs truncate">
                     {release.title || 'Untitled'}
@@ -322,10 +322,10 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                       {release.status || 'start'}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-500">
+                  <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">
                     {release.createdAt ? new Date(release.createdAt).toLocaleDateString() : 'N/A'}
                   </td>
-                  <td className="py-3 px-4 text-sm text-gray-500">
+                  <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400">
                     {release.releaseAt ? new Date(release.releaseAt).toLocaleDateString() : '—'}
                   </td>
                   <td className="py-3 px-4">
@@ -344,7 +344,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                         variant={expandedId === release.id ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleExpand(release.id)}
-                        className={expandedId === release.id ? 'bg-cyan-800 text-white hover:bg-cyan-900' : ''}
+                        className={expandedId === release.id ? 'bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700' : ''}
                       >
                         {expandedId === release.id ? <X className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
                       </Button>
@@ -353,37 +353,37 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                 </tr>
                 {expandedId === release.id && (
                   <tr>
-                    <td colSpan={8} className="px-4 py-4 bg-gray-50 border-b">
+                    <td colSpan={8} className="px-4 py-4 bg-gray-50 dark:bg-gray-950 border-b">
                       {lookupLoading && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                           <Loader2 className="h-4 w-4 animate-spin" /> Loading details...
                         </div>
                       )}
                       {lookupError && (
-                        <p className="text-sm text-red-600">{lookupError}</p>
+                        <p className="text-sm text-red-600 dark:text-red-400">{lookupError}</p>
                       )}
                       {lookupResult && (
                         <div className="space-y-3 max-w-3xl">
                           {/* Release detail summary */}
-                          <div className="rounded-lg border border-gray-200 bg-white p-4">
+                          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex items-start gap-3 min-w-0">
                                 <div className="h-9 w-9 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  <FileText className="h-4 w-4 text-green-700" />
+                                  <FileText className="h-4 w-4 text-green-700 dark:text-green-400" />
                                 </div>
                                 <div className="min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                                     {lookupResult.release.title || 'Untitled'}
                                   </p>
                                   <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-500">ID: {lookupResult.release.id}</span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">ID: {lookupResult.release.id}</span>
                                     {lookupResult.release.distribution && (
-                                      <span className="inline-flex items-center rounded-full bg-cyan-50 px-2 py-0.5 text-xs font-medium text-cyan-700">
+                                      <span className="inline-flex items-center rounded-full bg-cyan-50 dark:bg-cyan-900/30 px-2 py-0.5 text-xs font-medium text-cyan-700">
                                         {lookupResult.release.distribution}
                                       </span>
                                     )}
                                   </div>
-                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
                                     {lookupResult.release.createdAt && (
                                       <span>Created: {new Date(lookupResult.release.createdAt).toLocaleDateString()}</span>
                                     )}
@@ -431,25 +431,25 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
 
                           {/* User Info */}
                           {lookupResult.user && (
-                            <div className="rounded-lg border border-gray-200 bg-white p-4">
+                            <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
                               <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                                    <User className="h-4 w-4 text-blue-700" />
+                                    <User className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="text-sm font-medium text-gray-900">
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                                       {lookupResult.user.firstName || lookupResult.user.lastName
                                         ? [lookupResult.user.firstName, lookupResult.user.lastName].filter(Boolean).join(' ')
                                         : lookupResult.user.email}
                                     </p>
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">
                                       {lookupResult.user.firstName || lookupResult.user.lastName ? lookupResult.user.email : `User ID: ${lookupResult.user.id}`}
                                     </p>
                                     <div className="flex gap-1 mt-1">
-                                      {lookupResult.user.isAdmin && <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">Admin</span>}
-                                      {lookupResult.user.isEditor && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">Editor</span>}
-                                      {lookupResult.user.isStaff && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px] font-medium">Staff</span>}
+                                      {lookupResult.user.isAdmin && <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-[10px] font-medium">Admin</span>}
+                                      {lookupResult.user.isEditor && <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-[10px] font-medium">Editor</span>}
+                                      {lookupResult.user.isStaff && <span className="px-1.5 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-[10px] font-medium">Staff</span>}
                                     </div>
                                   </div>
                                 </div>
@@ -464,23 +464,23 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
 
                           {/* Brand Info */}
                           {lookupResult.brand && (
-                            <div className="rounded-lg border border-gray-200 bg-white p-4">
+                            <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
                               <div className="flex items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 min-w-0">
                                   {lookupResult.brand.logoUrl ? (
                                     <img
                                       src={lookupResult.brand.logoUrl.includes('RESIZE') ? lookupResult.brand.logoUrl.replace('RESIZE', 'resize=width:200') : lookupResult.brand.logoUrl}
                                       alt={lookupResult.brand.companyName}
-                                      className="h-9 w-9 rounded-lg object-contain bg-gray-50 flex-shrink-0"
+                                      className="h-9 w-9 rounded-lg object-contain bg-gray-50 dark:bg-gray-950 flex-shrink-0"
                                     />
                                   ) : (
                                     <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
-                                      <Building2 className="h-4 w-4 text-purple-700" />
+                                      <Building2 className="h-4 w-4 text-purple-700 dark:text-purple-400" />
                                     </div>
                                   )}
                                   <div className="min-w-0">
-                                    <p className="text-sm font-medium text-gray-900">{lookupResult.brand.companyName}</p>
-                                    <p className="text-xs text-gray-500">Brand ID: {lookupResult.brand.id}</p>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{lookupResult.brand.companyName}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Brand ID: {lookupResult.brand.id}</p>
                                   </div>
                                 </div>
                                 <Link href={`/admin/brands/${lookupResult.brand.uuid}`}>
@@ -496,17 +496,17 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                           {isAdmin && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
                               <div className="flex items-start gap-3">
-                                <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  <ArrowUpCircle className="h-4 w-4 text-amber-700" />
+                                <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <ArrowUpCircle className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-amber-900">Change Distribution</p>
-                                  <p className="text-xs text-amber-700 mt-0.5">
+                                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
                                     Current: <span className="font-medium">{lookupResult.release.distribution || 'none'}</span>
                                   </p>
                                   <div className="flex items-center gap-2 mt-2">
                                     <SelectRoot value={upgradeTarget} onValueChange={setUpgradeTarget}>
-                                      <SelectTrigger className="w-48 h-8 text-xs bg-white">
+                                      <SelectTrigger className="w-48 h-8 text-xs bg-white dark:bg-gray-900">
                                         <SelectValue placeholder="Select distribution" />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -532,7 +532,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                     </Button>
                                   </div>
                                   {upgradeSuccess && (
-                                    <p className="text-xs text-green-700 mt-2 font-medium">{upgradeSuccess}</p>
+                                    <p className="text-xs text-green-700 dark:text-green-400 mt-2 font-medium">{upgradeSuccess}</p>
                                   )}
                                 </div>
                               </div>
@@ -543,8 +543,8 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                           {isAdmin && ['enhanced', 'yahoo'].includes(lookupResult.release.distribution || '') && (
                             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
                               <div className="flex items-start gap-3">
-                                <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  <LinkIcon className="h-4 w-4 text-blue-700" />
+                                <div className="h-9 w-9 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <LinkIcon className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-blue-900">Report URL</p>
@@ -554,14 +554,14 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                         href={lookupResult.reportUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-blue-700 underline break-all"
+                                        className="text-xs text-blue-700 dark:text-blue-400 underline break-all"
                                       >
                                         {lookupResult.reportUrl}
                                       </a>
-                                      <p className="text-xs text-blue-600 mt-2 mb-1">Replace with a new URL:</p>
+                                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 mb-1">Replace with a new URL:</p>
                                     </div>
                                   ) : (
-                                    <p className="text-xs text-blue-700 mt-0.5 mb-1">No report URL set</p>
+                                    <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5 mb-1">No report URL set</p>
                                   )}
                                   <div className="flex items-center gap-2">
                                     <Input
@@ -569,7 +569,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                       placeholder="Enter report URL"
                                       value={reportUrlInput}
                                       onChange={(e) => setReportUrlInput(e.target.value)}
-                                      className="flex-1 h-8 text-xs bg-white"
+                                      className="flex-1 h-8 text-xs bg-white dark:bg-gray-900"
                                     />
                                     <Button
                                       size="sm"
@@ -581,7 +581,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                     </Button>
                                   </div>
                                   {reportUrlMessage && (
-                                    <p className={`text-xs mt-2 font-medium ${reportUrlMessage.includes('saved') ? 'text-green-700' : 'text-red-700'}`}>
+                                    <p className={`text-xs mt-2 font-medium ${reportUrlMessage.includes('saved') ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
                                       {reportUrlMessage}
                                     </p>
                                   )}
@@ -598,7 +598,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
               ))}
               {sorted.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-gray-500">
+                  <td colSpan={8} className="py-8 text-center text-gray-500 dark:text-gray-400">
                     No releases found
                   </td>
                 </tr>

@@ -230,17 +230,17 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
               {error}
             </div>
           )}
 
           {/* Size Info */}
           <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg text-sm">
-            <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-blue-700">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="text-blue-700 dark:text-blue-400">
               <strong>Recommended size: 1200 x 630 pixels</strong>
-              <p className="text-blue-600 text-xs mt-1">
+              <p className="text-blue-600 dark:text-blue-400 text-xs mt-1">
                 This is the optimal size for Twitter, Facebook, and LinkedIn previews.
                 Your image will be cropped to this aspect ratio.
               </p>
@@ -251,7 +251,7 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
           <div className="space-y-4">
             {displayBanner ? (
               <div className="relative w-full" style={{ aspectRatio: '1200/630' }}>
-                <div className="absolute inset-0 border rounded-lg overflow-hidden bg-gray-50">
+                <div className="absolute inset-0 border rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-950">
                   <Image
                     src={displayBanner}
                     alt="Social media banner"
@@ -261,22 +261,22 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
                   />
                   {bannerPreview && (
                     <div className="absolute top-3 right-3">
-                      <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
+                      <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-1 rounded-full">
                         <Check className="h-3 w-3" />
                         New
                       </span>
                     </div>
                   )}
                   {isLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
                     </div>
                   )}
                 </div>
               </div>
             ) : (
               <div
-                className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 text-gray-400"
+                className="border-2 border-dashed rounded-lg flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 text-gray-400"
                 style={{ aspectRatio: '1200/630' }}
               >
                 <Share2 className="h-12 w-12 mb-2" />
@@ -323,7 +323,7 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
                   variant="ghost"
                   size="sm"
                   onClick={handleRemoveBanner}
-                  className="text-gray-500"
+                  className="text-gray-500 dark:text-gray-400"
                   disabled={isLoading}
                 >
                   <X className="h-4 w-4" />
@@ -334,8 +334,8 @@ export function SocialForm({ releaseUuid, banner, releaseTitle, bannerLibrary }:
 
             {/* Banner Library Selector */}
             {showLibrary && availableLibraryBanners.length > 0 && (
-              <div className="border rounded-lg p-4 bg-gray-50">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">Select from your banner library</h4>
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your banner library</h4>
                 <div className="grid grid-cols-3 gap-3">
                   {availableLibraryBanners.map((b) => (
                     <button

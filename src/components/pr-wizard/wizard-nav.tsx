@@ -130,8 +130,8 @@ export function WizardNav({
                     'relative flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full transition-colors',
                     status === 'completed' && 'bg-emerald-600 text-white hover:bg-emerald-700',
                     status === 'current' && 'bg-cyan-700 text-white wizard-step-current',
-                    status === 'upcoming' && !step.optional && 'border-2 border-gray-300 bg-white text-gray-500 hover:border-gray-400',
-                    status === 'upcoming' && step.optional && 'border-2 border-dashed border-gray-300 bg-white text-gray-400 hover:border-gray-400'
+                    status === 'upcoming' && !step.optional && 'border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 hover:border-gray-400',
+                    status === 'upcoming' && step.optional && 'border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-400 hover:border-gray-400'
                   )}
                   title={`${step.name}${step.optional ? ' (Optional)' : ''}`}
                 >
@@ -147,7 +147,7 @@ export function WizardNav({
                     'absolute -bottom-6 left-5 -translate-x-1/2 whitespace-nowrap text-xs font-medium',
                     status === 'current' && 'text-cyan-700',
                     status === 'completed' && 'text-emerald-600',
-                    status === 'upcoming' && 'text-gray-500'
+                    status === 'upcoming' && 'text-gray-500 dark:text-gray-400'
                   )}
                 >
                   {step.name}
@@ -160,7 +160,7 @@ export function WizardNav({
                       'h-0.5 flex-1',
                       isTransitionLine && 'wizard-gradient-line',
                       !isTransitionLine && status === 'completed' && 'bg-emerald-600',
-                      !isTransitionLine && status !== 'completed' && 'bg-gray-200'
+                      !isTransitionLine && status !== 'completed' && 'bg-gray-200 dark:bg-gray-700'
                     )}
                     aria-hidden="true"
                   />

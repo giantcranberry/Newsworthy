@@ -176,19 +176,19 @@ export function PartnerForm({ partner }: PartnerFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6 text-sm">
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded text-sm">
+            <div className="bg-red-50 text-red-600 dark:text-red-400 p-3 rounded text-sm">
               {error}
             </div>
           )}
           {success && (
-            <div className="bg-green-50 text-green-600 p-3 rounded text-sm">
+            <div className="bg-green-50 text-green-600 dark:text-green-400 p-3 rounded text-sm">
               Partner updated successfully.
             </div>
           )}
 
           {/* Basic Info */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Basic Info</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Basic Info</legend>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -241,7 +241,7 @@ export function PartnerForm({ partner }: PartnerFormProps) {
             <div>
               <Label>Logo</Label>
               <div className="mt-1 flex items-start gap-4">
-                <div className="flex-shrink-0 h-20 w-20 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden">
+                <div className="flex-shrink-0 h-20 w-20 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-center justify-center overflow-hidden">
                   {logoUrl ? (
                     <img
                       src={logoUrl}
@@ -268,7 +268,7 @@ export function PartnerForm({ partner }: PartnerFormProps) {
                       size="sm"
                       onClick={handleLogoRemove}
                       disabled={isRemovingLogo || isUploadingLogo}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
                     >
                       {isRemovingLogo ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
@@ -305,8 +305,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Contact */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Contact</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Contact</legend>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -354,8 +354,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Address */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Address</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Address</legend>
 
             <div>
               <Label htmlFor="addr1">Address Line 1</Label>
@@ -387,8 +387,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Pricing */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Pricing</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Pricing</legend>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
@@ -403,7 +403,7 @@ export function PartnerForm({ partner }: PartnerFormProps) {
                   onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 mt-1">Enter in dollars (stored as cents)</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter in dollars (stored as cents)</p>
               </div>
               <div>
                 <Label htmlFor="freePrs">Free PRs</Label>
@@ -443,8 +443,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Content */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Content</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Content</legend>
 
             <div>
               <Label htmlFor="offerCopy">Offer Copy</Label>
@@ -459,8 +459,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Integration */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Integration</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Integration</legend>
 
             <div>
               <Label htmlFor="appkey">App Key</Label>
@@ -492,8 +492,8 @@ export function PartnerForm({ partner }: PartnerFormProps) {
           </fieldset>
 
           {/* Options */}
-          <fieldset className="border border-gray-200 p-4 rounded-lg space-y-3">
-            <legend className="text-sm font-medium text-gray-700 px-2">Options</legend>
+          <fieldset className="border border-gray-200 dark:border-gray-800 p-4 rounded-lg space-y-3">
+            <legend className="text-sm font-medium text-gray-700 dark:text-gray-300 px-2">Options</legend>
 
             <div className="flex items-center gap-2">
               <Checkbox
@@ -511,19 +511,19 @@ export function PartnerForm({ partner }: PartnerFormProps) {
             {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
 
-          <hr className="border-gray-200" />
+          <hr className="border-gray-200 dark:border-gray-800" />
 
           <div className="flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4">
             <div>
-              <p className="text-sm font-medium text-red-800">Delete Partner</p>
-              <p className="text-xs text-red-600">This will soft-delete the partner. They will no longer appear in any views.</p>
+              <p className="text-sm font-medium text-red-800 dark:text-red-400">Delete Partner</p>
+              <p className="text-xs text-red-600 dark:text-red-400">This will soft-delete the partner. They will no longer appear in any views.</p>
             </div>
             <Button
               type="button"
               variant="outline"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="border-red-300 text-red-600 hover:bg-red-100 hover:text-red-700"
+              className="border-red-300 text-red-600 dark:text-red-400 hover:bg-red-100 dark:bg-red-900/30 hover:text-red-700 dark:text-red-400"
             >
               <Trash2 className="h-3.5 w-3.5 mr-1" />
               {isDeleting ? 'Deleting...' : 'Delete'}

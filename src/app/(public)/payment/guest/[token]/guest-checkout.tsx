@@ -65,13 +65,13 @@ export function GuestCheckout({ token, products, total, companyName }: GuestChec
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900">Complete Your Payment</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Complete Your Payment</h1>
           {companyName && (
-            <p className="text-gray-500 mt-1">Order from {companyName}</p>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Order from {companyName}</p>
           )}
         </div>
 
@@ -87,22 +87,22 @@ export function GuestCheckout({ token, products, total, companyName }: GuestChec
             {products.map((product, index) => (
               <div key={index} className="flex items-start justify-between gap-4 pb-4 border-b last:border-0 last:pb-0">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-gray-900">{product.name}</h4>
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">{product.name}</h4>
                   {product.credits > 0 && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       {product.credits} {product.credits === 1 ? 'Credit' : 'Credits'}
                     </p>
                   )}
                 </div>
-                <p className="font-semibold text-gray-900 whitespace-nowrap">
+                <p className="font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                   ${(product.price / 100).toFixed(2)}
                 </p>
               </div>
             ))}
 
             <div className="flex items-center justify-between pt-4 border-t-2">
-              <p className="text-lg font-bold text-gray-900">Total</p>
-              <p className="text-2xl font-bold text-gray-900">${(total / 100).toFixed(2)}</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-gray-100">Total</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">${(total / 100).toFixed(2)}</p>
             </div>
           </CardContent>
         </Card>
@@ -130,13 +130,13 @@ export function GuestCheckout({ token, products, total, companyName }: GuestChec
             </Card>
 
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+              <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
             )}
 
             <Button
               onClick={handleProceedToPayment}
               disabled={loading || !email}
-              className="w-full bg-cyan-800 text-white hover:bg-cyan-900"
+              className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
               size="lg"
             >
               {loading ? (
@@ -151,7 +151,7 @@ export function GuestCheckout({ token, products, total, companyName }: GuestChec
                 </>
               )}
             </Button>
-            <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
+            <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
               <Lock className="h-3 w-3" />
               Payments secured by Stripe
             </div>
@@ -228,13 +228,13 @@ function GuestCheckoutForm({ total, token }: { total: number; token: string }) {
       </Card>
 
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 rounded-lg">{error}</div>
+        <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
       )}
 
       <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full bg-cyan-800 text-white hover:bg-cyan-900"
+        className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         size="lg"
       >
         {isProcessing ? (
@@ -250,7 +250,7 @@ function GuestCheckoutForm({ total, token }: { total: number; token: string }) {
         )}
       </Button>
 
-      <div className="flex items-center justify-center gap-1 text-sm text-gray-500">
+      <div className="flex items-center justify-center gap-1 text-sm text-gray-500 dark:text-gray-400">
         <Lock className="h-3 w-3" />
         Payments secured by Stripe
       </div>

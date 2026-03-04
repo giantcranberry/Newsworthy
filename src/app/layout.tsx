@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script
           src="https://kit.fontawesome.com/adf47b9acf.js"
@@ -26,8 +26,10 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <Providers>{children}</Providers>
-        <Toaster position="top-center" richColors />
+        <Providers>
+          {children}
+          <Toaster position="top-center" richColors />
+        </Providers>
       </body>
     </html>
   )

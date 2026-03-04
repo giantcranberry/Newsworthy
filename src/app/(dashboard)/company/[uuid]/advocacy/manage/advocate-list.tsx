@@ -292,17 +292,17 @@ export function AdvocateList({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{error}</div>
+        <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
       {success && (
-        <div className="text-sm text-green-700 bg-green-50 p-3 rounded-lg">{success}</div>
+        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Back link */}
       <div className="flex items-center justify-between">
         <Link
           href={`/company/${companyUuid}/advocacy`}
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Share List Settings
@@ -312,43 +312,43 @@ export function AdvocateList({
       {/* Stats — click to filter */}
       <div className="grid grid-cols-4 gap-4">
         <Card
-          className={`cursor-pointer transition-colors ${!status ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${!status ? 'ring-2 ring-blue-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter(status || '')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <Users className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-            <p className="text-xs text-gray-500">Total</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Total</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'active' ? 'ring-2 ring-green-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'active' ? 'ring-2 ring-green-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('active')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <UserCheck className="h-5 w-5 text-green-500 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-            <p className="text-xs text-gray-500">Active</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'bounced' ? 'ring-2 ring-red-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'bounced' ? 'ring-2 ring-red-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('bounced')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <MailX className="h-5 w-5 text-red-400 mx-auto mb-1" />
-            <p className="text-2xl font-bold text-red-600">{stats.bounced}</p>
-            <p className="text-xs text-gray-500">Bounced</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.bounced}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Bounced</p>
           </CardContent>
         </Card>
         <Card
-          className={`cursor-pointer transition-colors ${status === 'unsubscribed' ? 'ring-2 ring-amber-500' : 'hover:bg-gray-50'}`}
+          className={`cursor-pointer transition-colors ${status === 'unsubscribed' ? 'ring-2 ring-amber-500' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}
           onClick={() => handleStatusFilter('unsubscribed')}
         >
           <CardContent className="pt-4 pb-4 text-center">
             <UserX className="h-5 w-5 text-amber-400 mx-auto mb-1" />
             <p className="text-2xl font-bold text-amber-600">{stats.unsubscribed}</p>
-            <p className="text-xs text-gray-500">Unsubscribed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Unsubscribed</p>
           </CardContent>
         </Card>
       </div>
@@ -356,7 +356,7 @@ export function AdvocateList({
       {/* Bulk action bar */}
       {!readOnly && someSelected && (
         <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg px-4 py-3">
-          <span className="text-sm font-medium text-red-800">
+          <span className="text-sm font-medium text-red-800 dark:text-red-400">
             {selected.size} subscriber{selected.size !== 1 ? 's' : ''} selected
           </span>
           <div className="flex items-center gap-2">
@@ -397,7 +397,7 @@ export function AdvocateList({
               {searchInput && (
                 <button
                   onClick={clearSearch}
-                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600"
+                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600 dark:text-gray-400"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -407,7 +407,7 @@ export function AdvocateList({
         </CardHeader>
         <CardContent>
           {(query || status) && (
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               Showing {filtered} result{filtered !== 1 ? 's' : ''}
               {status && <> with status <span className="font-medium capitalize">{status}</span></>}
               {query && <> matching &ldquo;{query}&rdquo;</>}
@@ -429,11 +429,11 @@ export function AdvocateList({
                           />
                         </th>
                       )}
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Subscriber</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Member Since</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Last Open</th>
-                      <th className="pb-2 pr-4 font-medium text-gray-500">Status</th>
-                      {!readOnly && <th className="pb-2 font-medium text-gray-500 text-right">Actions</th>}
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Subscriber</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Member Since</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Last Open</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Status</th>
+                      {!readOnly && <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -454,29 +454,29 @@ export function AdvocateList({
                           <td className="py-2 pr-4">
                             {(a.firstName || a.lastName) && (
                               <>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {[a.firstName, a.lastName].filter(Boolean).join(' ')}
                                 </span>
                                 <br />
                               </>
                             )}
-                            <span className="text-gray-500">{a.email}</span>
+                            <span className="text-gray-500 dark:text-gray-400">{a.email}</span>
                           </td>
-                          <td className="py-2 pr-4 text-gray-600">{formatDate(a.createdAt)}</td>
-                          <td className="py-2 pr-4 text-gray-600">{formatDate(a.lastOpenAt)}</td>
+                          <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{formatDate(a.createdAt)}</td>
+                          <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{formatDate(a.lastOpenAt)}</td>
                           <td className="py-2 pr-4">
                             {rowStatus === 'active' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
                                 Active
                               </span>
                             )}
                             {rowStatus === 'bounced' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
                                 Bounced
                               </span>
                             )}
                             {rowStatus === 'unsubscribed' && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
                                 Unsubscribed
                               </span>
                             )}
@@ -486,14 +486,14 @@ export function AdvocateList({
                               <div className="flex items-center justify-end gap-1">
                                 <button
                                   onClick={() => openEdit(a)}
-                                  className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                                  className="p-1 text-gray-400 hover:text-blue-600 dark:text-blue-400 transition-colors"
                                   title="Edit subscriber"
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </button>
                                 <button
                                   onClick={() => openDelete(a)}
-                                  className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                                  className="p-1 text-gray-400 hover:text-red-600 dark:text-red-400 transition-colors"
                                   title="Remove subscriber"
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -511,7 +511,7 @@ export function AdvocateList({
               {/* Pagination */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Rows per page:</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Rows per page:</span>
                   <Select
                     value={String(perPage)}
                     onChange={(e) => handlePerPageChange(e.target.value)}
@@ -524,14 +524,14 @@ export function AdvocateList({
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
                     {startRecord}–{endRecord} of {filtered}
                   </span>
                   <div className="flex items-center gap-1">
                     {currentPage > 1 ? (
                       <Link
                         href={buildUrl({ page: String(currentPage - 1) })}
-                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 hover:bg-gray-100"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </Link>
@@ -544,7 +544,7 @@ export function AdvocateList({
                     {currentPage < totalPages ? (
                       <Link
                         href={buildUrl({ page: String(currentPage + 1) })}
-                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 hover:bg-gray-100"
+                        className="inline-flex items-center justify-center h-8 w-8 rounded text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Link>
@@ -604,7 +604,7 @@ export function AdvocateList({
           </DialogHeader>
 
           {editError && (
-            <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">{editError}</div>
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{editError}</div>
           )}
 
           <div className="grid gap-4 py-2">
@@ -678,10 +678,10 @@ export function AdvocateList({
 
           {deleteSubscriber && (
             <div className="py-2">
-              <p className="text-sm font-medium text-gray-900">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {[deleteSubscriber.firstName, deleteSubscriber.lastName].filter(Boolean).join(' ')}
               </p>
-              <p className="text-sm text-gray-500">{deleteSubscriber.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{deleteSubscriber.email}</p>
             </div>
           )}
 

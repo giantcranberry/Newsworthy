@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, releaseOptions, releaseImages, releaseCategories, releaseRegions, advocacyGroups, advocates } from '@/db/schema'
-import { eq, and, asc, sql } from 'drizzle-orm'
+import { releases, releaseOptions, releaseImages, releaseCategories, releaseRegions, crmContacts } from '@/db/schema'
+import { eq, and, asc, sql, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { ReviewContent } from './review-content'
@@ -48,20 +48,15 @@ async function getReleaseRegionCount(releaseId: number) {
 }
 
 async function getListCount(companyId: number) {
-  const group = await db.query.advocacyGroups.findFirst({
-    where: eq(advocacyGroups.coId, companyId),
-  })
-
-  if (!group) return 0
-
   const [countRow] = await db
     .select({ count: sql<number>`count(*)` })
-    .from(advocates)
+    .from(crmContacts)
     .where(and(
-      eq(advocates.groupId, group.id),
-      sql`${advocates.isDeleted} IS NOT TRUE`,
-      sql`${advocates.unsubscribeAt} IS NULL`,
-      sql`${advocates.bouncedAt} IS NULL`
+      eq(crmContacts.companyId, companyId),
+      inArray(crmContacts.contactType, ['advocate', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`,
+      sql`${crmContacts.unsubscribeAt} IS NULL`,
+      sql`${crmContacts.bouncedAt} IS NULL`
     ))
 
   return Number(countRow?.count || 0)

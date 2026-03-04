@@ -129,13 +129,13 @@ export function StaffNotesCard({
 
         {/* Notes list */}
         {notes.length === 0 ? (
-          <p className="text-sm text-gray-500">No staff notes yet</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No staff notes yet</p>
         ) : (
           <div className="space-y-4 text-sm">
             {notes.map((note) => (
-              <div key={note.id} className="border-b border-gray-100 pb-3 last:border-0 group">
-                <div className="flex justify-between text-xs text-gray-500 mb-1">
-                  <span className="font-medium text-gray-700">{note.staffName || 'Staff'}</span>
+              <div key={note.id} className="border-b border-gray-100 dark:border-gray-800 pb-3 last:border-0 group">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">{note.staffName || 'Staff'}</span>
                   <div className="flex items-center gap-2">
                     <span>
                       {note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Just now'}
@@ -144,7 +144,7 @@ export function StaffNotesCard({
                       <>
                         <button
                           onClick={() => startEdit(note)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-600 cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-600 dark:text-blue-400 cursor-pointer"
                           title="Edit note"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -152,7 +152,7 @@ export function StaffNotesCard({
                         <button
                           onClick={() => handleDelete(note.id)}
                           disabled={deletingId === note.id}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 cursor-pointer disabled:opacity-50"
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 dark:text-red-400 cursor-pointer disabled:opacity-50"
                           title="Delete note"
                         >
                           {deletingId === note.id ? (

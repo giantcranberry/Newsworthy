@@ -12,35 +12,35 @@ export default async function AdminCommunityPage() {
     <div className="space-y-6">
       <Link
         href="/admin"
-        className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Admin
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Community</h1>
-        <p className="text-gray-600">Manage community boards and guidelines</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Community</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage community boards and guidelines</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Link href="/admin/community/boards" className="block">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 hover:border-cyan-300 hover:shadow-sm transition-all">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:border-cyan-300 hover:shadow-sm dark:shadow-gray-900/50 transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <i className="fa-light fa-table-columns text-xl text-cyan-800" />
-              <h2 className="text-lg font-semibold text-gray-900">Boards</h2>
+              <i className="fa-light fa-table-columns text-xl text-cyan-800 dark:text-cyan-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Boards</h2>
             </div>
-            <p className="text-sm text-gray-600">Create and manage discussion boards for the community.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Create and manage discussion boards for the community.</p>
           </div>
         </Link>
 
         <Link href="/admin/community/guidelines" className="block">
-          <div className="rounded-lg border border-gray-200 bg-white p-6 hover:border-cyan-300 hover:shadow-sm transition-all">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:border-cyan-300 hover:shadow-sm dark:shadow-gray-900/50 transition-all">
             <div className="flex items-center gap-3 mb-2">
-              <i className="fa-light fa-book text-xl text-cyan-800" />
-              <h2 className="text-lg font-semibold text-gray-900">Guidelines</h2>
+              <i className="fa-light fa-book text-xl text-cyan-800 dark:text-cyan-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Guidelines</h2>
             </div>
-            <p className="text-sm text-gray-600">Edit community guidelines and rules of conduct.</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Edit community guidelines and rules of conduct.</p>
           </div>
         </Link>
       </div>

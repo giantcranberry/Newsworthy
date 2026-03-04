@@ -29,14 +29,14 @@ export function DistributionTabs({
 
   return (
     <div className="space-y-6">
-      <div className="flex w-full rounded-lg bg-gray-100 p-1">
+      <div className="flex w-full rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
         <button
           type="button"
           onClick={() => setActiveTab('pitch')}
           className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
             activeTab === 'pitch'
-              ? 'bg-cyan-700 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-cyan-700 text-white shadow-sm dark:shadow-gray-900/50'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100'
           }`}
         >
           <Newspaper className="h-4 w-4" />
@@ -47,8 +47,8 @@ export function DistributionTabs({
           onClick={() => setActiveTab('share')}
           className={`flex-1 inline-flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all cursor-pointer ${
             activeTab === 'share'
-              ? 'bg-cyan-700 text-white shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-cyan-700 text-white shadow-sm dark:shadow-gray-900/50'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100'
           }`}
         >
           <Users className="h-4 w-4" />

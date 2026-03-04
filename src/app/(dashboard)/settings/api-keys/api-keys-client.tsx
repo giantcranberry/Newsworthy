@@ -131,7 +131,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
 
       {companies.length === 0 && (
         <Card>
-          <CardContent className="py-8 text-center text-gray-500">
+          <CardContent className="py-8 text-center text-gray-500 dark:text-gray-400">
             <p>You need at least one brand before you can create an API key. Each key is tied to a specific brand so the AI agent knows which account to act on.</p>
           </CardContent>
         </Card>
@@ -153,15 +153,15 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-9 w-9 rounded-lg bg-green-50 flex items-center justify-center">
-                      <Key className="h-4 w-4 text-green-600" />
+                      <Key className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{key.name}</span>
                         <Badge variant="secondary" className="text-xs">{key.companyName}</Badge>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                        <code className="bg-gray-100 px-1.5 py-0.5 rounded">{key.keyPrefix}...</code>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{key.keyPrefix}...</code>
                         <span>Created {key.createdAt ? new Date(key.createdAt).toLocaleDateString() : 'N/A'}</span>
                         {key.lastUsedAt && (
                           <span>Last used {new Date(key.lastUsedAt).toLocaleDateString()}</span>
@@ -175,7 +175,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-400 hover:bg-red-50"
                     onClick={() => setShowRevoke(key.uuid)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -189,7 +189,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
 
       {activeKeys.length === 0 && companies.length > 0 && (
         <Card>
-          <CardContent className="py-8 text-center text-gray-500">
+          <CardContent className="py-8 text-center text-gray-500 dark:text-gray-400">
             <Key className="h-8 w-8 mx-auto mb-3 text-gray-300" />
             <p>No API keys yet. Create one to let an AI agent draft releases, manage your brand, and submit content for review — all through the A2A protocol.</p>
           </CardContent>
@@ -200,7 +200,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
       {revokedKeys.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-gray-500">Revoked Keys</CardTitle>
+            <CardTitle className="text-gray-500 dark:text-gray-400">Revoked Keys</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
@@ -211,9 +211,9 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
                 >
                   <Key className="h-4 w-4 text-gray-400" />
                   <div>
-                    <span className="text-sm text-gray-600">{key.name}</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{key.name}</span>
                     <span className="text-xs text-gray-400 ml-2">{key.companyName}</span>
-                    <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded ml-2">{key.keyPrefix}...</code>
+                    <code className="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded ml-2">{key.keyPrefix}...</code>
                   </div>
                   <Badge variant="outline" className="text-xs text-gray-400 ml-auto">Revoked</Badge>
                 </div>
@@ -260,7 +260,7 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
 
                 {createError && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-700">{createError}</p>
+                    <p className="text-sm text-red-700 dark:text-red-400">{createError}</p>
                   </div>
                 )}
               </div>
@@ -287,16 +287,16 @@ export function ApiKeysClient({ initialKeys, companies }: Props) {
               <div className="py-4">
                 <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
                   <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
-                  <p className="text-sm text-amber-700">
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
                     This is the only time the full key will be shown. Store it securely.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 p-3 bg-gray-100 rounded-lg text-sm font-mono break-all">
+                  <code className="flex-1 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm font-mono break-all">
                     {newKey}
                   </code>
                   <Button variant="outline" size="sm" onClick={handleCopy}>
-                    {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+                    {copied ? <Check className="h-4 w-4 text-green-600 dark:text-green-400" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>

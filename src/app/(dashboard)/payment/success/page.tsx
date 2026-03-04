@@ -8,11 +8,11 @@ export default function PaymentSuccessPage() {
     <div className="max-w-lg mx-auto">
       <Card>
         <CardContent className="py-12 text-center">
-          <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-6">
-            <CheckCircle className="h-10 w-10 text-green-600" />
+          <div className="mx-auto h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
+            <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-          <p className="text-gray-500 mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Payment Successful!</h1>
+          <p className="text-gray-500 dark:text-gray-400 mb-6">
             Thank you for your purchase. Your credits have been added to your account.
           </p>
           <div className="flex flex-col gap-3">

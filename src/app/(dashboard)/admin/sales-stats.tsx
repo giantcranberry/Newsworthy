@@ -67,18 +67,18 @@ function PeriodCard({
   prevLabel: string
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-800 p-4">
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-xs font-medium text-gray-500 uppercase">{label}</span>
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{formatCents(current.amount)}</p>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{formatCents(current.amount)}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
         {current.count} transaction{current.count !== 1 ? 's' : ''}
       </p>
-      <div className="mt-2 pt-2 border-t border-gray-100">
+      <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-800">
         <p className="text-xs text-gray-400">{prevLabel}</p>
-        <p className="text-sm font-medium text-gray-500">{formatCents(previous.amount)}</p>
+        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{formatCents(previous.amount)}</p>
         <p className="text-xs text-gray-400">
           {previous.count} transaction{previous.count !== 1 ? 's' : ''}
         </p>
@@ -124,7 +124,7 @@ export function SalesStats() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+          <div className="flex items-center justify-center py-8 text-sm text-gray-500 dark:text-gray-400">
             Loading sales data from Stripe...
           </div>
         </CardContent>
@@ -142,7 +142,7 @@ export function SalesStats() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </CardContent>
       </Card>
     )
@@ -168,7 +168,7 @@ export function SalesStats() {
                   Updated {new Date(data.cachedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                 </span>
               )}
-              <Button variant="ghost" size="sm" onClick={() => fetchSales(true)} className="gap-1.5 text-xs text-gray-500">
+              <Button variant="ghost" size="sm" onClick={() => fetchSales(true)} className="gap-1.5 text-xs text-gray-500 dark:text-gray-400">
                 <RefreshCw className="h-3 w-3" />
                 Refresh
               </Button>
@@ -178,14 +178,14 @@ export function SalesStats() {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <PeriodCard
-              icon={<Calendar className="h-4 w-4 text-green-600" />}
+              icon={<Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />}
               label="Today"
               current={data.today}
               previous={data.prevToday}
               prevLabel="Yesterday"
             />
             <PeriodCard
-              icon={<CalendarDays className="h-4 w-4 text-blue-600" />}
+              icon={<CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
               label="Week to Date"
               current={data.wtd}
               previous={data.prevWtd}
@@ -221,70 +221,70 @@ export function SalesStats() {
                     <CardTitle className="flex items-center gap-2">
                       <FileText className="h-5 w-5 text-gray-400" />
                       Outstanding Invoices
-                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                      <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-400">
                         {data.invoices.length}
                       </span>
                     </CardTitle>
                   </CollapsibleTrigger>
                 </div>
-                <p className="text-sm font-medium text-amber-700">
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
                   {formatCents(totalOutstanding)}
                 </p>
               </div>
-              <p className="text-xs text-gray-500 ml-6 mt-1">Last 30 days</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 ml-6 mt-1">Last 30 days</p>
             </CardHeader>
             <CollapsibleContent>
               <CardContent className="pt-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-200">
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500">Invoice</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500">Customer</th>
-                        <th className="text-right py-2 pr-4 font-medium text-gray-500">Amount Due</th>
-                        <th className="text-right py-2 pr-4 font-medium text-gray-500">Remaining</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500">Created</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500">Due</th>
-                        <th className="text-right py-2 font-medium text-gray-500"></th>
+                      <tr className="border-b border-gray-200 dark:border-gray-800">
+                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Invoice</th>
+                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Customer</th>
+                        <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Amount Due</th>
+                        <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Remaining</th>
+                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Created</th>
+                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Due</th>
+                        <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {data.invoices.map((inv) => (
-                        <tr key={inv.id} className="border-b border-gray-100 last:border-0">
+                        <tr key={inv.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
                           <td className="py-2.5 pr-4">
-                            <span className="font-mono text-xs text-gray-700">{inv.number || inv.id.slice(-8)}</span>
+                            <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{inv.number || inv.id.slice(-8)}</span>
                           </td>
                           <td className="py-2.5 pr-4">
                             <div>
                               {inv.customerName && (
-                                <p className="text-gray-900 text-xs font-medium">{inv.customerName}</p>
+                                <p className="text-gray-900 dark:text-gray-100 text-xs font-medium">{inv.customerName}</p>
                               )}
                               {inv.customerEmail && (
-                                <p className="text-gray-500 text-xs">{inv.customerEmail}</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-xs">{inv.customerEmail}</p>
                               )}
                               {!inv.customerName && !inv.customerEmail && (
                                 <p className="text-gray-400 text-xs">Unknown</p>
                               )}
                             </div>
                           </td>
-                          <td className="py-2.5 pr-4 text-right font-medium text-gray-900 text-xs">
+                          <td className="py-2.5 pr-4 text-right font-medium text-gray-900 dark:text-gray-100 text-xs">
                             {formatCents(inv.amountDue)}
                           </td>
                           <td className="py-2.5 pr-4 text-right text-xs">
-                            <span className={inv.amountRemaining > 0 ? 'text-amber-700 font-medium' : 'text-gray-500'}>
+                            <span className={inv.amountRemaining > 0 ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-gray-500 dark:text-gray-400'}>
                               {formatCents(inv.amountRemaining)}
                             </span>
                           </td>
-                          <td className="py-2.5 pr-4 text-xs text-gray-500">
+                          <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
                             {formatDate(inv.created)}
                           </td>
-                          <td className="py-2.5 pr-4 text-xs text-gray-500">
+                          <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
                             {inv.dueDate ? formatDate(inv.dueDate) : '—'}
                           </td>
                           <td className="py-2.5 text-right">
                             {inv.hostedInvoiceUrl && (
                               <a href={inv.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
-                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-gray-500 hover:text-gray-700">
+                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300">
                                   <ExternalLink className="h-3 w-3" />
                                   View
                                 </Button>

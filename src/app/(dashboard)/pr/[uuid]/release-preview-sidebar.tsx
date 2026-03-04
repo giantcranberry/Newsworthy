@@ -187,13 +187,13 @@ export function ReleasePreviewSidebar() {
     <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: panelWidth }}>
       <div className="sticky top-0 h-screen flex">
         <ResizeHandle onResize={handleResize} />
-        <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white border-l border-gray-200">
-        <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-start justify-between gap-3">
+        <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto scrollbar-hide bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800">
+        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-sm font-medium text-gray-900">Live Preview</h3>
-            <p className="text-xs text-gray-600 mt-0.5">See how your press release will appear once published</p>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Live Preview</h3>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">See how your press release will appear once published</p>
           </div>
-          <div className="inline-flex items-center rounded-md border border-gray-300 bg-white shrink-0">
+          <div className="inline-flex items-center rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 shrink-0">
             {([
               { mode: 'desktop' as DeviceMode, icon: Monitor, label: 'Desktop' },
               { mode: 'tablet' as DeviceMode, icon: Tablet, label: 'Tablet' },
@@ -207,10 +207,10 @@ export function ReleasePreviewSidebar() {
                   'inline-flex items-center px-2 py-1.5 cursor-pointer transition-colors',
                   i === 0 && 'rounded-l-md',
                   i === 2 && 'rounded-r-md',
-                  i > 0 && 'border-l border-gray-300',
+                  i > 0 && 'border-l border-gray-300 dark:border-gray-700',
                   effectiveDevice === mode
-                    ? 'bg-cyan-800/10 text-cyan-800'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                    ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400'
+                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300'
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -241,12 +241,12 @@ export function ReleasePreviewSidebar() {
             />
           ) : (
             <div className="p-4 space-y-4 animate-pulse">
-              <div className="h-6 bg-gray-100 rounded w-3/4" />
-              <div className="h-4 bg-gray-100 rounded w-1/2" />
+              <div className="h-6 bg-gray-100 dark:bg-gray-800 rounded w-3/4" />
+              <div className="h-4 bg-gray-100 dark:bg-gray-800 rounded w-1/2" />
               <div className="space-y-2 mt-6">
-                <div className="h-3 bg-gray-100 rounded" />
-                <div className="h-3 bg-gray-100 rounded" />
-                <div className="h-3 bg-gray-100 rounded w-5/6" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded" />
+                <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-5/6" />
               </div>
             </div>
           )}

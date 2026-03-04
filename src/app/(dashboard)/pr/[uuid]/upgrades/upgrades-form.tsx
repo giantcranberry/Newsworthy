@@ -308,12 +308,12 @@ export function UpgradesForm({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ShoppingCart className="h-5 w-5 text-blue-600" />
+                <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p className="font-medium text-blue-900">
                     {selectedProducts.size} upgrade{selectedProducts.size > 1 ? 's' : ''} selected
                   </p>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
                     {Array.from(selectedProducts).map(type =>
                       products.find(p => p.type === type)?.name
                     ).join(', ')}
@@ -322,7 +322,7 @@ export function UpgradesForm({
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-blue-900">{formatPrice(cartTotal)}</p>
-                <p className="text-xs text-blue-600">total</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">total</p>
               </div>
             </div>
           </CardContent>
@@ -374,21 +374,21 @@ export function UpgradesForm({
 
       {/* Payment Status Messages */}
       {paymentSuccess && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 dark:text-green-400 rounded-lg">
           <Check className="h-5 w-5" />
           <span>Payment successful! Your upgrades have been added to your release.</span>
         </div>
       )}
 
       {paymentCanceled && (
-        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 dark:text-amber-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>Payment was canceled. You can try again or skip upgrades.</span>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 dark:text-red-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>{error}</span>
         </div>
@@ -396,7 +396,7 @@ export function UpgradesForm({
 
       {/* Notice when solo upgrade prevents adding more */}
       {hasPurchasedSoloUpgrade && (
-        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-amber-50 text-amber-700 dark:text-amber-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
           <span>Your purchased upgrade cannot be combined with other upgrades.</span>
         </div>
@@ -407,7 +407,7 @@ export function UpgradesForm({
         <>
           <div className="flex items-start gap-3 p-4 bg-cyan-700/5 border border-cyan-600 rounded-lg">
             <Info className="h-5 w-5 text-cyan-700 mt-0.5 flex-shrink-0" />
-            <p className="text-cyan-800 text-sm">
+            <p className="text-cyan-800 dark:text-cyan-400 text-sm">
               Your Newsworthy.ai distribution already includes hundreds of distribution endpoints, full distribution / amplification via Newsramp.com, and SEO / AI optimization. We are pleased to offer the following distribution upgrade options to suit your needs.
             </p>
           </div>
@@ -434,7 +434,7 @@ export function UpgradesForm({
             const isYahoo = product.type === 'yahoo'
             const accentRing = isYahoo ? 'ring-2 ring-[#7d2eff]' : 'ring-2 ring-cyan-700'
             const accentBg = isYahoo ? 'bg-[#7d2eff]' : 'bg-cyan-700'
-            const accentIconBg = isYahoo ? 'bg-[#7d2eff]/10' : 'bg-cyan-100'
+            const accentIconBg = isYahoo ? 'bg-[#7d2eff]/10' : 'bg-cyan-100 dark:bg-cyan-900/30'
             const accentIconText = isYahoo ? 'text-[#7d2eff]' : 'text-cyan-700'
 
             return (
@@ -475,11 +475,11 @@ export function UpgradesForm({
                   <div className="flex items-start justify-between">
                     <div className={cn(
                       "p-2 rounded-lg flex items-center justify-center w-12 h-12",
-                      isPurchased ? "bg-emerald-100" : isSelected ? "bg-green-100" : isYahoo ? accentIconBg : "bg-cyan-400/10"
+                      isPurchased ? "bg-emerald-100" : isSelected ? "bg-green-100 dark:bg-green-900/30" : isYahoo ? accentIconBg : "bg-cyan-400/10"
                     )}>
                       <ProductIcon iconName={product.icon} faSize={isYahoo ? "text-3xl" : undefined} className={cn(
                         "h-8 w-8",
-                        isPurchased ? "text-emerald-600" : isSelected ? "text-green-600" : accentIconText
+                        isPurchased ? "text-emerald-600" : isSelected ? "text-green-600 dark:text-green-400" : accentIconText
                       )} />
                     </div>
                     <div className="text-right">
@@ -490,8 +490,8 @@ export function UpgradesForm({
                         </>
                       ) : (
                         <>
-                          <span className="text-3xl font-bold text-gray-900">{product.priceDisplay}</span>
-                          <p className="text-xs text-gray-500">one-time</p>
+                          <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">{product.priceDisplay}</span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">one-time</p>
                         </>
                       )}
                     </div>
@@ -511,10 +511,10 @@ export function UpgradesForm({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {hasCredits && !isPurchased && (
-                    <div className={cn("p-3 rounded-lg", isYahoo ? "bg-[#7d2eff]/10" : "bg-cyan-50")}>
+                    <div className={cn("p-3 rounded-lg", isYahoo ? "bg-[#7d2eff]/10" : "bg-cyan-50 dark:bg-cyan-900/30")}>
                       <div className="flex items-center justify-between text-sm">
-                        <span className={cn(isYahoo ? "text-[#7d2eff]" : "text-cyan-800", "font-medium")}>Available credits</span>
-                        <span className={cn("font-bold", isYahoo ? "text-[#7d2eff]" : "text-cyan-800")}>{credits}</span>
+                        <span className={cn(isYahoo ? "text-[#7d2eff]" : "text-cyan-800 dark:text-cyan-400", "font-medium")}>Available credits</span>
+                        <span className={cn("font-bold", isYahoo ? "text-[#7d2eff]" : "text-cyan-800 dark:text-cyan-400")}>{credits}</span>
                       </div>
                     </div>
                   )}
@@ -533,9 +533,9 @@ export function UpgradesForm({
                       variant={isSelected ? 'outline' : 'default'}
                       className={cn(
                         "w-full",
-                        isSelected && "border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700",
+                        isSelected && "border-red-200 text-red-600 dark:text-red-400 hover:bg-red-50 hover:text-red-700 dark:text-red-400",
                         !isSelected && isYahoo && "bg-[#7d2eff] hover:bg-[#6a27d6]",
-                        !isSelected && !isYahoo && "bg-cyan-800 hover:bg-cyan-900"
+                        !isSelected && !isYahoo && "bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700"
                       )}
                       onClick={() => toggleProduct(product.type)}
                       disabled={isLoading || isDisabled}
@@ -564,7 +564,7 @@ export function UpgradesForm({
       {!hasProducts && (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-center">
-            <p className="text-gray-500">No upgrade products are currently available.</p>
+            <p className="text-gray-500 dark:text-gray-400">No upgrade products are currently available.</p>
           </CardContent>
         </Card>
       )}
@@ -598,12 +598,12 @@ export function UpgradesForm({
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <ShoppingCart className="h-5 w-5 text-blue-600" />
+                <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <div>
                   <p className="font-medium text-blue-900">
                     {selectedProducts.size} upgrade{selectedProducts.size > 1 ? 's' : ''} selected
                   </p>
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
                     {Array.from(selectedProducts).map(type =>
                       products.find(p => p.type === type)?.name
                     ).join(', ')}
@@ -612,7 +612,7 @@ export function UpgradesForm({
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-blue-900">{formatPrice(cartTotal)}</p>
-                <p className="text-xs text-blue-600">total</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">total</p>
               </div>
             </div>
           </CardContent>

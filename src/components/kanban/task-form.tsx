@@ -95,10 +95,10 @@ export interface KanbanTask {
 }
 
 export const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low', color: 'text-gray-500', bg: 'bg-gray-100', dot: 'bg-gray-400' },
-  { value: 'medium', label: 'Medium', color: 'text-blue-600', bg: 'bg-blue-50', dot: 'bg-blue-500' },
+  { value: 'low', label: 'Low', color: 'text-gray-500 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-800', dot: 'bg-gray-400' },
+  { value: 'medium', label: 'Medium', color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50', dot: 'bg-blue-500' },
   { value: 'high', label: 'High', color: 'text-orange-600', bg: 'bg-orange-50', dot: 'bg-orange-500' },
-  { value: 'urgent', label: 'Urgent', color: 'text-red-600', bg: 'bg-red-50', dot: 'bg-red-500' },
+  { value: 'urgent', label: 'Urgent', color: 'text-red-600 dark:text-red-400', bg: 'bg-red-50', dot: 'bg-red-500' },
 ] as const
 
 export function getPriorityConfig(priority: string) {
@@ -425,7 +425,7 @@ export function TaskFormDialog({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg">
+              <div className="p-3 text-sm text-red-700 dark:text-red-400 bg-red-50 border border-red-200 rounded-lg">
                 {error}
               </div>
             )}
@@ -543,9 +543,9 @@ export function TaskFormDialog({
                   {existingFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg text-sm"
+                      className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-950 rounded-lg text-sm"
                     >
-                      <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                      <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                       <a
                         href={file.url}
                         target="_blank"
@@ -560,7 +560,7 @@ export function TaskFormDialog({
                       <button
                         type="button"
                         onClick={() => handleDeleteFile(file.id)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 p-1"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -585,7 +585,7 @@ export function TaskFormDialog({
                       <button
                         type="button"
                         onClick={() => removeNewFile(i)}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="text-red-500 hover:text-red-700 dark:text-red-400 p-1"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -628,14 +628,14 @@ export function TaskFormDialog({
 
                 {/* Existing notes */}
                 {notes.length > 0 && (
-                  <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-2">
+                  <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-800 rounded-lg p-2">
                     {notes.map((note) => (
-                      <div key={note.id} className="p-3 bg-gray-50 rounded-lg text-sm">
+                      <div key={note.id} className="p-3 bg-gray-50 dark:bg-gray-950 rounded-lg text-sm">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-gray-700">{getNoteName(note)}</span>
+                          <span className="font-medium text-gray-700 dark:text-gray-300">{getNoteName(note)}</span>
                           <span className="text-xs text-gray-400">{formatDate(note.createdAt)}</span>
                         </div>
-                        <p className="text-gray-600 whitespace-pre-wrap">{note.content}</p>
+                        <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{note.content}</p>
                       </div>
                     ))}
                     <div ref={notesEndRef} />
@@ -675,7 +675,7 @@ export function TaskFormDialog({
                   type="button"
                   variant="ghost"
                   onClick={() => setShowDelete(true)}
-                  className="text-red-500 hover:text-red-700 hover:bg-red-50 mr-auto"
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 hover:bg-red-50 mr-auto"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete
