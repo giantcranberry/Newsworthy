@@ -55,30 +55,32 @@ export function BoardView({
   const [accepted, setAccepted] = useState(initialAccepted)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-40">
       <BoardHeader board={board} />
 
-      {!accepted && guidelinesBody ? (
-        <GuidelinesAcceptance
-          body={guidelinesBody}
-          onAccept={() => setAccepted(true)}
-        />
-      ) : (
-        <PostForm
-          boards={allBoards}
-          companies={companies}
-          defaultBoardId={board.id}
-          isStaff={isStaff}
-          onPostCreated={() => setRefreshKey((k) => k + 1)}
-        />
-      )}
+      <div className="mx-auto max-w-3xl space-y-4">
+        {!accepted && guidelinesBody ? (
+          <GuidelinesAcceptance
+            body={guidelinesBody}
+            onAccept={() => setAccepted(true)}
+          />
+        ) : (
+          <PostForm
+            boards={allBoards}
+            companies={companies}
+            defaultBoardId={board.id}
+            isStaff={isStaff}
+            onPostCreated={() => setRefreshKey((k) => k + 1)}
+          />
+        )}
 
-      <CommunityFeed
-        currentUserId={currentUserId}
-        isAdmin={isAdmin}
-        boardSlug={board.slug}
-        refreshKey={refreshKey}
-      />
+        <CommunityFeed
+          currentUserId={currentUserId}
+          isAdmin={isAdmin}
+          boardSlug={board.slug}
+          refreshKey={refreshKey}
+        />
+      </div>
     </div>
   )
 }

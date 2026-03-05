@@ -16,7 +16,7 @@ export default async function PostPage({
   const { uuid } = await params
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 pb-40">
       <Link
         href="/community"
         className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100 transition-colors"

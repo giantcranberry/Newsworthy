@@ -6,13 +6,33 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { Flag, Loader2, Check, AlertCircle } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Flag, Loader2, Check, AlertCircle, Clock } from 'lucide-react'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
+
+function formatDateForInput(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function formatTimeForInput(date: Date): string {
+  const h = String(date.getHours()).padStart(2, '0')
+  const m = String(date.getMinutes()).padStart(2, '0')
+  return `${h}:${m}`
+}
+
+function getMinDate(): string {
+  const d = new Date(Date.now() + 12 * 60 * 60 * 1000)
+  return formatDateForInput(d)
+}
 
 interface FinalizeContentProps {
   releaseUuid: string
   releaseTitle: string
+  releaseAt: string | null
   distribution: string | null
   initialApprovals: Approval[]
   priorApprovers: PriorApprover[]
@@ -22,6 +42,7 @@ interface FinalizeContentProps {
 export function FinalizeContent({
   releaseUuid,
   releaseTitle,
+  releaseAt,
   distribution,
   initialApprovals,
   priorApprovers,
@@ -33,6 +54,11 @@ export function FinalizeContent({
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // Release date/time state
+  const initialDate = releaseAt ? new Date(releaseAt) : null
+  const [releaseDateStr, setReleaseDateStr] = useState(initialDate ? formatDateForInput(initialDate) : '')
+  const [releaseTimeStr, setReleaseTimeStr] = useState(initialDate ? formatTimeForInput(initialDate) : '')
+
   // Shared approval state — updated by ApprovalSection via callback
   const [approvalList, setApprovalList] = useState<Approval[]>(initialApprovals)
 
@@ -41,6 +67,13 @@ export function FinalizeContent({
     [approvalList]
   )
 
+  const releaseDateTooSoon = useMemo(() => {
+    if (!releaseDateStr || !releaseTimeStr) return false
+    const selected = new Date(`${releaseDateStr}T${releaseTimeStr}:00`)
+    const twelveHoursFromNow = new Date(Date.now() + 12 * 60 * 60 * 1000)
+    return selected < twelveHoursFromNow
+  }, [releaseDateStr, releaseTimeStr])
+
   const handleSubmit = async () => {
     if (!confirmed) return
 
@@ -48,9 +81,15 @@ export function FinalizeContent({
     setError(null)
 
     try {
+      const payload: Record<string, any> = {}
+      if (releaseDateStr && releaseTimeStr) {
+        payload.releaseAt = new Date(`${releaseDateStr}T${releaseTimeStr}:00`).toISOString()
+      }
+
       const response = await fetch(`/api/pr/${releaseUuid}/finalize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
@@ -109,6 +148,19 @@ export function FinalizeContent({
         onApprovalsChange={setApprovalList}
       />
 
+      {releaseDateTooSoon && (
+        <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+          <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-amber-800 dark:text-amber-300">
+            <p className="font-medium">Your release date is less than 12 hours away</p>
+            <p className="mt-1 text-amber-700 dark:text-amber-400">
+              The release date will be automatically adjusted to 12 hours from the time of submission to allow for editorial review.
+              If you need to expedite your distribution, please contact support.
+            </p>
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
           <AlertCircle className="h-5 w-5" />
@@ -141,6 +193,25 @@ export function FinalizeContent({
               {distribution === 'standard' && 'Standard Distribution'}
               {!distribution && 'Standard Distribution'}
             </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Release Date</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Input
+                type="date"
+                value={releaseDateStr}
+                min={getMinDate()}
+                onChange={(e) => setReleaseDateStr(e.target.value)}
+                className="w-auto text-sm h-8"
+              />
+              <Input
+                type="time"
+                value={releaseTimeStr}
+                onChange={(e) => setReleaseTimeStr(e.target.value)}
+                className="w-auto text-sm h-8"
+              />
+              {releaseDateTooSoon && (
+                <span className="text-xs text-amber-600 dark:text-amber-400">Will be adjusted to 12h out</span>
+              )}
+            </div>
           </div>
 
           <div className="border-t dark:border-gray-700 pt-4">

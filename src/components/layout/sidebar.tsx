@@ -534,8 +534,7 @@ export function Sidebar({
 
                     return (
                       <div key={groupKey}>
-                        <button
-                          onClick={() => toggleGroup(groupKey, item)}
+                        <div
                           className={cn(
                             'flex items-center justify-between w-full px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
                             activeChild
@@ -545,18 +544,29 @@ export function Sidebar({
                           aria-expanded={isExpanded}
                           aria-controls={submenuId}
                         >
-                          <div className="flex items-center gap-3">
+                          <Link
+                            href={item.href}
+                            onClick={() => {
+                              if (!isExpanded) toggleGroup(groupKey, item)
+                            }}
+                            className="flex items-center gap-3 flex-1 min-w-0"
+                          >
                             <FaIcon icon={item.icon} className="w-5 text-center text-base" />
                             <span>{item.title}</span>
-                          </div>
-                          <i
-                            className={cn(
-                              'fa-solid fa-chevron-down text-[10px] transition-transform duration-200',
-                              isExpanded ? 'rotate-180' : ''
-                            )}
-                            aria-hidden="true"
-                          />
-                        </button>
+                          </Link>
+                          <button
+                            onClick={() => toggleGroup(groupKey, item)}
+                            className="p-1 -mr-1 cursor-pointer"
+                          >
+                            <i
+                              className={cn(
+                                'fa-solid fa-chevron-down text-[10px] transition-transform duration-200',
+                                isExpanded ? 'rotate-180' : ''
+                              )}
+                              aria-hidden="true"
+                            />
+                          </button>
+                        </div>
 
                         <div
                           id={submenuId}

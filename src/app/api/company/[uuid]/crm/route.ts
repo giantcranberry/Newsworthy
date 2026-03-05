@@ -168,7 +168,7 @@ export async function POST(
   // Single contact add
   if (body.mode === 'single') {
     const { firstName, lastName, email, tld, publication, phone, notes, contactType } = body
-    const type = contactType || 'media'
+    const type = contactType ?? ''
 
     if (!email?.trim() || !email.includes('@')) {
       return NextResponse.json({ error: 'A valid email is required' }, { status: 400 })
@@ -307,7 +307,8 @@ export async function PUT(
   }
 
   const body = await request.json()
-  const { contactUuid, firstName, lastName, email, tld, publication, phone, notes, contactType, unsubscribed } = body
+  const { contactUuid, firstName, lastName, email, tld, publication, phone, notes, contactType, unsubscribed,
+    linkedin, twitter, facebook, instagram, crunchbase, youtube, qurl } = body
 
   if (!contactUuid) {
     return NextResponse.json({ error: 'contactUuid is required' }, { status: 400 })
@@ -362,8 +363,15 @@ export async function PUT(
       publication: publication?.trim() || null,
       phone: phone?.trim() || null,
       notes: notes?.trim() || null,
-      contactType: contactType || contact.contactType,
+      contactType: contactType ?? contact.contactType,
       unsubscribeAt: unsubscribed ? (contact.unsubscribeAt || new Date()) : null,
+      linkedin: linkedin?.trim() || null,
+      twitter: twitter?.trim() || null,
+      facebook: facebook?.trim() || null,
+      instagram: instagram?.trim() || null,
+      crunchbase: crunchbase?.trim() || null,
+      youtube: youtube?.trim() || null,
+      qurl: qurl?.trim() || null,
       updatedAt: new Date(),
     })
     .where(eq(crmContacts.id, contact.id))

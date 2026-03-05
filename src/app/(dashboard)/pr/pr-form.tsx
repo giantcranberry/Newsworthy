@@ -815,7 +815,8 @@ export function PRForm({
                 </p>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Upload a Word doc or Google Docs URL
+                Upload a Word doc or Google Docs URL.
+                <span className="block text-xs text-gray-500 dark:text-gray-500 mt-0.5">If you use this option AI will complete most of this form for you.</span>
               </p>
               <button
                 type="button"
@@ -836,7 +837,8 @@ export function PRForm({
                 <p className="font-medium text-gray-900 dark:text-gray-100">Generate with AI</p>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Tell us about your news and we'll draft it
+                Tell us about your news and we'll draft it and populate this form below.
+                <span className="block text-xs text-gray-500 dark:text-gray-500 mt-0.5">You are responsible for editing the generated release and verifying all content.</span>
               </p>
               <button
                 type="button"
@@ -1435,6 +1437,7 @@ export function PRForm({
                 "bold italic | alignleft aligncenter " +
                 "alignright alignjustify | bullist numlist outdent indent | " +
                 "link | removeformat | wordcount",
+              block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
               content_style:
                 isDark
                   ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #1a1a2e; color: #e0e0e0; }'

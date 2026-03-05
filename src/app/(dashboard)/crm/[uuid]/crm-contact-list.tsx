@@ -56,6 +56,7 @@ interface CrmContact {
   instagram: string | null
   crunchbase: string | null
   youtube: string | null
+  md5: string | null
   emailCount: number | null
   createdAt: Date | string | null
   lastOpenAt: Date | string | null
@@ -101,28 +102,21 @@ function getStatus(c: CrmContact) {
 }
 
 function TypeBadge({ type }: { type: string }) {
-  if (type === 'media') {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-        Media
-      </span>
-    )
+  const styles: Record<string, { bg: string; label: string }> = {
+    media: { bg: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400', label: 'Media Pitch List' },
+    advocate: { bg: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400', label: 'Share List Member' },
+    partner: { bg: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400', label: 'Partner' },
+    client: { bg: 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400', label: 'Client' },
+    prospect: { bg: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400', label: 'Prospect' },
+    influencer: { bg: 'bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400', label: 'Influencer' },
   }
-  if (type === 'advocate') {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
-        Advocate
-      </span>
-    )
-  }
-  if (type === 'both') {
-    return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">
-        Both
-      </span>
-    )
-  }
-  return null
+  const s = styles[type]
+  if (!s) return null
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${s.bg}`}>
+      {s.label}
+    </span>
+  )
 }
 
 export function CrmContactList({
@@ -156,21 +150,6 @@ export function CrmContactList({
   const [showViewModal, setShowViewModal] = useState(false)
   const [viewContact, setViewContact] = useState<CrmContact | null>(null)
 
-  // Edit state
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editUuid, setEditUuid] = useState<string | null>(null)
-  const [editEmail, setEditEmail] = useState('')
-  const [editFirstName, setEditFirstName] = useState('')
-  const [editLastName, setEditLastName] = useState('')
-  const [editTld, setEditTld] = useState('')
-  const [editPublication, setEditPublication] = useState('')
-  const [editPhone, setEditPhone] = useState('')
-  const [editNotes, setEditNotes] = useState('')
-  const [editContactType, setEditContactType] = useState('media')
-  const [editUnsubscribed, setEditUnsubscribed] = useState(false)
-  const [isSavingEdit, setIsSavingEdit] = useState(false)
-  const [editError, setEditError] = useState<string | null>(null)
-
   // Add state
   const [showAddModal, setShowAddModal] = useState(false)
   const [addEmail, setAddEmail] = useState('')
@@ -180,7 +159,7 @@ export function CrmContactList({
   const [addPublication, setAddPublication] = useState('')
   const [addPhone, setAddPhone] = useState('')
   const [addNotes, setAddNotes] = useState('')
-  const [addContactType, setAddContactType] = useState('media')
+  const [addContactType, setAddContactType] = useState('')
   const [isSavingAdd, setIsSavingAdd] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
@@ -295,7 +274,7 @@ export function CrmContactList({
       setAddPublication('')
       setAddPhone('')
       setAddNotes('')
-      setAddContactType('media')
+      setAddContactType('')
       setSuccess('Contact added.')
       router.refresh()
     } catch (err) {
@@ -339,59 +318,6 @@ export function CrmContactList({
   const openView = (c: CrmContact) => {
     setViewContact(c)
     setShowViewModal(true)
-  }
-
-  // Edit contact
-  const openEdit = (c: CrmContact) => {
-    setEditUuid(c.uuid)
-    setEditEmail(c.email || '')
-    setEditFirstName(c.firstName || '')
-    setEditLastName(c.lastName || '')
-    setEditTld(c.tld || '')
-    setEditPublication(c.publication || '')
-    setEditPhone(c.phone || '')
-    setEditNotes(c.notes || '')
-    setEditContactType(c.contactType || 'media')
-    setEditUnsubscribed(!!c.unsubscribeAt)
-    setEditError(null)
-    setShowEditModal(true)
-  }
-
-  const handleEditSave = async () => {
-    setIsSavingEdit(true)
-    setEditError(null)
-
-    try {
-      const response = await fetch(`/api/company/${companyUuid}/crm`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contactUuid: editUuid,
-          firstName: editFirstName,
-          lastName: editLastName,
-          email: editEmail,
-          tld: editTld,
-          publication: editPublication,
-          phone: editPhone,
-          notes: editNotes,
-          contactType: editContactType,
-          unsubscribed: editUnsubscribed,
-        }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to update contact')
-      }
-
-      setShowEditModal(false)
-      setSuccess('Contact updated.')
-      router.refresh()
-    } catch (err) {
-      setEditError(err instanceof Error ? err.message : 'Failed to update')
-    } finally {
-      setIsSavingEdit(false)
-    }
   }
 
   // Delete contact
@@ -535,7 +461,7 @@ export function CrmContactList({
           }`}
         >
           <Newspaper className="h-3.5 w-3.5 inline mr-1" />
-          Media ({stats.media})
+          Media Pitch List ({stats.media})
         </button>
         <button
           onClick={() => handleTypeFilter('advocate')}
@@ -546,7 +472,7 @@ export function CrmContactList({
           }`}
         >
           <Heart className="h-3.5 w-3.5 inline mr-1" />
-          Advocates ({stats.advocates})
+          Share List Members ({stats.advocates})
         </button>
       </div>
 
@@ -606,7 +532,7 @@ export function CrmContactList({
               {!readOnly && (
                 <Button size="sm" onClick={() => setShowAddModal(true)} className="gap-1">
                   <Plus className="h-4 w-4" />
-                  Add Contact
+                  Quick Add
                 </Button>
               )}
             </div>
@@ -663,15 +589,21 @@ export function CrmContactList({
                             </td>
                           )}
                           <td className="py-2 pr-4">
-                            {(c.firstName || c.lastName) && (
-                              <>
-                                <span className="font-medium text-gray-900 dark:text-gray-100">
-                                  {[c.firstName, c.lastName].filter(Boolean).join(' ')}
-                                </span>
-                                <br />
-                              </>
-                            )}
-                            <span className="text-gray-500 dark:text-gray-400">{c.email}</span>
+                            <div className="flex items-center gap-2.5">
+                              <img
+                                src={`https://www.gravatar.com/avatar/${c.md5 || ''}?d=mp&s=32`}
+                                alt=""
+                                className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0"
+                              />
+                              <div className="min-w-0">
+                                {(c.firstName || c.lastName) && (
+                                  <span className="font-medium text-gray-900 dark:text-gray-100 block truncate">
+                                    {[c.firstName, c.lastName].filter(Boolean).join(' ')}
+                                  </span>
+                                )}
+                                <span className="text-gray-500 dark:text-gray-400 text-sm block truncate">{c.email}</span>
+                              </div>
+                            </div>
                           </td>
                           <td className="py-2 pr-4">
                             <TypeBadge type={c.contactType} />
@@ -707,13 +639,13 @@ export function CrmContactList({
                                 <Eye className="h-4 w-4" />
                               </button>
                               {!readOnly && (
-                                <button
-                                  onClick={() => openEdit(c)}
-                                  className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                                <Link
+                                  href={`/crm/${companyUuid}/contact/${c.uuid}`}
+                                  className="p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                                   title="Edit contact"
                                 >
                                   <Pencil className="h-4 w-4" />
-                                </button>
+                                </Link>
                               )}
                               {!readOnly && (
                                 <button
@@ -929,10 +861,12 @@ export function CrmContactList({
               Close
             </Button>
             {!readOnly && viewContact && (
-              <Button onClick={() => { setShowViewModal(false); openEdit(viewContact) }}>
-                <Pencil className="h-4 w-4" />
-                Edit Contact
-              </Button>
+              <Link href={`/crm/${companyUuid}/contact/${viewContact.uuid}`}>
+                <Button>
+                  <Pencil className="h-4 w-4" />
+                  Edit Contact
+                </Button>
+              </Link>
             )}
           </DialogFooter>
         </DialogContent>
@@ -959,9 +893,13 @@ export function CrmContactList({
                 onChange={(e) => setAddContactType(e.target.value)}
                 className="mt-1"
               >
-                <option value="media">Media</option>
-                <option value="advocate">Advocate</option>
-                <option value="both">Both</option>
+                <option value="">Unassigned</option>
+                <option value="advocate">Share List Member</option>
+                <option value="client">Client</option>
+                <option value="influencer">Influencer</option>
+                <option value="media">Media Pitch List</option>
+                <option value="partner">Partner</option>
+                <option value="prospect">Prospect</option>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -1047,132 +985,7 @@ export function CrmContactList({
               ) : (
                 <Plus className="h-4 w-4" />
               )}
-              Add Contact
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Modal */}
-      <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit Contact</DialogTitle>
-            <DialogDescription>Update this contact&apos;s details.</DialogDescription>
-          </DialogHeader>
-
-          {editError && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">{editError}</div>
-          )}
-
-          <div className="grid gap-4 py-2">
-            <div>
-              <Label htmlFor="edit-contactType">Contact Type</Label>
-              <Select
-                id="edit-contactType"
-                value={editContactType}
-                onChange={(e) => setEditContactType(e.target.value)}
-                className="mt-1"
-              >
-                <option value="media">Media</option>
-                <option value="advocate">Advocate</option>
-                <option value="both">Both</option>
-              </Select>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-firstName">First Name</Label>
-                <Input
-                  id="edit-firstName"
-                  value={editFirstName}
-                  onChange={(e) => setEditFirstName(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-lastName">Last Name</Label>
-                <Input
-                  id="edit-lastName"
-                  value={editLastName}
-                  onChange={(e) => setEditLastName(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="edit-email">Email *</Label>
-              <Input
-                id="edit-email"
-                type="email"
-                value={editEmail}
-                onChange={(e) => setEditEmail(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-tld">Publication Domain</Label>
-                <Input
-                  id="edit-tld"
-                  value={editTld}
-                  onChange={(e) => setEditTld(e.target.value)}
-                  placeholder="e.g. techcrunch.com"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-publication">Publication Name</Label>
-                <Input
-                  id="edit-publication"
-                  value={editPublication}
-                  onChange={(e) => setEditPublication(e.target.value)}
-                  placeholder="e.g. TechCrunch"
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="edit-phone">Phone</Label>
-              <Input
-                id="edit-phone"
-                value={editPhone}
-                onChange={(e) => setEditPhone(e.target.value)}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-notes">Internal Notes</Label>
-              <Textarea
-                id="edit-notes"
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                rows={3}
-                className="mt-1"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="edit-unsubscribed"
-                checked={editUnsubscribed}
-                onCheckedChange={(checked) => setEditUnsubscribed(checked === true)}
-              />
-              <Label htmlFor="edit-unsubscribed" className="text-sm font-normal cursor-pointer">
-                Mark as unsubscribed
-              </Label>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleEditSave} disabled={isSavingEdit}>
-              {isSavingEdit ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Pencil className="h-4 w-4" />
-              )}
-              Save Changes
+              Quick Add
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,6 +4,36 @@ import { db } from "@/db";
 import { releases } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
+// Decode HTML entities to their plain text equivalents
+function decodeEntities(html: string): string {
+  return html
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&rsquo;/g, "\u2019")
+    .replace(/&lsquo;/g, "\u2018")
+    .replace(/&rdquo;/g, "\u201D")
+    .replace(/&ldquo;/g, "\u201C")
+    .replace(/&mdash;/g, "\u2014")
+    .replace(/&ndash;/g, "\u2013")
+    .replace(/&hellip;/g, "\u2026")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
+}
+
+// Normalize smart quotes/dashes to their ASCII equivalents for comparison
+function normalizeQuotes(text: string): string {
+  return text
+    .replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2026/g, "...")
+}
+
 // Build a regex that matches the plain text while allowing HTML tags between words
 function buildTagAwarePattern(plainText: string): RegExp {
   // Escape regex special chars, then allow optional HTML tags between any characters
@@ -152,60 +182,26 @@ export async function POST(
       updatedBody = release.body.replace(pattern, improvedText);
     }
 
-    // If still no match, try matching against stripped HTML
+    // If still no match, try matching against stripped + decoded HTML
     if (updatedBody === release.body) {
-      const strippedBody = release.body
-        .replace(/<[^>]*>/g, " ")
+      const strippedBody = decodeEntities(
+        release.body.replace(/<[^>]*>/g, " ")
+      )
         .replace(/\s+/g, " ")
         .trim();
       const normalizedOriginal = originalText.replace(/\s+/g, " ").trim();
 
-      const strippedIndex = strippedBody.indexOf(normalizedOriginal);
+      // Try exact match first, then normalized quotes match
+      let strippedIndex = strippedBody.indexOf(normalizedOriginal);
       if (strippedIndex === -1) {
-        return NextResponse.json(
-          { error: "Original text not found in release body" },
-          { status: 400 },
-        );
+        // Normalize smart quotes/dashes in both sides for comparison
+        const normalizedBody = normalizeQuotes(strippedBody);
+        const normalizedSearch = normalizeQuotes(normalizedOriginal);
+        strippedIndex = normalizedBody.indexOf(normalizedSearch);
       }
 
-      // Map the stripped text position back to HTML position
-      // Walk through the HTML body, tracking stripped text position
-      let htmlPos = 0;
-      let textPos = 0;
-      let matchStart = -1;
-      let matchEnd = -1;
-      const html = release.body;
-
-      while (
-        htmlPos < html.length &&
-        textPos <= strippedIndex + normalizedOriginal.length
-      ) {
-        if (html[htmlPos] === "<") {
-          // Skip HTML tag
-          const tagEnd = html.indexOf(">", htmlPos);
-          if (tagEnd === -1) break;
-          htmlPos = tagEnd + 1;
-          continue;
-        }
-
-        if (textPos === strippedIndex && matchStart === -1) {
-          matchStart = htmlPos;
-        }
-
-        textPos++;
-        htmlPos++;
-
-        if (textPos === strippedIndex + normalizedOriginal.length) {
-          matchEnd = htmlPos;
-          break;
-        }
-      }
-
-      if (matchStart !== -1 && matchEnd !== -1) {
-        updatedBody =
-          html.slice(0, matchStart) + improvedText + html.slice(matchEnd);
-      } else {
-        // Last resort: fuzzy match
+      if (strippedIndex === -1) {
+        // Fall through to fuzzy matching below
         const fuzzyResult = fuzzyFindInBody(release.body, originalText);
         if (fuzzyResult) {
           updatedBody =
@@ -217,6 +213,74 @@ export async function POST(
             { error: "Original text not found in release body" },
             { status: 400 },
           );
+        }
+      } else {
+        // Map the stripped text position back to HTML position
+        // Walk through the HTML body, tracking stripped text position
+        let htmlPos = 0;
+        let textPos = 0;
+        let matchStart = -1;
+        let matchEnd = -1;
+        const html = release.body;
+
+        while (
+          htmlPos < html.length &&
+          textPos <= strippedIndex + normalizedOriginal.length
+        ) {
+          if (html[htmlPos] === "<") {
+            const tagEnd = html.indexOf(">", htmlPos);
+            if (tagEnd === -1) break;
+            htmlPos = tagEnd + 1;
+            continue;
+          }
+
+          // Skip HTML entities (count as 1 text character)
+          if (html[htmlPos] === "&") {
+            const entityEnd = html.indexOf(";", htmlPos);
+            if (entityEnd !== -1 && entityEnd - htmlPos < 10) {
+              if (textPos === strippedIndex && matchStart === -1) {
+                matchStart = htmlPos;
+              }
+              textPos++;
+              htmlPos = entityEnd + 1;
+              if (textPos === strippedIndex + normalizedOriginal.length) {
+                matchEnd = htmlPos;
+                break;
+              }
+              continue;
+            }
+          }
+
+          if (textPos === strippedIndex && matchStart === -1) {
+            matchStart = htmlPos;
+          }
+
+          textPos++;
+          htmlPos++;
+
+          if (textPos === strippedIndex + normalizedOriginal.length) {
+            matchEnd = htmlPos;
+            break;
+          }
+        }
+
+        if (matchStart !== -1 && matchEnd !== -1) {
+          updatedBody =
+            html.slice(0, matchStart) + improvedText + html.slice(matchEnd);
+        } else {
+          // Last resort: fuzzy match
+          const fuzzyResult = fuzzyFindInBody(release.body, originalText);
+          if (fuzzyResult) {
+            updatedBody =
+              release.body.slice(0, fuzzyResult.start) +
+              improvedText +
+              release.body.slice(fuzzyResult.end);
+          } else {
+            return NextResponse.json(
+              { error: "Original text not found in release body" },
+              { status: 400 },
+            );
+          }
         }
       }
     }

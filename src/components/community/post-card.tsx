@@ -1,15 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import dynamic from 'next/dynamic'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { MoreHorizontal, Pin, Pencil, Trash2, MessageSquare } from 'lucide-react'
+import { MoreHorizontal, Pin, Pencil, Trash2, MessageSquare, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { UserAvatar } from './user-avatar'
 import { VisibilityBadge } from './visibility-badge'
 import { PostImages } from './post-images'
 import { ReactionBar } from './reaction-bar'
+
+const Editor = dynamic(
+  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
+  { ssr: false }
+)
 
 interface PostImage {
   id: number
@@ -49,9 +56,16 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDelete }: PostCardProps) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const editorRef = useRef<any>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [pinned, setPinned] = useState(post.isPinned)
-  const isOwner = post.userId === currentUserId
+  const [body, setBody] = useState(post.body)
+  const [editing, setEditing] = useState(false)
+  const [editHasContent, setEditHasContent] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const isOwner = post.userId === Number(currentUserId)
 
   const timeAgo = getTimeAgo(new Date(post.createdAt))
 
@@ -70,6 +84,37 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
     const res = await fetch(`/api/community/posts/${post.uuid}`, { method: 'DELETE' })
     if (res.ok) {
       onDelete?.(post.uuid)
+    }
+  }
+
+  const handleEdit = () => {
+    setMenuOpen(false)
+    setEditHasContent(true)
+    setEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setEditing(false)
+  }
+
+  const handleSaveEdit = async () => {
+    const content = editorRef.current?.getContent() || ''
+    const plainText = content.replace(/<[^>]*>/g, '').trim()
+    if (!plainText) return
+
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/community/posts/${post.uuid}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: content }),
+      })
+      if (res.ok) {
+        setBody(content)
+        setEditing(false)
+      }
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -126,7 +171,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
           </div>
         </div>
 
-        {(isOwner || isAdmin) && (
+        {(isOwner || isAdmin) && !editing && (
           <Popover open={menuOpen} onOpenChange={setMenuOpen}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-400">
@@ -144,34 +189,87 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, onDel
                 </button>
               )}
               {isOwner && (
-                <Link
-                  href={`/community/posts/${post.uuid}`}
-                  onClick={() => setMenuOpen(false)}
+                <button
+                  onClick={handleEdit}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
                 >
                   <Pencil className="h-4 w-4" />
                   Edit
-                </Link>
+                </button>
               )}
-              <button
-                onClick={handleDelete}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
+              {(isOwner || isAdmin) && (
+                <button
+                  onClick={handleDelete}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </button>
+              )}
             </PopoverContent>
           </Popover>
         )}
       </div>
 
-      {/* Body */}
-      <div className="mt-3 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words prose prose-sm max-w-none">
-        {post.body}
-      </div>
-
       {/* Images */}
       <PostImages images={post.images} />
+
+      {/* Body */}
+      {editing ? (
+        <div className="mt-3">
+          <Editor
+            key={isDark ? 'dark' : 'light'}
+            apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
+            onInit={(_evt, editor) => (editorRef.current = editor)}
+            initialValue={body}
+            onEditorChange={(content) => {
+              const text = content.replace(/<[^>]*>/g, '').trim()
+              setEditHasContent(!!text)
+            }}
+            init={{
+              height: 200,
+              menubar: false,
+              skin: isDark ? 'oxide-dark' : 'oxide',
+              content_css: isDark ? 'dark' : 'default',
+              plugins: ['autolink', 'lists', 'link'],
+              toolbar: 'blocks | bold italic | bullist numlist | blockquote link | removeformat',
+              block_formats: 'Normal=p; Heading 2=h2; Heading 3=h3',
+              placeholder: 'Edit your post...',
+              content_style: isDark
+                ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #111827; color: #e5e7eb; }'
+                : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+              branding: false,
+              statusbar: false,
+            }}
+          />
+          <div className="mt-2 flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancelEdit}
+              disabled={saving}
+              className="gap-1.5 text-gray-500"
+            >
+              <X className="h-3.5 w-3.5" />
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveEdit}
+              disabled={saving || !editHasContent}
+              className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div
+          className="mt-3 text-sm text-gray-800 dark:text-gray-200 break-words prose prose-sm dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: body }}
+        />
+      )}
 
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-3">

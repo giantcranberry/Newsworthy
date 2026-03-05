@@ -158,6 +158,7 @@ export function TaskFormDialog({
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const editorRef = useRef<any>(null)
 
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -334,7 +335,7 @@ export function TaskFormDialog({
     try {
       const formData = new FormData()
       formData.append('title', title.trim())
-      formData.append('description', description)
+      formData.append('description', editorRef.current?.getContent() || '')
       formData.append('priority', priority)
       formData.append('stageId', String(stageId))
       if (showAssignee || (showBrandSelector && companyId)) {
@@ -455,10 +456,10 @@ export function TaskFormDialog({
             <div className="space-y-2">
               <Label>Description</Label>
               <Editor
-                key={isDark ? 'dark' : 'light'}
+                key={`${isDark ? 'dark' : 'light'}-${task?.id || 'new'}`}
                 apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
-                value={description}
-                onEditorChange={(content) => setDescription(content)}
+                onInit={(_evt, editor) => (editorRef.current = editor)}
+                initialValue={description}
                 init={{
                   height: 200,
                   menubar: false,

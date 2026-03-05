@@ -39,9 +39,19 @@ export async function POST(
       )
     }
 
-    // Update status to review (matches Flask editorial queue filter)
+    // Update release date if provided
+    const body = await request.json().catch(() => ({}))
+    const updateData: Record<string, any> = { status: 'review' }
+
+    if (body.releaseAt) {
+      const newDate = new Date(body.releaseAt)
+      if (!isNaN(newDate.getTime())) {
+        updateData.releaseAt = newDate
+      }
+    }
+
     await db.update(releases)
-      .set({ status: 'review' })
+      .set(updateData)
       .where(eq(releases.id, release.id))
 
     // Create or update queue entry

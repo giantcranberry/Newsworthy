@@ -35,6 +35,7 @@
 - Credits stored in `brand_credits` table (not `user_subscription`). `payfile` for receipt tracking.
 
 ## Patterns That Don't Work
+- **TinyMCE + React state on every keystroke causes cursor jumping.** Never use `value` (controlled mode) or `onEditorChange` that stores full HTML in state — each `setState` triggers a re-render that fights TinyMCE's internal cursor management. Instead: use `initialValue` (uncontrolled), `onInit` to store `editorRef`, read content from `editorRef.current.getContent()` at submit time. If you need a disabled button, track a `hasContent` boolean (only re-renders when empty↔non-empty flips). Files already fixed: post-form.tsx, post-card.tsx, task-form.tsx. Files already correct (use ref pattern): pr-form.tsx, editorial-edit-form.tsx, newsroom-form.tsx, product-form.tsx, global-message-form.tsx, send-message-form.tsx.
 - Don't do fallback fulfillment on the thanks page — only the webhook should create brand_credits entries. Double-logging happens when both paths run.
 - Don't check `if (product.productCredits)` — 0 is falsy. Use `product.productCredits || 1` to default to 1 for products with 0 credits.
 - `chartjs-node-canvas` uses native canvas bindings incompatible with Next.js/Turbopack bundler (MODULE_NOT_FOUND). Use react-pdf's built-in SVG primitives (Svg, Path, Rect, Circle, G, Line) to draw charts natively in PDFs instead.

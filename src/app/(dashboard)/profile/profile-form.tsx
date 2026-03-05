@@ -251,7 +251,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
                     id="countryCode"
                     value={formData.countryCode}
                     onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
-                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 px-3 py-2 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
+                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
                   >
                     <option value="US">United States</option>
                     <option value="CA">Canada</option>
@@ -474,7 +474,7 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications in Slack</p>
               )}
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Press release status updates, new messages, and task assignments
               </p>
             </div>
@@ -521,7 +521,7 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Sync events to Google Calendar</p>
               )}
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Content calendar events automatically sync to your Google Calendar
               </p>
             </div>
@@ -570,7 +570,7 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Send notifications to Google Chat</p>
               )}
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 Press release status updates, new messages, and task assignments
               </p>
             </div>

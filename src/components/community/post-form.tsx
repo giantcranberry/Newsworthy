@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import dynamic from 'next/dynamic'
+import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
 import { VisibilitySelector } from './visibility-selector'
 import { Send, ShieldAlert, ImagePlus, X } from 'lucide-react'
+
+const Editor = dynamic(
+  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
+  { ssr: false }
+)
 
 interface Board {
   id: number
@@ -31,7 +37,10 @@ interface PostFormProps {
 const MAX_IMAGES = 4
 
 export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPostCreated }: PostFormProps) {
-  const [body, setBody] = useState('')
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  const editorRef = useRef<any>(null)
+  const [hasContent, setHasContent] = useState(false)
   const [boardId, setBoardId] = useState(defaultBoardId || boards[0]?.id || 0)
   const [visibility, setVisibility] = useState('public')
   const [visibilityCompanyId, setVisibilityCompanyId] = useState<number | null>(null)
@@ -61,7 +70,9 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!body.trim() || !boardId) return
+    const content = editorRef.current?.getContent() || ''
+    const plainText = content.replace(/<[^>]*>/g, '').trim()
+    if (!plainText || !boardId) return
 
     setSubmitting(true)
     try {
@@ -71,7 +82,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           boardId,
-          body: body.trim(),
+          body: content.trim(),
           visibility,
           visibilityCompanyId: visibility === 'team' ? visibilityCompanyId : null,
         }),
@@ -92,7 +103,8 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
         })
       }
 
-      setBody('')
+      if (editorRef.current) editorRef.current.setContent('')
+      setHasContent(false)
       setSelectedFiles([])
       onPostCreated?.()
     } catch {
@@ -113,12 +125,30 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
 
   return (
     <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
-      <Textarea
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        placeholder="Share something with the community..."
-        rows={3}
-        className="border-0 p-0 focus-visible:ring-0 resize-none"
+      <Editor
+        key={isDark ? 'dark' : 'light'}
+        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
+        onInit={(_evt, editor) => (editorRef.current = editor)}
+        initialValue=""
+        onEditorChange={(content) => {
+          const text = content.replace(/<[^>]*>/g, '').trim()
+          setHasContent(!!text)
+        }}
+        init={{
+          height: 200,
+          menubar: false,
+          skin: isDark ? 'oxide-dark' : 'oxide',
+          content_css: isDark ? 'dark' : 'default',
+          plugins: ['autolink', 'lists', 'link'],
+          toolbar: 'blocks | bold italic | bullist numlist | blockquote link | removeformat',
+          block_formats: 'Normal=p; Heading 2=h2; Heading 3=h3',
+          placeholder: 'Share something with the community...',
+          content_style: isDark
+            ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #111827; color: #e5e7eb; }'
+            : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+          branding: false,
+          statusbar: false,
+        }}
       />
 
       {/* Image previews */}
@@ -190,7 +220,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
         <Button
           type="submit"
           size="sm"
-          disabled={!body.trim() || submitting}
+          disabled={!hasContent || submitting}
           className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Send className="h-3.5 w-3.5" />

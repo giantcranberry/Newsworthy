@@ -107,11 +107,12 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
           </div>
         </div>
 
-        <div className="mt-4 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words prose prose-sm max-w-none">
-          {post.body}
-        </div>
-
         <PostImages images={post.images || []} />
+
+        <div
+          className="mt-4 text-sm text-gray-800 dark:text-gray-200 break-words prose prose-sm dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: post.body }}
+        />
 
         <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
           <ReactionBar

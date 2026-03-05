@@ -92,6 +92,7 @@ export default async function FinalizePage({
       <FinalizeContent
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
+        releaseAt={release.releaseAt?.toISOString() ?? null}
         distribution={release.distribution}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
