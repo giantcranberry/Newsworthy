@@ -57,7 +57,7 @@ export async function POST(
       })
     } else {
       await db.update(queue)
-        .set({ submitted: new Date(), approved: null, returned: null })
+        .set({ submitted: new Date(), approved: null, returned: null, checkedout: null, editorId: null, editorName: '' })
         .where(eq(queue.releaseId, release.id))
     }
 

@@ -308,7 +308,7 @@ export default async function PressReleasesPage({
 
                     {/* Actions */}
                     <div className="flex items-center gap-2 flex-shrink-0" {...(index === 0 ? { "data-tour": "pr-release-actions" } : {})}>
-                      {release.canEdit && !["approved", "sent", "review"].includes(
+                      {release.canEdit && !["approved", "sent", "review", "hold"].includes(
                         release.status,
                       ) && (
                         <Link href={`/pr/${release.uuid}`}>
@@ -318,7 +318,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && release.status === "review" && (
+                      {release.canEdit && (release.status === "review" || release.status === "hold") && (
                         <RetractReleaseButton
                           uuid={release.uuid!}
                           title={release.title}
@@ -339,7 +339,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && !["approved", "sent", "review"].includes(
+                      {release.canEdit && !["approved", "sent", "review", "hold"].includes(
                         release.status,
                       ) && (
                         <DeleteReleaseButton

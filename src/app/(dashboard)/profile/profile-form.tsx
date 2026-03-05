@@ -85,7 +85,7 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
   }
 
   return (
-    <form onSubmit={handleSubmit} className="-mt-6 space-y-8">
+    <form onSubmit={handleSubmit} className="-mt-6 space-y-8 pb-16">
       {/* Sticky Action Bar */}
       <div data-tour="profile-actionbar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -257,27 +257,68 @@ export function ProfileForm({ email, hasPassword, isAgency: initialIsAgency, ini
                     <option value="CA">Canada</option>
                     <option value="GB">United Kingdom</option>
                     <option value="AU">Australia</option>
-                    <option disabled>──────────</option>
                     <option value="IN">India</option>
-                    <option value="IE">Ireland</option>
-                    <option value="NZ">New Zealand</option>
                     <option value="PH">Philippines</option>
                     <option value="SG">Singapore</option>
-                    <option value="ZA">South Africa</option>
                     <option disabled>──────────</option>
-                    <option value="AG">Antigua and Barbuda</option>
-                    <option value="BS">Bahamas</option>
-                    <option value="BB">Barbados</option>
-                    <option value="BZ">Belize</option>
-                    <option value="DM">Dominica</option>
-                    <option value="GD">Grenada</option>
-                    <option value="GY">Guyana</option>
-                    <option value="JM">Jamaica</option>
-                    <option value="MT">Malta</option>
-                    <option value="KN">Saint Kitts and Nevis</option>
-                    <option value="LC">Saint Lucia</option>
-                    <option value="VC">Saint Vincent and the Grenadines</option>
-                    <option value="TT">Trinidad and Tobago</option>
+                    <option value="AF">Afghanistan</option>
+                    <option value="DZ">Algeria</option>
+                    <option value="AO">Angola</option>
+                    <option value="AR">Argentina</option>
+                    <option value="BD">Bangladesh</option>
+                    <option value="BR">Brazil</option>
+                    <option value="BF">Burkina Faso</option>
+                    <option value="CM">Cameroon</option>
+                    <option value="CN">China</option>
+                    <option value="CO">Colombia</option>
+                    <option value="CD">Congo (DRC)</option>
+                    <option value="CI">Côte d&apos;Ivoire</option>
+                    <option value="EG">Egypt</option>
+                    <option value="ET">Ethiopia</option>
+                    <option value="FR">France</option>
+                    <option value="DE">Germany</option>
+                    <option value="GH">Ghana</option>
+                    <option value="ID">Indonesia</option>
+                    <option value="IR">Iran</option>
+                    <option value="IQ">Iraq</option>
+                    <option value="IT">Italy</option>
+                    <option value="JP">Japan</option>
+                    <option value="KE">Kenya</option>
+                    <option value="KR">Korea (South)</option>
+                    <option value="MG">Madagascar</option>
+                    <option value="MY">Malaysia</option>
+                    <option value="ML">Mali</option>
+                    <option value="MX">Mexico</option>
+                    <option value="MA">Morocco</option>
+                    <option value="MZ">Mozambique</option>
+                    <option value="MM">Myanmar</option>
+                    <option value="NP">Nepal</option>
+                    <option value="NE">Niger</option>
+                    <option value="NG">Nigeria</option>
+                    <option value="PK">Pakistan</option>
+                    <option value="PE">Peru</option>
+                    <option value="PL">Poland</option>
+                    <option value="RO">Romania</option>
+                    <option value="RU">Russia</option>
+                    <option value="SA">Saudi Arabia</option>
+                    <option value="SN">Senegal</option>
+                    <option value="ZA">South Africa</option>
+                    <option value="ES">Spain</option>
+                    <option value="LK">Sri Lanka</option>
+                    <option value="SD">Sudan</option>
+                    <option value="SY">Syria</option>
+                    <option value="TW">Taiwan</option>
+                    <option value="TZ">Tanzania</option>
+                    <option value="TH">Thailand</option>
+                    <option value="TR">Turkey</option>
+                    <option value="UG">Uganda</option>
+                    <option value="UA">Ukraine</option>
+                    <option value="UZ">Uzbekistan</option>
+                    <option value="VE">Venezuela</option>
+                    <option value="VN">Vietnam</option>
+                    <option value="YE">Yemen</option>
+                    <option disabled>──────────</option>
+                    <option value="OTHER">Other</option>
                   </select>
                 </div>
               </div>
@@ -433,6 +474,9 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Receive notifications in Slack</p>
               )}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                Press release status updates, new messages, and task assignments
+              </p>
             </div>
           </div>
           {!loading && (
@@ -477,6 +521,9 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Sync events to Google Calendar</p>
               )}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                Content calendar events automatically sync to your Google Calendar
+              </p>
             </div>
           </div>
           {!loading && (
@@ -523,6 +570,9 @@ function IntegrationsSection() {
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Send notifications to Google Chat</p>
               )}
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                Press release status updates, new messages, and task assignments
+              </p>
             </div>
           </div>
           {!loading && (

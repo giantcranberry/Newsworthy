@@ -152,8 +152,8 @@ export default async function PRDetailPage({
         : null,
     ]);
 
-  const isEditorial = release.status === "review";
-  const canRetract = isEditorial && !queueEntry?.checkedout;
+  const isEditorial = release.status === "review" || release.status === "hold";
+  const canRetract = isEditorial;
 
   // Find topcat (first category that's a top-level category)
   const topCategoryIds = new Set(topCategories.map((c) => c.id));
@@ -173,7 +173,7 @@ export default async function PRDetailPage({
     isClientOnly = !editableIds.includes(release.companyId);
   }
 
-  const isReadOnly = isClientOnly || ["review", "approved", "sent"].includes(release.status || "");
+  const isReadOnly = isClientOnly || ["review", "hold", "approved", "sent"].includes(release.status || "");
 
   // Submission complete + editorial review: show simplified view
   if (showWizardComplete && isEditorial) {
@@ -240,16 +240,16 @@ export default async function PRDetailPage({
           {isEditorial && (
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-amber-800 dark:text-amber-400">In Editorial Review</h3>
+                <h3 className="font-medium text-amber-800 dark:text-amber-400">
+                  {release.status === "hold" ? "Editorial Hold" : "In Editorial Review"}
+                </h3>
                 <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                  {canRetract
-                    ? "This release is awaiting editorial review. You can retract it to make changes."
-                    : "This release is currently being reviewed by an editor and cannot be edited."}
+                  {release.status === "hold"
+                    ? "This release has been placed on hold by an editor. You can retract it to make changes."
+                    : "This release is awaiting editorial review. You can retract it to make changes."}
                 </p>
               </div>
-              {canRetract && (
-                <RetractReleaseButton uuid={release.uuid!} title={release.title} />
-              )}
+              <RetractReleaseButton uuid={release.uuid!} title={release.title} />
             </div>
           )}
 
