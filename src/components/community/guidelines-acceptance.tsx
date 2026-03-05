@@ -35,7 +35,7 @@ export function GuidelinesAcceptance({ body, onAccept }: GuidelinesAcceptancePro
   }
 
   return (
-    <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-5">
+    <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/30 p-5">
       <div className="flex items-center gap-2 mb-3">
         <i className="fa-light fa-book text-amber-600" />
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">Community Guidelines</h3>
@@ -56,7 +56,7 @@ export function GuidelinesAcceptance({ body, onAccept }: GuidelinesAcceptancePro
       <Button
         onClick={handleAccept}
         disabled={submitting || !scrolledToBottom}
-        className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+        className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
       >
         <CheckCircle className="h-4 w-4" />
         {submitting ? 'Accepting...' : 'I Accept the Community Guidelines'}

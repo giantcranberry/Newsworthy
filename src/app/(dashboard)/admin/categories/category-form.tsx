@@ -230,7 +230,7 @@ export function CategoryForm({ category, circuits, parentOptions, onSuccess, onC
         <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+        <Button type="submit" disabled={isLoading} className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />

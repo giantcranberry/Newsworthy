@@ -165,7 +165,7 @@ export function ShareForm({
             </div>
 
             {addResult && (
-              <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 dark:text-green-400 rounded-lg text-sm">
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-lg text-sm">
                 <Check className="h-4 w-4" />
                 Added {addResult.added} subscriber{addResult.added === 1 ? '' : 's'}
                 {addResult.skipped > 0 && ` (${addResult.skipped} skipped - already in list or invalid)`}
@@ -216,7 +216,7 @@ export function ShareForm({
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 p-3 rounded-lg">
               {error}
             </div>
           )}
@@ -228,11 +228,11 @@ export function ShareForm({
               onClick={() => setShareWithList(true)}
               disabled={listCount === 0}
               className={cn(
-                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
+                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left cursor-pointer',
                 shareWithList
-                  ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700',
-                listCount === 0 && 'opacity-50 cursor-not-allowed'
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700',
+                listCount === 0 && 'opacity-50 !cursor-not-allowed'
               )}
             >
               {shareWithList && (
@@ -244,11 +244,11 @@ export function ShareForm({
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                shareWithList ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-gray-800'
+                shareWithList ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800'
               )}>
                 <Share2 className={cn(
                   'h-6 w-6',
-                  shareWithList ? 'text-emerald-600' : 'text-gray-500 dark:text-gray-400'
+                  shareWithList ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'
                 )} />
               </div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
@@ -267,10 +267,10 @@ export function ShareForm({
               type="button"
               onClick={() => setShareWithList(false)}
               className={cn(
-                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left',
+                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left cursor-pointer',
                 !shareWithList
-                  ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:border-gray-700'
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
               )}
             >
               {!shareWithList && (
@@ -282,11 +282,11 @@ export function ShareForm({
               )}
               <div className={cn(
                 'p-2 rounded-lg mb-3',
-                !shareWithList ? 'bg-emerald-100' : 'bg-gray-100 dark:bg-gray-800'
+                !shareWithList ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800'
               )}>
                 <X className={cn(
                   'h-6 w-6',
-                  !shareWithList ? 'text-emerald-600' : 'text-gray-500 dark:text-gray-400'
+                  !shareWithList ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'
                 )} />
               </div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">

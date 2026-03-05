@@ -354,7 +354,7 @@ export function PlanningCalendar() {
   const selectedDateEvents = selectedDate ? getEventsForDate(selectedDate) : []
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
@@ -432,8 +432,8 @@ export function PlanningCalendar() {
                 key={idx}
                 onClick={() => openDayDialog(cell.dateStr)}
                 className={cn(
-                  'min-h-[100px] sm:min-h-[120px] border-b border-r border-gray-100 dark:border-gray-800 p-1.5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950',
-                  !cell.isCurrentMonth && 'bg-gray-50 dark:bg-gray-950/50',
+                  'min-h-[100px] sm:min-h-[120px] border-b border-r border-gray-200 dark:border-gray-800 p-1.5 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-800',
+                  cell.isCurrentMonth ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-950/50',
                   idx % 7 === 0 && 'border-l-0',
                 )}
               >
@@ -441,7 +441,7 @@ export function PlanningCalendar() {
                   'text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center rounded-full',
                   isToday && 'bg-cyan-700 text-white',
                   !isToday && cell.isCurrentMonth && 'text-gray-900 dark:text-gray-100',
-                  !isToday && !cell.isCurrentMonth && 'text-gray-400',
+                  !isToday && !cell.isCurrentMonth && 'text-gray-400 dark:text-gray-600',
                 )}>
                   {cell.day}
                 </div>

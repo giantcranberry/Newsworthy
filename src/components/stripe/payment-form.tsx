@@ -91,7 +91,7 @@ export function PaymentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="bg-white dark:bg-gray-900 rounded-lg border p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border dark:border-gray-700 p-6">
         <div className="flex items-center gap-2 mb-4">
           <CreditCard className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           <h3 className="font-medium">Payment Details</h3>
@@ -110,7 +110,7 @@ export function PaymentForm({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-4 border-t">
+      <div className="flex items-center justify-between pt-4 border-t dark:border-gray-700">
         <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
           <Lock className="h-4 w-4" />
           Secure payment powered by Stripe

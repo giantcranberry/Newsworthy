@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { useTour } from "@/hooks/use-tour"
+import { isTourCompleted } from "@/lib/tour/tour-storage"
 
 interface RouteConfig {
   tourId: string
@@ -26,7 +27,7 @@ function dismissTourFab(pathname: string) {
   }
 }
 
-const routeTourMap: Record<string, RouteConfig> = {
+export const routeTourMap: Record<string, RouteConfig> = {
   "/dashboard": { tourId: "dashboard", label: "Quick Guide: Dashboard" },
   "/admin": { tourId: "admin", label: "Quick Guide: Admin" },
   "/pr": { tourId: "pr", label: "Quick Guide: Press Releases" },
@@ -65,16 +66,22 @@ const routeTourMap: Record<string, RouteConfig> = {
 export function TourFab() {
   const pathname = usePathname()
   const { startTour } = useTour()
-  const [hidden, setHidden] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
-    setHidden(getDismissedTours().includes(pathname))
+    const route = routeTourMap[pathname]
+    if (!route) {
+      setVisible(false)
+      return
+    }
+    const tourId = route.resolver ? route.resolver() : route.tourId
+    const dismissed = getDismissedTours().includes(pathname)
+    const completed = isTourCompleted(tourId)
+    setVisible(!dismissed && !completed)
   }, [pathname])
 
   const route = routeTourMap[pathname]
-  if (!route || !mounted || hidden) return null
+  if (!route || !visible) return null
 
   const handleClick = () => {
     const tourId = route.resolver ? route.resolver() : route.tourId
@@ -84,7 +91,7 @@ export function TourFab() {
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation()
     dismissTourFab(pathname)
-    setHidden(true)
+    setVisible(false)
   }
 
   return (
@@ -93,7 +100,6 @@ export function TourFab() {
         onClick={handleClick}
         className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-cyan-800 dark:bg-cyan-600 text-white text-sm font-medium shadow-lg hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer transition-all hover:shadow-xl"
       >
-        <i className="fa-light fa-compass text-base" aria-hidden="true" />
         {route.label}
         <i className="fa-solid fa-arrow-right text-xs animate-bounce-x" aria-hidden="true" />
       </button>

@@ -1,6 +1,13 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useTheme } from 'next-themes'
+import dynamic from 'next/dynamic'
+
+const Editor = dynamic(
+  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
+  { ssr: false, loading: () => <div className="h-[200px] bg-gray-50 dark:bg-gray-950 rounded border border-gray-200 dark:border-gray-800 animate-pulse" /> },
+)
 import {
   Dialog,
   DialogContent,
@@ -148,6 +155,8 @@ export function TaskFormDialog({
   showAssignee?: boolean
   showBrandSelector?: boolean
 }) {
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState('')
@@ -444,13 +453,32 @@ export function TaskFormDialog({
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="task-description">Description</Label>
-              <Textarea
-                id="task-description"
+              <Label>Description</Label>
+              <Editor
+                key={isDark ? 'dark' : 'light'}
+                apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe the task..."
-                className="min-h-[120px] resize-y"
+                onEditorChange={(content) => setDescription(content)}
+                init={{
+                  height: 200,
+                  menubar: false,
+                  skin: isDark ? 'oxide-dark' : 'oxide',
+                  content_css: isDark ? 'dark' : 'default',
+                  plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'charmap',
+                    'searchreplace', 'visualblocks', 'code', 'table', 'wordcount',
+                  ],
+                  toolbar:
+                    'undo redo | blocks | ' +
+                    'bold italic | alignleft aligncenter alignright | ' +
+                    'bullist numlist outdent indent | link | removeformat',
+                  content_style:
+                    isDark
+                      ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #1a1a2e; color: #e0e0e0; }'
+                      : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+                  branding: false,
+                  placeholder: 'Describe the task...',
+                }}
               />
             </div>
 

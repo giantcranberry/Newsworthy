@@ -213,7 +213,6 @@ export function TourPopover({
         position: "absolute",
         width: 14,
         height: 14,
-        background: "white",
         transform: "rotate(45deg)",
         zIndex: 1,
       }
@@ -222,29 +221,29 @@ export function TourPopover({
         Object.assign(arrowStyle, {
           top: -7,
           left: Math.max(16, Math.min(cx - left, 400 - 16)) - 7,
-          borderLeft: "1px solid rgba(0,0,0,0.05)",
-          borderTop: "1px solid rgba(0,0,0,0.05)",
+          borderLeft: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
+          borderTop: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
         })
       } else if (pos.actualPosition === "top") {
         Object.assign(arrowStyle, {
           bottom: -7,
           left: Math.max(16, Math.min(cx - left, 400 - 16)) - 7,
-          borderRight: "1px solid rgba(0,0,0,0.05)",
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
+          borderRight: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
+          borderBottom: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
         })
       } else if (pos.actualPosition === "right") {
         Object.assign(arrowStyle, {
           left: -7,
           top: Math.max(16, Math.min(cy - top, 260 - 16)) - 7,
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
-          borderLeft: "1px solid rgba(0,0,0,0.05)",
+          borderBottom: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
+          borderLeft: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
         })
       } else {
         Object.assign(arrowStyle, {
           right: -7,
           top: Math.max(16, Math.min(cy - top, 260 - 16)) - 7,
-          borderTop: "1px solid rgba(0,0,0,0.05)",
-          borderRight: "1px solid rgba(0,0,0,0.05)",
+          borderTop: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
+          borderRight: "1px solid var(--tour-arrow-border, rgba(0,0,0,0.05))",
         })
       }
     }
@@ -261,6 +260,7 @@ export function TourPopover({
 
   return (
     <div
+      className="bg-white dark:bg-gray-900 border border-transparent dark:border-gray-700"
       style={{
         position: "fixed",
         top,
@@ -269,7 +269,6 @@ export function TourPopover({
         width: 400,
         maxWidth: "90vw",
         borderRadius: 16,
-        background: "white",
         boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
         overflow: "visible",
         pointerEvents: "auto",
@@ -280,7 +279,7 @@ export function TourPopover({
       role="dialog"
       aria-label={`Tour step ${currentIndex + 1} of ${totalSteps}`}
     >
-      {arrowStyle && <div style={arrowStyle} />}
+      {arrowStyle && <div className="bg-white dark:bg-gray-900" style={arrowStyle} />}
 
       <div style={{ borderRadius: 16, overflow: "hidden" }}>
         {/* Progress + close */}
@@ -320,7 +319,7 @@ export function TourPopover({
         <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-800">
           <button
             onClick={onClose}
-            className="text-sm text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 px-3 py-2 rounded-lg transition-colors cursor-pointer"
+            className="text-sm text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 px-3 py-2 rounded-lg transition-colors cursor-pointer"
           >
             Skip tour
           </button>
@@ -328,7 +327,7 @@ export function TourPopover({
             {!isFirst && (
               <button
                 onClick={onPrev}
-                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors cursor-pointer"
+                className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back

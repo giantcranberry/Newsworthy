@@ -346,7 +346,7 @@ export function ApprovalSection({
                 {answers[q.id] &&
                   ((q.yesIsNo && answers[q.id] === 'no') ||
                     (!q.yesIsNo && answers[q.id] === 'yes')) && (
-                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 rounded-md text-xs text-amber-800 dark:text-amber-400">
+                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-md text-xs text-amber-800 dark:text-amber-400">
                       <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                       <span>{q.guidance}</span>
                     </div>
@@ -364,7 +364,7 @@ export function ApprovalSection({
             </h3>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 dark:text-red-400 rounded-md text-sm">
+              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-md text-sm">
                 <XCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -482,7 +482,7 @@ export function ApprovalSection({
 
         {/* Message when all questions are answered and no approval needed */}
         {QUESTIONS.every((q) => answers[q.id]) && !needsApproval && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 dark:text-green-400 rounded-md text-sm">
+          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-md text-sm">
             <CheckCircle2 className="h-4 w-4" />
             Based on your answers, stakeholder approval does not appear to be
             required. You may proceed with distribution.

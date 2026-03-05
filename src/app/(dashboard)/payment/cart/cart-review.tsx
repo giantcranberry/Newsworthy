@@ -210,7 +210,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
           <Button
             onClick={handleProceedToPayment}
             disabled={loading || (companies.length > 0 && companyId === '')}
-            className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+            className="w-full bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             size="lg"
           >
             {loading ? (
@@ -368,7 +368,7 @@ function CheckoutForm({ total, cartUuid }: { total: number; cartUuid: string }) 
       <Button
         type="submit"
         disabled={!stripe || isProcessing}
-        className="w-full bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+        className="w-full bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         size="lg"
       >
         {isProcessing ? (

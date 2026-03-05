@@ -191,7 +191,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
           type="submit"
           size="sm"
           disabled={!body.trim() || submitting}
-          className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
+          className="gap-1.5 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
         >
           <Send className="h-3.5 w-3.5" />
           {submitting ? 'Posting...' : 'Post'}

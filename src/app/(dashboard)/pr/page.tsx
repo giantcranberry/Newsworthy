@@ -128,7 +128,7 @@ export default async function PressReleasesPage({
         </div>
         {canCreate && (
           <Link href="/pr/create" data-tour="pr-new-release">
-            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
+            <Button className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
               <Plus className="h-4 w-4" />
               New Release
             </Button>
@@ -183,7 +183,7 @@ export default async function PressReleasesPage({
             </p>
             {canCreate && (
               <Link href="/pr/create">
-                <Button className="mt-6 gap-2 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
+                <Button className="mt-6 gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer">
                   <Plus className="h-4 w-4" />
                   Create Release
                 </Button>

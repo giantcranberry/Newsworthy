@@ -344,7 +344,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                         variant={expandedId === release.id ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => handleExpand(release.id)}
-                        className={expandedId === release.id ? 'bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700' : ''}
+                        className={expandedId === release.id ? 'bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700' : ''}
                       >
                         {expandedId === release.id ? <X className="h-4 w-4" /> : <Settings className="h-4 w-4" />}
                       </Button>

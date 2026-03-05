@@ -8,6 +8,8 @@ import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { useTour } from '@/hooks/use-tour'
+import { routeTourMap } from '@/components/tour/tour-button'
 
 interface NavChild {
   title: string
@@ -224,8 +226,16 @@ export function Sidebar({
   const pathname = usePathname()
   const router = useRouter()
   const { data: session } = useSession()
+  const { startTour } = useTour()
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [mode, setModeState] = useState<SidebarMode>(() => getInitialMode(pathname))
+
+  const currentTourRoute = routeTourMap[pathname]
+  const handleStartTour = () => {
+    if (!currentTourRoute) return
+    const tourId = currentTourRoute.resolver ? currentTourRoute.resolver() : currentTourRoute.tourId
+    startTour(tourId)
+  }
 
   const setMode = useCallback((newMode: SidebarMode) => {
     setModeState(newMode)
@@ -592,6 +602,19 @@ export function Sidebar({
           {collapsed ? (
             <div className="space-y-1">
               <ThemeToggle collapsed />
+              {currentTourRoute && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleStartTour}
+                      className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
+                    >
+                      <FaIcon icon="fa-light fa-compass" className="text-base" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Guided Tour</TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link
@@ -632,6 +655,15 @@ export function Sidebar({
                 <ThemeToggle />
               </div>
               <div className="mt-2 space-y-1">
+                {currentTourRoute && (
+                  <button
+                    onClick={handleStartTour}
+                    className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
+                  >
+                    <FaIcon icon="fa-light fa-compass" className="w-5 text-center text-base" />
+                    Guided Tour
+                  </button>
+                )}
                 <Link
                   href="/profile"
                   className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
