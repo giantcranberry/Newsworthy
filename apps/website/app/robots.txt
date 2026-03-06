@@ -1,0 +1,241 @@
+User-Agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: Anthropic-claude
+Allow: /
+
+User-agent: ClaudeBot
+Allow:/
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: OAI-SearchBot	
+Allow:/
+
+Disallow: /private/
+
+Sitemap: https://www.newsworthy.ai/sitemaps
+
+# Block bad robots
+User-agent: asterias
+disallow: /
+User-agent: BackDoorBot/1.0
+disallow: /
+User-agent: Black Hole
+disallow: /
+User-agent: BlowFish/1.0
+disallow: /
+User-agent: BotALot
+disallow: /
+User-agent: BuiltBotTough
+disallow: /
+User-agent: Bullseye/1.0
+disallow: /
+User-agent: BunnySlippers
+disallow: /
+User-agent: Cegbfeieh
+disallow: /
+User-agent: CheeseBot
+disallow: /
+User-agent: CherryPicker
+disallow: /
+User-agent: CherryPickerElite/1.0
+disallow: /
+User-agent: CherryPickerSE/1.0
+disallow: /
+User-agent: CopyRightCheck
+disallow: /
+User-agent: cosmos
+disallow: /
+User-agent: Crescent
+disallow: /
+User-agent: Crescent Internet ToolPak HTTP OLE Control v.1.0
+disallow: /
+User-agent: DittoSpyder
+disallow: /
+User-agent: EmailCollector
+disallow: /
+User-agent: EmailSiphon
+disallow: /
+User-agent: EmailWolf
+disallow: /
+User-agent: EroCrawler
+disallow: /
+User-agent: ExtractorPro
+disallow: /
+User-agent: Foobot
+disallow: /
+User-agent: Harvest/1.5
+disallow: /
+User-agent: hloader
+disallow: /
+User-agent: httplib
+disallow: /
+User-agent: humanlinks
+disallow: /
+User-agent: ia_archiver
+disallow: /
+User-agent: InfoNaviRobot
+disallow: /
+User-agent: JennyBot
+disallow: /
+User-agent: Kenjin Spider
+disallow: /
+User-agent: Keyword Density/0.9
+disallow: /
+User-agent: LexiBot
+disallow: /
+User-agent: libWeb/clsHTTP
+disallow: /
+User-agent: LinkextractorPro
+disallow: /
+User-agent: LinkScan/8.1a Unix
+disallow: /
+User-agent: LinkWalker
+disallow: /
+User-agent: LNSpiderguy
+disallow: /
+User-agent: lwp-trivial
+disallow: /
+User-agent: lwp-trivial/1.34
+disallow: /
+User-agent: Mata Hari
+disallow: /
+User-agent: Microsoft URL Control - 5.01.4511
+disallow: /
+User-agent: Microsoft URL Control - 6.00.8169
+disallow: /
+User-agent: MIIxpc
+disallow: /
+User-agent: MIIxpc/4.2
+disallow: /
+User-agent: Mister PiX
+disallow: /
+User-agent: moget
+disallow: /
+User-agent: moget/2.1
+disallow: /
+User-agent: mozilla/4
+disallow: /
+User-agent: Mozilla/4.0 (compatible; BullsEye; Windows 95)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows 95)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows 98)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows NT)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows XP)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows 2000)
+disallow: /
+User-agent: Mozilla/4.0 (compatible; MSIE 4.0; Windows ME)
+disallow: /
+User-agent: mozilla/5
+disallow: /
+User-agent: NetAnts
+disallow: /
+User-agent: NICErsPRO
+disallow: /
+User-agent: Offline Explorer
+disallow: /
+User-agent: Openfind
+disallow: /
+User-agent: Openfind data gathere
+disallow: /
+User-agent: ProPowerBot/2.14
+disallow: /
+User-agent: ProWebWalker
+disallow: /
+User-agent: QueryN Metasearch
+disallow: /
+User-agent: RepoMonkey
+disallow: /
+User-agent: RepoMonkey Bait & Tackle/v1.01
+disallow: /
+User-agent: RMA
+disallow: /
+User-agent: SiteSnagger
+disallow: /
+User-agent: SpankBot
+disallow: /
+User-agent: spanner
+disallow: /
+User-agent: suzuran
+disallow: /
+User-agent: Szukacz/1.4
+disallow: /
+User-agent: Teleport
+disallow: /
+User-agent: TeleportPro
+disallow: /
+User-agent: Telesoft
+disallow: /
+User-agent: The Intraformant
+disallow: /
+User-agent: TheNomad
+disallow: /
+User-agent: TightTwatBot
+disallow: /
+User-agent: Titan
+disallow: /
+User-agent: toCrawl/UrlDispatcher
+disallow: /
+User-agent: True_Robot
+disallow: /
+User-agent: True_Robot/1.0
+disallow: /
+User-agent: turingos
+disallow: /
+User-agent: URLy Warning
+disallow: /
+User-agent: VCI
+disallow: /
+User-agent: VCI WebViewer VCI WebViewer Win32
+disallow: /
+User-agent: Web Image Collector
+disallow: /
+User-agent: WebAuto
+disallow: /
+User-agent: WebBandit
+disallow: /
+User-agent: WebBandit/3.50
+disallow: /
+User-agent: WebCopier
+disallow: /
+User-agent: WebEnhancer
+disallow: /
+User-agent: WebmasterWorldForumBot
+disallow: /
+User-agent: WebSauger
+disallow: /
+User-agent: Website Quester
+disallow: /
+User-agent: Webster Pro
+disallow: /
+User-agent: WebStripper
+disallow: /
+User-agent: WebZip
+disallow: /
+User-agent: WebZip/4.0
+disallow: /
+User-agent: Wget
+disallow: /
+User-agent: Wget/1.5.3
+disallow: /
+User-agent: Wget/1.6
+disallow: /
+User-agent: WWW-Collector-E
+disallow: /
+User-agent: Xenu's
+disallow: /
+User-agent: Xenu's Link Sleuth 1.1c
+disallow: /D
+User-agent: Zeus
+disallow: /
+User-agent: Zeus 32297 Webster Pro V2.9 Win32
+disallow: /

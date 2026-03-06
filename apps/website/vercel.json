@@ -1,0 +1,54 @@
+{
+  "headers": [
+    {
+      "source": "/news",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=14400, stale-while-revalidate=59"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=1, stale-while-revalidate=59"
+        }
+      ]
+    },
+    {
+      "source": "/api/pdf/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=7200, stale-while-revalidate=59"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=0, no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "app/newsroom/[handle]/page.tsx": {
+      "maxDuration": 30
+    },
+    "app/(site)/page.tsx": {
+      "maxDuration": 30
+    },
+    "app/(news)/news/[id_string]/[slug]/page.tsx": {
+      "maxDuration": 30
+    },
+    "app/api/pdf/[id_string]/route.tsx": {
+      "maxDuration": 30
+    }
+  }
+}

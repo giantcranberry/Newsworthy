@@ -51,9 +51,14 @@
 - Visibility filtering for posts: use separate queries for followed user IDs and company member IDs, then build OR condition
 
 ## Domain Notes
-- Next.js 16.1.3 with Turbopack
-- Project: newsworthy (press release platform)
-- turbopack.root set to __dirname in next.config.ts to avoid parent dir lockfile conflicts
+- **Monorepo**: Turborepo with `apps/dashboard` (Next.js 16.1.3 Turbopack, port 3001), `apps/website` (Next.js 15.5, port 3000), `packages/db` (shared Drizzle schema)
+- Dashboard: `@nwai/dashboard`, Website: `@nwai/website`, DB: `@nwai/db`
+- Website uses `@/` paths mapped to `./` (not `./src/`). Dashboard uses `@/` mapped to `./src/`
+- `turbopack.root` and `experimental.outputFileTracingRoot` both set to `path.resolve(__dirname, "../..")` in both apps
+- Website's `next.config.js` needs `experimental.serverActions: true` and `serverComponentsExternalPackages: ['cheerio', 'undici']` — cheerio's undici dep has private class fields that webpack can't parse
+- Dashboard uses Zod 4 (`^4.3.5`), website uses Zod 3.25 compat layer (`^3.25.0`). Both resolve to 3.25.76 for website — this is required so `@hookform/resolvers` types align
+- Always run builds via `bun run build:website` / `bun run build:dashboard` from monorepo root — parent `~/Dev/nextjs/node_modules/` has stale Next.js 13 that `npx` picks up
+- `lib/neon.ts` uses raw `pg` Pool for separate newsramp articles DB (NEON_DIRECT_URL) — NOT part of Drizzle schema
 - Flask app at ~/Dev/flaskapps/newsworthy is the legacy version; editorial routes in news/editorial/routes.py
 - Both Flask and Next.js use status='review' for editorial queue. 'editorial' is NOT a valid status — it was a ghost reference that has been cleaned up.
 - Flask editorial queue orders by release_at asc, shows distribution badges (yahoo/enhanced/standard)
