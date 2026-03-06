@@ -64,72 +64,71 @@ export default async function Post({ params }: Props) {
     const post = await getPostBySlug(slug);
     // https://www.npmjs.com/package/@sanity/image-url
     return (
-        <>
-            <div className="pt-5">
-                <div className="flex flex-col-reverse lg:flex-row bg-white">
-                    <div className="flex flex-col justify-center gap-5 lg:gap-7 bg-yellow-800/5 text-center py-10 lg:px-20 lg:w-1/2 lg:">
-                        <div className="flex items-center justify-center gap-3 lg:gap-5">
+        <article className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 py-5">
+            {/* Hero */}
+            <div className="flex flex-col lg:flex-row items-center gap-10 py-16 lg:py-24">
+                <div className="flex-1 text-center lg:text-left">
+                    <Link
+                        href={`/blog/category/${post.category.slug.current}`}
+                        className="inline-block text-sm font-medium uppercase tracking-wider text-cyan-700 hover:text-cyan-800 mb-4"
+                    >
+                        {post.category.categoryName}
+                    </Link>
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">{post.headline}</h1>
+                    {post.excerpt && (
+                        <p className="mt-4 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">{post.excerpt}</p>
+                    )}
+                    <div className="flex items-center gap-3 mt-6 justify-center lg:justify-start">
+                        <Image
+                            className="w-10 h-10 object-cover rounded-full"
+                            src={urlFor(post.author.image)}
+                            alt={`${post.author.name} avatar`}
+                            width={40}
+                            height={40}
+                        />
+                        <div className="text-left">
                             <Link
-                                href={`/blog/category/${post.category.slug.current}`}
-                                className="font-bold text-lg lg:text-base text-cyan-700 hover:underline"
+                                href={`/blog/contributor/${post.author.slug.current}`}
+                                className="text-sm font-semibold hover:underline"
                             >
-                                {post.category.categoryName}
+                                {post.author.name}
                             </Link>
-                        </div>
-                        <h1 className="font-serif text-3xl lg:text-4xl font-semibold">{post.headline}</h1>
-                        <div className="flex items-center justify-center gap-3">
-                            <Image
-                                className="w-11 h-11 object-cover object-right rounded-full"
-                                src={urlFor(post.author.image)}
-                                alt={`${post.author.name} avatar`}
-                                width={50}
-                                height={1}
-                            />
-                            <div className="text-left">
-                                <p className="text-lg lg:text-base font-semibold text-sky-950">
-                                    <Link
-                                        href={`/blog/contributor/${post.author.slug.current}`}
-                                        className="hover:underline"
-                                    >
-                                        {post.author.name}
-                                    </Link >
-                                    
-                                </p>
-                                {post.author.shortBio && <p className="text-sm">{post.author.shortBio}</p>}
-                            </div>
+                            {post.author.shortBio && <p className="text-xs text-gray-500">{post.author.shortBio}</p>}
                         </div>
                     </div>
-                    <div className="lg:w-1/2">
-                        <Image
-                            className="block max-h-full md:h-96 lg:min-h-[449px] w-full object-cover"
-                            src={post.coverImage && urlFor(post.coverImage.asset)}
-                            alt={`${post.coverImage.alt}`}
-                            width={1200}
-                            height={464}
+                </div>
+                <div className="flex-1 overflow-hidden rounded-xl border border-gray-200">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        className="w-full aspect-[16/10] object-cover"
+                        src={post.coverImage && urlFor(post.coverImage.asset)}
+                        alt={post.coverImage?.alt || post.headline || "Blog post"}
+                    />
+                </div>
+            </div>
+
+            <hr className="border-gray-200 mb-10" />
+
+            {/* Content */}
+            <div className="grid lg:grid-cols-12 gap-10">
+                <div className="lg:col-span-9 prose prose-gray max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:text-base prose-li:text-base prose-blockquote:text-base prose-img:rounded-xl prose-a:text-cyan-700 hover:prose-a:text-cyan-600">
+                    <div className="first-letter:float-left first-letter:mb-0 first-letter:pr-4 first-letter:font-serif first-letter:text-7xl first-letter:text-cyan-900">
+                        <PortableText
+                            value={post.content}
+                            components={{
+                                types: {
+                                    image: PortableTextImageComponent,
+                                },
+                            }}
                         />
                     </div>
                 </div>
-
-                <div className="relative grid lg:grid-cols-12 gap-10 prose mx-auto my-5 md:max-w-5xl lg:max-w-7xl px-7 lg:px-20 text-gray-700 prose-headings:font-serif prose-headings:text-3xl prose-headings:font-normal prose-p:text-lg">
-                    <div className="col-span-9">
-                        {post.excerpt && <p className="text-xl text-slate-600 pb-5">{post.excerpt}</p>}
-                        <div className="first-letter:float-left first-letter:mb-0 first-letter:pr-4 first-letter:font-serif first-letter:text-7xl first-letter:text-cyan-900 text-lg lg:text-base prose-img:aspect-16/9 prose-li:text-lg prose-blockquote:text-lg">
-                            <PortableText
-                                value={post.content}
-                                components={{
-                                    // ...
-                                    types: {
-                                        image: PortableTextImageComponent,
-                                    },
-                                }}
-                            />
-                        </div>
-                    </div>
-                    <div className="col-span-3">
+                <aside className="lg:col-span-3">
+                    <div className="sticky top-10">
                         <GetTheBook />
                     </div>
-                </div>
+                </aside>
             </div>
-        </>
+        </article>
     );
 }

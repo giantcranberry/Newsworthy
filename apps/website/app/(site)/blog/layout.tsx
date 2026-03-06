@@ -38,5 +38,5 @@ export default async function RootLayout({
 }) {
 	const pages = await getPages();
 
-	return <div className="bg-yellow-800/5">{children}</div>;
+	return <div className="bg-white">{children}</div>;
 }

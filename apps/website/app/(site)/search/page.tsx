@@ -35,7 +35,7 @@ export default async function SearchPage({
   }
 
   return (
-    <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-5">
+    <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5">
       <div className="grid grid-cols-1 lg:grid-flow-col gap-10">
         <div className="lg:col-span-2">
           <div>

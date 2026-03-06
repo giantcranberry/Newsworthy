@@ -22,8 +22,8 @@ export default function SearchBoxComponent() {
 
   return (
     <>
-      <div className="bg-blue-600/5 mt-5 px-5 lg:px-10">
-        <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl flex flex-col-reverse md:flex-row justify-between items-end md:items-center lg:gap-10 pt-4 md:pt-0">
+      <div className="bg-blue-600/5 px-5 lg:px-10">
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl flex flex-col-reverse px-5 md:flex-row justify-between items-end md:items-center lg:gap-10 pt-4 md:pt-0">
           <form
             onSubmit={handleSubmit}
             className="relative px-5 md:px-0 py-5 col-span-9 max-w-2xl lg:max-w-3xl w-full"
@@ -70,7 +70,7 @@ export default function SearchBoxComponent() {
           </div>
         </div>
       </div>
-      <GetTheBookBanner />
+
     </>
   );
 }

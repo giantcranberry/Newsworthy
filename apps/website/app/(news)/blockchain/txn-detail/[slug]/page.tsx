@@ -206,7 +206,7 @@ export default async function BlockchainPage({ params }: Props) {
   postESGeneric(stats, 'nw_pageviews')
 
   return (
-    <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-5 mb-10 px-5">
+    <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 mb-10 px-5">
       <div className="max-w-none prose prose-h1:text-4xl prose-h1:font-semibold prose-h1:font-serif prose-h1:mb-0 prose-h2:text-2xl prose-h2:font-semibold prose-h2:mb-2 prose-h3:text-xl prose-h3:font-light prose-p:text-base">
         <h1>Blockchain Transaction Record</h1>
         <hr className="my-3" />

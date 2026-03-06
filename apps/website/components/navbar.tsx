@@ -82,12 +82,12 @@ export function NavBar() {
   }, []);
 
   return (
-    <>
+    <div className="border-b border-gray-200 shadow-sm relative z-10">
       <div className="px-5 pt-5 lg:px-0 lg:pt-0">
         <MobileSidebar />
       </div>
-      <div className="mx-auto w-full xl:max-w-screen-xl lg:flex justify-between items-center px-5 lg:px-10">
-        <NavigationMenu className="hidden lg:flex lg:pt-5">
+      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl lg:flex justify-between items-center px-5">
+        <NavigationMenu className="hidden lg:flex lg:py-5">
           <Link href="/">
             <Image
               src="/logo.svg"
@@ -274,7 +274,7 @@ export function NavBar() {
           </NavigationMenuList>
         </NavigationMenu>
       </div>
-    </>
+    </div>
   );
 }
 

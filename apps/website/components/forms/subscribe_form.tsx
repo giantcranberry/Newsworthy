@@ -111,7 +111,7 @@ export default function SubscribeForm({ company }: SubscribeProps) {
   });
 
   return (
-    <Card className="bg-yellow-800/5 border-0 mt-5">
+    <Card className="bg-yellow-800/5 border border-gray-200 mt-5">
       <CardHeader>
         <CardTitle className="font-serif font-medium flex items-center gap-10">
           Subscribe to News

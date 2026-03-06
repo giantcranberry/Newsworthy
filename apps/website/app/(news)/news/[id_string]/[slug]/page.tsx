@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { db, eq, and, desc, lte, releases, company, contact, banners, images, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations } from '@/lib/db';
+import { db, eq, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations } from '@/lib/db';
 import {
   getDateline,
   newsTranslatedUrl,
@@ -41,10 +41,13 @@ import SubscribeForm from "@/components/forms/subscribe_form";
 import GoogleMyBusiness from "@/components/google_my_business";
 import TldrComponent from "@/components/tldr_newsramp";
 import Article from "@/components/article";
+import { ImageCarousel } from "@/components/image-carousel";
 import PortraitVideoPlayer from "@/components/portrait_video_player";
 import MediaPlacements from "@/components/media_placements";
 import DownloadPdfButton from "@/components/download-pdf-button";
 import { InstagramEmbed } from "@/components/instagram-embed";
+import { SkeletonImage } from "@/components/skeleton-image";
+import { SkeletonNextImage } from "@/components/skeleton-next-image";
 
 // Embed detection
 type EmbedInfo =
@@ -265,6 +268,27 @@ export default async function PressRelease({ searchParams, params }: Props) {
           imgCredits: true,
         },
       },
+      releaseImages: {
+        orderBy: [asc(releaseImages.sortOrder)],
+        with: {
+          image: {
+            columns: {
+              id: true,
+              url: true,
+              title: true,
+              caption: true,
+              imgCredits: true,
+            },
+          },
+        },
+      },
+      faqs: {
+        columns: {
+          question: true,
+          answer: true,
+          sortOrder: true,
+        },
+      },
       releaseCategories: {
         with: {
           category: {
@@ -450,9 +474,30 @@ export default async function PressRelease({ searchParams, params }: Props) {
 
   // Process content
   const htmlContent = removeEmptyPTags(release.body!);
-  const newsImage = release.primaryImage?.url.replace("RESIZE/", "");
-  const imageCaption = release.primaryImage?.caption ?? null;
-  const imageCredit = release.primaryImage?.imgCredits ?? null;
+
+  // Build carousel images from releaseImages, fall back to primaryImage
+  let carouselImages = (release.releaseImages || [])
+    .filter((ri: any) => ri.image)
+    .map((ri: any) => ({
+      id: ri.image.id,
+      url: ri.image.url.replace("RESIZE/", ""),
+      title: ri.image.title,
+      caption: ri.image.caption,
+      imgCredits: ri.image.imgCredits,
+    }));
+
+  if (carouselImages.length === 0 && release.primaryImage?.url) {
+    carouselImages = [{
+      id: 0,
+      url: release.primaryImage.url.replace("RESIZE/", ""),
+      title: null,
+      caption: release.primaryImage.caption ?? null,
+      imgCredits: release.primaryImage.imgCredits ?? null,
+    }];
+  }
+
+  // Banner URL for hero
+  const bannerUrl = release.banner?.cdnUrl?.replace("resize=width:328", "resize=width:1400") ?? null;
 
   const companyData: subscribeFormSchemaType = {
     id: release.company.uuid,
@@ -475,266 +520,144 @@ export default async function PressRelease({ searchParams, params }: Props) {
   }
 
   return (
-    <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl grid grid-cols-1 lg:grid-flow-col gap-10 mb-5 lg:my-10 px-5">
-      <article className="col-span-2 lg:col-span-2 flex flex-col items gap-5 w-full">
-        {/* Main content section */}
-        <div className="flex flex-col md:flex-row lg:flex-row md:gap-10 lg:flex-wrap xl:flex-nowrap lg:justify-between lg:items-end">
-          <div className="flex xl:flex xl:items-center xl:justify-between xl:gap-10">
-            <div className="flex gap-32 justify-between">
-              {ai_media?.aprS3 && (
-                <div>
-                  <audio
-                    className="mt-5 lg:mt-0 max-w-full w-[428px] h-[50px] border border-slate-400 rounded-full"
-                    controls
-                    src={ai_media.aprS3}
-                  />
-                </div>
-              )}
-            </div>
-            <div className="flex pt-5 gap-5">
-              {fr_link && (
+    <>
+    {/* Social Banner Hero - full width */}
+    {bannerUrl && (
+      <div className="w-full bg-gray-100 max-h-[600px] overflow-hidden flex justify-center shadow-md aspect-[1200/630]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={bannerUrl}
+          alt="Social banner"
+          className="w-full h-full object-cover object-top"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </div>
+    )}
+
+    <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mb-5 lg:my-10 px-5">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+      <article className="lg:col-span-3 flex flex-col gap-6 w-full">
+        {/* Byline */}
+        <div className="flex flex-col gap-3">
+          <h1 className="font-serif font-normal text-2xl lg:text-4xl leading-tight">
+            {release.title}
+          </h1>
+
+          <p className="text-lg md:text-xl text-gray-600 font-light leading-relaxed">{release.abstract}</p>
+
+          {/* Category pills */}
+          {getCategoryData(release.releaseCategories || []).length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {getCategoryData(release.releaseCategories || []).map((category) => (
                 <Link
-                  className="text-base text-sky-600 hover:underline"
-                  href={fr_link}
+                  key={`cat-pill-${category.slug}`}
+                  href={`/news/beat/${category.slug}`}
+                  className="text-xs font-medium px-3 py-1 rounded-full bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
                 >
-                  Lisez-le en Français (French)
+                  {category.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Divider */}
+        <hr className="border-gray-200" />
+
+        {/* Audio player & language links */}
+        {(ai_media?.aprS3 || fr_link || es_link) && (
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          {ai_media?.aprS3 && (
+            <audio
+              className="max-w-full w-[428px] h-[50px] border border-slate-300 rounded-full"
+              controls
+              src={ai_media.aprS3}
+            />
+          )}
+          {(fr_link || es_link) && (
+            <div className="flex gap-4">
+              {fr_link && (
+                <Link className="text-sm text-sky-600 hover:underline" href={fr_link}>
+                  Français
                 </Link>
               )}
               {es_link && (
-                <Link
-                  className="text-base text-sky-600 hover:underline"
-                  href={es_link}
-                >
-                  Léelo en Español (Spanish)
+                <Link className="text-sm text-sky-600 hover:underline" href={es_link}>
+                  Español
                 </Link>
               )}
             </div>
-          </div>
+          )}
         </div>
-
-        <h1 className="font-serif font-medium text-2xl lg:text-4xl">
-          {release.title}
-        </h1>
+        )}
 
         {/* Podcast, Social Media, and PDF Download Section */}
-        <div className="flex justify-between items-center flex-wrap gap-7 md:gap-0">
+        <div className="flex justify-between items-center flex-wrap gap-4">
           {firstPodcast && (
-            <div className="flex gap-1 md:gap-3 items-center flex-wrap">
-              <p className="text-base">This News was Featured on</p>
-              <Link
-                className="transition ease-in-out duration-300 hover:translate-x-0.5"
-                href={`https://newsramp.com/podcast/episode/${firstPodcast.episode_md5}`}
-              >
-                <Image
-                  src="https://cdn.newsramp.app/badges/listen-now-podcast.svg"
-                  alt="This news story was featured on a podcast in the NewsRamp Podcast Series. Listen here."
-                  width={120}
-                  height={1}
-                />
-              </Link>
-            </div>
+            <Link
+              href={`https://newsramp.com/podcast/episode/${firstPodcast.episode_md5}`}
+              target="_blank"
+              className="flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-pink-500 text-white rounded-full pl-4 pr-6 py-3 hover:from-indigo-700 hover:to-pink-600 transition-all shadow-sm group"
+            >
+              <svg className="w-8 h-8 flex-shrink-0" viewBox="0 0 289 289" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M271.397 174.215C279.018 176 283.815 183.655 281.293 191.064C274.958 209.676 264.873 226.848 251.609 241.495C235.166 259.653 214.377 273.332 191.195 281.248C168.012 289.163 143.198 291.056 119.084 286.747C94.9692 282.438 72.3459 272.07 53.3394 256.616C34.3329 241.161 19.5672 221.129 10.4295 198.401C1.29191 175.672 -1.91766 150.994 1.10241 126.684C4.12247 102.375 13.273 79.232 27.6943 59.4304C39.327 43.4577 54.0812 30.082 71.0091 20.0829C77.7478 16.1024 86.2208 19.2373 89.5223 26.3334C92.8238 33.4294 89.6891 41.7873 83.0476 45.9278C70.4334 53.792 59.4072 64.0289 50.6045 76.1157C39.0118 92.0334 31.6561 110.637 29.2283 130.179C26.8006 149.72 29.3807 169.558 36.7261 187.829C44.0715 206.099 55.9411 222.202 71.2196 234.625C86.4982 247.048 104.684 255.383 124.069 258.847C143.454 262.31 163.401 260.789 182.036 254.426C200.671 248.063 217.383 237.067 230.601 222.47C240.638 211.387 248.41 198.504 253.536 184.551C256.234 177.205 263.777 172.431 271.397 174.215Z" fill="white"/>
+                <path d="M222.277 157.498C229.703 157.498 235.818 151.45 234.796 144.095C233.415 134.167 230.506 124.481 226.146 115.385C219.84 102.23 210.661 90.6408 199.276 81.4614C187.891 72.282 174.589 65.7443 160.339 62.325C150.446 59.951 140.269 59.1219 130.17 59.8429C122.793 60.3696 118.154 67.5715 119.689 74.8064C121.218 82.0166 128.317 86.4955 135.686 86.3379C141.842 86.2063 148.008 86.864 154.029 88.3088C164.389 90.7945 174.059 95.5474 182.335 102.221C190.612 108.894 197.285 117.319 201.869 126.882C204.507 132.384 206.414 138.183 207.558 144.133C208.961 151.425 214.852 157.498 222.277 157.498Z" fill="white"/>
+                <path d="M275.817 144.501C283.099 144.501 289.064 138.585 288.401 131.333C286.815 114 282.106 97.0577 274.466 81.3376C264.901 61.6555 250.99 44.4031 233.783 30.8821C216.577 17.3611 196.524 7.92474 175.138 3.28509C158.057 -0.420618 140.482 -0.989081 123.265 1.569C116.062 2.6392 111.725 9.83457 113.447 16.91C115.169 23.9855 122.301 28.2471 129.524 27.3238C142.834 25.6225 156.37 26.1975 169.547 29.0561C187.03 32.8491 203.423 40.5633 217.49 51.6168C231.556 62.6703 242.929 76.7743 250.748 92.8645C256.642 104.991 260.402 118.007 261.896 131.343C262.708 138.579 268.535 144.501 275.817 144.501Z" fill="white"/>
+                <path d="M170.34 144.39C170.34 158.723 158.721 170.341 144.389 170.341C130.056 170.341 118.438 158.723 118.438 144.39C118.438 130.058 130.056 118.439 144.389 118.439C158.721 118.439 170.34 130.058 170.34 144.39Z" fill="white"/>
+              </svg>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-wider text-white leading-none font-medium antialiased">Listen on</span>
+                <span className="text-base font-bold leading-tight antialiased">NewsRamp Podcast</span>
+              </div>
+            </Link>
           )}
-          <div className="flex items-center gap-3 border border-slate-300 rounded-full bg-slate-100 py-2 px-3">
-            {siteMeta && siteMeta.reddit && (
-              <>
-                <p className="text-lg font-normal">View This News On</p>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Link
-                        href={siteMeta.reddit}
-                        className="flex items-center justify-start gap-3"
-                        target="_blank"
-                      >
-                        <Image
-                          src={`https://cdn1.newsworthy.ai/reddit.svg`}
-                          className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                          alt="Reddit"
-                          width={28}
-                          height={28}
-                        />{" "}
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Engage on Reddit</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </>
-            )}
-
-            {siteMeta && siteMeta.linkedin && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.linkedin}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/linkedin.svg`}
-                        alt="Linkedin"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on LinkedIn</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.x && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.x}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/twitter-x.svg`}
-                        alt="X.com"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on X formerly known as Twitter</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.mastodon && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.mastodon}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/mastodon.svg`}
-                        alt="mastodon"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on Mastodon</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.bluesky && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.bluesky}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/bluesky.svg`}
-                        alt="bluesky"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on Bluesky</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.substack && siteMeta.feed_item_id > 2500 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={`${siteMeta.substack}${siteMeta.md5_permalink}`}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src="https://cdn1.newsworthy.ai/substack.svg"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        alt="Substack"
-                        width={28}
-                        height={28}
-                      />
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>This Story and More at Substack</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.telegram && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.telegram}
-                      target="_blank"
-                      className="flex items-center justify-start gap-3"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/telegram.svg`}
-                        alt="Telegram"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on Telegram</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            {siteMeta && siteMeta.github && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Link
-                      href={siteMeta.github}
-                      className="flex items-center justify-start gap-3"
-                      target="_blank"
-                    >
-                      <Image
-                        src={`https://cdn1.newsworthy.ai/github.svg`}
-                        alt="GitHub"
-                        className="rounded w-7 h-7 transition ease-in-out delay-100 hover:-translate-y-1 hover:scale-110 duration-300"
-                        width={28}
-                        height={28}
-                      />{" "}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Engage on GitHub</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
-            <DownloadPdfButton
-              idString={resolvedParams.id_string}
-              slug={resolvedParams.slug}
-            />
+          <div className="flex items-center gap-2">
+              {siteMeta && siteMeta.reddit && (
+                <Link href={siteMeta.reddit} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Reddit">
+                  <Image src="https://cdn1.newsworthy.ai/reddit.svg" alt="Reddit" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.linkedin && (
+                <Link href={siteMeta.linkedin} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="LinkedIn">
+                  <Image src="https://cdn1.newsworthy.ai/linkedin.svg" alt="LinkedIn" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.x && (
+                <Link href={siteMeta.x} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="X">
+                  <Image src="https://cdn1.newsworthy.ai/twitter-x.svg" alt="X" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.mastodon && (
+                <Link href={siteMeta.mastodon} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Mastodon">
+                  <Image src="https://cdn1.newsworthy.ai/mastodon.svg" alt="Mastodon" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.bluesky && (
+                <Link href={siteMeta.bluesky} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Bluesky">
+                  <Image src="https://cdn1.newsworthy.ai/bluesky.svg" alt="Bluesky" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.substack && siteMeta.feed_item_id > 2500 && (
+                <Link href={`${siteMeta.substack}${siteMeta.md5_permalink}`} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Substack">
+                  <Image src="https://cdn1.newsworthy.ai/substack.svg" alt="Substack" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.telegram && (
+                <Link href={siteMeta.telegram} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Telegram">
+                  <Image src="https://cdn1.newsworthy.ai/telegram.svg" alt="Telegram" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              {siteMeta && siteMeta.github && (
+                <Link href={siteMeta.github} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="GitHub">
+                  <Image src="https://cdn1.newsworthy.ai/github.svg" alt="GitHub" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
+              <div className="w-px h-5 bg-gray-200 mx-1" />
+              <DownloadPdfButton
+                idString={resolvedParams.id_string}
+                slug={resolvedParams.slug}
+              />
           </div>
         </div>
 
@@ -757,28 +680,33 @@ export default async function PressRelease({ searchParams, params }: Props) {
           return null
         })()}
 
-        <p className="text-base md:text-xl font-light">{release.abstract}</p>
         <TldrComponent
           url={`https://cdn.newsramp.net/tldr/${release.prhashId}.json`}
         />
 
         <div>
-          <div className="flex mb-3">
-            <p>{dateline.replace("\u2014", "")}</p>
-          </div>
+          <p className="text-base mb-3">{dateline.replace("\u2014", "").trim()}</p>
 
-          <Article
-            htmlContent={htmlContent}
-            newsImage={newsImage}
-            pullQuote={release.pullquote}
-            imageCaption={imageCaption}
-            imageCredit={imageCredit}
-          />
+          {/* Image carousel + pullquote floated right */}
+          {(carouselImages.length > 0 || release.pullquote) && (
+            <div className="w-full md:float-right md:ml-5 md:mb-4 md:w-[45%] md:max-w-[350px]">
+              {carouselImages.length > 0 && (
+                <ImageCarousel images={carouselImages} />
+              )}
+              {release.pullquote && (
+                <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-4 py-3 text-sm">
+                  <p>{release.pullquote}</p>
+                </blockquote>
+              )}
+            </div>
+          )}
+
+          <Article htmlContent={htmlContent} pullquote={release.pullquote} />
 
           {release.landingPage &&
             (/\[.*?\]\s?(http\S+)/.test(release.landingPage) ? (
               <div
-                className="mt-3"
+                className="mt-3 clear-both"
                 dangerouslySetInnerHTML={{
                   __html: transformLink(release.landingPage),
                 }}
@@ -786,13 +714,28 @@ export default async function PressRelease({ searchParams, params }: Props) {
             ) : (
               <Link
                 href={release.landingPage}
-                className="mt-3 text-sky-600 hover:underline"
+                className="mt-3 text-sky-600 hover:underline clear-both block"
               >
                 Additional Information
               </Link>
             ))}
 
-          <div className="my-5 flex flex-col gap-5">
+          {/* FAQs */}
+          {release.faqs && release.faqs.length > 0 && (
+            <div className="border-t border-gray-200 pt-5 mt-5 clear-both">
+              <h3 className="font-semibold text-lg mb-3">Frequently Asked Questions</h3>
+              <dl className="space-y-3">
+                {[...release.faqs].sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map((faq: any, i: number) => (
+                  <div key={i}>
+                    <dt className="font-medium text-sm">{faq.question}</dt>
+                    <dd className="text-gray-600 mt-1 text-sm">{faq.answer}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
+          <div className="my-5 flex flex-col gap-5 clear-both">
             <div>
               <h3 className="font-medium text-lg">
                 Media Contact for {release.company.companyName}
@@ -805,24 +748,6 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <p className="text-sm">{release.primaryContact.email}</p>
                 </div>
               )}
-            </div>
-            <div>
-              <h3 className="font-medium text-lg">Filed Under</h3>
-              <hr />
-              <ul className="flex flex-wrap gap-x-7 ml-5 pt-2">
-                {getCategoryData(release.releaseCategories || []).map(
-                  (category) => (
-                    <li className="list-disc" key={`category-${category.slug}`}>
-                      <Link
-                        className="hover:underline hover:text-sky-600"
-                        href={`/news/beat/${category.slug}`}
-                      >
-                        {category.name}
-                      </Link>
-                    </li>
-                  )
-                )}
-              </ul>
             </div>
             {recent && recent.length > 0 ? (
               <div>
@@ -897,107 +822,121 @@ export default async function PressRelease({ searchParams, params }: Props) {
           }}
         />
       </article>
-      <div className="col-span-2 lg:col-span-1">
-        <div className="w-full md:max-w-[300px] lg:max-w-[350px]">
-          <Link href={qrcode_landing} target="_blank">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+      <aside className="lg:col-span-1">
+        <div className="w-full flex flex-col gap-6">
+          {/* QR Code */}
+          <Link href={qrcode_landing} target="_blank" className="block">
+            <SkeletonImage
               src={qrcode_url}
               alt="QrCode for Blockchain Registration Graphic"
-              className="w-full md:w-[360px] aspect-auto mb-5 md:mb-0"
-              width={360}
-              height={360}
+              className="w-full aspect-auto"
+              width={350}
+              height={350}
               style={{ width: "100%", height: "auto" }}
+              wrapperClassName="w-full aspect-square"
+              skeletonClassName="w-full h-full rounded"
+              loading="eager"
+              fetchPriority="high"
             />
           </Link>
 
-          <div className="my-5">
-            {release.company?.logoUrl && (
-              <Image
-                className="rounded my-3"
-                src={company_logo_url}
-                width={150}
-                height={1}
-                alt={`company logo for: ${release.company.companyName}`}
-              />
-            )}
-            <h4 className="pt-3 text-xl font-semibold">
-              {release.company?.companyName}
-            </h4>
-            <div className="flex flex-col gap-2 mt-2">
-              {release.company?.phone &&
-                release.company.phone !== "1111111111" &&
-                release.company.phone !== "111-111-1111" && (
-                  <Link
-                    href={`tel:${release.company?.phone}`}
-                    className="text-sky-600 hover:underline"
-                  >
-                    Tel. {release.company?.phone}
-                  </Link>
-                )}
-              {release.company?.website && (
-                <Link
-                  href={release.company?.website}
-                  className="text-sky-600 hover:underline flex gap-1 items-center"
-                  target="_blank"
-                >
-                  Website <ExternalLink size={16} />
-                </Link>
-              )}
-              {release.company.nrUri && (
-                <Link
-                  href={`https://newsworthy.ai/newsroom/${release.company.nrUri}`}
-                  className="text-sky-600 hover:underline flex gap-1 items-center text-lg font-medium"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Online Newsroom <ExternalLink size={16} />
-                </Link>
+          {/* Company info */}
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex justify-center p-6">
+              {release.company?.logoUrl ? (
+                <SkeletonNextImage
+                  className="rounded max-h-[80px] w-auto"
+                  src={company_logo_url}
+                  width={250}
+                  height={80}
+                  alt={release.company.companyName}
+                  wrapperClassName="h-[80px]"
+                  skeletonClassName="rounded w-[160px] h-full"
+                />
+              ) : (
+                <h4 className="text-lg font-semibold text-center">
+                  {release.company?.companyName}
+                </h4>
               )}
             </div>
-          </div>
-          <hr className="mt-5" />
-
-          {release.publicDrive && (
-            <>
-              <div className="flex flex-col gap-1 my-5">
-                <h4 className="text-lg">Additional Assets</h4>
+            <div className="flex flex-col divide-y divide-gray-200 border-t border-gray-200">
+            {release.company?.phone &&
+              release.company.phone !== "1111111111" &&
+              release.company.phone !== "111-111-1111" && (
                 <Link
-                  href={release.publicDrive}
-                  className="text-teal-600 hover:underline flex gap-1 items-center font-semibold"
-                  target="_blank"
+                  href={`tel:${release.company?.phone}`}
+                  className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
                 >
+                  <span className="text-gray-500">Phone</span>
+                  <span className="text-sky-600">{release.company?.phone}</span>
+                </Link>
+              )}
+            {release.company?.website && (
+              <Link
+                href={release.company?.website}
+                className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                target="_blank"
+              >
+                <span className="text-gray-500">Website</span>
+                <span className="text-sky-600 flex items-center gap-1">{new URL(release.company.website).hostname} <ExternalLink size={12} /></span>
+              </Link>
+            )}
+            {release.company.nrUri && (
+              <Link
+                href={`https://newsworthy.ai/newsroom/${release.company.nrUri}`}
+                className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="text-gray-500">Newsroom</span>
+                <span className="text-sky-600 flex items-center gap-1">Visit <ExternalLink size={12} /></span>
+              </Link>
+            )}
+            {release.publicDrive && (
+              <Link
+                href={release.publicDrive}
+                className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                target="_blank"
+              >
+                <span className="text-gray-500">Media Assets</span>
+                <span className="text-teal-600 flex items-center gap-1">
                   <Image
                     src={getImageFromUrl(release.publicDrive)}
-                    className="w-[16px] h-[16px]"
+                    className="w-[14px] h-[14px]"
                     alt=""
-                    width={16}
-                    height={16}
-                  />{" "}
-                  Public Drive <ExternalLink size={20} className="ml-1" />
-                </Link>
-              </div>
-              <hr />
-            </>
-          )}
+                    width={14}
+                    height={14}
+                  />
+                  Download <ExternalLink size={12} />
+                </span>
+              </Link>
+            )}
+            </div>
+          </div>
 
+          {/* Videos */}
           {ai_media?.ltiMp4S3 && (
-            <video className="rounded" controls>
+            <video className="rounded-lg w-full" controls preload="metadata">
               <source src={ai_media?.ltiMp4S3} type="video/mp4" />
             </video>
           )}
           {release.prhashId && (
             <PortraitVideoPlayer prhashId={release.prhashId} />
           )}
+
+          {/* Subscribe */}
+          <SubscribeForm company={companyData} />
+
           {release.company.gmb && (
             <GoogleMyBusiness company={release.company} />
           )}
-          <SubscribeForm company={companyData} />
           {release.prhashId && (
             <MediaPlacements prhashId={release.prhashId} />
           )}
         </div>
+      </aside>
       </div>
     </div>
+    </>
   );
 }
