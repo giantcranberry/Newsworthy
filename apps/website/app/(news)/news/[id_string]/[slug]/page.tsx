@@ -521,23 +521,22 @@ export default async function PressRelease({ searchParams, params }: Props) {
 
   return (
     <>
-    {/* Social Banner Hero - full width */}
-    {bannerUrl && (
-      <div className="w-full bg-gray-100 max-h-[600px] overflow-hidden flex justify-center shadow-md aspect-[1200/630]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={bannerUrl}
-          alt="Social banner"
-          className="w-full h-full object-cover object-top"
-          loading="eager"
-          fetchPriority="high"
-        />
-      </div>
-    )}
-
     <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mb-5 lg:my-10 px-5">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
       <article className="lg:col-span-3 flex flex-col gap-6 w-full">
+        {/* Social Banner */}
+        {bannerUrl && (
+          <div className="bg-gray-100 max-h-[600px] overflow-hidden rounded-lg aspect-[1200/630]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={bannerUrl}
+              alt="Social banner"
+              className="w-full h-full object-cover object-top"
+              loading="eager"
+              fetchPriority="high"
+            />
+          </div>
+        )}
         {/* Byline */}
         <div className="flex flex-col gap-3">
           <h1 className="font-serif font-normal text-2xl lg:text-4xl leading-tight">
