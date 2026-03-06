@@ -12,6 +12,7 @@ import { UserAvatar } from './user-avatar'
 import { VisibilityBadge } from './visibility-badge'
 import { PostImages } from './post-images'
 import { ReactionBar } from './reaction-bar'
+import { linkifyHtml } from '@/lib/linkify-html'
 
 const Editor = dynamic(
   () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
@@ -309,7 +310,7 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, board
       ) : (
         <div
           className="mt-3 text-sm text-gray-800 dark:text-gray-200 break-words prose prose-sm dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: body }}
+          dangerouslySetInnerHTML={{ __html: linkifyHtml(body) }}
         />
       )}
 

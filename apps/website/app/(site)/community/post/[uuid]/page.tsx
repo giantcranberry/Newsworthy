@@ -2,10 +2,12 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, MessageSquare, Heart } from 'lucide-react'
-import { getPostByUuid } from '@/lib/community'
+import { getPostByUuid, getCommentsByPostId } from '@/lib/community'
 import { PostImages } from '@/components/community/post-images'
 import { RegisterCTA } from '@/components/community/register-cta'
 import { RegisterBanner } from '@/components/community/register-banner'
+import { linkifyHtml } from '@/lib/linkify-html'
+import { Avatar } from '@/components/community/avatar'
 
 export const revalidate = 120
 
@@ -42,12 +44,41 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
+function getTimeAgo(date: Date): string {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days = Math.floor(diff / 86400000)
+
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  if (hours < 24) return `${hours}h ago`
+  if (days < 7) return `${days}d ago`
+  return date.toLocaleDateString()
+}
+
 export default async function PostDetailPage({ params }: { params: Promise<{ uuid: string }> }) {
   const { uuid } = await params
   const post = await getPostByUuid(uuid)
   if (!post) notFound()
 
+  const [comments] = await Promise.all([
+    getCommentsByPostId(post.id),
+  ])
+
   const plainText = stripHtml(post.body)
+
+  // Build threaded comments: top-level + replies grouped by parentId
+  const topLevel = comments.filter(c => !c.parentId)
+  const repliesByParent = new Map<number, typeof comments>()
+  for (const c of comments) {
+    if (c.parentId) {
+      const list = repliesByParent.get(c.parentId) || []
+      list.push(c)
+      repliesByParent.set(c.parentId, list)
+    }
+  }
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -77,13 +108,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ uui
       <article>
         {/* Author header */}
         <div className="flex items-center gap-3 mb-6">
-          {post.userAvatar ? (
-            <img src={post.userAvatar} alt={post.userName} className="h-12 w-12 rounded-full object-cover" />
-          ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600">
-              {getInitials(post.userName)}
-            </div>
-          )}
+          <Avatar name={post.userName} avatar={post.userAvatar} emailHash={post.userEmailHash} size="lg" />
           <div>
             <span className="font-medium text-gray-900">{post.userName}</span>
             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -96,10 +121,10 @@ export default async function PostDetailPage({ params }: { params: Promise<{ uui
           </div>
         </div>
 
-        {/* Post body - trusted HTML from authenticated TinyMCE input */}
+        {/* Post body */}
         <div
           className="prose prose-lg max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: linkifyHtml(post.body) }}
         />
 
         {/* Images */}
@@ -118,12 +143,71 @@ export default async function PostDetailPage({ params }: { params: Promise<{ uui
         </div>
       </article>
 
-      {/* CTA in place of comments */}
+      {/* Comments section */}
+      {comments.length > 0 && (
+        <div className="mt-8 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+          </h2>
+          <div className="space-y-3">
+            {topLevel.map((comment) => (
+              <CommentNode
+                key={comment.id}
+                comment={comment}
+                replies={repliesByParent}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* CTA to join */}
       <div className="mt-8">
-        <RegisterCTA action="comment on this post" />
+        <RegisterCTA action="join the conversation" />
       </div>
 
       <RegisterBanner />
+    </div>
+  )
+}
+
+function CommentNode({
+  comment,
+  replies,
+}: {
+  comment: {
+    id: number
+    body: string
+    depth: number
+    userName: string
+    userAvatar: string | null
+    userEmailHash: string | null
+    createdAt: Date
+  }
+  replies: Map<number, any[]>
+}) {
+  const childComments = replies.get(comment.id) || []
+
+  return (
+    <div className={comment.depth > 0 ? 'ml-8 border-l-2 border-gray-100 pl-4' : ''}>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Avatar name={comment.userName} avatar={comment.userAvatar} emailHash={comment.userEmailHash} size="sm" />
+          <span className="text-sm font-medium text-gray-900">{comment.userName}</span>
+          <span className="text-xs text-gray-400">{getTimeAgo(new Date(comment.createdAt))}</span>
+        </div>
+        <div
+          className="text-sm text-gray-700 prose prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: linkifyHtml(comment.body) }}
+        />
+      </div>
+      {childComments.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {childComments.map((child: any) => (
+            <CommentNode key={child.id} comment={child} replies={replies} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

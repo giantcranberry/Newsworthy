@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { users, userProfiles, userFollows } from '@/db/schema'
 import { and, eq, sql } from 'drizzle-orm'
@@ -10,7 +10,7 @@ export default async function CommunityProfilePage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const currentUserId = (session?.user as any)?.id
   if (!currentUserId) redirect('/login')
 

@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityBoards, communityGuidelines, communityGuidelineAcceptances, company, companyMembers } from '@/db/schema'
 import { and, asc, eq } from 'drizzle-orm'
@@ -6,7 +6,7 @@ import { redirect } from 'next/navigation'
 import { CommunityHome } from './community-home'
 
 export default async function CommunityPage() {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) redirect('/login')
 

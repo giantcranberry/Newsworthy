@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityBoards } from '@/db/schema'
 import { and, asc, eq } from 'drizzle-orm'
 
 export async function GET() {
-  const session = await auth()
+  const session = await getEffectiveSession()
   if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

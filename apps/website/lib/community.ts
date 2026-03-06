@@ -3,6 +3,7 @@ import {
   communityBoards,
   communityPosts,
   communityPostImages,
+  communityComments,
   users,
   userProfiles,
   eq,
@@ -87,11 +88,12 @@ export async function getPublicPosts(options: {
       boardColor: communityBoards.color,
       userName: sql<string>`coalesce(${userProfiles.acctName}, ${userProfiles.firstName} || ' ' || ${userProfiles.lastName}, 'Community Member')`,
       userAvatar: userProfiles.avatar,
+      userEmailHash: sql<string>`MD5(LOWER(TRIM(${users.email})))`,
     })
     .from(communityPosts)
     .innerJoin(communityBoards, eq(communityPosts.boardId, communityBoards.id))
     .innerJoin(users, eq(communityPosts.userId, users.id))
-    .leftJoin(userProfiles, eq(users.id, userProfiles.id))
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
     .where(and(...conditions))
     .orderBy(desc(communityPosts.isPinned), desc(communityPosts.createdAt))
     .limit(limit)
@@ -128,12 +130,13 @@ export async function getPostByUuid(uuid: string) {
       boardDescription: communityBoards.description,
       userName: sql<string>`coalesce(${userProfiles.acctName}, ${userProfiles.firstName} || ' ' || ${userProfiles.lastName}, 'Community Member')`,
       userAvatar: userProfiles.avatar,
+      userEmailHash: sql<string>`MD5(LOWER(TRIM(${users.email})))`,
       userBio: userProfiles.bio,
     })
     .from(communityPosts)
     .innerJoin(communityBoards, eq(communityPosts.boardId, communityBoards.id))
     .innerJoin(users, eq(communityPosts.userId, users.id))
-    .leftJoin(userProfiles, eq(users.id, userProfiles.id))
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
     .where(
       and(
         eq(communityPosts.uuid, uuid),
@@ -152,4 +155,30 @@ export async function getPostByUuid(uuid: string) {
     .orderBy(asc(communityPostImages.sortOrder))
 
   return { ...post, images }
+}
+
+export async function getCommentsByPostId(postId: number) {
+  return db
+    .select({
+      id: communityComments.id,
+      uuid: communityComments.uuid,
+      body: communityComments.body,
+      parentId: communityComments.parentId,
+      depth: communityComments.depth,
+      reactionCount: communityComments.reactionCount,
+      createdAt: communityComments.createdAt,
+      userName: sql<string>`coalesce(${userProfiles.acctName}, ${userProfiles.firstName} || ' ' || ${userProfiles.lastName}, 'Community Member')`,
+      userAvatar: userProfiles.avatar,
+      userEmailHash: sql<string>`MD5(LOWER(TRIM(${users.email})))`,
+    })
+    .from(communityComments)
+    .innerJoin(users, eq(communityComments.userId, users.id))
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+    .where(
+      and(
+        eq(communityComments.postId, postId),
+        eq(communityComments.isDeleted, false)
+      )
+    )
+    .orderBy(asc(communityComments.createdAt))
 }

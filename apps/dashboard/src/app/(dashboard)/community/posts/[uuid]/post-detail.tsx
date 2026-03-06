@@ -10,6 +10,7 @@ import { CommentThread } from '@/components/community/comment-thread'
 import { CommentForm } from '@/components/community/comment-form'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Pin } from 'lucide-react'
+import { linkifyHtml } from '@/lib/linkify-html'
 
 interface PostDetailProps {
   uuid: string
@@ -111,7 +112,7 @@ export function PostDetail({ uuid, currentUserId, isAdmin }: PostDetailProps) {
 
         <div
           className="mt-4 text-sm text-gray-800 dark:text-gray-200 break-words prose prose-sm dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: linkifyHtml(post.body) }}
         />
 
         <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">

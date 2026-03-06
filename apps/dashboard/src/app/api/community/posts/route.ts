@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import {
   communityPosts,
@@ -16,7 +16,7 @@ import { and, desc, eq, lt, or, sql, inArray } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -143,25 +143,28 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Check guidelines acceptance
-  const [guidelines] = await db.select().from(communityGuidelines).limit(1)
-  const [acceptance] = await db
-    .select()
-    .from(communityGuidelineAcceptances)
-    .where(eq(communityGuidelineAcceptances.userId, userId))
-    .limit(1)
+  // Check guidelines acceptance (skip for impersonating admins)
+  const isImpersonating = !!(session?.user as any)?.isImpersonating
+  if (!isImpersonating) {
+    const [guidelines] = await db.select().from(communityGuidelines).limit(1)
+    const [acceptance] = await db
+      .select()
+      .from(communityGuidelineAcceptances)
+      .where(eq(communityGuidelineAcceptances.userId, userId))
+      .limit(1)
 
-  if (guidelines?.body) {
-    const guidelinesUpdatedAt = guidelines.updatedAt ? new Date(guidelines.updatedAt) : null
-    const acceptedAt = acceptance?.acceptedAt ? new Date(acceptance.acceptedAt) : null
-    if (!acceptedAt || !guidelinesUpdatedAt || acceptedAt < guidelinesUpdatedAt) {
-      return NextResponse.json({ error: 'You must accept the community guidelines before posting' }, { status: 403 })
+    if (guidelines?.body) {
+      const guidelinesUpdatedAt = guidelines.updatedAt ? new Date(guidelines.updatedAt) : null
+      const acceptedAt = acceptance?.acceptedAt ? new Date(acceptance.acceptedAt) : null
+      if (!acceptedAt || !guidelinesUpdatedAt || acceptedAt < guidelinesUpdatedAt) {
+        return NextResponse.json({ error: 'You must accept the community guidelines before posting' }, { status: 403 })
+      }
     }
   }
 

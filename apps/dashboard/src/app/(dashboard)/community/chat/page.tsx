@@ -1,9 +1,9 @@
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { ChatLayout } from '@/components/community/chat-layout'
 
 export default async function ChatPage() {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) redirect('/login')
 

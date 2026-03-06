@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityPosts, communityPostImages } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
@@ -13,7 +13,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
 ) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -91,7 +91,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
 ) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

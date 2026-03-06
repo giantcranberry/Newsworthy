@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { userFollows, users, userProfiles } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const currentUserId = (session?.user as any)?.id
   if (!currentUserId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

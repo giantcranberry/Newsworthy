@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityBoards, communityGuidelines, communityGuidelineAcceptances, company, companyMembers } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
@@ -12,7 +12,7 @@ export default async function BoardPage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const userId = (session?.user as any)?.id
   if (!userId) redirect('/login')
 

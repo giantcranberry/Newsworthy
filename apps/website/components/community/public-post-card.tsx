@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { MessageSquare, Heart, Pin } from 'lucide-react'
 import { PostImages } from './post-images'
+import { Avatar } from './avatar'
+import { linkifyHtml } from '@/lib/linkify-html'
 
 interface PostImage {
   id: number
@@ -22,6 +24,7 @@ interface PublicPost {
   boardColor: string
   userName: string
   userAvatar: string | null
+  userEmailHash: string | null
   images: PostImage[]
 }
 
@@ -55,13 +58,7 @@ export function PublicPostCard({ post, showBoard = true }: PublicPostCardProps) 
     <div className={`rounded-lg border bg-white p-4 ${post.isPinned ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'}`}>
       {/* Header */}
       <div className="flex items-center gap-3 min-w-0">
-        {post.userAvatar ? (
-          <img src={post.userAvatar} alt={post.userName} className="h-10 w-10 rounded-full object-cover flex-shrink-0" />
-        ) : (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm font-medium text-gray-600 flex-shrink-0">
-            {getInitials(post.userName)}
-          </div>
-        )}
+        <Avatar name={post.userName} avatar={post.userAvatar} emailHash={post.userEmailHash} size="md" />
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-gray-900 text-sm">{post.userName}</span>
@@ -96,7 +93,7 @@ export function PublicPostCard({ post, showBoard = true }: PublicPostCardProps) 
       <Link href={`/community/post/${post.uuid}`}>
         <div
           className="mt-3 text-sm text-gray-800 break-words prose prose-sm max-w-none line-clamp-6"
-          dangerouslySetInnerHTML={{ __html: post.body }}
+          dangerouslySetInnerHTML={{ __html: linkifyHtml(post.body) }}
         />
       </Link>
 

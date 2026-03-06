@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityGuidelines } from '@/db/schema'
 import { redirect } from 'next/navigation'
@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import { MarkdownBody } from './markdown-body'
 
 export default async function GuidelinesPage() {
-  const session = await auth()
+  const session = await getEffectiveSession()
   if (!session?.user) redirect('/login')
 
   const [guidelines] = await db.select().from(communityGuidelines).limit(1)

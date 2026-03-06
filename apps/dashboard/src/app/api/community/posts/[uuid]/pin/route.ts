@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { communityPosts } from '@/db/schema'
 import { eq } from 'drizzle-orm'
@@ -8,7 +8,7 @@ export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ uuid: string }> }
 ) {
-  const session = await auth()
+  const session = await getEffectiveSession()
   const isAdmin = (session?.user as any)?.isAdmin
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
