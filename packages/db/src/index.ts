@@ -9,7 +9,7 @@ const globalForDb = globalThis as unknown as {
   queryClient: ReturnType<typeof postgres> | undefined
 }
 
-const queryClient = globalForDb.queryClient ?? postgres(connectionString, { prepare: false })
+const queryClient = globalForDb.queryClient ?? postgres(connectionString, { prepare: false, max: 3 })
 
 if (process.env.NODE_ENV !== 'production') {
   globalForDb.queryClient = queryClient

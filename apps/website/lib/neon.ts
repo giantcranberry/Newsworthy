@@ -7,6 +7,7 @@ if (!process.env.NEON_DIRECT_URL) {
 
 const pool = new Pool({
   connectionString: process.env.NEON_DIRECT_URL,
+  max: 3,
 });
 
 export default pool;
