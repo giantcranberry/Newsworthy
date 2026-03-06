@@ -101,7 +101,8 @@ export default function MediaPlacements({ prhashId }: MediaPlacementsProps) {
 
   return (
     <div className="w-full pt-4">
-      <h3 className="text-base font-medium text-slate-800 mb-3">
+      <div className="bg-slate-50 border border-gray-200 rounded-lg p-4">
+      <h3 className="text-sm font-medium text-gray-500 mb-3">
         Also Featured On
       </h3>
       <div className="flex flex-col gap-2">
@@ -111,18 +112,19 @@ export default function MediaPlacements({ prhashId }: MediaPlacementsProps) {
             href={placement.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-3 py-2 hover:bg-slate-100 rounded-lg transition-colors group"
+            className="flex items-center justify-between w-full px-3 py-2 bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
             title={`View on ${placement.placement || placement.handle}`}
           >
             <img
               src={placement.logo}
               alt={placement.handle}
-              className="h-7 w-auto max-w-[120px] object-contain"
+              className="h-7 w-auto max-w-[160px] object-contain"
               loading="lazy"
             />
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            <ExternalLink className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
           </a>
         ))}
+      </div>
       </div>
     </div>
   );

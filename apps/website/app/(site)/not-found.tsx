@@ -3,7 +3,7 @@ import Link from "next/link";
 
 function NotFoundPage() {
 	return (
-		<section className="mx-auto w-full xl:max-w-screen-xl">
+		<section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl">
 			<div className="my-20 flex flex-col justify-center items-center max-w-none prose prose-p:text-2xl dark:prose-p:text-slate-100 prose-img:my-0">
 				<Image
 					src={"./nw-404.svg"}

@@ -65,7 +65,7 @@ export default async function SponsoredNews() {
   return (
     <div className="mx-auto w-full pb-10">
       <div>
-        <div className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-5 px-5 lg:px-0">
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 px-5 lg:px-0">
           <div className="grid grid-cols-1 lg:grid-flow-col gap-10">
             <div className="lg:col-span-2">
               <div className="px-5 mb-5 md:px-0">

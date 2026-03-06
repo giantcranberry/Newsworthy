@@ -14,10 +14,10 @@ import SeeYourNews from "@/components/see_your_news";
 import { headers } from "next/headers";
 import { FeedStatsType } from "@/types/Stats";
 import { postESGeneric } from "@/lib/elastic";
-import SearchBoxComponent from "@/components/search";
 import { TrendingFeeds } from "@/components/trending_feeds";
 
 import FreePrReview from "@/components/free-pr-review";
+import SearchBoxComponent from "@/components/search";
 
 export const revalidate = 0;
 
@@ -143,15 +143,13 @@ export default async function Home({ searchParams }: Props) {
 
   return (
     <>
-
+      <SearchBoxComponent />
       <div className="mx-auto w-full pb-10">
-        <SearchBoxComponent />
-
         <div>
-          <section className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-7 px-5 lg:px-10">
+          <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-7 px-5">
             <TrendingFeeds />
           </section>
-          <section className="grid lg:grid-cols-8 mx-auto lg:max-w-screen-lg xl:max-w-screen-xl gap-10 mt-5 px-5 lg:px-10">
+          <section className="grid lg:grid-cols-8 mx-auto max-w-screen-xl xl:max-w-screen-2xl gap-10 mt-5 px-5">
             {featured && (
               <div
                 className="lg:col-span-4 group rounded bg-white transition duration-500"
@@ -243,11 +241,11 @@ export default async function Home({ searchParams }: Props) {
               </div>
             )}
           </section>
-          <section className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl xl:my-5 px-5 lg:px-10 pt-5">
+          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl xl:my-5 px-5 pt-5">
             <SeeYourNews />
           </section>
 
-          <section className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl px-5 lg:px-10 pt-5 relative">
+          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-5 relative">
             <LatestDialog />
             <div className="grid grid-cols-1 lg:grid-flow-col gap-10">
               <div className="lg:col-span-2 gird-row-1">
@@ -299,7 +297,7 @@ export default async function Home({ searchParams }: Props) {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <section className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl px-5 lg:px-10 pt-10">
+            <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-10">
               <div className="flex justify-center">
                 <nav className="flex items-center gap-2">
                   {page > 1 && (

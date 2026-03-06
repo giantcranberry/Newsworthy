@@ -71,7 +71,7 @@ export default async function NewsPage(props: Props) {
   }
 
   return (
-    <section className="mx-auto w-full xl:max-w-screen-xl my-10 px-5 lg:px-10">
+    <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl my-10 px-5 lg:px-10">
       {article && (
         <>
           <PageBreadcrumb currentPage={article.headline} />

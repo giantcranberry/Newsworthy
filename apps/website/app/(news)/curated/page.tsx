@@ -66,10 +66,10 @@ export default async function Home({ searchParams }: Props) {
 
   return (
     <>
-      <section className="mx-auto w-full xl:max-w-screen-xl flex flex-col xl:flex-row gap-10 relative mt-5">
+      <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col xl:flex-row gap-10 relative mt-5">
         <SearchCuratedComponent />
       </section>
-      <section className="mx-auto w-full xl:max-w-screen-xl flex flex-col xl:flex-row gap-10 relative mb-32 px-5 lg:px-10">
+      <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col xl:flex-row gap-10 relative mb-32 px-5 lg:px-10">
         <div className="w-full">
           <h1 className="px-10 lg:px-0 py-5 font-semibold text-2xl text-stone-900">
             Curated News Stories

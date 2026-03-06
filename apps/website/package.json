@@ -35,7 +35,7 @@
     "@types/moment": "^2.13.0",
     "@types/react-dom": "^19.0.0",
     "axios": "^1.4.0",
-    "cheerio": "^1.0.0-rc.12",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "crisp-sdk-web": "^1.0.21",

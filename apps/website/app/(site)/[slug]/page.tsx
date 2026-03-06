@@ -58,7 +58,7 @@ export default async function Page({ params }: Props) {
       return notFound();
     }
     return (
-      <div className="mx-auto w-full xl:max-w-screen-xl px-5 lg:px-10 py-5">
+      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 py-5">
         <div className="prose mt-10 max-w-none prose-headings:font-serif prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-headings:font-normal prose-strong:font-bold">
           {flatPage.title && (
             <h1 className="text-4xl font-serif font-semibold">{flatPage.title}</h1>
@@ -100,7 +100,7 @@ export default async function Page({ params }: Props) {
       {page.pageContent &&
         page.pageContent.pageContentPlacement === "above" && (
           <>
-            <section className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-5 px-5 relative pb-10">
+            <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 px-5 relative pb-10">
               {page.pageContent.pageContentHeadline && (
                 <h2 className="text-3xl font-serif font-semibold text-gray-950 mb-3">
                   {page.pageContent.pageContentHeadline}
@@ -144,7 +144,7 @@ export default async function Page({ params }: Props) {
           if (section.section_type == "band") {
             return (
               <section key={section._id} className="bg-teal-800/30 py-5">
-                <div className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl flex flex-col-reverse md:flex-row md:gap-10 px-10">
+                <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col-reverse md:flex-row md:gap-10 px-10">
                   <div>
                     {section.headline && (
                       <h2 className="text-teal-800 text-3xl lg:text-4xl font-serif font-semibold">
@@ -182,7 +182,7 @@ export default async function Page({ params }: Props) {
             return (
               <section
                 key={section._id}
-                className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-10 mx-auto lg:max-w-screen-lg xl:max-w-screen-xl px-5 py-10 mb-0 md:px-10 lg:px-0"
+                className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-10 mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 py-10 mb-0 md:px-10 lg:px-0"
               >
                 {section._type === "content_section" && (
                   <>
@@ -233,7 +233,7 @@ export default async function Page({ params }: Props) {
                 key={section._id}
                 className={`${section.background_color} md:my-20 px-10 lg:px-0 py-20`}
               >
-                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-10 mx-auto lg:max-w-screen-lg xl:max-w-screen-xl">
+                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-10 mx-auto max-w-screen-xl xl:max-w-screen-2xl">
                   {section._type === "content_section" && (
                     <>
                       {section.sectionImage && (
@@ -282,7 +282,7 @@ export default async function Page({ params }: Props) {
       {page.pageContent &&
         page.pageContent.pageContentPlacement === "below" && (
           <>
-            <section className="mx-auto lg:max-w-screen-lg xl:max-w-screen-xl mt-5 md:mt-10 px-5 relative">
+            <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 md:mt-10 px-5 relative">
               {page.pageContent.pageContentHeadline && (
                 <h2 className="text-3xl font-serif font-semibold text-gray-950 mb-3">
                   {page.pageContent.pageContentHeadline}
