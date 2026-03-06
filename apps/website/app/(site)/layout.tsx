@@ -2,6 +2,7 @@ import "../globals.css";
 
 import { Nunito_Sans, Lora } from "next/font/google";
 import { NavBar } from "@/components/navbar";
+
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { CrispProvider } from "@/components/crisp-provider";

@@ -33,7 +33,7 @@ export default async function ContactPage() {
                 </div>
             </div>
 
-            <div className="mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl grid grid-cols-1 lg:grid-cols-2 lg:gap-20 py-5 px-5">
+            <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl grid grid-cols-1 lg:grid-cols-2 lg:gap-20 py-5 px-5">
                 <div>
                     <h2 className="text-3xl font-bold mb-3">Contact Us</h2>
                     <ContactForm />

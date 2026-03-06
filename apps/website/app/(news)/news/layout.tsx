@@ -3,7 +3,6 @@ import { getPages } from "@/sanity/sanity-utils";
 import { Nunito_Sans, Lora } from "next/font/google";
 import { NavBar } from "@/components/navbar";
 import Footer from "@/components/footer";
-import SearchBoxComponent from "@/components/search";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import PlausibleProvider from "next-plausible";
@@ -54,7 +53,6 @@ export default async function RootLayout({
       <body className={`flex h-screen flex-col justify-between text-black`} suppressHydrationWarning>
         <div className="w-full mx-auto">
           <NavBar />
-          <SearchBoxComponent />
         </div>
         <main className="mx-auto mb-auto w-full bg-white">{children}</main>
         <Footer />

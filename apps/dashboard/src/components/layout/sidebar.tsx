@@ -203,10 +203,6 @@ function isAdminPath(pathname: string): boolean {
 
 function getInitialMode(pathname: string): SidebarMode {
   if (isAdminPath(pathname)) return 'admin'
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(SIDEBAR_MODE_KEY)
-    if (stored === 'user' || stored === 'admin') return stored
-  }
   return 'user'
 }
 
@@ -241,6 +237,16 @@ export function Sidebar({
     setModeState(newMode)
     localStorage.setItem(SIDEBAR_MODE_KEY, newMode)
   }, [])
+
+  // Restore saved mode from localStorage after hydration
+  useEffect(() => {
+    if (!isAdminPath(pathname)) {
+      const stored = localStorage.getItem(SIDEBAR_MODE_KEY)
+      if (stored === 'user' || stored === 'admin') {
+        setModeState(stored)
+      }
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-detect mode from pathname changes
   useEffect(() => {

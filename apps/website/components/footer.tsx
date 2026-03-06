@@ -69,7 +69,7 @@ export default function Footer() {
 
   return (
     <footer className="static bottom-0 bg-blue-500/5 border-t">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl py-5 md:py-5 px-5 lg:px-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl py-5 md:py-5 px-5">
         <div className="md:col-start-1 md:col-end-2">
           <Link href="/">
             <Image
@@ -254,8 +254,8 @@ export default function Footer() {
           </div>
         </nav>
       </div>
-      <div className="bg-cyan-900 py-3 px-5 lg:px-10">
-        <div className="text-left flex flex-col lg:flex-row mx-auto w-full lg:max-w-screen-lg xl:max-w-screen-xl items-center gap-3 lg:gap-20">
+      <div className="bg-cyan-900 py-3 px-5">
+        <div className="text-left flex flex-col lg:flex-row mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl items-center gap-3 lg:gap-20">
           <p className="font-sans text-sm text-white">
             Newsworthy.ai &copy; {currentYear} All Rights Reserved
           </p>
