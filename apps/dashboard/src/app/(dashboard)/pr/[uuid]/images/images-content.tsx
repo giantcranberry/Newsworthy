@@ -225,9 +225,16 @@ async function compositeTextOnBanner(
   // Ensure the chosen font is available for canvas rendering
   await ensureFontForCanvas(overlay.fontFamily)
 
+  // If it's a remote URL, fetch as blob to avoid CORS issues on canvas
+  let src = imageSrc
+  if (imageSrc.startsWith('http')) {
+    const res = await fetch(imageSrc)
+    const blob = await res.blob()
+    src = URL.createObjectURL(blob)
+  }
+
   return new Promise((resolve, reject) => {
     const img = new window.Image()
-    img.crossOrigin = 'anonymous'
     img.onload = () => {
       const canvas = document.createElement('canvas')
       canvas.width = 1200
@@ -285,6 +292,7 @@ async function compositeTextOnBanner(
 
       canvas.toBlob(
         (blob) => {
+          if (src !== imageSrc) URL.revokeObjectURL(src)
           if (!blob) return reject(new Error('Canvas toBlob failed'))
           resolve(new File([blob], 'banner-with-text.jpg', { type: 'image/jpeg' }))
         },
@@ -292,8 +300,11 @@ async function compositeTextOnBanner(
         0.92,
       )
     }
-    img.onerror = () => reject(new Error('Failed to load image for text composite'))
-    img.src = imageSrc
+    img.onerror = () => {
+      if (src !== imageSrc) URL.revokeObjectURL(src)
+      reject(new Error('Failed to load image for text composite'))
+    }
+    img.src = src
   })
 }
 
