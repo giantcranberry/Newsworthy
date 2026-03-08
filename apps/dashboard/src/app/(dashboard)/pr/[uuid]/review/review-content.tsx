@@ -1047,7 +1047,7 @@ export function ReviewContent({
                   <div className="p-4 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
                     <p className="text-green-900 dark:text-green-300">{aiAbstract}</p>
                     <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                      {aiAbstract.length}/350 characters - Add this summary to
+                      {aiAbstract.length}/500 characters - Add this summary to
                       your press release
                     </p>
                   </div>

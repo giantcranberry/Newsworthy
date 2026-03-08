@@ -61,11 +61,9 @@ export function DashboardShell({ children, canCreateContent = true }: { children
     if (shouldAutoCollapse) {
       setManualOverride(true)
     }
-    setCollapsed((prev) => {
-      const next = !prev
-      localStorage.setItem(COLLAPSE_KEY, String(next))
-      return next
-    })
+    const next = !effectiveCollapsed
+    setCollapsed(next)
+    localStorage.setItem(COLLAPSE_KEY, String(next))
   }
 
   return (

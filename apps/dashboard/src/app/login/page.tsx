@@ -117,6 +117,9 @@ function LoginForm() {
               <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 We sent a sign in link to <strong>{email}</strong>
               </p>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                This link will expire in 15 minutes.
+              </p>
               <Button
                 variant="link"
                 className="mt-4 text-cyan-800 dark:text-cyan-400 hover:text-cyan-800 dark:text-cyan-400"

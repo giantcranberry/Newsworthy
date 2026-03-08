@@ -5,10 +5,18 @@ import { eq, desc, and, or, isNull, ne, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Plus, Eye, Edit } from "lucide-react";
+import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink } from "lucide-react";
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
+import { CopyUrlButton } from "./copy-url-button";
 import { getUserCompanyIds } from "@/lib/team-auth";
+
+function getReleaseUrl(release: { releaseAt: Date | null; id: number; slug: string | null }) {
+  if (!release.releaseAt) return null;
+  const d = release.releaseAt;
+  const dateStr = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+  return `https://www.newsworthy.ai/news/${dateStr}${release.id}/${release.slug}`;
+}
 
 async function getUserReleases(userId: number) {
   const companyIds = await getUserCompanyIds(userId);
@@ -199,10 +207,10 @@ export default async function PressReleasesPage({
                 {/* Banner */}
                 {release.banner?.url || release.primaryImage?.url ? (
                   <>
-                    {release.status === "sent" && release.releaseAt ? (
+                    {release.status === "sent" && getReleaseUrl(release) ? (
                       <>
                         <Link
-                          href={`https://www.newsworthy.ai/news/${release.releaseAt.getFullYear()}${String(release.releaseAt.getMonth() + 1).padStart(2, "0")}${String(release.releaseAt.getDate()).padStart(2, "0")}${release.id}/${release.slug}`}
+                          href={getReleaseUrl(release)!}
                           target="_blank"
                           className="sm:hidden w-full cursor-pointer"
                         >
@@ -216,7 +224,7 @@ export default async function PressReleasesPage({
                           />
                         </Link>
                         <Link
-                          href={`https://www.newsworthy.ai/news/${release.releaseAt.getFullYear()}${String(release.releaseAt.getMonth() + 1).padStart(2, "0")}${String(release.releaseAt.getDate()).padStart(2, "0")}${release.id}/${release.slug}`}
+                          href={getReleaseUrl(release)!}
                           target="_blank"
                           className="hidden sm:block w-48 flex-shrink-0 pt-6 pl-4 self-start cursor-pointer"
                         >
@@ -304,6 +312,26 @@ export default async function PressReleasesPage({
                           </span>
                         )}
                       </div>
+                      {release.status === "sent" && (() => {
+                        const url = getReleaseUrl(release);
+                        if (!url) return null;
+                        const sentMoreThan48h = release.releasedAt && (Date.now() - new Date(release.releasedAt).getTime()) > 48 * 60 * 60 * 1000;
+                        return (
+                          <div className="flex items-center gap-3 mt-2 flex-wrap">
+                            <span className="inline-flex items-center gap-1.5 text-xs text-cyan-700 dark:text-cyan-400">
+                              <ExternalLink className="h-3 w-3" />
+                              <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline truncate max-w-xs sm:max-w-md">{url}</a>
+                              <CopyUrlButton url={url} />
+                            </span>
+                            {sentMoreThan48h && (
+                              <Link href={`/pr/clips/${release.uuid}`} className="inline-flex items-center gap-1 text-xs text-purple-700 dark:text-purple-400 hover:underline">
+                                <BarChart3 className="h-3 w-3" />
+                                View Report
+                              </Link>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     {/* Actions */}
@@ -324,13 +352,9 @@ export default async function PressReleasesPage({
                           title={release.title}
                         />
                       )}
-                      {release.status === "sent" && release.releaseAt && (
+                      {release.status === "sent" && getReleaseUrl(release) && (
                         <Link
-                          href={`https://www.newsworthy.ai/news/${release.releaseAt.getFullYear()}${String(
-                            release.releaseAt.getMonth() + 1,
-                          ).padStart(2, "0")}${String(
-                            release.releaseAt.getDate(),
-                          ).padStart(2, "0")}${release.id}/${release.slug}`}
+                          href={getReleaseUrl(release)!}
                           target="_blank"
                         >
                           <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 dark:text-gray-100">

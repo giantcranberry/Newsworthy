@@ -319,45 +319,45 @@ export function ReviewForm({
               <CardDescription>Set editorial score and distribution before approving</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="score">Editorial Score</Label>
-                  <select
-                    id="score"
-                    value={score}
-                    onChange={(e) => setScore(e.target.value)}
-                    className="mt-1 w-full h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
-                  >
-                    <option value="5">5 - Exceptional</option>
-                    <option value="4">4 - Average</option>
-                    <option value="3">3 - Secondary Distribution</option>
-                    <option value="2">2 - No Network Distribution</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="distribution">Distribution</Label>
-                  <select
-                    id="distribution"
-                    value={distribution}
-                    onChange={(e) => setDistribution(e.target.value)}
-                    className="mt-1 w-full h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="yahoo">Yahoo</option>
-                    <option value="enhanced">Enhanced</option>
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={feature}
-                      onChange={(e) => setFeature(e.target.checked)}
-                      className="rounded border-gray-300 dark:border-gray-700 text-cyan-800 dark:text-cyan-400 focus:ring-cyan-700"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Feature Release</span>
-                  </label>
-                </div>
+              <div>
+                <Label htmlFor="score">Editorial Score</Label>
+                <select
+                  id="score"
+                  value={score}
+                  onChange={(e) => setScore(e.target.value)}
+                  className="mt-1 w-full sm:w-64 h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                >
+                  <option value="5">5 - Exceptional</option>
+                  <option value="4">4 - Average</option>
+                  <option value="3">3 - Secondary Distribution</option>
+                  <option value="2">2 - No Network Distribution</option>
+                </select>
+              </div>
+
+              <div>
+                <Label htmlFor="distribution">Distribution</Label>
+                <select
+                  id="distribution"
+                  value={distribution}
+                  onChange={(e) => setDistribution(e.target.value)}
+                  className="mt-1 w-full sm:w-64 h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                >
+                  <option value="standard">Standard</option>
+                  <option value="yahoo">Yahoo</option>
+                  <option value="enhanced">Enhanced</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={feature}
+                    onChange={(e) => setFeature(e.target.checked)}
+                    className="rounded border-gray-300 dark:border-gray-700 text-cyan-800 dark:text-cyan-400 focus:ring-cyan-700"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">Feature Release</span>
+                </label>
               </div>
 
               <div>

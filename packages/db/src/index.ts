@@ -2,7 +2,8 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import * as schema from './schema'
 
-const connectionString = process.env.DATABASE_URL!
+// In dev, prefer DIRECT_DATABASE_URL (no PgBouncer) to avoid connection limit bottleneck
+const connectionString = (process.env.NODE_ENV !== 'production' && process.env.DIRECT_DATABASE_URL) || process.env.DATABASE_URL!
 
 // Use global singleton to prevent HMR from creating multiple connections
 const globalForDb = globalThis as unknown as {
