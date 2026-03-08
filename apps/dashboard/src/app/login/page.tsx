@@ -82,7 +82,7 @@ function LoginForm() {
           <p className="text-xl font-bold text-cyan-900 dark:text-cyan-200">Welcome to your new dashboard!</p>
           <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
             We&apos;ve upgraded your News Marketing experience. The previous dashboard remains available for 30 days at{' '}
-            <a href="https://app.newsworthyai.com" className="font-medium text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300">app.newsworthyai.com</a>.
+            <a href="https://app.newsworthy.ai" className="font-medium text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300">app.newsworthy.ai</a>.
           </p>
         </div>
 

@@ -323,7 +323,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/auth/login",
-        destination: "https://app.newsworthyai.com/auth/coregister/pr/newsworthy",
+        destination: "https://app.newsworthyai.com/login",
         permanent: true,
       },
       {

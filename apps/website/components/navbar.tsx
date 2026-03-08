@@ -234,7 +234,7 @@ export function NavBar() {
             <NavigationMenuItem className="hidden lg:flex xl:hidden">
               <NavigationMenuLink asChild>
                 <Link
-                  href="https://app.newsworthyai.com/auth/login"
+                  href="https://app.newsworthyai.com/login"
                   className={navigationMenuTriggerStyle()}
                 >
                   Login
@@ -254,7 +254,7 @@ export function NavBar() {
             <NavigationMenuItem className="hidden xl:flex">
               <NavigationMenuLink asChild>
                 <Link
-                  href="https://app.newsworthyai.com/auth/login"
+                  href="https://app.newsworthyai.com/login"
                   className={navigationMenuTriggerStyle()}
                 >
                   Login
