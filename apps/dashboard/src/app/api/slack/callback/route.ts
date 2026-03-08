@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { exchangeSlackCode } from '@/lib/slack'
 
 export async function GET(request: NextRequest) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
   const code = request.nextUrl.searchParams.get('code')
   const state = request.nextUrl.searchParams.get('state')
   const error = request.nextUrl.searchParams.get('error')

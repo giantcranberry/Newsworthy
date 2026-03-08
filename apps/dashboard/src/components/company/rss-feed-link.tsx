@@ -5,7 +5,7 @@ import { Copy, Check } from 'lucide-react'
 
 export function RssFeedLink({ companyUuid }: { companyUuid: string }) {
   const [copied, setCopied] = useState(false)
-  const feedUrl = `https://app.newsworthy.ai/feeds/company/${companyUuid.replace(/-/g, '')}/latest.rss`
+  const feedUrl = `https://app.newsworthyai.com/feeds/company/${companyUuid.replace(/-/g, '')}/latest.rss`
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(feedUrl)

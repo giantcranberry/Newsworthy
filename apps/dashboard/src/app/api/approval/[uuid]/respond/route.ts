@@ -53,7 +53,7 @@ export async function POST(
 
     // Send notification email to the release owner
     if (user?.email && release) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
 
       try {
         await sendEmail({

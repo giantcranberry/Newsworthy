@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
             }).format(new Date(release.releaseAt)) + ` (${tz.replace(/_/g, ' ')})`
           }
 
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
 
           // Inbox message
           await createSystemMessage(

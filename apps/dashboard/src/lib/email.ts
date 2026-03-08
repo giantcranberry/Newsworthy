@@ -296,7 +296,7 @@ export async function sendApprovalRequestEmail({
   notes?: string | null
   approvalUuid: string
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
   const approvalLink = `${appUrl}/approval/${approvalUuid}`
 
   const notesHtml = notes
@@ -446,7 +446,7 @@ export async function sendTeamInviteEmail({
   role: string
   token: string
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
   const inviteLink = `${appUrl}/invite/${token}`
 
   const roleLabels: Record<string, string> = {
@@ -507,7 +507,7 @@ export async function sendMessageNotificationEmail({
   recipientName: string
   isReply?: boolean
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
   const inboxLink = `${appUrl}/inbox`
   const heading = isReply ? 'You have a new reply' : 'You have a new message'
   const description = isReply

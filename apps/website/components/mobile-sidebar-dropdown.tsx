@@ -212,7 +212,7 @@ export function MobileDropdown() {
           </li>
           <li>
             <Link
-              href="https://app.newsworthy.ai/auth/login"
+              href="https://app.newsworthyai.com/auth/login"
               legacyBehavior
               passHref
             >
