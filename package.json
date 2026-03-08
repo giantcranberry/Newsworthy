@@ -18,5 +18,8 @@
   "devDependencies": {
     "turbo": "^2.5.0"
   },
-  "packageManager": "bun@1.2.4"
+  "packageManager": "bun@1.2.4",
+  "dependencies": {
+    "@dayflow/blossom-color-picker-react": "^1.1.0"
+  }
 }

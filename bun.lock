@@ -1,9 +1,11 @@
 {
   "lockfileVersion": 1,
-  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "newsworthy",
+      "dependencies": {
+        "@dayflow/blossom-color-picker-react": "^1.1.0",
+      },
       "devDependencies": {
         "turbo": "^2.5.0",
       },
@@ -545,6 +547,10 @@
     "@date-fns/tz": ["@date-fns/tz@1.4.1", "", {}, "sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA=="],
 
     "@date-fns/utc": ["@date-fns/utc@2.1.1", "", {}, "sha512-SlJDfG6RPeEX8wEVv6ZB3kak4MmbtyiI2qX/5zuKdordbrhB/iaJ58GVMZgJ6P1sJaM1gMgENFYYeg1JWrCFrA=="],
+
+    "@dayflow/blossom-color-picker": ["@dayflow/blossom-color-picker@2.1.0", "", {}, "sha512-uY1FdNB23iQAJ4MwWlBZXBfKwxxY6z+1GX0MSx6nxdczk8TMkwDxJB8CZR6h4+Ql+gZ4a9HrZ7DP2gHpOAd48A=="],
+
+    "@dayflow/blossom-color-picker-react": ["@dayflow/blossom-color-picker-react@1.1.0", "", { "dependencies": { "@dayflow/blossom-color-picker": "^2.1.0" }, "peerDependencies": { "react": ">=18.0.0", "react-dom": ">=18.0.0" } }, "sha512-8VO85il4vtBLf88Wh966HjR5DidFuBZpwM/eXTZCnUCPv0qxy2Pj9gStDNfpI6Yh7wnubU+1TsoMMBOnIg8kyA=="],
 
     "@dnd-kit/accessibility": ["@dnd-kit/accessibility@3.1.1", "", { "dependencies": { "tslib": "^2.0.0" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-2P+YgaXF+gRsIihwwY1gCsQSYnu9Zyj2py8kY5fFvUM1qm2WA2u639R6YNVfU4GWr+ZM5mqEsfHZZLoRONbemw=="],
 

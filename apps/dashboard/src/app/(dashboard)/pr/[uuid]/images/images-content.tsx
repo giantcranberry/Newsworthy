@@ -41,7 +41,9 @@ import {
   Info,
   Crop,
   Search,
+  Type,
 } from 'lucide-react'
+import { BlossomColorPicker } from '@dayflow/blossom-color-picker-react'
 
 interface ImageRecord {
   id: number
@@ -97,6 +99,202 @@ function resizedUrl(url: string) {
     return url.replace('RESIZE', 'resize=width:300')
   }
   return url
+}
+
+interface TextOverlay {
+  text: string
+  position: 'top' | 'center' | 'bottom'
+  fontSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  color: string // hex color
+  fontFamily: string
+}
+
+const FONT_SIZES: Record<TextOverlay['fontSize'], number> = { xs: 24, sm: 32, md: 44, lg: 58, xl: 72, '2xl': 90 }
+const POSITION_Y: Record<TextOverlay['position'], number> = { top: 80, center: 315, bottom: 560 }
+
+const GOOGLE_FONTS = [
+  'Inter',
+  'Roboto',
+  'Open Sans',
+  'Montserrat',
+  'Playfair Display',
+  'Lora',
+  'Merriweather',
+  'Oswald',
+  'Raleway',
+  'Poppins',
+  'Bebas Neue',
+  'Abril Fatface',
+  'Permanent Marker',
+  'Pacifico',
+  'Bitter',
+] as const
+
+/** Returns relative luminance (0=black, 1=white) for a hex color */
+function hexLuminance(hex: string): number {
+  const c = hex.replace('#', '')
+  const r = parseInt(c.substring(0, 2), 16) / 255
+  const g = parseInt(c.substring(2, 4), 16) / 255
+  const b = parseInt(c.substring(4, 6), 16) / 255
+  const toLinear = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+}
+
+/** Contrasting color for stroke/shadow */
+function contrastColor(hex: string): string {
+  return hexLuminance(hex) > 0.5 ? '#000000' : '#ffffff'
+}
+
+/** Contrasting backdrop */
+function backdropRgba(hex: string): string {
+  return hexLuminance(hex) > 0.5 ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)'
+}
+
+const loadedFonts = new Set<string>()
+
+function loadGoogleFont(family: string) {
+  if (loadedFonts.has(family)) return
+  loadedFonts.add(family)
+  const link = document.createElement('link')
+  link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family)}:wght@400;700&display=swap`
+  document.head.appendChild(link)
+}
+
+/** Ensure font is loaded into canvas via FontFace API */
+async function ensureFontForCanvas(family: string): Promise<void> {
+  if (family === 'sans-serif') return
+  loadGoogleFont(family)
+  try {
+    await document.fonts.load(`bold 48px "${family}"`)
+  } catch {
+    // Font may already be loaded or unavailable — canvas will fall back to sans-serif
+  }
+}
+
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const lines: string[] = []
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.split(' ')
+    let current = ''
+    for (const word of words) {
+      const test = current ? `${current} ${word}` : word
+      if (ctx.measureText(test).width > maxWidth && current) {
+        lines.push(current)
+        current = word
+      } else {
+        current = test
+      }
+    }
+    if (current) lines.push(current)
+  }
+  return lines
+}
+
+/** Measure wrapped text block and auto-shrink font until it fits within maxHeight */
+function fitText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  startPx: number,
+  fontFam: string,
+  maxWidth: number,
+  maxHeight: number,
+): { lines: string[]; px: number; lineHeight: number } {
+  let px = startPx
+  while (px >= 16) {
+    ctx.font = `bold ${px}px ${fontFam}`
+    const lines = wrapText(ctx, text, maxWidth)
+    const lineHeight = px * 1.3
+    const blockHeight = lines.length * lineHeight
+    if (blockHeight <= maxHeight) {
+      return { lines, px, lineHeight }
+    }
+    // Shrink and retry
+    px = Math.max(16, Math.floor(px * 0.85))
+  }
+  // Floor: smallest readable size
+  ctx.font = `bold 16px ${fontFam}`
+  const lines = wrapText(ctx, text, maxWidth)
+  return { lines, px: 16, lineHeight: 16 * 1.3 }
+}
+
+async function compositeTextOnBanner(
+  imageSrc: string,
+  overlay: TextOverlay,
+): Promise<File> {
+  // Ensure the chosen font is available for canvas rendering
+  await ensureFontForCanvas(overlay.fontFamily)
+
+  return new Promise((resolve, reject) => {
+    const img = new window.Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      canvas.width = 1200
+      canvas.height = 630
+      const ctx = canvas.getContext('2d')!
+
+      ctx.drawImage(img, 0, 0, 1200, 630)
+
+      const fontFam = overlay.fontFamily === 'sans-serif' ? 'sans-serif' : `"${overlay.fontFamily}", sans-serif`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      // Auto-shrink text to fit within ~80% of canvas height
+      const requestedPx = FONT_SIZES[overlay.fontSize]
+      const { lines, px, lineHeight } = fitText(ctx, overlay.text, requestedPx, fontFam, 1100, 630 * 0.8)
+
+      const blockHeight = lines.length * lineHeight
+      let startY = POSITION_Y[overlay.position]
+
+      // Adjust so block is centered around the target Y
+      startY = startY - blockHeight / 2 + lineHeight / 2
+
+      // Clamp entire block within canvas with padding
+      const padding = 20
+      const blockTop = startY - lineHeight / 2
+      const blockBottom = startY + (lines.length - 1) * lineHeight + lineHeight / 2
+      if (blockTop < padding) {
+        startY += padding - blockTop
+      } else if (blockBottom > 630 - padding) {
+        startY -= blockBottom - (630 - padding)
+      }
+
+      const stroke = contrastColor(overlay.color)
+
+      // Draw semi-transparent backdrop covering all text lines
+      const backdropPadding = 20
+      const backdropY = startY - lineHeight / 2 - backdropPadding
+      const backdropH = blockHeight + backdropPadding * 2
+      ctx.fillStyle = backdropRgba(overlay.color)
+      ctx.fillRect(0, backdropY, 1200, backdropH)
+
+      // Re-set font after fitText (already set but be explicit)
+      ctx.font = `bold ${px}px ${fontFam}`
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+
+      for (let i = 0; i < lines.length; i++) {
+        const y = startY + i * lineHeight
+        ctx.strokeStyle = stroke
+        ctx.lineWidth = Math.max(2, px / 16)
+        ctx.strokeText(lines[i], 600, y)
+        ctx.fillStyle = overlay.color
+        ctx.fillText(lines[i], 600, y)
+      }
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error('Canvas toBlob failed'))
+          resolve(new File([blob], 'banner-with-text.jpg', { type: 'image/jpeg' }))
+        },
+        'image/jpeg',
+        0.92,
+      )
+    }
+    img.onerror = () => reject(new Error('Failed to load image for text composite'))
+    img.src = imageSrc
+  })
 }
 
 function EditMetadataDialog({
@@ -297,7 +495,7 @@ export function ImagesContent({
   const [activeTab, setActiveTabRaw] = useState('social-banner')
   const setActiveTab = async (tab: string) => {
     // Auto-save banner when switching away from social-banner tab
-    if (activeTab === 'social-banner' && tab !== 'social-banner' && (bannerFile || (currentBanner && (
+    if (activeTab === 'social-banner' && tab !== 'social-banner' && (bannerFile || textOverlay.text.trim() || (currentBanner && (
       bannerFormData.title !== currentBanner.title ||
       bannerFormData.imgCredits !== currentBanner.imgCredits
     )))) {
@@ -348,6 +546,22 @@ export function ImagesContent({
   })
   const [isLoadingBanner, setIsLoadingBanner] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
+
+  // Text overlay state
+  const [textOverlay, setTextOverlay] = useState<TextOverlay>({
+    text: '',
+    position: 'bottom',
+    fontSize: 'md',
+    color: '#ffffff',
+    fontFamily: 'Inter',
+  })
+
+  // Load the selected Google Font on change
+  useEffect(() => {
+    if (textOverlay.fontFamily && textOverlay.fontFamily !== 'sans-serif') {
+      loadGoogleFont(textOverlay.fontFamily)
+    }
+  }, [textOverlay.fontFamily])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -785,9 +999,23 @@ export function ImagesContent({
     setBannerError(null)
 
     try {
-      if (bannerFile) {
+      const hasText = textOverlay.text.trim().length > 0
+
+      if (bannerFile || (hasText && currentBanner && !bannerFile)) {
+        // Determine the image source for compositing
+        let fileToUpload: File
+
+        if (hasText) {
+          // Composite text onto the image
+          const imageSrc = bannerPreview || currentBanner?.url
+          if (!imageSrc) throw new Error('No banner image to composite text onto')
+          fileToUpload = await compositeTextOnBanner(imageSrc, textOverlay)
+        } else {
+          fileToUpload = bannerFile!
+        }
+
         const fd = new FormData()
-        fd.append('banner', bannerFile)
+        fd.append('banner', fileToUpload)
         if (bannerFormData.title) fd.append('title', bannerFormData.title)
         if (bannerFormData.imgCredits) fd.append('imgCredits', bannerFormData.imgCredits)
 
@@ -808,6 +1036,9 @@ export function ImagesContent({
         }
         setBannerFile(null)
         setBannerPreview(null)
+        if (hasText) {
+          setTextOverlay({ ...textOverlay, text: '' })
+        }
       } else if (currentBanner && (
         bannerFormData.title !== currentBanner.title ||
         bannerFormData.imgCredits !== currentBanner.imgCredits
@@ -1229,57 +1460,195 @@ export function ImagesContent({
               </div>
 
               {displayBanner && (
-                <div className="max-w-xl">
-                <div className="relative rounded-lg overflow-hidden border dark:border-gray-700 bg-gray-50 dark:bg-gray-950" style={{ aspectRatio: '1200/630' }}>
-                  <Image
-                    src={displayBanner}
-                    alt="Social media banner"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  {bannerPreview && (
-                    <div className="absolute top-3 right-3">
-                      <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-1 rounded-full">
-                        <Check className="h-3 w-3" />
-                        New
-                      </span>
+                <div className="flex flex-col lg:flex-row gap-4">
+                  {/* Banner preview with CSS text overlay */}
+                  <div className="flex-1 min-w-0">
+                    <div className="relative rounded-lg overflow-hidden border dark:border-gray-700 bg-gray-50 dark:bg-gray-950" style={{ aspectRatio: '1200/630' }}>
+                      <Image
+                        src={displayBanner}
+                        alt="Social media banner"
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
+                      {/* Live text overlay preview */}
+                      {textOverlay.text && (
+                        <div
+                          className="absolute inset-x-0 flex items-center justify-center px-4 pointer-events-none"
+                          style={{
+                            top: textOverlay.position === 'top' ? '6%' : textOverlay.position === 'center' ? '50%' : undefined,
+                            bottom: textOverlay.position === 'bottom' ? '6%' : undefined,
+                            transform: textOverlay.position === 'center' ? 'translateY(-50%)' : undefined,
+                          }}
+                        >
+                          <div
+                            className="rounded px-3 py-1.5"
+                            style={{
+                              backgroundColor: backdropRgba(textOverlay.color),
+                            }}
+                          >
+                            <p
+                              className="text-center font-bold leading-tight whitespace-pre-line"
+                              style={{
+                                color: textOverlay.color,
+                                fontSize: { xs: '0.5em', sm: '0.65em', md: '0.85em', lg: '1.05em', xl: '1.3em', '2xl': '1.6em' }[textOverlay.fontSize],
+                                fontFamily: textOverlay.fontFamily === 'sans-serif' ? 'sans-serif' : `"${textOverlay.fontFamily}", sans-serif`,
+                                textShadow: `0 1px 3px ${contrastColor(textOverlay.color)}80`,
+                              }}
+                            >
+                              {textOverlay.text}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {bannerPreview && !textOverlay.text && (
+                        <div className="absolute top-3 right-3">
+                          <span className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs px-2 py-1 rounded-full">
+                            <Check className="h-3 w-3" />
+                            New
+                          </span>
+                        </div>
+                      )}
+                      {isLoadingBanner && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80">
+                          <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {isLoadingBanner && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900/80">
-                      <Loader2 className="h-8 w-8 animate-spin text-cyan-600 dark:text-cyan-400" />
+                    <div className="flex items-center gap-2 mt-2">
+                      {bannerPreview && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRecrop()}
+                          disabled={isLoadingBanner}
+                        >
+                          <Crop className="h-4 w-4" />
+                          Re-crop
+                        </Button>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveBanner()}
+                        className="text-gray-500 dark:text-gray-400"
+                        disabled={isLoadingBanner}
+                      >
+                        <X className="h-4 w-4" />
+                        Remove
+                      </Button>
                     </div>
-                  )}
-                </div>
-                </div>
-              )}
+                  </div>
 
-              {displayBanner && (
-                <div className="flex items-center gap-2">
-                  {bannerPreview && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRecrop()}
-                      disabled={isLoadingBanner}
-                    >
-                      <Crop className="h-4 w-4" />
-                      Re-crop
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleRemoveBanner()}
-                    className="text-gray-500 dark:text-gray-400"
-                    disabled={isLoadingBanner}
-                  >
-                    <X className="h-4 w-4" />
-                    Remove
-                  </Button>
+                  {/* Text overlay controls */}
+                  <div className="lg:w-64 shrink-0 space-y-3 border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <Type className="h-4 w-4" />
+                        Text Overlay
+                      </div>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Experimental</p>
+                    </div>
+                    <div>
+                      <textarea
+                        value={textOverlay.text}
+                        onChange={(e) => setTextOverlay({ ...textOverlay, text: e.target.value })}
+                        placeholder="Add headline or tagline..."
+                        rows={3}
+                        className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent"
+                        maxLength={200}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 dark:text-gray-400">Position</Label>
+                      <div className="flex gap-1 mt-1">
+                        {(['top', 'center', 'bottom'] as const).map((pos) => (
+                          <button
+                            key={pos}
+                            type="button"
+                            onClick={() => setTextOverlay({ ...textOverlay, position: pos })}
+                            className={`flex-1 px-2 py-1.5 text-xs font-medium rounded transition-colors ${
+                              textOverlay.position === pos
+                                ? 'bg-cyan-700 text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-cyan-600'
+                            }`}
+                          >
+                            {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 dark:text-gray-400">Size</Label>
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {(['xs', 'sm', 'md', 'lg', 'xl', '2xl'] as const).map((size) => (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => setTextOverlay({ ...textOverlay, fontSize: size })}
+                            className={`px-2 py-1.5 text-xs font-medium rounded transition-colors ${
+                              textOverlay.fontSize === size
+                                ? 'bg-cyan-700 text-white'
+                                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-cyan-600'
+                            }`}
+                          >
+                            {{ xs: 'XS', sm: 'S', md: 'M', lg: 'L', xl: 'XL', '2xl': '2XL' }[size]}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 dark:text-gray-400">Font</Label>
+                      <select
+                        value={textOverlay.fontFamily}
+                        onChange={(e) => {
+                          const family = e.target.value
+                          loadGoogleFont(family)
+                          setTextOverlay({ ...textOverlay, fontFamily: family })
+                        }}
+                        className="mt-1 w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-cyan-600"
+                      >
+                        {GOOGLE_FONTS.map((f) => (
+                          <option key={f} value={f}>{f}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 dark:text-gray-400">Color</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <BlossomColorPicker
+                          value={{ hue: 0, saturation: 0, alpha: 100, layer: 'outer' as const }}
+                          onChange={(c: { hex?: string }) => {
+                            if (c.hex) setTextOverlay({ ...textOverlay, color: c.hex })
+                          }}
+                          colors={[
+                            '#ffffff', '#000000', '#ef4444', '#f97316', '#eab308',
+                            '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
+                          ]}
+                          coreSize={24}
+                          petalSize={22}
+                        />
+                        <div
+                          className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 shrink-0"
+                          style={{ backgroundColor: textOverlay.color }}
+                        />
+                        <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                          {textOverlay.color}
+                        </span>
+                      </div>
+                    </div>
+                    {textOverlay.text && (
+                      <button
+                        type="button"
+                        onClick={() => setTextOverlay({ ...textOverlay, text: '' })}
+                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 underline"
+                      >
+                        Clear text
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
