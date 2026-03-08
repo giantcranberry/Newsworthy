@@ -179,11 +179,6 @@ export function ReleasePreviewSidebar() {
     }
   }, [fetchPreview])
 
-  // Hide sidebar on submission complete view (preview is shown inline)
-  if (isWizardComplete) {
-    return null
-  }
-
   // Listen for toggle events from WizardHeader
   useEffect(() => {
     const handler = () => setVisible((v) => !v)
@@ -196,7 +191,8 @@ export function ReleasePreviewSidebar() {
     window.dispatchEvent(new CustomEvent('preview-visibility', { detail: { visible, deviceMode: effectiveDevice } }))
   }, [visible, effectiveDevice])
 
-  if (!visible) {
+  // Hide sidebar on submission complete view (preview is shown inline)
+  if (isWizardComplete || !visible) {
     return null
   }
 

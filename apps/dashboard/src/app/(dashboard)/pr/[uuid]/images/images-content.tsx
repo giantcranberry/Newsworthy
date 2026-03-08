@@ -295,7 +295,14 @@ export function ImagesContent({
 
   // Tab state
   const [activeTab, setActiveTabRaw] = useState('social-banner')
-  const setActiveTab = (tab: string) => {
+  const setActiveTab = async (tab: string) => {
+    // Auto-save banner when switching away from social-banner tab
+    if (activeTab === 'social-banner' && tab !== 'social-banner' && (bannerFile || (currentBanner && (
+      bannerFormData.title !== currentBanner.title ||
+      bannerFormData.imgCredits !== currentBanner.imgCredits
+    )))) {
+      await saveBanner()
+    }
     setActiveTabRaw(tab)
     if (tab === 'news-images') {
       sessionStorage.setItem(`images-visited-news-${releaseUuid}`, '1')
@@ -773,7 +780,7 @@ export function ImagesContent({
     }
   }
 
-  const handleContinue = async () => {
+  const saveBanner = async () => {
     setIsLoadingBanner(true)
     setBannerError(null)
 
@@ -793,6 +800,14 @@ export function ImagesContent({
           const data = await response.json()
           throw new Error(data.error || 'Failed to save banner')
         }
+
+        const data = await response.json()
+        if (data.banner) {
+          setCurrentBanner(data.banner)
+          setBannerFormData({ title: data.banner.title || '', imgCredits: data.banner.imgCredits || '' })
+        }
+        setBannerFile(null)
+        setBannerPreview(null)
       } else if (currentBanner && (
         bannerFormData.title !== currentBanner.title ||
         bannerFormData.imgCredits !== currentBanner.imgCredits
@@ -810,13 +825,27 @@ export function ImagesContent({
           const data = await response.json()
           throw new Error(data.error || 'Failed to update banner')
         }
+
+        setCurrentBanner({ ...currentBanner, title: bannerFormData.title, imgCredits: bannerFormData.imgCredits })
       }
 
-      router.push(`/pr/${releaseUuid}/share`)
+      return true
     } catch (err) {
       setBannerError(err instanceof Error ? err.message : 'An error occurred')
+      return false
     } finally {
       setIsLoadingBanner(false)
+    }
+  }
+
+  const handleSaveBanner = async () => {
+    await saveBanner()
+  }
+
+  const handleContinue = async () => {
+    const saved = await saveBanner()
+    if (saved) {
+      router.push(`/pr/${releaseUuid}/share`)
     }
   }
 
@@ -922,11 +951,11 @@ export function ImagesContent({
               {pendingFile && (
                 <div className="border dark:border-gray-700 rounded-lg p-4 bg-blue-50 dark:bg-blue-950/30 space-y-3">
                   {pendingPreview && (
-                    <div className="relative w-full max-w-xs aspect-video rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    <div className="max-w-xs rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                       <img
                         src={pendingPreview}
                         alt="Selected image preview"
-                        className="w-full h-full object-cover"
+                        className="max-w-full max-h-64 object-contain"
                       />
                     </div>
                   )}
@@ -1441,6 +1470,26 @@ export function ImagesContent({
                       className="mt-1"
                       maxLength={128}
                     />
+                  </div>
+
+                  <div>
+                    <Button
+                      type="button"
+                      onClick={handleSaveBanner}
+                      disabled={isLoadingBanner}
+                      className="bg-cyan-700 hover:bg-cyan-800"
+                    >
+                      {isLoadingBanner ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : bannerFile ? (
+                        'Save Banner'
+                      ) : (
+                        'Update Banner'
+                      )}
+                    </Button>
                   </div>
                 </div>
               )}

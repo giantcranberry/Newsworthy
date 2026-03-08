@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
+  transpilePackages: ["@nwai/db"],
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",

@@ -231,9 +231,11 @@ export async function uploadPRImage(
     width = targetWidth
     height = targetHeight
   } else {
-    // Primary image: max 1200x800, preserve aspect ratio
-    processedImage = await image
-      .resize(1200, 800, {
+    // Primary image: max 1200x1200, preserve aspect ratio and orientation.
+    // Use .rotate() to normalize EXIF orientation first, then resize.
+    processedImage = await sharp(file)
+      .rotate()
+      .resize(1200, 1200, {
         fit: 'inside',
         withoutEnlargement: true,
       })
@@ -241,8 +243,8 @@ export async function uploadPRImage(
       .toBuffer()
 
     const processedMetadata = await sharp(processedImage).metadata()
-    width = processedMetadata.width || 1200
-    height = processedMetadata.height || 800
+    width = processedMetadata.width || metadata.width || 1200
+    height = processedMetadata.height || metadata.height || 800
   }
 
   const folder = type === 'banner' ? 'banners' : 'images'
