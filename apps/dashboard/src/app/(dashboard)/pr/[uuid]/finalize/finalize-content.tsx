@@ -1,38 +1,92 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Flag, Loader2, Check, AlertCircle, Clock } from 'lucide-react'
+import { Select } from '@/components/ui/select'
+import { Flag, Loader2, Check, AlertCircle } from 'lucide-react'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
 
-function formatDateForInput(date: Date): string {
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, '0')
-  const d = String(date.getDate()).padStart(2, '0')
-  return `${y}-${m}-${d}`
+const TIMEZONES = [
+  { value: 'America/New_York', label: 'Eastern Time (ET)' },
+  { value: 'America/Chicago', label: 'Central Time (CT)' },
+  { value: 'America/Denver', label: 'Mountain Time (MT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
+  { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
+  { value: 'Pacific/Honolulu', label: 'Hawaii Time (HT)' },
+  { value: 'UTC', label: 'UTC' },
+]
+
+/**
+ * Convert a date string + time string in a given IANA timezone to a UTC Date.
+ */
+function toUTCFromTimezone(date: string, time: string, timezone: string): Date {
+  const localStr = `${date}T${time}:00`
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+  const naive = new Date(localStr)
+  const utcParts = formatter.formatToParts(naive)
+  const get = (type: string) => utcParts.find((p) => p.type === type)?.value || '0'
+  const inTz = new Date(
+    `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`
+  )
+  const offsetMs = inTz.getTime() - naive.getTime()
+  return new Date(naive.getTime() - offsetMs)
 }
 
-function formatTimeForInput(date: Date): string {
-  const h = String(date.getHours()).padStart(2, '0')
-  const m = String(date.getMinutes()).padStart(2, '0')
-  return `${h}:${m}`
+/**
+ * Validate whether a date+time in a timezone is at least 12 hours from now.
+ */
+function validateReleaseDateTime(date: string, time: string, timezone: string): string | null {
+  if (!date || !time) return null
+  const utcDate = toUTCFromTimezone(date, time, timezone)
+  const minDateTime = new Date(Date.now() + 12 * 60 * 60 * 1000)
+  if (utcDate < minDateTime) {
+    return 'Release date must be at least 12 hours from now'
+  }
+  return null
 }
 
-function getMinDate(): string {
-  const d = new Date(Date.now() + 12 * 60 * 60 * 1000)
-  return formatDateForInput(d)
+/**
+ * Format a UTC ISO date string into date/time parts in the given timezone.
+ */
+function formatInTimezone(isoDate: string, timezone: string): { date: string; time: string } {
+  const d = new Date(isoDate)
+  const dateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(d)
+  const h = parts.find((p) => p.type === 'hour')?.value || '09'
+  const m = parts.find((p) => p.type === 'minute')?.value || '00'
+  return { date: dateStr, time: `${h}:${m}` }
 }
 
 interface FinalizeContentProps {
   releaseUuid: string
   releaseTitle: string
   releaseAt: string | null
+  releaseTimezone: string
   distribution: string | null
   initialApprovals: Approval[]
   priorApprovers: PriorApprover[]
@@ -43,6 +97,7 @@ export function FinalizeContent({
   releaseUuid,
   releaseTitle,
   releaseAt,
+  releaseTimezone,
   distribution,
   initialApprovals,
   priorApprovers,
@@ -52,12 +107,29 @@ export function FinalizeContent({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmed, setConfirmed] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dateError, setDateError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  // Release date/time state
-  const initialDate = releaseAt ? new Date(releaseAt) : null
-  const [releaseDateStr, setReleaseDateStr] = useState(initialDate ? formatDateForInput(initialDate) : '')
-  const [releaseTimeStr, setReleaseTimeStr] = useState(initialDate ? formatTimeForInput(initialDate) : '')
+  // Timezone state
+  const [timezone, setTimezone] = useState(releaseTimezone)
+
+  // Release date/time state — display in the release's timezone
+  // If the stored date is < 12 hours out, bump to the nearest hour that is >= 12h out
+  const initial = (() => {
+    if (!releaseAt) return null
+    const parsed = formatInTimezone(releaseAt, releaseTimezone)
+    if (!validateReleaseDateTime(parsed.date, parsed.time, releaseTimezone)) return parsed
+    // Date is too soon — compute the minimum allowed time rounded up to the next hour
+    const minUtc = new Date(Date.now() + 12 * 60 * 60 * 1000)
+    // Round up to the next whole hour
+    if (minUtc.getMinutes() > 0 || minUtc.getSeconds() > 0) {
+      minUtc.setMinutes(0, 0, 0)
+      minUtc.setHours(minUtc.getHours() + 1)
+    }
+    return formatInTimezone(minUtc.toISOString(), releaseTimezone)
+  })()
+  const [releaseDateStr, setReleaseDateStr] = useState(initial?.date || '')
+  const [releaseTimeStr, setReleaseTimeStr] = useState(initial?.time || '')
 
   // Shared approval state — updated by ApprovalSection via callback
   const [approvalList, setApprovalList] = useState<Approval[]>(initialApprovals)
@@ -67,23 +139,25 @@ export function FinalizeContent({
     [approvalList]
   )
 
-  const releaseDateTooSoon = useMemo(() => {
-    if (!releaseDateStr || !releaseTimeStr) return false
-    const selected = new Date(`${releaseDateStr}T${releaseTimeStr}:00`)
-    const twelveHoursFromNow = new Date(Date.now() + 12 * 60 * 60 * 1000)
-    return selected < twelveHoursFromNow
-  }, [releaseDateStr, releaseTimeStr])
-
   const handleSubmit = async () => {
     if (!confirmed) return
+
+    // Re-validate before submit
+    if (releaseDateStr && releaseTimeStr) {
+      const tzError = validateReleaseDateTime(releaseDateStr, releaseTimeStr, timezone)
+      if (tzError) {
+        setDateError(tzError)
+        return
+      }
+    }
 
     setIsSubmitting(true)
     setError(null)
 
     try {
-      const payload: Record<string, any> = {}
+      const payload: Record<string, any> = { timezone }
       if (releaseDateStr && releaseTimeStr) {
-        payload.releaseAt = new Date(`${releaseDateStr}T${releaseTimeStr}:00`).toISOString()
+        payload.releaseAt = toUTCFromTimezone(releaseDateStr, releaseTimeStr, timezone).toISOString()
       }
 
       const response = await fetch(`/api/pr/${releaseUuid}/finalize`, {
@@ -133,7 +207,7 @@ export function FinalizeContent({
   return (
     <div className="space-y-6">
       <WizardHeader
-        title="Finalize"
+        title="Submit"
         description="Submit your press release for editorial review and distribution"
         releaseUuid={releaseUuid}
         currentStep={8}
@@ -147,19 +221,6 @@ export function FinalizeContent({
         priorApprovers={priorApprovers}
         onApprovalsChange={setApprovalList}
       />
-
-      {releaseDateTooSoon && (
-        <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-          <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-amber-800 dark:text-amber-300">
-            <p className="font-medium">Your release date is less than 12 hours away</p>
-            <p className="mt-1 text-amber-700 dark:text-amber-400">
-              The release date will be automatically adjusted to 12 hours from the time of submission to allow for editorial review.
-              If you need to expedite your distribution, please contact support.
-            </p>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-lg">
@@ -194,24 +255,53 @@ export function FinalizeContent({
               {!distribution && 'Standard Distribution'}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Release Date</p>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-wrap items-center gap-2 mt-1">
               <Input
                 type="date"
                 value={releaseDateStr}
-                min={getMinDate()}
-                onChange={(e) => setReleaseDateStr(e.target.value)}
+                onChange={(e) => {
+                  const newDate = e.target.value
+                  setReleaseDateStr(newDate)
+                  setDateError(validateReleaseDateTime(newDate, releaseTimeStr, timezone))
+                }}
                 className="w-auto text-sm h-8"
               />
               <Input
                 type="time"
                 value={releaseTimeStr}
-                onChange={(e) => setReleaseTimeStr(e.target.value)}
+                onChange={(e) => {
+                  const newTime = e.target.value
+                  setReleaseTimeStr(newTime)
+                  setDateError(validateReleaseDateTime(releaseDateStr, newTime, timezone))
+                }}
                 className="w-auto text-sm h-8"
               />
-              {releaseDateTooSoon && (
-                <span className="text-xs text-amber-600 dark:text-amber-400">Will be adjusted to 12h out</span>
-              )}
+              <Select
+                value={timezone}
+                onChange={(e) => {
+                  const newTz = e.target.value
+                  // Convert current date/time from old tz to UTC, then display in new tz
+                  if (releaseDateStr && releaseTimeStr) {
+                    const utc = toUTCFromTimezone(releaseDateStr, releaseTimeStr, timezone)
+                    const converted = formatInTimezone(utc.toISOString(), newTz)
+                    setReleaseDateStr(converted.date)
+                    setReleaseTimeStr(converted.time)
+                    setDateError(validateReleaseDateTime(converted.date, converted.time, newTz))
+                  }
+                  setTimezone(newTz)
+                }}
+                className="w-auto text-sm h-8"
+              >
+                {TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </option>
+                ))}
+              </Select>
             </div>
+            {dateError && (
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">{dateError}</p>
+            )}
           </div>
 
           <div className="border-t dark:border-gray-700 pt-4">
@@ -248,8 +338,8 @@ export function FinalizeContent({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={!confirmed || isSubmitting || hasBlockingApprovals}
-              className={`flex-1 ${confirmed && !hasBlockingApprovals ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
+              disabled={!confirmed || isSubmitting || hasBlockingApprovals || !!dateError}
+              className={`flex-1 ${confirmed && !hasBlockingApprovals && !dateError ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (

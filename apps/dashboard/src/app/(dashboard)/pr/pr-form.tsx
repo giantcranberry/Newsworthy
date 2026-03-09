@@ -195,6 +195,61 @@ function getMinReleaseDateTime() {
   return new Date(Date.now() + 12 * 60 * 60 * 1000);
 }
 
+/**
+ * Convert a date string + time string in a given IANA timezone to a UTC Date.
+ * e.g. toUTCFromTimezone("2026-03-15", "09:00", "America/Los_Angeles")
+ * returns the UTC instant for 9:00 AM Pacific on March 15.
+ */
+function toUTCFromTimezone(date: string, time: string, timezone: string): Date {
+  // Build a locale string that lets us figure out the offset in the target timezone
+  const localStr = `${date}T${time}:00`;
+  // Use Intl to format "now" in the target timezone and extract the offset
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
+  // Strategy: create a Date from the naive string (interpreted as local),
+  // then compute the difference between that timezone and UTC.
+  // We do this by formatting a known instant in the target timezone.
+  const naive = new Date(localStr);
+  const utcParts = formatter.formatToParts(naive);
+  const get = (type: string) =>
+    utcParts.find((p) => p.type === type)?.value || "0";
+  const inTz = new Date(
+    `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}`,
+  );
+  // The offset in ms between what the timezone shows and the naive local parse
+  const offsetMs = inTz.getTime() - naive.getTime();
+  // Subtract the offset to get the actual UTC instant
+  return new Date(naive.getTime() - offsetMs);
+}
+
+/**
+ * Validate whether a date+time in a timezone is at least 12 hours from now.
+ * Returns { error, warning } — error blocks save on new releases or changed dates,
+ * warning is shown for existing releases where the date wasn't changed.
+ */
+function validateReleaseDateTime(
+  date: string,
+  time: string,
+  timezone: string,
+): string | null {
+  if (!date || !time) return null;
+  const utcDate = toUTCFromTimezone(date, time, timezone);
+  const minDateTime = getMinReleaseDateTime();
+  if (utcDate < minDateTime) {
+    return "Release date must be at least 12 hours from now";
+  }
+  return null;
+}
+
 export function PRForm({
   companies: initialCompanies,
   categories = [],
@@ -575,12 +630,35 @@ export function PRForm({
     pullquote: initialData?.pullquote || "",
     location: initialData?.location || "",
     primaryContactId: initialData?.primaryContactId || (selectedCompany?.contacts.length === 1 ? selectedCompany.contacts[0].id : null),
-    releaseDate: initialData?.releaseAt
-      ? new Date(initialData.releaseAt).toISOString().slice(0, 10)
-      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-    releaseTime: initialData?.releaseAt
-      ? new Date(initialData.releaseAt).toISOString().slice(11, 16)
-      : "09:00",
+    releaseDate: (() => {
+      if (!initialData?.releaseAt) {
+        // Default to 12 hours from now in the default timezone
+        const tz = selectedCompany?.timezone || "America/New_York";
+        const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000);
+        return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(minDate);
+      }
+      const tz = initialData?.timezone || "America/New_York";
+      const d = new Date(initialData.releaseAt);
+      return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+    })(),
+    releaseTime: (() => {
+      if (!initialData?.releaseAt) {
+        // Default to 12 hours from now in the default timezone, rounded up to next hour
+        const tz = selectedCompany?.timezone || "America/New_York";
+        const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000);
+        const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(minDate);
+        const h = parts.find(p => p.type === "hour")?.value || "09";
+        // Round up to the next hour for a clean default
+        const nextH = String((parseInt(h, 10) + 1) % 24).padStart(2, "0");
+        return `${nextH}:00`;
+      }
+      const tz = initialData?.timezone || "America/New_York";
+      const d = new Date(initialData.releaseAt);
+      const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d);
+      const h = parts.find(p => p.type === "hour")?.value || "09";
+      const m = parts.find(p => p.type === "minute")?.value || "00";
+      return `${h}:${m}`;
+    })(),
     timezone:
       initialData?.timezone || selectedCompany?.timezone || "America/New_York",
     videoUrl: initialData?.videoUrl || "",
@@ -590,6 +668,14 @@ export function PRForm({
     selectedCategories: initialData?.selectedCategories || [],
     selectedRegions: initialData?.selectedRegions || [],
   });
+
+  // Validate release date on mount when editing an existing release
+  useEffect(() => {
+    if (initialData?.releaseAt && formData.releaseDate && formData.releaseTime) {
+      setDateError(validateReleaseDateTime(formData.releaseDate, formData.releaseTime, formData.timezone));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [previewBody, setPreviewBody] = useState(formData.body);
   const handleEditorChange = useCallback((content: string) => {
@@ -701,17 +787,16 @@ export function PRForm({
   const handleSubmit = async (action: "save" | "submit") => {
     const validationErrors: string[] = [];
 
-    // Validate release date is at least 12 hours from now
+    // Validate release date is at least 12 hours from now (timezone-aware)
     if (formData.releaseDate && formData.releaseTime) {
-      const selectedDateTime = new Date(
-        `${formData.releaseDate}T${formData.releaseTime}`,
+      const tzError = validateReleaseDateTime(
+        formData.releaseDate,
+        formData.releaseTime,
+        formData.timezone,
       );
-      const minDateTime = getMinReleaseDateTime();
-      if (selectedDateTime < minDateTime) {
-        validationErrors.push(
-          "Release date must be at least 12 hours from now",
-        );
-        setDateError("Release date must be at least 12 hours from now");
+      if (tzError) {
+        validationErrors.push(tzError);
+        setDateError(tzError);
       }
     }
 
@@ -721,15 +806,17 @@ export function PRForm({
     try {
       const body = editorRef.current?.getContent() || formData.body;
 
-      // Use valid date or null if invalid
+      // Convert date+time in selected timezone to UTC ISO string
       let releaseAt = null;
       if (formData.releaseDate && formData.releaseTime) {
-        const selectedDateTime = new Date(
-          `${formData.releaseDate}T${formData.releaseTime}`,
+        const utcDate = toUTCFromTimezone(
+          formData.releaseDate,
+          formData.releaseTime,
+          formData.timezone,
         );
         const minDateTime = getMinReleaseDateTime();
-        if (selectedDateTime >= minDateTime) {
-          releaseAt = `${formData.releaseDate}T${formData.releaseTime}`;
+        if (utcDate >= minDateTime) {
+          releaseAt = utcDate.toISOString();
         }
       }
 
@@ -1350,9 +1437,23 @@ export function PRForm({
               <Select
                 id="timezone"
                 value={formData.timezone}
-                onChange={(e) =>
-                  setFormData({ ...formData, timezone: e.target.value })
-                }
+                onChange={(e) => {
+                  const newTz = e.target.value;
+                  // Convert current date/time from old tz to new tz
+                  if (formData.releaseDate && formData.releaseTime) {
+                    const utc = toUTCFromTimezone(formData.releaseDate, formData.releaseTime, formData.timezone);
+                    const d = new Date(utc);
+                    const newDate = new Intl.DateTimeFormat("en-CA", { timeZone: newTz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+                    const parts = new Intl.DateTimeFormat("en-US", { timeZone: newTz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d);
+                    const h = parts.find(p => p.type === "hour")?.value || "09";
+                    const m = parts.find(p => p.type === "minute")?.value || "00";
+                    const newTime = `${h}:${m}`;
+                    setFormData({ ...formData, timezone: newTz, releaseDate: newDate, releaseTime: newTime });
+                    setDateError(validateReleaseDateTime(newDate, newTime, newTz));
+                  } else {
+                    setFormData({ ...formData, timezone: newTz });
+                  }
+                }}
                 className="mt-1"
               >
                 {TIMEZONES.map((tz) => (
@@ -1381,17 +1482,8 @@ export function PRForm({
                 onChange={(e) => {
                   const newDate = e.target.value;
                   setFormData({ ...formData, releaseDate: newDate });
-                  // Validate the combined date/time
-                  const selectedDateTime = new Date(
-                    `${newDate}T${formData.releaseTime}`,
-                  );
-                  if (selectedDateTime < getMinReleaseDateTime()) {
-                    setDateError(
-                      "Release date must be at least 12 hours from now",
-                    );
-                  } else {
-                    setDateError(null);
-                  }
+                  const msg = validateReleaseDateTime(newDate, formData.releaseTime, formData.timezone);
+                  setDateError(msg);
                 }}
                 className="mt-1"
               />
@@ -1405,17 +1497,8 @@ export function PRForm({
                 onChange={(e) => {
                   const newTime = e.target.value;
                   setFormData({ ...formData, releaseTime: newTime });
-                  // Validate the combined date/time
-                  const selectedDateTime = new Date(
-                    `${formData.releaseDate}T${newTime}`,
-                  );
-                  if (selectedDateTime < getMinReleaseDateTime()) {
-                    setDateError(
-                      "Release date must be at least 12 hours from now",
-                    );
-                  } else {
-                    setDateError(null);
-                  }
+                  const msg = validateReleaseDateTime(formData.releaseDate, newTime, formData.timezone);
+                  setDateError(msg);
                 }}
                 className="mt-1"
               />

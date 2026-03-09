@@ -20,7 +20,7 @@ const STEPS: WizardStep[] = [
   { id: 5, name: 'Share', path: '/share', icon: Share2, optional: true },
   { id: 6, name: 'Upgrades', path: '/upgrades', icon: Sparkles },
   { id: 7, name: 'Review', path: '/review', icon: ClipboardCheck },
-  { id: 8, name: 'Finalize', path: '/finalize', icon: Flag },
+  { id: 8, name: 'Submit', path: '/finalize', icon: Flag },
 ]
 
 interface Release {
@@ -90,8 +90,8 @@ function isStepComplete(
       return !!release?.distribution
     case 7: // Review
       return false // Review step is complete when user confirms
-    case 8: // Finalize
-      return false // Finalize is the final step
+    case 8: // Submit
+      return false // Submit is the final step
     default:
       return false
   }

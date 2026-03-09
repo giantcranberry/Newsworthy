@@ -52,6 +52,10 @@ export async function POST(
       }
     }
 
+    if (body.timezone) {
+      updateData.timezone = body.timezone
+    }
+
     await db.update(releases)
       .set(updateData)
       .where(eq(releases.id, release.id))

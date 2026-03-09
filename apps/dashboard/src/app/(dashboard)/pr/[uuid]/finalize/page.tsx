@@ -93,6 +93,7 @@ export default async function FinalizePage({
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
         releaseAt={release.releaseAt?.toISOString() ?? null}
+        releaseTimezone={release.timezone || 'America/New_York'}
         distribution={release.distribution}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
