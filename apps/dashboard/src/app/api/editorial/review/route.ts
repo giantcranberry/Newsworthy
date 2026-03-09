@@ -8,6 +8,7 @@ import { createSystemMessage } from '@/lib/messages'
 import { sendSlackNotification, formatPrStatusMessage } from '@/lib/slack'
 import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/google-chat'
 import { getPostHog } from '@/lib/posthog'
+import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -89,12 +90,12 @@ export async function POST(request: NextRequest) {
           const headline = release.title || 'Untitled'
           let dateStr = 'soon'
           if (release.releaseAt) {
-            const tz = release.timezone || 'America/New_York'
+            const tz = normalizeTimezone(release.timezone)
             dateStr = new Intl.DateTimeFormat('en-US', {
               dateStyle: 'full',
               timeStyle: 'short',
               timeZone: tz,
-            }).format(new Date(release.releaseAt)) + ` (${tz.replace(/_/g, ' ')})`
+            }).format(new Date(release.releaseAt)) + ` (${tzLabel(release.timezone)})`
           }
 
           const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'

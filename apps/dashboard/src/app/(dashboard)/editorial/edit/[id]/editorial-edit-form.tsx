@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
+import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
 import Cropper, { Area } from 'react-easy-crop'
 import {
   Dialog,
@@ -247,6 +248,27 @@ async function getCroppedImgNatural(
   })
 }
 
+/**
+ * Convert a date string + time string in a given IANA timezone to a UTC Date.
+ */
+function toUTCFromTimezone(date: string, time: string, tz: string): Date {
+  const localStr = `${date}T${time}:00`
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false,
+  })
+  const naive = new Date(localStr)
+  const utcParts = formatter.formatToParts(naive)
+  const get = (type: string) => utcParts.find((p) => p.type === type)?.value || '0'
+  const inTz = new Date(
+    `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`
+  )
+  const offsetMs = inTz.getTime() - naive.getTime()
+  return new Date(naive.getTime() - offsetMs)
+}
+
 function resizedUrl(url: string) {
   if (url.includes('RESIZE')) {
     return url.replace('RESIZE', 'resize=width:300')
@@ -281,15 +303,26 @@ export function EditorialEditForm({
   const [publicDrive, setPublicDrive] = useState(release.publicDrive)
   const [primaryContactId, setPrimaryContactId] = useState(release.primaryContactId?.toString() || '')
 
-  // Parse release date/time from ISO
-  const releaseDate = release.releaseAt ? new Date(release.releaseAt) : null
-  const [releaseDateStr, setReleaseDateStr] = useState(
-    releaseDate ? releaseDate.toISOString().slice(0, 10) : ''
-  )
-  const [releaseTimeStr, setReleaseTimeStr] = useState(
-    releaseDate ? releaseDate.toISOString().slice(11, 16) : '06:00'
-  )
-  const [timezone, setTimezone] = useState(release.timezone || company.timezone)
+  // Parse release date/time in the release's timezone (not UTC)
+  const effectiveTimezone = normalizeTimezone(release.timezone || company.timezone)
+  const initialDateTime = (() => {
+    if (!release.releaseAt) return null
+    const d = new Date(release.releaseAt)
+    const dateStr = new Intl.DateTimeFormat('en-CA', {
+      timeZone: effectiveTimezone,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+    }).format(d)
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: effectiveTimezone,
+      hour: '2-digit', minute: '2-digit', hour12: false,
+    }).formatToParts(d)
+    const h = parts.find((p) => p.type === 'hour')?.value || '06'
+    const m = parts.find((p) => p.type === 'minute')?.value || '00'
+    return { date: dateStr, time: `${h}:${m}` }
+  })()
+  const [releaseDateStr, setReleaseDateStr] = useState(initialDateTime?.date || '')
+  const [releaseTimeStr, setReleaseTimeStr] = useState(initialDateTime?.time || '06:00')
+  const [timezone, setTimezone] = useState(effectiveTimezone)
 
   // Determine initial topcat from selected categories
   const initialTopcat = selectedCategoryIds.find((id) =>
@@ -1538,13 +1571,33 @@ export function EditorialEditForm({
               </div>
               <div>
                 <Label htmlFor="timezone">Timezone</Label>
-                <Input
+                <Select
                   id="timezone"
                   value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
+                  onChange={(e) => {
+                    const newTz = e.target.value
+                    // Convert current date/time from old tz to new tz
+                    if (releaseDateStr && releaseTimeStr) {
+                      const utc = toUTCFromTimezone(releaseDateStr, releaseTimeStr, timezone)
+                      const newDate = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: newTz, year: 'numeric', month: '2-digit', day: '2-digit',
+                      }).format(utc)
+                      const parts = new Intl.DateTimeFormat('en-US', {
+                        timeZone: newTz, hour: '2-digit', minute: '2-digit', hour12: false,
+                      }).formatToParts(utc)
+                      const h = parts.find((p) => p.type === 'hour')?.value || '06'
+                      const m = parts.find((p) => p.type === 'minute')?.value || '00'
+                      setReleaseDateStr(newDate)
+                      setReleaseTimeStr(`${h}:${m}`)
+                    }
+                    setTimezone(newTz)
+                  }}
                   className="mt-1"
-                  placeholder="e.g. America/New_York"
-                />
+                >
+                  {TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>{tz.label}</option>
+                  ))}
+                </Select>
               </div>
             </div>
 

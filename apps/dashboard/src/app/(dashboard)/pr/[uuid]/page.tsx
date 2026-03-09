@@ -152,7 +152,7 @@ export default async function PRDetailPage({
         : null,
     ]);
 
-  const isEditorial = release.status === "review" || release.status === "hold";
+  const isEditorial = release.status === "review" || release.status === "hold" || release.status === "approved";
   const canRetract = isEditorial;
 
   // Find topcat (first category that's a top-level category)
@@ -241,10 +241,12 @@ export default async function PRDetailPage({
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-amber-800 dark:text-amber-300">
-                  {release.status === "hold" ? "Editorial Hold" : "In Editorial Review"}
+                  {release.status === "approved" ? "Approved" : release.status === "hold" ? "Editorial Hold" : "In Editorial Review"}
                 </h3>
                 <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                  {release.status === "hold"
+                  {release.status === "approved"
+                    ? "This release has been approved. You can retract it to make changes."
+                    : release.status === "hold"
                     ? "This release has been placed on hold by an editor. You can retract it to make changes."
                     : "This release is awaiting editorial review. You can retract it to make changes."}
                 </p>

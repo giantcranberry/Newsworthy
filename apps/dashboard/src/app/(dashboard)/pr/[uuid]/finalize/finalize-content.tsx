@@ -11,16 +11,7 @@ import { Select } from '@/components/ui/select'
 import { Flag, Loader2, Check, AlertCircle } from 'lucide-react'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
-
-const TIMEZONES = [
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'America/Anchorage', label: 'Alaska Time (AKT)' },
-  { value: 'Pacific/Honolulu', label: 'Hawaii Time (HT)' },
-  { value: 'UTC', label: 'UTC' },
-]
+import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
 
 /**
  * Convert a date string + time string in a given IANA timezone to a UTC Date.

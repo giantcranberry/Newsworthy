@@ -9,6 +9,7 @@ import { ArrowLeft, Shield, ShieldCheck, User } from 'lucide-react'
 import { UserSearchForm } from './search-form'
 import { VerifyButton } from './verify-button'
 import { SendMessageDialog } from './[id]/send-message-dialog'
+import { ActAsButton } from './act-as-button'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
@@ -194,6 +195,12 @@ export default async function AdminUsersPage({
                       <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "users-actions" } : {})}>
                         {isAdmin && (
                           <SendMessageDialog
+                            userId={user.id}
+                            userEmail={user.email}
+                          />
+                        )}
+                        {!user.isAdmin && (
+                          <ActAsButton
                             userId={user.id}
                             userEmail={user.email}
                           />

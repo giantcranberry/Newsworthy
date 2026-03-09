@@ -6,7 +6,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Tag, MapPin, Hand, RotateCcw } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw } from 'lucide-react'
+import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 
 interface ReviewFormProps {
   release: {
@@ -17,6 +18,7 @@ interface ReviewFormProps {
     body: string | null
     status: string | null
     releaseAt: Date | null
+    timezone: string | null
     createdAt: Date | null
     distribution: string | null
     score: number | null
@@ -228,9 +230,29 @@ export function ReviewForm({
                 <Calendar className="h-3.5 w-3.5" />
                 Release Date
               </div>
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {release.releaseAt ? new Date(release.releaseAt).toLocaleDateString() : 'Immediate'}
-              </p>
+              {release.releaseAt ? (() => {
+                const tz = normalizeTimezone(release.timezone)
+                const d = new Date(release.releaseAt)
+                const dateStr = new Intl.DateTimeFormat('en-US', {
+                  timeZone: tz,
+                  month: 'short', day: 'numeric', year: 'numeric',
+                }).format(d)
+                const timeStr = new Intl.DateTimeFormat('en-US', {
+                  timeZone: tz,
+                  hour: 'numeric', minute: '2-digit', hour12: true,
+                }).format(d)
+                return (
+                  <div>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{dateStr}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                      <Clock className="h-3 w-3" />
+                      {timeStr} {tzLabel(release.timezone)}
+                    </p>
+                  </div>
+                )
+              })() : (
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Immediate</p>
+              )}
             </div>
           </div>
           {(categoryNames.length > 0 || regionNames.length > 0) && (

@@ -47,12 +47,25 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Abstract must be between 30 and 350 characters' }, { status: 400 })
     }
 
-    // Build release_at from date + time + timezone
+    // Build release_at from date + time + timezone (timezone-aware UTC conversion)
     let releaseAt: Date | null = null
     if (releaseDate && releaseTime) {
-      // Combine date and time, store as UTC
-      // The client sends date as YYYY-MM-DD and time as HH:MM
-      releaseAt = new Date(`${releaseDate}T${releaseTime}:00`)
+      const tz = timezone || 'America/New_York'
+      const localStr = `${releaseDate}T${releaseTime}:00`
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false,
+      })
+      const naive = new Date(localStr)
+      const utcParts = formatter.formatToParts(naive)
+      const get = (type: string) => utcParts.find((p) => p.type === type)?.value || '0'
+      const inTz = new Date(
+        `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`
+      )
+      const offsetMs = inTz.getTime() - naive.getTime()
+      releaseAt = new Date(naive.getTime() - offsetMs)
     }
 
     // Update release fields

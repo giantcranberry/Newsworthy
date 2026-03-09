@@ -29,9 +29,9 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    if (release.status !== 'review' && release.status !== 'hold') {
+    if (release.status !== 'review' && release.status !== 'hold' && release.status !== 'approved') {
       return NextResponse.json(
-        { error: 'Only releases in editorial review or on hold can be retracted' },
+        { error: 'Only releases in editorial review, on hold, or approved can be retracted' },
         { status: 400 }
       )
     }

@@ -9,7 +9,23 @@ import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink } from "lucide-react
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
 import { CopyUrlButton } from "./copy-url-button";
+import { BrandFilter } from "./brand-filter";
 import { getUserCompanyIds } from "@/lib/team-auth";
+import { normalizeTimezone, tzLabel } from "@/lib/timezones";
+
+function formatReleaseDate(releaseAt: Date | null, tz: string | null) {
+  if (!releaseAt) return 'Immediate'
+  const timezone = normalizeTimezone(tz)
+  const dateStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    month: 'short', day: 'numeric', year: 'numeric',
+  }).format(releaseAt)
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  }).format(releaseAt)
+  return `${dateStr} ${timeStr} ${tzLabel(tz)}`
+}
 
 function getReleaseUrl(release: { releaseAt: Date | null; id: number; slug: string | null }) {
   if (!release.releaseAt) return null;
@@ -88,43 +104,58 @@ function getStatusLabel(status: string) {
 export default async function PressReleasesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; brand?: string }>;
 }) {
-  const { filter } = await searchParams;
+  const { filter, brand } = await searchParams;
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
   const allReleases = await getUserReleases(userId);
   const canCreate = allReleases.some((r) => r.canEdit) || (await getUserCompanyIds(userId, 'collaborator')).length > 0;
 
-  // Filter releases based on query param
-  const userReleases = filter
-    ? allReleases.filter((r) => {
-        switch (filter) {
-          case "drafts":
-            return (
-              r.status === "draftnxt" ||
-              r.status === "draft" ||
-              r.status === "start"
-            );
-          case "review":
-            return r.status === "review";
-          case "published":
-            return r.status === "sent";
-          default:
-            return true;
-        }
-      })
-    : allReleases;
+  // Extract unique brands for filter dropdown
+  const brandMap = new Map<number, string>();
+  allReleases.forEach((r) => {
+    if (r.company?.id && r.company?.companyName) {
+      brandMap.set(r.company.id, r.company.companyName);
+    }
+  });
+  const brands = Array.from(brandMap.entries())
+    .map(([id, name]) => ({ id, name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
+  // Filter releases based on query params
+  const brandId = brand ? parseInt(brand) : null;
+  const userReleases = allReleases.filter((r) => {
+    // Brand filter
+    if (brandId && r.companyId !== brandId) return false;
+    // Status filter
+    if (filter) {
+      switch (filter) {
+        case "drafts":
+          return r.status === "draftnxt" || r.status === "draft" || r.status === "start";
+        case "review":
+          return r.status === "review";
+        case "published":
+          return r.status === "sent";
+        default:
+          return true;
+      }
+    }
+    return true;
+  });
+
+  // Counts respect brand filter
+  const brandFiltered = brandId ? allReleases.filter((r) => r.companyId === brandId) : allReleases;
   const counts = {
-    all: allReleases.length,
-    drafts: allReleases.filter(
+    all: brandFiltered.length,
+    drafts: brandFiltered.filter(
       (r) =>
         r.status === "draftnxt" || r.status === "draft" || r.status === "start",
     ).length,
-    review: allReleases.filter((r) => r.status === "review").length,
-    published: allReleases.filter((r) => r.status === "sent").length,
+    review: brandFiltered.filter((r) => r.status === "review").length,
+    published: brandFiltered.filter((r) => r.status === "sent").length,
   };
+  const brandQs = brand ? `&brand=${brand}` : "";
 
   return (
     <div className="space-y-6">
@@ -145,35 +176,36 @@ export default async function PressReleasesPage({
       </div>
 
       {/* Filters */}
-      <div data-tour="pr-filters" className="flex gap-2">
-        <Link href="/pr">
+      <div data-tour="pr-filters" className="flex items-center gap-2 flex-wrap">
+        <Link href={`/pr${brand ? `?brand=${brand}` : ""}`}>
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
             !filter ? "bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             All ({counts.all})
           </button>
         </Link>
-        <Link href="/pr?filter=drafts">
+        <Link href={`/pr?filter=drafts${brandQs}`}>
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
             filter === "drafts" ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             Drafts ({counts.drafts})
           </button>
         </Link>
-        <Link href="/pr?filter=review">
+        <Link href={`/pr?filter=review${brandQs}`}>
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
             filter === "review" ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             In Review ({counts.review})
           </button>
         </Link>
-        <Link href="/pr?filter=published">
+        <Link href={`/pr?filter=published${brandQs}`}>
           <button className={`inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors ${
             filter === "published" ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400" : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800"
           }`}>
             Published ({counts.published})
           </button>
         </Link>
+        <BrandFilter brands={brands} />
       </div>
 
       {/* Releases List */}
@@ -305,12 +337,10 @@ export default async function PressReleasesPage({
                           Created:{" "}
                           {new Date(release.createdAt!).toLocaleDateString()}
                         </span>
-                        {release.releaseAt && (
-                          <span>
-                            Release:{" "}
-                            {new Date(release.releaseAt).toLocaleDateString()}
-                          </span>
-                        )}
+                        <span>
+                          Release:{" "}
+                          {formatReleaseDate(release.releaseAt, release.timezone)}
+                        </span>
                       </div>
                       {release.status === "sent" && (() => {
                         const url = getReleaseUrl(release);
@@ -346,7 +376,7 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && (release.status === "review" || release.status === "hold") && (
+                      {release.canEdit && (release.status === "review" || release.status === "hold" || release.status === "approved") && (
                         <RetractReleaseButton
                           uuid={release.uuid!}
                           title={release.title}

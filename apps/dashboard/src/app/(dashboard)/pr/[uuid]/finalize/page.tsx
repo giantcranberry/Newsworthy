@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { FinalizeContent } from './finalize-content'
 import { processReleaseEmails } from '@/lib/release-emails'
+import { normalizeTimezone } from '@/lib/timezones'
 
 async function getReleaseWithDetails(uuid: string, userId: number) {
   const release = await db.query.releases.findFirst({
@@ -93,7 +94,7 @@ export default async function FinalizePage({
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
         releaseAt={release.releaseAt?.toISOString() ?? null}
-        releaseTimezone={release.timezone || 'America/New_York'}
+        releaseTimezone={normalizeTimezone(release.timezone)}
         distribution={release.distribution}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}

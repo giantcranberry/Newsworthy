@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 
 interface PendingItem {
   id: number
@@ -37,15 +38,19 @@ function DistributionBadge({ distribution }: { distribution: string | null }) {
   )
 }
 
-function formatDate(iso: string | null) {
-  if (!iso) return 'N/A'
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+function formatReleaseDate(iso: string | null, tz: string | null) {
+  if (!iso) return 'Immediate'
+  const timezone = normalizeTimezone(tz)
+  const d = new Date(iso)
+  const dateStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    month: 'short', day: 'numeric', year: 'numeric',
+  }).format(d)
+  const timeStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    hour: 'numeric', minute: '2-digit', hour12: true,
+  }).format(d)
+  return `${dateStr} ${timeStr} ${tzLabel(tz)}`
 }
 
 export function PendingList({ items }: { items: PendingItem[] }) {
@@ -94,7 +99,7 @@ export function PendingList({ items }: { items: PendingItem[] }) {
             </div>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              For Release {formatDate(item.releaseAt)}
+              For Release {formatReleaseDate(item.releaseAt, item.timezone)}
             </p>
 
             {pullConfirm === item.id ? (

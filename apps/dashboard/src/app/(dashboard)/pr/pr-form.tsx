@@ -112,15 +112,7 @@ Power tip, you can include anchor text by adding your text in brackets before th
 Public Dropbox, Google Drive, Box.com, and other such services can be included in your news release to direct readers to additional information pertaining to your news.`,
 };
 
-const TIMEZONES = [
-  { value: "America/New_York", label: "Eastern Time (ET)" },
-  { value: "America/Chicago", label: "Central Time (CT)" },
-  { value: "America/Denver", label: "Mountain Time (MT)" },
-  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
-  { value: "America/Anchorage", label: "Alaska Time (AKT)" },
-  { value: "Pacific/Honolulu", label: "Hawaii Time (HT)" },
-  { value: "UTC", label: "UTC" },
-];
+import { TIMEZONES, normalizeTimezone } from "@/lib/timezones";
 
 interface Company {
   id: number;
@@ -633,18 +625,18 @@ export function PRForm({
     releaseDate: (() => {
       if (!initialData?.releaseAt) {
         // Default to 12 hours from now in the default timezone
-        const tz = selectedCompany?.timezone || "America/New_York";
+        const tz = normalizeTimezone(selectedCompany?.timezone);
         const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000);
         return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(minDate);
       }
-      const tz = initialData?.timezone || "America/New_York";
+      const tz = normalizeTimezone(initialData?.timezone);
       const d = new Date(initialData.releaseAt);
       return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
     })(),
     releaseTime: (() => {
       if (!initialData?.releaseAt) {
         // Default to 12 hours from now in the default timezone, rounded up to next hour
-        const tz = selectedCompany?.timezone || "America/New_York";
+        const tz = normalizeTimezone(selectedCompany?.timezone);
         const minDate = new Date(Date.now() + 12 * 60 * 60 * 1000);
         const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(minDate);
         const h = parts.find(p => p.type === "hour")?.value || "09";
@@ -652,15 +644,14 @@ export function PRForm({
         const nextH = String((parseInt(h, 10) + 1) % 24).padStart(2, "0");
         return `${nextH}:00`;
       }
-      const tz = initialData?.timezone || "America/New_York";
+      const tz = normalizeTimezone(initialData?.timezone);
       const d = new Date(initialData.releaseAt);
       const parts = new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d);
       const h = parts.find(p => p.type === "hour")?.value || "09";
       const m = parts.find(p => p.type === "minute")?.value || "00";
       return `${h}:${m}`;
     })(),
-    timezone:
-      initialData?.timezone || selectedCompany?.timezone || "America/New_York",
+    timezone: normalizeTimezone(initialData?.timezone || selectedCompany?.timezone),
     videoUrl: initialData?.videoUrl || "",
     landingPage: initialData?.landingPage || "",
     publicDrive: initialData?.publicDrive || "",
