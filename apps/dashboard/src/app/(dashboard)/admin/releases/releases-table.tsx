@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Eye, ArrowUpDown, ArrowUp, ArrowDown, Loader2, Settings, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon, X } from 'lucide-react'
 import { QuickMessage } from './quick-message'
+import { MessageHistory, type MessageHistoryRef } from './message-history'
 
 interface ReleaseRow {
   release: {
@@ -103,6 +104,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
   const [savingReportUrl, setSavingReportUrl] = useState(false)
   const [reportUrlMessage, setReportUrlMessage] = useState('')
   const [lookupError, setLookupError] = useState('')
+  const messageHistoryRef = useRef<MessageHistoryRef>(null)
 
   const handleExpand = async (releaseId: number) => {
     if (expandedId === releaseId) {
@@ -364,7 +366,8 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                         <p className="text-sm text-red-600 dark:text-red-400">{lookupError}</p>
                       )}
                       {lookupResult && (
-                        <div className="space-y-3 max-w-3xl">
+                        <div className="flex gap-4">
+                        <div className="space-y-3 max-w-3xl flex-1 min-w-0">
                           {/* Release detail summary */}
                           <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
                             <div className="flex items-start justify-between gap-4">
@@ -503,7 +506,9 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                   : lookupResult.user.email
                               }
                               userEmail={lookupResult.user.email}
+                              releaseId={lookupResult.release.id}
                               releaseTitle={lookupResult.release.title}
+                              onMessageSent={() => messageHistoryRef.current?.refresh()}
                             />
                           )}
 
@@ -604,6 +609,15 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                               </div>
                             </div>
                           )}
+                        </div>
+
+                        {/* Message History - right column */}
+                        <div className="w-80 flex-shrink-0 hidden lg:block">
+                          <MessageHistory
+                            ref={messageHistoryRef}
+                            releaseId={lookupResult.release.id}
+                          />
+                        </div>
                         </div>
                       )}
                     </td>

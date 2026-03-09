@@ -32,10 +32,12 @@ interface QuickMessageProps {
   userId: number
   userName: string
   userEmail: string
+  releaseId: number
   releaseTitle: string | null
+  onMessageSent?: () => void
 }
 
-export function QuickMessage({ userId, userName, userEmail, releaseTitle }: QuickMessageProps) {
+export function QuickMessage({ userId, userName, userEmail, releaseId, releaseTitle, onMessageSent }: QuickMessageProps) {
   const [cannedMessages, setCannedMessages] = useState<CannedMessage[]>([])
   const [selectedCannedId, setSelectedCannedId] = useState<string>('')
   const [inlineSubject, setInlineSubject] = useState('')
@@ -94,6 +96,7 @@ export function QuickMessage({ userId, userName, userEmail, releaseTitle }: Quic
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           toId: userId,
+          releaseId,
           subject: inlineSubject.trim(),
           body: inlineBody.trim(),
         }),
@@ -104,6 +107,7 @@ export function QuickMessage({ userId, userName, userEmail, releaseTitle }: Quic
         setSelectedCannedId('')
         setInlineSubject('')
         setInlineBody('')
+        onMessageSent?.()
       } else {
         const data = await res.json()
         setSendResult({ type: 'error', text: data.error || 'Failed to send' })
@@ -133,6 +137,7 @@ export function QuickMessage({ userId, userName, userEmail, releaseTitle }: Quic
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           toId: userId,
+          releaseId,
           subject: customSubject.trim(),
           body: customBody.trim(),
         }),
@@ -161,6 +166,7 @@ export function QuickMessage({ userId, userName, userEmail, releaseTitle }: Quic
 
       setSendResult({ type: 'success', text: `Message sent to ${userEmail}` })
       setCustomOpen(false)
+      onMessageSent?.()
     } catch {
       setSendResult({ type: 'error', text: 'Failed to send message' })
     } finally {

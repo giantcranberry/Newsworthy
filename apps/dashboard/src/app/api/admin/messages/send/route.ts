@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { toId, subject, body: messageBody } = body
+  const { toId, subject, body: messageBody, releaseId } = body
 
   if (!toId || !subject?.trim() || !messageBody?.trim()) {
     return NextResponse.json({ error: 'Recipient, subject, and body are required' }, { status: 400 })
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
   const [message] = await db.insert(userMessages).values({
     fromId: adminId,
     toId,
+    releaseId: releaseId || null,
     subject: subject.trim(),
     body: messageBody,
     emailSent,
