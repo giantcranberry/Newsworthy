@@ -56,6 +56,33 @@ export async function getSitemapArticleUrls(year: number, month: number) {
   }));
 }
 
+export async function getRecentArticles(hoursAgo: number = 48) {
+  const query = `
+    SELECT
+      a.article_json->>'headline' AS title,
+      f.id as id,
+      f.published as released_at
+    FROM articles a
+    INNER JOIN feeditem f ON f.id = a.feed_item_id
+    INNER JOIN tldr t ON t.feed_item_id = a.feed_item_id
+    WHERE f.deleted_at IS NULL
+      AND a.target = 'newsworthy.ai'
+      AND f.published >= NOW() - INTERVAL '${hoursAgo} hours'
+      AND f.published <= NOW()
+    ORDER BY f.published DESC
+  `;
+  const result = await runQuery<{
+    id: number;
+    released_at: Date;
+    title: string;
+  }>(query);
+  return result.map(({ title, id, released_at }) => ({
+    title,
+    id,
+    released_at,
+  }));
+}
+
 // Function to get total count of articles
 export async function getArticlesCount(): Promise<number> {
   const query = `

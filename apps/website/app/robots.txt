@@ -19,6 +19,11 @@ Allow:/
 Disallow: /private/
 
 Sitemap: https://www.newsworthy.ai/sitemaps
+Sitemap: https://www.newsworthy.ai/news-sitemap.xml
+
+# A2A Agent Discovery
+# https://google.github.io/A2A/
+Agent-card: https://www.newsworthy.ai/.well-known/agent-card.json
 
 # Block bad robots
 User-agent: asterias

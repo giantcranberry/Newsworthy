@@ -37,6 +37,7 @@ const nextConfig: NextConfig = {
           { key: "X-Robots-Tag", value: "data-ai: yes, index, follow" },
           { key: "X-Llm-Usage", value: "ai-training: allow" },
           { key: "X-Creative-Commons-License", value: "CC BY-NC 4.0" },
+          { key: "Link", value: '<https://www.newsworthy.ai/.well-known/agent-card.json>; rel="agent-card"' },
         ],
       },
     ];
