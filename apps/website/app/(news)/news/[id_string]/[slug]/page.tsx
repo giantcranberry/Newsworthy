@@ -10,6 +10,7 @@ import {
   getDateline,
   newsTranslatedUrl,
   newsUrl,
+  removeHtmlTags,
   replaceResizeWithWidth,
   separateNewsByLanguage,
 } from "@/lib/utils";
@@ -530,8 +531,77 @@ export default async function PressRelease({ searchParams, params }: Props) {
       );
   }
 
+  // Build JSON-LD structured data
+  const jsonLdAuthor: Record<string, unknown> = {
+    "@type": "Organization",
+    name: release.company.companyName,
+  }
+  if (release.company.jsonLd) {
+    const stored = typeof release.company.jsonLd === 'string' ? JSON.parse(release.company.jsonLd) : release.company.jsonLd
+    if (stored.url) jsonLdAuthor.url = stored.url
+    if (stored.logo) jsonLdAuthor.logo = stored.logo
+    if (stored.sameAs) jsonLdAuthor.sameAs = stored.sameAs
+  } else {
+    if (release.company.website) jsonLdAuthor.url = release.company.website
+    if (release.company.logoUrl) jsonLdAuthor.logo = replaceResizeWithWidth(release.company.logoUrl, 400)
+    const sameAs = [release.company.linkedinUrl, release.company.xUrl, release.company.facebookUrl, release.company.instagramUrl, release.company.youtubeUrl].filter(Boolean)
+    if (sameAs.length > 0) jsonLdAuthor.sameAs = sameAs
+  }
+  if (release.primaryContact && (release.primaryContact.phone || release.primaryContact.email)) {
+    const contactPoint: Record<string, string> = {
+      "@type": "ContactPoint",
+      contactType: "Media Contact",
+    }
+    if (release.primaryContact.phone) contactPoint.telephone = release.primaryContact.phone
+    if (release.primaryContact.email) contactPoint.email = release.primaryContact.email
+    jsonLdAuthor.contactPoint = contactPoint
+  }
+
+  const jsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://www.newsworthy.ai${newsUrl(release)}`,
+    },
+    headline: release.title,
+    description: release.abstract,
+    image: {
+      "@type": "ImageObject",
+      url: release.banner?.cdnUrl?.replace("resize=width:328", "resize=width:1200") ?? "",
+      width: 1200,
+      height: 630,
+    },
+    datePublished: release.releasedAt?.toISOString(),
+    dateModified: release.releasedAt?.toISOString(),
+    isAccessibleForFree: "true",
+    author: jsonLdAuthor,
+    publisher: {
+      "@type": "Organization",
+      name: "Newsworthy.ai",
+      url: "https://www.newsworthy.ai",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.newsworthy.ai/logo.svg",
+        width: 256,
+        height: 40,
+      },
+    },
+    copyrightHolder: {
+      "@type": "Organization",
+      name: release.company.companyName,
+    },
+  }
+  if (release.body) {
+    jsonLd.articleBody = removeHtmlTags(release.body)
+  }
+
   return (
     <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
     <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mb-5 lg:my-10 px-5">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
       <article className="lg:col-span-3 flex flex-col gap-6 w-full">
@@ -869,88 +939,6 @@ export default async function PressRelease({ searchParams, params }: Props) {
             )}
           </div>
         </div>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "NewsArticle",
-              headline: release.title,
-              image: {
-                "@type": "ImageObject",
-                url:
-                  release.banner?.cdnUrl?.replace(
-                    "resize=width:328",
-                    "resize=width:1200"
-                  ) ?? "",
-                width: 1200,
-                height: 630,
-              },
-              datePublished: release.releasedAt?.toISOString(),
-              dateModified: release.releasedAt?.toISOString(),
-              author: {
-                "@type": "Organization",
-                name: release.company.companyName,
-              },
-              publisher: {
-                "@type": "Organization",
-                name: "Newsworthy.ai",
-                logo: {
-                  "@type": "ImageObject",
-                  url: "https://newsworthy.ai/logo.png",
-                  width: 600,
-                  height: 60,
-                },
-              },
-              description: release.abstract,
-              mainEntityOfPage: {
-                "@type": "WebPage",
-                "@id": `https://www.newsworthy.ai${newsUrl(release)}`,
-              },
-            }),
-          }}
-        />
-        {(() => {
-          if (release.company.jsonLd) {
-            return (
-              <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{
-                  __html: typeof release.company.jsonLd === 'string'
-                    ? release.company.jsonLd
-                    : JSON.stringify(release.company.jsonLd),
-                }}
-              />
-            )
-          }
-          // Build Organization JSON-LD from newsroom settings
-          const co = release.company
-          const sameAs = [co.linkedinUrl, co.xUrl, co.facebookUrl, co.instagramUrl, co.youtubeUrl].filter(Boolean)
-          const orgLd: Record<string, unknown> = {
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: co.companyName,
-          }
-          if (co.website) orgLd.url = co.website
-          if (co.logoUrl) orgLd.logo = replaceResizeWithWidth(co.logoUrl, 400)
-          if (co.phone) orgLd.telephone = co.phone
-          if (sameAs.length > 0) orgLd.sameAs = sameAs
-          if (co.addr1 || co.city) {
-            const addr: Record<string, string> = { "@type": "PostalAddress" }
-            if (co.addr1) addr.streetAddress = co.addr2 ? `${co.addr1}, ${co.addr2}` : co.addr1
-            if (co.city) addr.addressLocality = co.city
-            if (co.state) addr.addressRegion = co.state
-            if (co.postalCode) addr.postalCode = co.postalCode
-            if (co.countryCode) addr.addressCountry = co.countryCode
-            orgLd.address = addr
-          }
-          return (
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLd) }}
-            />
-          )
-        })()}
       </article>
       <aside className="lg:col-span-1">
         <div className="w-full flex flex-col gap-6">
