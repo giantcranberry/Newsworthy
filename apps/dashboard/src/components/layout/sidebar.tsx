@@ -421,17 +421,16 @@ export function Sidebar({
                       const active = isActive(item.href)
                       const colors = accentColor(item.roles, section.mode)
 
-                      const handleClick = (e: React.MouseEvent) => {
-                        e.preventDefault()
+                      const handleClick = () => {
                         setMode(targetMode)
-                        router.push(item.href)
                       }
 
                       if (collapsed) {
                         return (
                           <Tooltip key={item.href}>
                             <TooltipTrigger asChild>
-                              <button
+                              <Link
+                                href={item.href}
                                 onClick={handleClick}
                                 className={cn(
                                   'flex items-center justify-center h-10 w-full rounded-md transition-colors cursor-pointer',
@@ -441,7 +440,7 @@ export function Sidebar({
                                 )}
                               >
                                 <FaIcon icon={item.icon} className="text-base" />
-                              </button>
+                              </Link>
                             </TooltipTrigger>
                             <TooltipContent side="right">{item.title}</TooltipContent>
                           </Tooltip>
@@ -449,7 +448,8 @@ export function Sidebar({
                       }
                       return (
                         <div key={item.href}>
-                          <button
+                          <Link
+                            href={item.href}
                             onClick={handleClick}
                             className={cn(
                               'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer w-full text-left',
@@ -460,7 +460,7 @@ export function Sidebar({
                           >
                             <FaIcon icon={item.icon} className="w-5 text-center text-base flex-shrink-0" />
                             <span>{item.title}</span>
-                          </button>
+                          </Link>
                         </div>
                       )
                     }

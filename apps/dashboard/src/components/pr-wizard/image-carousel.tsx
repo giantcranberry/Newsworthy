@@ -104,20 +104,19 @@ export function ImageCarousel({ images, compact = false, deviceMode = 'desktop' 
             ))}
           </div>
 
-          {/* Caption overlay */}
-          {currentImage && (currentImage.caption || currentImage.title || currentImage.imgCredits) && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-6 pb-2 pointer-events-none">
-              <figcaption className="text-sm text-white space-y-0.5">
-                {(currentImage.caption || currentImage.title) && (
-                  <p>{currentImage.caption || currentImage.title}</p>
-                )}
-                {currentImage.imgCredits && (
-                  <p className="text-white/70 italic">Photo: {currentImage.imgCredits}</p>
-                )}
-              </figcaption>
-            </div>
-          )}
         </div>
+
+        {/* Caption below image */}
+        {currentImage && (currentImage.caption || currentImage.title || currentImage.imgCredits) && (
+          <figcaption className={cn('text-gray-600 dark:text-gray-400 mt-1.5 space-y-0.5', compact ? 'text-xs' : 'text-sm')}>
+            {(currentImage.caption || currentImage.title) && (
+              <p>{currentImage.caption || currentImage.title}</p>
+            )}
+            {currentImage.imgCredits && (
+              <p className="text-gray-500 dark:text-gray-500 italic">Photo: {currentImage.imgCredits}</p>
+            )}
+          </figcaption>
+        )}
 
         {/* Navigation row: arrows + dots */}
         {hasMultiple && (
