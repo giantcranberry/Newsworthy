@@ -50,7 +50,12 @@ export async function GET(request: Request, { params }: Props) {
 
   if (langCode === "en") {
     langString = "";
-    news = (await getSitemapUrls(year, month)) as unknown as SiteMapData[];
+    const rawNews = (await getSitemapUrls(year, month)) as unknown as SiteMapData[];
+    news = rawNews.map((entry) => ({
+      ...entry,
+      release_datetime: entry.release_datetime instanceof Date ? entry.release_datetime : new Date(entry.release_datetime as unknown as string),
+      released_at: entry.released_at instanceof Date ? entry.released_at : new Date(entry.released_at as unknown as string),
+    }));
   } else if (langCode === "curated-en") {
     const articleData = await getSitemapArticleUrls(year, month);
     news = articleData.map((article) => ({

@@ -50,13 +50,14 @@ export function formatDate(dateString: string): string {
 }
 
 export function sitemapUrl(release: SiteMapData, lang_code: string): string {
-  const releasedAt = release.release_datetime;
+  const raw = release.release_datetime;
 
   // Check if releasedAt is undefined or null
-  if (releasedAt === undefined || releasedAt === null) {
+  if (raw === undefined || raw === null) {
     return "";
   }
 
+  const releasedAt = raw instanceof Date ? raw : new Date(raw);
   const year = releasedAt.getFullYear();
   const month = (releasedAt.getMonth() + 1).toString().padStart(2, "0");
   const day = releasedAt.getDate().toString().padStart(2, "0");

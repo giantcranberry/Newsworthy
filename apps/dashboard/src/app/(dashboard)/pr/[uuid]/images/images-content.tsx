@@ -221,14 +221,16 @@ function fitText(
 async function compositeTextOnBanner(
   imageSrc: string,
   overlay: TextOverlay,
+  proxyUrl: string,
 ): Promise<File> {
   // Ensure the chosen font is available for canvas rendering
   await ensureFontForCanvas(overlay.fontFamily)
 
-  // If it's a remote URL, fetch as blob to avoid CORS issues on canvas
+  // If it's a remote URL, use proxy to avoid CORS issues on canvas
   let src = imageSrc
   if (imageSrc.startsWith('http')) {
-    const res = await fetch(imageSrc)
+    const res = await fetch(proxyUrl)
+    if (!res.ok) throw new Error('Failed to fetch banner image')
     const blob = await res.blob()
     src = URL.createObjectURL(blob)
   }
@@ -1020,7 +1022,7 @@ export function ImagesContent({
           // Composite text onto the image
           const imageSrc = bannerPreview || currentBanner?.url
           if (!imageSrc) throw new Error('No banner image to composite text onto')
-          fileToUpload = await compositeTextOnBanner(imageSrc, textOverlay)
+          fileToUpload = await compositeTextOnBanner(imageSrc, textOverlay, `/api/pr/${releaseUuid}/social/proxy`)
         } else {
           fileToUpload = bannerFile!
         }
