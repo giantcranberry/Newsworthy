@@ -39,6 +39,8 @@ import {
   Monitor,
   Tablet,
   Smartphone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -204,14 +206,28 @@ export function PRForm({
   children,
   creditsByCompany = {},
   userCredits = 0,
-  showPreview = false,
+  showPreview: initialShowPreview = false,
   initialData,
 }: PRFormProps) {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
   const editorRef = useRef<any>(null);
+  const bodyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isEditMode = !!initialData?.uuid;
+  const [showPreview, setShowPreview] = useState(isEditMode ? false : initialShowPreview);
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH);
+
+  // In edit mode, sync preview visibility with the layout's ReleasePreviewSidebar
+  useEffect(() => {
+    if (!isEditMode) return;
+    const handler = (e: Event) => {
+      const { visible } = (e as CustomEvent<{ visible: boolean }>).detail;
+      setShowPreview(visible);
+    };
+    window.addEventListener('preview-visibility', handler);
+    return () => window.removeEventListener('preview-visibility', handler);
+  }, [isEditMode]);
   const previewDevice = useMemo(() => widthToDevice(previewWidth), [previewWidth]);
 
   const handlePreviewResize = useCallback((delta: number) => {
@@ -370,6 +386,7 @@ export function PRForm({
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
         editorRef.current.setContent(data.body);
+        setPreviewBody(data.body);
       }
 
       setShowImportDialog(false);
@@ -433,6 +450,7 @@ export function PRForm({
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
         editorRef.current.setContent(data.body);
+        setPreviewBody(data.body);
       }
 
       setShowImportDialog(false);
@@ -532,6 +550,7 @@ export function PRForm({
       // Update TinyMCE editor if it exists
       if (editorRef.current && data.body) {
         editorRef.current.setContent(data.body);
+        setPreviewBody(data.body);
       }
 
       setShowAIDraftDialog(false);
@@ -571,6 +590,14 @@ export function PRForm({
     selectedCategories: initialData?.selectedCategories || [],
     selectedRegions: initialData?.selectedRegions || [],
   });
+
+  const [previewBody, setPreviewBody] = useState(formData.body);
+  const handleEditorChange = useCallback((content: string) => {
+    if (bodyTimerRef.current) clearTimeout(bodyTimerRef.current);
+    bodyTimerRef.current = setTimeout(() => {
+      setPreviewBody(content);
+    }, 150);
+  }, []);
 
   const handleCategoryChange = (categoryId: number) => {
     setFormData((prev) => {
@@ -755,8 +782,8 @@ export function PRForm({
   };
 
   return (
-    <div className={showPreview ? "flex gap-6" : ""}>
-    <div className={showPreview ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
+    <div className={showPreview && !isEditMode ? "flex gap-6" : ""}>
+    <div className={showPreview && !isEditMode ? "flex-1 min-w-0 -mt-6" : "-mt-6"}>
       {/* Sticky Action Bar */}
       <div data-tour="pr-create-action-bar" className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 -mx-6 px-6 py-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -767,6 +794,21 @@ export function PRForm({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (isEditMode) {
+                  window.dispatchEvent(new CustomEvent('toggle-preview'));
+                } else {
+                  setShowPreview((v) => !v);
+                }
+              }}
+              className="hidden xl:inline-flex cursor-pointer gap-2"
+            >
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPreview ? 'Hide Preview' : 'Preview'}
+            </Button>
             <Button
               variant="outline"
               onClick={() => router.back()}
@@ -1449,6 +1491,7 @@ export function PRForm({
             apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
             onInit={(evt, editor) => (editorRef.current = editor)}
             initialValue={formData.body}
+            onEditorChange={handleEditorChange}
             init={{
               height: 800,
               menubar: false,
@@ -1478,6 +1521,50 @@ export function PRForm({
                 isDark
                   ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #1a1a2e; color: #e0e0e0; }'
                   : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
+              setup: (editor: any) => {
+                editor.on('init', () => {
+                  const body = editor.getBody();
+                  body.addEventListener('paste', (e: ClipboardEvent) => {
+                    const html = e.clipboardData?.getData('text/html');
+                    if (html) {
+                      e.preventDefault();
+                      e.stopImmediatePropagation();
+                      const parser = new DOMParser();
+                      const doc = parser.parseFromString(html, 'text/html');
+
+                      // Convert Google Docs bold spans to <strong>
+                      doc.querySelectorAll('span').forEach((span) => {
+                        const fw = span.style.fontWeight;
+                        if (fw === 'bold' || fw === '700' || Number(fw) >= 700) {
+                          const strong = document.createElement('strong');
+                          strong.innerHTML = span.innerHTML;
+                          span.replaceWith(strong);
+                        }
+                      });
+                      // Convert italic spans to <em>
+                      doc.querySelectorAll('span').forEach((span) => {
+                        if (span.style.fontStyle === 'italic') {
+                          const em = document.createElement('em');
+                          em.innerHTML = span.innerHTML;
+                          span.replaceWith(em);
+                        }
+                      });
+                      // Strip remaining spans (unwrap children)
+                      doc.querySelectorAll('span').forEach((span) => {
+                        span.replaceWith(...Array.from(span.childNodes));
+                      });
+                      // Strip all inline styles from elements so prose classes take over
+                      doc.querySelectorAll('*').forEach((el) => {
+                        (el as HTMLElement).removeAttribute('style');
+                        (el as HTMLElement).removeAttribute('class');
+                        (el as HTMLElement).removeAttribute('id');
+                      });
+
+                      editor.insertContent(doc.body.innerHTML);
+                    }
+                  }, true);
+                });
+              },
               branding: false,
             }}
           />
@@ -1938,8 +2025,8 @@ export function PRForm({
       </div>
     </div>
 
-    {/* Live Preview Sidebar */}
-    {showPreview && (
+    {/* Live Preview Sidebar (create mode only — edit mode uses layout's ReleasePreviewSidebar) */}
+    {showPreview && !isEditMode && (
       <div className="hidden xl:block shrink-0 -mt-6 -mr-6 -mb-6" style={{ width: previewWidth }}>
         <div data-tour="pr-create-preview" className="sticky top-0 h-screen flex">
           <ResizeHandle onResize={handlePreviewResize} />
@@ -1979,7 +2066,7 @@ export function PRForm({
               release={{
                 title: formData.title,
                 abstract: formData.abstract,
-                body: formData.body,
+                body: previewBody,
                 pullquote: formData.pullquote,
                 location: formData.location,
                 videoUrl: formData.videoUrl,
