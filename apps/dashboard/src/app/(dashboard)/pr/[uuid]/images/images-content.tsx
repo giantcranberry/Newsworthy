@@ -43,7 +43,7 @@ import {
   Search,
   Type,
 } from 'lucide-react'
-import { BlossomColorPicker } from '@dayflow/blossom-color-picker-react'
+import { ColorInputField } from '@/components/color-input-field'
 
 interface ImageRecord {
   id: number
@@ -575,6 +575,11 @@ export function ImagesContent({
       loadGoogleFont(textOverlay.fontFamily)
     }
   }, [textOverlay.fontFamily])
+
+  // Broadcast text overlay to live preview sidebar
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('text-overlay-update', { detail: textOverlay }))
+  }, [textOverlay])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1556,7 +1561,7 @@ export function ImagesContent({
                   </div>
 
                   {/* Text overlay controls */}
-                  <div className="lg:w-64 shrink-0 space-y-3 border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                  <div className="lg:w-96 shrink-0 space-y-3 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
                     <div>
                       <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                         <Type className="h-4 w-4" />
@@ -1629,28 +1634,11 @@ export function ImagesContent({
                       </select>
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 dark:text-gray-400">Color</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <BlossomColorPicker
-                          value={{ hue: 0, saturation: 0, alpha: 100, layer: 'outer' as const }}
-                          onChange={(c: { hex?: string }) => {
-                            if (c.hex) setTextOverlay({ ...textOverlay, color: c.hex })
-                          }}
-                          colors={[
-                            '#ffffff', '#000000', '#ef4444', '#f97316', '#eab308',
-                            '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6', '#ec4899',
-                          ]}
-                          coreSize={24}
-                          petalSize={22}
-                        />
-                        <div
-                          className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600 shrink-0"
-                          style={{ backgroundColor: textOverlay.color }}
-                        />
-                        <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-                          {textOverlay.color}
-                        </span>
-                      </div>
+                      <ColorInputField
+                        label="Color"
+                        value={textOverlay.color}
+                        onChange={(hex) => setTextOverlay({ ...textOverlay, color: hex })}
+                      />
                     </div>
                     {textOverlay.text && (
                       <button
