@@ -3,6 +3,7 @@ import { releases, queue } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import type { Message, SkillResult, AuthContext } from '../types'
+import { sendSmsNotification } from '@/lib/twilio'
 
 function parseUuid(message: Message): string | null {
   for (const part of message.parts) {
@@ -68,6 +69,9 @@ export async function submitRelease(message: Message, auth: AuthContext): Promis
       .set({ submitted: new Date(), approved: null, returned: null })
       .where(eq(queue.releaseId, release.id))
   }
+
+  // SMS notification (non-blocking)
+  sendSmsNotification(`PR submitted for review: "${release.title}"`)
 
   return {
     artifacts: [{

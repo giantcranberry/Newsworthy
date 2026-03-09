@@ -5,6 +5,7 @@ import { releases, queue } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
+import { sendSmsNotification } from '@/lib/twilio'
 
 export async function POST(
   request: NextRequest,
@@ -71,6 +72,9 @@ export async function POST(
         .set({ submitted: new Date(), approved: null, returned: null, checkedout: null, editorId: null, editorName: '' })
         .where(eq(queue.releaseId, release.id))
     }
+
+    // SMS notification (non-blocking)
+    sendSmsNotification(`PR submitted for review: "${release.title}"`)
 
     getPostHog().capture({
       distinctId: String(userId),

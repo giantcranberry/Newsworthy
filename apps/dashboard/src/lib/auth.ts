@@ -9,6 +9,7 @@ import { db } from '@/db'
 import { users, userProfiles, partners, partnerManagers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { addPersonToFolk } from '@/lib/folk'
+import { sendSmsNotification } from '@/lib/twilio'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
 export const IMPERSONATE_ADMIN_COOKIE = 'impersonate_admin_id'
@@ -243,6 +244,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               firstName: firstName || undefined,
               lastName: lastName || undefined,
             })
+
+            // SMS notification (non-blocking)
+            sendSmsNotification(`New account registered: ${user.name} (${email}) via ${account.provider}`)
           }
         }
       }

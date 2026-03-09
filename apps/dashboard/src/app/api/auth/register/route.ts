@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/email'
 import { addPersonToFolk } from '@/lib/folk'
 import { getPostHog } from '@/lib/posthog'
+import { sendSmsNotification } from '@/lib/twilio'
 
 export async function POST(request: Request) {
   try {
@@ -108,6 +109,9 @@ export async function POST(request: Request) {
       firstName: firstName.trim(),
       lastName: (lastName || '').trim() || undefined,
     })
+
+    // SMS notification (non-blocking)
+    sendSmsNotification(`New account registered: ${firstName.trim()} ${(lastName || '').trim()} (${normalizedEmail})`)
 
     const posthog = getPostHog()
     const distinctId = String(newUser.id)
