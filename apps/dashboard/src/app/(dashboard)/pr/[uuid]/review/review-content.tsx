@@ -604,7 +604,7 @@ export function ReviewContent({
         currentStep={7}
         onSubmit={handleContinue}
         canProceed={requiredComplete}
-        submitLabel="Continue to Finalize"
+        submitLabel="Continue to Submit"
       />
       {children}
 
