@@ -540,15 +540,17 @@ export default async function PressRelease({ searchParams, params }: Props) {
     "@type": "Organization",
     name: release.company.companyName,
   }
+  const authorProfileUrl = `https://www.newsworthy.ai/newsroom/${release.company.nrUri || release.company.uuid}`
+  jsonLdAuthor.url = authorProfileUrl
   if (release.company.jsonLd) {
     const stored = typeof release.company.jsonLd === 'string' ? JSON.parse(release.company.jsonLd) : release.company.jsonLd
-    if (stored.url) jsonLdAuthor.url = stored.url
     if (stored.logo) jsonLdAuthor.logo = stored.logo
-    if (stored.sameAs) jsonLdAuthor.sameAs = stored.sameAs
+    const storedSameAs = Array.isArray(stored.sameAs) ? stored.sameAs : []
+    if (stored.url) storedSameAs.push(stored.url)
+    if (storedSameAs.length > 0) jsonLdAuthor.sameAs = storedSameAs
   } else {
-    if (release.company.website) jsonLdAuthor.url = release.company.website
     if (release.company.logoUrl) jsonLdAuthor.logo = replaceResizeWithWidth(release.company.logoUrl, 400)
-    const sameAs = [release.company.linkedinUrl, release.company.xUrl, release.company.facebookUrl, release.company.instagramUrl, release.company.youtubeUrl].filter(Boolean)
+    const sameAs = [release.company.website, release.company.linkedinUrl, release.company.xUrl, release.company.facebookUrl, release.company.instagramUrl, release.company.youtubeUrl].filter(Boolean)
     if (sameAs.length > 0) jsonLdAuthor.sameAs = sameAs
   }
   if (release.primaryContact && (release.primaryContact.phone || release.primaryContact.email)) {
@@ -568,7 +570,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
       "@type": "WebPage",
       "@id": `https://www.newsworthy.ai${newsUrl(release)}`,
     },
-    headline: release.title,
+    headline: release.title && release.title.length > 100 ? release.title.substring(0, 97) + '...' : release.title,
     description: release.abstract,
     image: {
       "@type": "ImageObject",

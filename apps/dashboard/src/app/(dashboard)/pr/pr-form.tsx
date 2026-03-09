@@ -75,7 +75,7 @@ interface BrandableChunk {
 }
 
 const HELP_TEXT = {
-  headline: `Your Headline is the most read part of your press release. Be creative but not deceptive. Your headline must have between 30 and 120 Alphanumeric Characters. Use "Title Case" (AVOID ALL CAPS).`,
+  headline: `Your Headline is the most read part of your press release. Be creative but not deceptive. Headlines are limited to 100 characters to ensure they display properly in Google News, search results, and news syndication feeds. Use "Title Case" (AVOID ALL CAPS).`,
 
   abstract: `The second most read portion of your press release. Your abstract gets syndicated and appears alongside your headline in news readers and news apps.`,
 
@@ -592,9 +592,43 @@ export function PRForm({
     });
   };
 
+  function formatPhoneNumber(value: string): string {
+    // Strip everything except digits and leading +
+    const hasPlus = value.startsWith('+')
+    const digits = value.replace(/\D/g, '')
+
+    if (!digits) return hasPlus ? '+' : ''
+
+    // International: starts with + or has country code other than 1
+    if (hasPlus && !digits.startsWith('1')) {
+      // Format as +CC XXXX XXXX (just add + prefix, let user space it)
+      return '+' + digits
+    }
+
+    // US/Canada: format as (XXX) XXX-XXXX
+    const usDigits = digits.startsWith('1') ? digits.substring(1) : digits
+    if (usDigits.length <= 3) return `(${usDigits}`
+    if (usDigits.length <= 6) return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3)}`
+    return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3, 6)}-${usDigits.slice(6, 10)}`
+  }
+
+  function isValidPhone(value: string): boolean {
+    if (!value.trim()) return true // optional field
+    const digits = value.replace(/\D/g, '')
+    // International: 7-15 digits (E.164)
+    if (value.startsWith('+')) return digits.length >= 7 && digits.length <= 15
+    // US domestic: 10 digits
+    return digits.length === 10 || (digits.length === 11 && digits.startsWith('1'))
+  }
+
   const handleCreateContact = async () => {
     if (!contactForm.name.trim()) {
       setContactError("Contact name is required");
+      return;
+    }
+
+    if (contactForm.phone && !isValidPhone(contactForm.phone)) {
+      setContactError("Please enter a valid phone number. US: (555) 123-4567, International: +44 20 7946 0958");
       return;
     }
 
@@ -1195,19 +1229,21 @@ export function PRForm({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              placeholder="Enter your press release headline (30-180 characters)"
+              placeholder="Enter your press release headline (max 100 characters)"
               className="mt-1"
               rows={2}
-              maxLength={180}
+              maxLength={100}
             />
             <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-              {formData.title.length}/180 characters
-              {formData.title.length > 60 && (
+              {formData.title.length}/100 characters
+              {formData.title.length > 60 && formData.title.length <= 100 && (
                 <span className="text-amber-600 ml-2">
-                  Warning: Headlines over 60 characters may be truncated in
-                  search results
+                  Tip: Headlines under 60 characters perform best in search results
                 </span>
               )}
+            </p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-500">
+              Headlines are limited to 100 characters for optimal display in Google News and syndication feeds.
             </p>
           </div>
 
@@ -1847,13 +1883,27 @@ export function PRForm({
                   id="contactPhone"
                   type="tel"
                   value={contactForm.phone}
-                  onChange={(e) =>
-                    setContactForm({ ...contactForm, phone: e.target.value })
-                  }
-                  placeholder="(555) 123-4567"
+                  onChange={(e) => {
+                    const raw = e.target.value
+                    // Allow + at start for international, otherwise format
+                    if (raw.startsWith('+')) {
+                      setContactForm({ ...contactForm, phone: '+' + raw.slice(1).replace(/[^\d\s-]/g, '') })
+                    } else {
+                      setContactForm({ ...contactForm, phone: formatPhoneNumber(raw) })
+                    }
+                  }}
+                  placeholder="(555) 123-4567 or +44 20 7946 0958"
                   className="mt-1"
                   maxLength={30}
                 />
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-500">
+                  US: (555) 123-4567 &middot; International: +country code then number
+                </p>
+                {contactForm.phone && !isValidPhone(contactForm.phone) && (
+                  <p className="mt-0.5 text-xs text-red-500">
+                    Enter a valid US number (10 digits) or international number (+country code)
+                  </p>
+                )}
               </div>
             </div>
             <div className="flex justify-end gap-2 p-4 border-t border-gray-100 dark:border-gray-800">

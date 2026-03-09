@@ -47,6 +47,26 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
   const [isDeletingContact, setIsDeletingContact] = useState(false)
   const [deleteContactError, setDeleteContactError] = useState<string | null>(null)
 
+  function formatPhoneNumber(value: string): string {
+    const hasPlus = value.startsWith('+')
+    const digits = value.replace(/\D/g, '')
+    if (!digits) return hasPlus ? '+' : ''
+    if (hasPlus && !digits.startsWith('1')) {
+      return '+' + digits
+    }
+    const usDigits = digits.startsWith('1') ? digits.substring(1) : digits
+    if (usDigits.length <= 3) return `(${usDigits}`
+    if (usDigits.length <= 6) return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3)}`
+    return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3, 6)}-${usDigits.slice(6, 10)}`
+  }
+
+  function isValidPhone(value: string): boolean {
+    if (!value.trim()) return true
+    const digits = value.replace(/\D/g, '')
+    if (value.startsWith('+')) return digits.length >= 7 && digits.length <= 15
+    return digits.length === 10 || (digits.length === 11 && digits.startsWith('1'))
+  }
+
   const openAddContact = () => {
     setEditingContact(null)
     setContactForm({ name: '', title: '', email: '', phone: '', avatar: '' })
@@ -102,6 +122,10 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
   }
 
   const handleSaveContact = async () => {
+    if (contactForm.phone && !isValidPhone(contactForm.phone)) {
+      setContactError('Please enter a valid phone number. US: (555) 123-4567, International: +44 20 7946 0958')
+      return
+    }
     setIsSavingContact(true)
     setContactError(null)
 
@@ -384,10 +408,28 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
               <Label htmlFor="contact-phone">Phone</Label>
               <Input
                 id="contact-phone"
+                type="tel"
                 value={contactForm.phone}
-                onChange={(e) => setContactForm((f) => ({ ...f, phone: e.target.value }))}
+                onChange={(e) => {
+                  const raw = e.target.value
+                  if (raw.startsWith('+')) {
+                    setContactForm((f) => ({ ...f, phone: '+' + raw.slice(1).replace(/[^\d\s-]/g, '') }))
+                  } else {
+                    setContactForm((f) => ({ ...f, phone: formatPhoneNumber(raw) }))
+                  }
+                }}
+                placeholder="(555) 123-4567 or +44 20 7946 0958"
                 className="mt-1"
+                maxLength={30}
               />
+              <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-500">
+                US: (555) 123-4567 &middot; International: +country code then number
+              </p>
+              {contactForm.phone && !isValidPhone(contactForm.phone) && (
+                <p className="mt-0.5 text-xs text-red-500">
+                  Enter a valid US number (10 digits) or international number (+country code)
+                </p>
+              )}
             </div>
           </div>
 
