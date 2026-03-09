@@ -5,6 +5,14 @@ import { cn } from '@/lib/utils'
 import { ImageCarousel } from './image-carousel'
 import { InstagramEmbed } from './instagram-embed'
 
+function hexLuminance(hex: string): number {
+  const c = hex.replace('#', '')
+  const r = parseInt(c.substring(0, 2), 16) / 255
+  const g = parseInt(c.substring(2, 4), 16) / 255
+  const b = parseInt(c.substring(4, 6), 16) / 255
+  return 0.299 * r + 0.587 * g + 0.114 * b
+}
+
 export interface PreviewPanelProps {
   release?: {
     title?: string | null
@@ -19,6 +27,13 @@ export interface PreviewPanelProps {
     companyName?: string | null
   }
   banner?: { url: string; caption?: string | null } | null
+  textOverlay?: {
+    text: string
+    position: 'top' | 'center' | 'bottom'
+    fontSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+    color: string
+    fontFamily: string
+  } | null
   images?: { id: number; url: string; title?: string | null; caption?: string | null; imgCredits?: string | null }[]
   faqs?: { question: string; answer: string }[]
   compact?: boolean
@@ -60,6 +75,7 @@ export function PreviewPanel({
   release,
   company,
   banner,
+  textOverlay,
   images,
   faqs,
   compact = false,
@@ -79,6 +95,35 @@ export function PreviewPanel({
             className="object-cover"
             unoptimized
           />
+          {textOverlay?.text && (
+            <div
+              className="absolute inset-x-0 flex items-center justify-center px-4 pointer-events-none"
+              style={{
+                top: textOverlay.position === 'top' ? '6%' : textOverlay.position === 'center' ? '50%' : undefined,
+                bottom: textOverlay.position === 'bottom' ? '6%' : undefined,
+                transform: textOverlay.position === 'center' ? 'translateY(-50%)' : undefined,
+              }}
+            >
+              <div
+                className="rounded px-3 py-1.5"
+                style={{
+                  backgroundColor: hexLuminance(textOverlay.color) > 0.5 ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.45)',
+                }}
+              >
+                <p
+                  className="text-center font-bold leading-tight whitespace-pre-line"
+                  style={{
+                    color: textOverlay.color,
+                    fontSize: { xs: '0.4em', sm: '0.5em', md: '0.65em', lg: '0.8em', xl: '1em', '2xl': '1.2em' }[textOverlay.fontSize],
+                    fontFamily: textOverlay.fontFamily === 'sans-serif' ? 'sans-serif' : `"${textOverlay.fontFamily}", sans-serif`,
+                    textShadow: `0 1px 3px ${hexLuminance(textOverlay.color) > 0.5 ? '#000000' : '#ffffff'}80`,
+                  }}
+                >
+                  {textOverlay.text}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

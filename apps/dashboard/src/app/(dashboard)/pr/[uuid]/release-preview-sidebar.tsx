@@ -11,6 +11,14 @@ const MIN_WIDTH = 300
 const MAX_WIDTH = 900
 const DEFAULT_WIDTH = 375
 
+interface TextOverlayData {
+  text: string
+  position: 'top' | 'center' | 'bottom'
+  fontSize: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+  color: string
+  fontFamily: string
+}
+
 interface PreviewImage {
   id: number
   url: string
@@ -59,6 +67,7 @@ export function ReleasePreviewSidebar() {
 
   const [data, setData] = useState<PreviewData | null>(null)
   const [visible, setVisible] = useState(false)
+  const [textOverlay, setTextOverlay] = useState<TextOverlayData | null>(null)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const scrollRef = useRef<HTMLDivElement>(null)
   const pendingHighlightText = useRef<string | null>(null)
@@ -186,6 +195,16 @@ export function ReleasePreviewSidebar() {
     return () => window.removeEventListener('toggle-preview', handler)
   }, [])
 
+  // Listen for text overlay updates from the images page
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const overlay = (e as CustomEvent<TextOverlayData>).detail
+      setTextOverlay(overlay?.text ? overlay : null)
+    }
+    window.addEventListener('text-overlay-update', handler)
+    return () => window.removeEventListener('text-overlay-update', handler)
+  }, [])
+
   // Broadcast visibility + device mode so other components can adapt
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('preview-visibility', { detail: { visible, deviceMode: effectiveDevice } }))
@@ -247,6 +266,7 @@ export function ReleasePreviewSidebar() {
                 companyName: data.companyName,
               } : undefined}
               banner={data.bannerUrl ? { url: data.bannerUrl } : null}
+              textOverlay={textOverlay}
               images={data.images?.length > 0 ? data.images : undefined}
               faqs={data.faqs?.length > 0 ? data.faqs : undefined}
               compact
