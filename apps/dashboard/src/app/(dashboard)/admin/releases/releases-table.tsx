@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Eye, ArrowUpDown, ArrowUp, ArrowDown, Loader2, Settings, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon, X } from 'lucide-react'
+import { QuickMessage } from './quick-message'
 
 interface ReleaseRow {
   release: {
@@ -490,6 +491,20 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                 </Link>
                               </div>
                             </div>
+                          )}
+
+                          {/* Quick Message */}
+                          {lookupResult.user && (
+                            <QuickMessage
+                              userId={lookupResult.user.id}
+                              userName={
+                                lookupResult.user.firstName || lookupResult.user.lastName
+                                  ? [lookupResult.user.firstName, lookupResult.user.lastName].filter(Boolean).join(' ')
+                                  : lookupResult.user.email
+                              }
+                              userEmail={lookupResult.user.email}
+                              releaseTitle={lookupResult.release.title}
+                            />
                           )}
 
                           {/* Distribution Upgrade - Admin Only */}

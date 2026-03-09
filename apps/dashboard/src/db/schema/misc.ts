@@ -91,6 +91,7 @@ export const cannedMsgs = pgTable('canned_msgs', {
   id: serial('id').primaryKey(),
   route: varchar('route', { length: 32 }).notNull(),
   handle: varchar('handle', { length: 64 }).notNull(),
+  subject: varchar('subject', { length: 255 }),
   msg: text('msg').notNull(),
   createdBy: integer('created_by').notNull(),
 })
