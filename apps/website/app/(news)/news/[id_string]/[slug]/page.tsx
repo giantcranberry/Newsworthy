@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import { ShareButtons } from "@/components/share-buttons";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { db, eq, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations } from '@/lib/db';
@@ -793,6 +794,16 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <p>{release.pullquote}</p>
                 </blockquote>
               )}
+              <div className="flex items-center justify-end gap-1.5 mt-3">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">Share</span>
+                <div className="w-px h-4 bg-gray-200" />
+                <ShareButtons
+                  url={`https://www.newsworthy.ai${newsUrl(release)}`}
+                  title={release.title}
+                  abstract={release.abstract}
+                  compact
+                />
+              </div>
             </div>
           )}
 
@@ -922,6 +933,13 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   </div>
                 )}
               </div>
+            </div>
+            <div className="my-6 py-4 border-t border-gray-200">
+              <ShareButtons
+                url={`https://www.newsworthy.ai${newsUrl(release)}`}
+                title={release.title}
+                abstract={release.abstract}
+              />
             </div>
             {recent && recent.length > 0 ? (
               <div>
