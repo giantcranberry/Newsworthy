@@ -201,6 +201,10 @@ export async function generateMetadata({
       creator: "@NewsworthyAI",
       images: [cdn_url],
     },
+    other: {
+      "syndication-source": `https://www.newsworthy.ai${canonicalURL}`,
+      "original-source": `https://www.newsworthy.ai${canonicalURL}`,
+    },
   };
 }
 
@@ -600,7 +604,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
     <>
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd, null, 2) }}
     />
     <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mb-5 lg:my-10 px-5">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
@@ -765,7 +769,16 @@ export default async function PressRelease({ searchParams, params }: Props) {
         />
 
         <div>
-          <p className="text-base mb-3">{dateline.replace("\u2014", "").trim()}</p>
+          <p className="text-base mb-3">
+            {(() => {
+              const text = dateline.replace("\u2014", "").trim()
+              const nwMatch = text.match(/^(.*?\()Newsworthy\.ai(\).*)$/)
+              if (nwMatch) {
+                return <>{nwMatch[1]}<Link href="https://www.newsworthy.ai" className="text-sky-600 hover:underline">Newsworthy.ai</Link>{nwMatch[2]}</>
+              }
+              return text
+            })()}
+          </p>
 
           {/* Image carousel + pullquote floated right */}
           {(carouselImages.length > 0 || release.pullquote) && (
@@ -853,7 +866,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
                         )}
                       </>
                     )}
-                    <p className="text-sm font-medium text-gray-700 mt-1">{release.company.companyName}</p>
+                    <Link href={`/newsroom/${release.company.nrUri || release.company.uuid}`} className="text-sm font-medium text-sky-700 hover:underline mt-1 block">{release.company.companyName}</Link>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
                       {release.primaryContact?.phone && (
                         <Link href={`tel:${release.primaryContact.phone}`} className="text-sky-600 hover:underline">

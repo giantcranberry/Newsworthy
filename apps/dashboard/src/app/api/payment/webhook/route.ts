@@ -7,6 +7,7 @@ import type { PaymentLinkProduct } from '@/db/schema/payment'
 import { getStripe, getWebhookSecret } from '@/lib/stripe'
 import type Stripe from 'stripe'
 import { createSystemMessage } from '@/lib/messages'
+import { getPostHog } from '@/lib/posthog'
 
 export async function POST(request: NextRequest) {
   const stripe = await getStripe()
@@ -135,6 +136,18 @@ export async function POST(request: NextRequest) {
           console.error('[Webhook] Failed to create system message for payment:', err)
         }
 
+        getPostHog().capture({
+          distinctId: String(userId),
+          event: 'payment_completed',
+          properties: {
+            payment_intent_id: paymentIntentId,
+            amount_cents: paymentIntent.amount,
+            cart_uuid: cartUuid,
+            partner_id: partnerId,
+            item_count: claimed.length,
+          },
+        })
+
         console.log(`[Webhook] Fulfilled ${claimed.length} cart items for user ${userId}`)
         break
       }
@@ -222,6 +235,17 @@ async function handleGuestPayment(
     receiptUrl,
     paidVia: 'guest_link',
     createdAt: new Date(),
+  })
+
+  getPostHog().capture({
+    distinctId: String(agencyUserId),
+    event: 'guest_payment_completed',
+    properties: {
+      payment_intent_id: paymentIntent.id,
+      amount_cents: paymentIntent.amount,
+      company_id: companyId,
+      product_count: products_list.length,
+    },
   })
 
   console.log(`[Webhook] Guest payment fulfilled for agency user ${agencyUserId}, link ${token}`)

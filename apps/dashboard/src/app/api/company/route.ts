@@ -5,6 +5,7 @@ import { company } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import slugify from 'slugify'
+import { getPostHog } from '@/lib/posthog'
 
 // Create a slug for newsroom URL
 function createNrUri(name: string): string {
@@ -72,9 +73,23 @@ export async function POST(request: NextRequest) {
       nrUri,
     }).returning()
 
+    getPostHog().capture({
+      distinctId: String(userId),
+      event: 'company_created',
+      properties: {
+        company_id: newCompany.id,
+        company_uuid: newCompany.uuid,
+        company_name: companyName,
+        has_website: !!website,
+        has_logo: !!logoUrl,
+        country_code: countryCode || null,
+      },
+    })
+
     return NextResponse.json({ uuid: newCompany.uuid, id: newCompany.id })
   } catch (error) {
     console.error('Error creating company:', error)
+    getPostHog().captureException(error, String(userId))
     return NextResponse.json(
       { error: 'Failed to create company' },
       { status: 500 }

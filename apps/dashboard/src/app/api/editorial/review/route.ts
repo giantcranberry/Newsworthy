@@ -7,6 +7,7 @@ import { sendEmail } from '@/lib/email'
 import { createSystemMessage } from '@/lib/messages'
 import { sendSlackNotification, formatPrStatusMessage } from '@/lib/slack'
 import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/google-chat'
+import { getPostHog } from '@/lib/posthog'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -153,6 +154,18 @@ export async function POST(request: NextRequest) {
         console.error('Failed to send approval notification:', err)
       }
 
+      getPostHog().capture({
+        distinctId: String(editorId),
+        event: 'press_release_approved',
+        properties: {
+          release_id: releaseId,
+          queue_id: queueId,
+          score: score ? parseInt(score, 10) : null,
+          distribution,
+          is_featured: feature || false,
+        },
+      })
+
       return NextResponse.json({ success: true, action: 'approved' })
 
     } else if (action === 'hold') {
@@ -194,6 +207,16 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error('[Slack/GChat] hold notification error:', err)
       }
+
+      getPostHog().capture({
+        distinctId: String(editorId),
+        event: 'press_release_held',
+        properties: {
+          release_id: releaseId,
+          queue_id: queueId,
+          has_notes: !!(notes && notes.trim()),
+        },
+      })
 
       return NextResponse.json({ success: true, action: 'hold' })
 
@@ -237,6 +260,16 @@ export async function POST(request: NextRequest) {
         console.error('[Slack/GChat] reject notification error:', err)
       }
 
+      getPostHog().capture({
+        distinctId: String(editorId),
+        event: 'press_release_rejected',
+        properties: {
+          release_id: releaseId,
+          queue_id: queueId,
+          has_notes: !!(notes && notes.trim()),
+        },
+      })
+
       return NextResponse.json({ success: true, action: 'rejected' })
 
     } else {
@@ -245,6 +278,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error processing review:', error)
+    getPostHog().captureException(error)
     return NextResponse.json(
       { error: 'Failed to process review' },
       { status: 500 }

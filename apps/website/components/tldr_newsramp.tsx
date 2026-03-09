@@ -54,7 +54,7 @@ const TldrComponent: React.FC<TldrComponentProps> = ({ url }) => {
     if (!tldrData) return null;
 
     return (
-        <section className="bg-yellow-700/5 rounded-lg px-5 py-5 prose max-w-none prose-h3:my-0 prose-a:text-sm prose-a:text-slate-700 prose-a:my-0 prose-img:my-0 marker:prose-ul:text-slate-900 prose-ul:list-inside">
+        <aside role="note" aria-label="Executive Summary" className="bg-yellow-700/5 rounded-lg px-5 py-5 prose max-w-none prose-h3:my-0 prose-a:text-sm prose-a:text-slate-700 prose-a:my-0 prose-img:my-0 marker:prose-ul:text-slate-900 prose-ul:list-inside">
             <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5">
                 <h3>Key Takeaways (TLDR)</h3>
                 {tldrData.newsramp_url && (
@@ -80,7 +80,7 @@ const TldrComponent: React.FC<TldrComponentProps> = ({ url }) => {
                 <li key="methodical_tldr">{tldrData.tldr[0].methodical}</li>
                 <li key="spontaneous_tldr">{tldrData.tldr[0].spontaneous}</li>
             </ul>
-        </section>
+        </aside>
     );
 };
 

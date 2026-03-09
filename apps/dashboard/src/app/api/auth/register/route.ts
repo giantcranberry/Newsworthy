@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
 import { sendVerificationEmail } from '@/lib/email'
 import { addPersonToFolk } from '@/lib/folk'
+import { getPostHog } from '@/lib/posthog'
 
 export async function POST(request: Request) {
   try {
@@ -108,9 +109,29 @@ export async function POST(request: Request) {
       lastName: (lastName || '').trim() || undefined,
     })
 
+    const posthog = getPostHog()
+    const distinctId = String(newUser.id)
+    posthog.identify({
+      distinctId,
+      properties: {
+        email: normalizedEmail,
+        name: `${firstName.trim()} ${(lastName || '').trim()}`.trim(),
+        $set_once: { first_seen: new Date().toISOString() },
+      },
+    })
+    posthog.capture({
+      distinctId,
+      event: 'user_registered',
+      properties: {
+        reg_method: 'email',
+        partner_id: validPartnerId,
+      },
+    })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Registration error:', error)
+    getPostHog().captureException(error)
     return NextResponse.json(
       { error: 'Failed to create account' },
       { status: 500 }

@@ -10,6 +10,7 @@ import {
 import { eq, and, isNull, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
+import { getPostHog } from "@/lib/posthog";
 
 // Check if user has credits (either for specific company or user-level)
 // Uses net balance (sum of all credits including deductions) rather than filtering by prId
@@ -211,9 +212,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    getPostHog().capture({
+      distinctId: String(userId),
+      event: 'press_release_created',
+      properties: {
+        release_uuid: newRelease.uuid,
+        release_id: newRelease.id,
+        company_id: companyId,
+        has_video: !!videoUrl,
+        has_landing_page: !!landingPage,
+        category_count: allCategories.length,
+        region_count: selectedRegions?.length ?? 0,
+      },
+    })
+
     return NextResponse.json({ uuid: newRelease.uuid, id: newRelease.id });
   } catch (error) {
     console.error("Error creating release:", error);
+    getPostHog().captureException(error, String(userId))
     return NextResponse.json(
       { error: "Failed to create release" },
       { status: 500 },

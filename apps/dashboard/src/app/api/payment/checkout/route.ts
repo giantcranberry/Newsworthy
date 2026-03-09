@@ -6,6 +6,7 @@ import { eq, and, inArray } from "drizzle-orm";
 import { getStripe } from "@/lib/stripe";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { getPostHog } from "@/lib/posthog";
 
 export async function POST(request: NextRequest) {
   const stripe = await getStripe();
@@ -120,9 +121,22 @@ export async function POST(request: NextRequest) {
       })
       .where(eq(cartSessions.id, cartSession.id));
 
+    getPostHog().capture({
+      distinctId: String(userId),
+      event: 'checkout_initiated',
+      properties: {
+        cart_session_id: cartSession.id,
+        product_count: selectedProducts.length,
+        product_ids: productIds,
+        subtotal_cents: subtotal,
+        partner_id: partnerId,
+      },
+    })
+
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     console.error("Error creating checkout session:", error);
+    getPostHog().captureException(error, String(userId))
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 },

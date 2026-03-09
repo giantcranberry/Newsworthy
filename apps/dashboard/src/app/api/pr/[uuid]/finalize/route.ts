@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { releases, queue } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
+import { getPostHog } from '@/lib/posthog'
 
 export async function POST(
   request: NextRequest,
@@ -71,9 +72,21 @@ export async function POST(
         .where(eq(queue.releaseId, release.id))
     }
 
+    getPostHog().capture({
+      distinctId: String(userId),
+      event: 'press_release_submitted',
+      properties: {
+        release_uuid: release.uuid,
+        release_id: release.id,
+        company_id: release.companyId,
+        is_resubmission: !!existingQueue,
+      },
+    })
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error finalizing release:', error)
+    getPostHog().captureException(error, String(userId))
     return NextResponse.json(
       { error: 'Failed to submit release' },
       { status: 500 }

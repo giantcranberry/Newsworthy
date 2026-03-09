@@ -4,6 +4,7 @@ import { users, verify } from '@/db/schema'
 import { eq, and, gt } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { encode } from 'next-auth/jwt'
+import { getPostHog } from '@/lib/posthog'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -74,9 +75,25 @@ export async function GET(request: NextRequest) {
       path: '/',
     })
 
+    const posthog = getPostHog()
+    const distinctId = String(user.id)
+    posthog.identify({
+      distinctId,
+      properties: {
+        email: user.email,
+        $set: { email_verified: true },
+      },
+    })
+    posthog.capture({
+      distinctId,
+      event: 'email_verified',
+      properties: { method: 'email_link' },
+    })
+
     return NextResponse.redirect(new URL('/dashboard', request.url))
   } catch (error) {
     console.error('Email verification error:', error)
+    getPostHog().captureException(error)
     return NextResponse.redirect(new URL('/login?error=server_error', request.url))
   }
 }

@@ -1,6 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { getPostHog } from '@/lib/posthog'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -145,12 +146,25 @@ export async function POST(request: Request) {
     // Generate draft with AI
     const result = await generateDraftWithAI(input, categories, regions, sourceUrl, sourceContent)
 
+    getPostHog().capture({
+      distinctId: String(session.user.id),
+      event: 'ai_draft_generated',
+      properties: {
+        has_source_url: !!sourceUrl,
+        has_source_content: !!sourceContent,
+        has_manual_input: !!hasInput,
+        category_count: categories.length,
+        region_count: regions.length,
+      },
+    })
+
     return NextResponse.json({
       success: true,
       ...result,
     })
   } catch (error) {
     console.error('[API] Error generating draft:', error)
+    getPostHog().captureException(error, String(session.user.id))
     const errorMessage = error instanceof Error ? error.message : 'Failed to generate draft'
     return NextResponse.json({ error: errorMessage }, { status: 500 })
   }
