@@ -245,13 +245,15 @@ export function ColorInputField({
                 {label && <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{label}</span>}
                 <p className="text-xs text-gray-400">{colorCount} colors auto-distributed</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 text-xl leading-none hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 active:bg-gray-300 cursor-pointer transition-colors"
-              >
-                &times;
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-gray-500 text-xl leading-none hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 active:bg-gray-300 cursor-pointer transition-colors"
+                >
+                  &times;
+                </button>
+              </div>
             </div>
 
             {/* Bloom picker */}
@@ -323,11 +325,21 @@ export function ColorInputField({
                     <button
                       type="button"
                       onClick={clearCustomPalette}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors whitespace-nowrap"
+                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors whitespace-nowrap cursor-pointer"
                     >
                       Reset
                     </button>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange("#ffffff");
+                      clearCustomPalette();
+                    }}
+                    className="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors whitespace-nowrap"
+                  >
+                    Default
+                  </button>
                 </div>
                 {customPalette && (
                   <p className="text-[10px] text-gray-400">
