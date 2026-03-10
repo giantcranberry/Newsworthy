@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
-import { Globe, User, Archive, Trash2, CheckCheck, Loader2, Inbox, ChevronDown, ChevronUp, Reply, Send } from 'lucide-react'
+import { Globe, User, Archive, Trash2, CheckCheck, Circle, Loader2, Inbox, ChevronDown, ChevronUp, Reply, Send } from 'lucide-react'
 
 interface InboxMessage {
   id: number
@@ -51,7 +51,7 @@ export function InboxList() {
     fetchMessages()
   }, [fetchMessages])
 
-  const handleAction = async (id: number, type: 'global' | 'user', action: 'read' | 'archive' | 'delete') => {
+  const handleAction = async (id: number, type: 'global' | 'user', action: 'read' | 'unread' | 'archive' | 'delete') => {
     const key = `${type}-${id}-${action}`
     setActionLoading(key)
 
@@ -289,7 +289,7 @@ export function InboxList() {
                             Reply
                           </Button>
                         )}
-                        {!msg.isRead && (
+                        {!msg.isRead ? (
                           <Button
                             variant="outline"
                             size="sm"
@@ -299,6 +299,17 @@ export function InboxList() {
                           >
                             {isActionLoading('read') ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCheck className="h-3 w-3" />}
                             Mark Read
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => { e.stopPropagation(); handleAction(msg.id, msg.type, 'unread') }}
+                            disabled={isActionLoading('unread')}
+                            className="gap-1 text-xs"
+                          >
+                            {isActionLoading('unread') ? <Loader2 className="h-3 w-3 animate-spin" /> : <Circle className="h-3 w-3" />}
+                            Mark Unread
                           </Button>
                         )}
                         {!msg.isArchived && (

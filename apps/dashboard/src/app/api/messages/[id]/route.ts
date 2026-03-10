@@ -23,7 +23,7 @@ export async function PATCH(
   }
 
   const body = await request.json()
-  const { action, type } = body as { action: 'read' | 'archive' | 'delete'; type: 'global' | 'user' }
+  const { action, type } = body as { action: 'read' | 'unread' | 'archive' | 'delete'; type: 'global' | 'user' }
 
   if (!action || !type) {
     return NextResponse.json({ error: 'Action and type are required' }, { status: 400 })
@@ -33,6 +33,7 @@ export async function PATCH(
     // Upsert into global_message_reads
     const updates: Record<string, any> = {}
     if (action === 'read') updates.readAt = new Date()
+    if (action === 'unread') updates.readAt = null
     if (action === 'archive') {
       updates.isArchived = true
       if (!updates.readAt) updates.readAt = new Date()
@@ -59,6 +60,10 @@ export async function PATCH(
     if (action === 'read') {
       updates.isRead = true
       updates.readAt = new Date()
+    }
+    if (action === 'unread') {
+      updates.isRead = false
+      updates.readAt = null
     }
     if (action === 'archive') {
       updates.isArchived = true

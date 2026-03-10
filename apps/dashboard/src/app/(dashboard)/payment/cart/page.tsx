@@ -44,7 +44,7 @@ async function getCartItems(cartUuid: string, userId: number) {
 async function getUserCompanies(userId: number) {
   // Owned companies
   const owned = await db.query.company.findMany({
-    where: and(eq(company.userId, userId), eq(company.isDeleted, false)),
+    where: and(eq(company.userId, userId), eq(company.isDeleted, false), eq(company.isArchived, false)),
   })
 
   // Team companies where user is brand_admin (can purchase credits)
@@ -62,7 +62,7 @@ async function getUserCompanies(userId: number) {
   let shared: typeof owned = []
   if (sharedIds.length > 0) {
     shared = await db.query.company.findMany({
-      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false)),
+      where: and(inArray(company.id, sharedIds), eq(company.isDeleted, false), eq(company.isArchived, false)),
     })
   }
 

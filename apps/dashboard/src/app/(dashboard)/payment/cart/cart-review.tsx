@@ -40,7 +40,7 @@ interface CartReviewProps {
 export function CartReview({ cartUuid, items, companies, total, userEmail, isAgency }: CartReviewProps) {
   const router = useRouter()
   const [companyId, setCompanyId] = useState<string>(
-    companies.length === 1 ? companies[0].id.toString() : ''
+    companies.length === 1 ? companies[0].id.toString() : '0'
   )
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -186,17 +186,13 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
               value={companyId}
               onChange={(e) => setCompanyId(e.target.value)}
             >
-              <option value="">Select a destination...</option>
-              <option value="0">My Personal Account</option>
+              <option value="0">My Account</option>
               {companies.map((co) => (
                 <option key={co.id} value={co.id.toString()}>
-                  {co.companyName}
+                  Brand: {co.companyName}
                 </option>
               ))}
             </Select>
-            {companyId === '' && (
-              <p className="text-sm text-amber-600 mt-2">Please select where to allocate these credits before proceeding.</p>
-            )}
           </CardContent>
         </Card>
       )}
@@ -209,7 +205,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
           )}
           <Button
             onClick={handleProceedToPayment}
-            disabled={loading || (companies.length > 0 && companyId === '')}
+            disabled={loading}
             className="w-full bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             size="lg"
           >
@@ -246,7 +242,7 @@ export function CartReview({ cartUuid, items, companies, total, userEmail, isAge
                   )}
                   <Button
                     onClick={handleGenerateLink}
-                    disabled={linkLoading || (companies.length > 0 && companyId === '')}
+                    disabled={linkLoading}
                     variant="outline"
                     className="w-full"
                     size="lg"
