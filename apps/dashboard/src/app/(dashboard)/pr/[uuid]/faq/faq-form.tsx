@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
-import { Loader2, Sparkles, RefreshCw, HelpCircle, Check } from 'lucide-react'
+import { Loader2, Sparkles, RefreshCw, HelpCircle, Check, Trash2 } from 'lucide-react'
 
 interface Faq {
   question: string
@@ -25,6 +25,7 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
   const [faqs, setFaqs] = useState<Faq[]>(existingFaqs)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -91,6 +92,28 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
   const handleSubmit = async () => {
     if (!hasFaqs) return false
     return await saveFaqs()
+  }
+
+  const handleDeleteAll = async () => {
+    setIsDeleting(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/faq`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ faqs: [] }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete FAQs')
+      }
+      setFaqs([])
+      window.dispatchEvent(new Event('preview-refresh'))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   return (
@@ -189,14 +212,14 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
             <Button
               variant="outline"
               onClick={handleGenerate}
-              disabled={isGenerating || isSaving}
+              disabled={isGenerating || isSaving || isDeleting}
             >
               <RefreshCw className="h-4 w-4" />
               Regenerate
             </Button>
             <Button
               onClick={saveFaqs}
-              disabled={isSaving}
+              disabled={isSaving || isDeleting}
               className="bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700"
             >
               {isSaving ? (
@@ -212,6 +235,21 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
               ) : (
                 'Save FAQs'
               )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirm('Delete all FAQs for this release?')) handleDeleteAll()
+              }}
+              disabled={isSaving || isDeleting}
+              className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Delete All
             </Button>
           </div>
         </div>

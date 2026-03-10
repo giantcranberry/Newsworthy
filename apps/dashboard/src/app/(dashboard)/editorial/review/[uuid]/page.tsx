@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company, users, releaseCategories, releaseRegions, category, region, releaseNotes } from '@/db/schema'
-import { eq, desc } from 'drizzle-orm'
+import { releases, queue, company, users, releaseCategories, releaseRegions, category, region, releaseNotes, banners, images, releaseImages, releaseFaqs } from '@/db/schema'
+import { eq, desc, asc } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import { ReviewForm } from './review-form'
 
@@ -12,11 +12,14 @@ async function getReleaseForReview(uuid: string) {
       queue: queue,
       company: company,
       user: users,
+      bannerUrl: banners.url,
+      companyLogoUrl: company.logoUrl,
     })
     .from(releases)
     .innerJoin(queue, eq(queue.releaseId, releases.id))
     .innerJoin(company, eq(releases.companyId, company.id))
     .innerJoin(users, eq(releases.userId, users.id))
+    .leftJoin(banners, eq(releases.bannerId, banners.id))
     .where(eq(releases.uuid, uuid))
     .limit(1)
 
@@ -45,11 +48,37 @@ async function getReleaseForReview(uuid: string) {
     .where(eq(releaseNotes.prId, releaseData.release.id))
     .orderBy(desc(releaseNotes.createdAt))
 
+  // Get release images
+  const releaseImgs = await db
+    .select({
+      id: images.id,
+      url: images.url,
+      title: images.title,
+      caption: images.caption,
+      imgCredits: images.imgCredits,
+    })
+    .from(releaseImages)
+    .innerJoin(images, eq(releaseImages.imageId, images.id))
+    .where(eq(releaseImages.releaseId, releaseData.release.id))
+    .orderBy(asc(releaseImages.sortOrder))
+
+  // Get FAQs
+  const faqs = await db
+    .select({
+      question: releaseFaqs.question,
+      answer: releaseFaqs.answer,
+    })
+    .from(releaseFaqs)
+    .where(eq(releaseFaqs.prId, releaseData.release.id))
+    .orderBy(asc(releaseFaqs.sortOrder))
+
   return {
     ...releaseData,
     categoryNames: categories.map(c => c.name).filter(Boolean),
     regionNames: regions.map(r => r.name).filter(Boolean),
     releaseNotes: notes,
+    releaseImgs,
+    faqs,
   }
 }
 
@@ -89,6 +118,10 @@ export default async function EditorialReviewPage({ params }: PageProps) {
         editorId={editorId}
         editorName={editorName}
         releaseNotes={data.releaseNotes}
+        bannerUrl={data.bannerUrl}
+        companyLogoUrl={data.companyLogoUrl}
+        images={data.releaseImgs}
+        faqs={data.faqs}
       />
     </div>
   )

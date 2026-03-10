@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw } from 'lucide-react'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
+import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
 
 interface ReviewFormProps {
   release: {
@@ -16,6 +17,9 @@ interface ReviewFormProps {
     title: string | null
     abstract: string | null
     body: string | null
+    pullquote: string | null
+    location: string | null
+    videoUrl: string | null
     status: string | null
     releaseAt: Date | null
     timezone: string | null
@@ -44,6 +48,10 @@ interface ReviewFormProps {
   editorId: number
   editorName: string
   releaseNotes: { id: number; note: string | null; fromName: string | null; createdAt: Date | null }[]
+  bannerUrl: string | null
+  companyLogoUrl: string | null
+  images: { id: number; url: string; title: string | null; caption: string | null; imgCredits: string | null }[]
+  faqs: { question: string; answer: string }[]
 }
 
 export function ReviewForm({
@@ -56,6 +64,10 @@ export function ReviewForm({
   editorId,
   editorName,
   releaseNotes,
+  bannerUrl,
+  companyLogoUrl,
+  images,
+  faqs,
 }: ReviewFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -312,23 +324,24 @@ export function ReviewForm({
       )}
 
       {/* Content Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{release.title || 'Untitled Release'}</CardTitle>
-          {release.abstract && (
-            <CardDescription className="text-base text-gray-700 dark:text-gray-300">{release.abstract}</CardDescription>
-          )}
-        </CardHeader>
-        <CardContent>
-          {release.body ? (
-            <div
-              className="prose prose-sm prose-gray max-w-none prose-a:text-cyan-800 dark:text-cyan-400"
-              dangerouslySetInnerHTML={{ __html: release.body }}
-            />
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400 italic">No content</p>
-          )}
-        </CardContent>
+      <Card className="overflow-hidden">
+        <PreviewPanel
+          release={{
+            title: release.title,
+            abstract: release.abstract,
+            body: release.body,
+            pullquote: release.pullquote,
+            location: release.location,
+            videoUrl: release.videoUrl,
+          }}
+          company={{
+            logoUrl: companyLogoUrl,
+            companyName: company.companyName,
+          }}
+          banner={bannerUrl ? { url: bannerUrl } : null}
+          images={images.length > 0 ? images : undefined}
+          faqs={faqs.length > 0 ? faqs : undefined}
+        />
       </Card>
 
       {/* Review Actions */}
