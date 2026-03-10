@@ -330,7 +330,7 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                   <div className="flex items-center gap-3 min-w-0">
                     {result.brand.logoUrl ? (
                       <img
-                        src={result.brand.logoUrl.includes('RESIZE') ? result.brand.logoUrl.replace('RESIZE', 'resize=width:200') : result.brand.logoUrl}
+                        src={result.brand.logoUrl.includes('RESIZE') ? result.brand.logoUrl.replace('RESIZE', 'resize=width:200/output=format:png') : result.brand.logoUrl}
                         alt={result.brand.companyName}
                         className="h-9 w-9 rounded-lg object-contain bg-gray-50 dark:bg-gray-950 flex-shrink-0"
                       />

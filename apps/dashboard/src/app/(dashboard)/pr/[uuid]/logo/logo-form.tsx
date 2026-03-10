@@ -194,7 +194,7 @@ export function LogoForm({ releaseUuid, currentLogoUrl, companyName, children }:
                     </span>
                   </div>
                 )}
-                <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border dark:border-gray-700">
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden bg-white border dark:border-gray-700">
                   <Image
                     src={displayUrl}
                     alt={`${companyName} logo`}

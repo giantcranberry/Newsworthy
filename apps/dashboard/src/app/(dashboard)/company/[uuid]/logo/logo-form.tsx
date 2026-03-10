@@ -129,7 +129,7 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
       <CardContent>
         {readOnly ? (
           logoUrl ? (
-            <div className="h-32 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-3">
+            <div className="h-32 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-800 bg-white flex items-center justify-center p-3">
               <img src={logoUrl} alt="Logo" className="max-h-20 w-auto object-contain" />
             </div>
           ) : (
@@ -156,8 +156,8 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
             <div
               className={`relative h-32 rounded-xl border-2 border-dashed transition-all ${
                 isDragging
-                  ? 'border-cyan-700 bg-gray-50 dark:bg-gray-950 scale-[1.02]'
-                  : 'border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 hover:border-cyan-600 hover:bg-cyan-800/5'
+                  ? 'border-cyan-700 bg-white scale-[1.02]'
+                  : 'border-gray-300 dark:border-gray-700 bg-white hover:border-cyan-600 hover:bg-cyan-800/5'
               }`}
             >
               {isUploadingLogo ? (

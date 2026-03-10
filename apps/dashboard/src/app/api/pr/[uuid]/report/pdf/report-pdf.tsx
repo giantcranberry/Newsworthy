@@ -332,7 +332,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
 
   const companyLogoSrc = company.logoUrl
     ? company.logoUrl.includes('cdn.filestac')
-      ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300')
+      ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300/output=format:png')
       : company.logoUrl
     : null
   const validCompanyLogo = companyLogoSrc ? isValidPdfImageUrl(companyLogoSrc) : false

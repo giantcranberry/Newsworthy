@@ -242,7 +242,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <div className="flex items-center">
           {company.logoUrl && (
             <img
-              src={company.logoUrl.includes('cdn.filestac') ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300') : company.logoUrl}
+              src={company.logoUrl.includes('cdn.filestac') ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300/output=format:png') : company.logoUrl}
               alt={company.companyName}
               className="max-h-[60px] max-w-[150px] object-contain mr-6"
             />
@@ -861,7 +861,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       {company.logoUrl && (
         <div className="flex justify-center py-6 print:hidden">
           <img
-            src={company.logoUrl.includes('cdn.filestac') ? company.logoUrl.replace(/RESIZE/i, 'resize=width:263') : company.logoUrl}
+            src={company.logoUrl.includes('cdn.filestac') ? company.logoUrl.replace(/RESIZE/i, 'resize=width:263/output=format:png') : company.logoUrl}
             alt={company.companyName}
             className="max-h-[60px] max-w-[180px] object-contain opacity-60"
           />

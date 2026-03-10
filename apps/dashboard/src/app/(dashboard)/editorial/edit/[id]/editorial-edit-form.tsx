@@ -284,7 +284,7 @@ function toUTCFromTimezone(date: string, time: string, tz: string): Date {
 
 function resizedUrl(url: string) {
   if (url.includes('RESIZE')) {
-    return url.replace('RESIZE', 'resize=width:300')
+    return url.replace('RESIZE', 'resize=width:300/output=format:png')
   }
   return url
 }

@@ -86,7 +86,7 @@ export default async function DraftsPage() {
                       <img
                         src={(() => {
                           const url = release.banner?.url || release.primaryImage!.url
-                          return url.includes('cdn.filestac') ? url.replace(/RESIZE/i, 'resize=width:1200') : url
+                          return url.includes('cdn.filestac') ? url.replace(/RESIZE/i, 'resize=width:1200/output=format:png') : url
                         })()}
                         alt={release.title || ''}
                         className="w-full"
@@ -96,7 +96,7 @@ export default async function DraftsPage() {
                       <img
                         src={(() => {
                           const url = release.banner?.url || release.primaryImage!.url
-                          return url.includes('cdn.filestac') ? url.replace(/RESIZE/i, 'resize=width:1200') : url
+                          return url.includes('cdn.filestac') ? url.replace(/RESIZE/i, 'resize=width:1200/output=format:png') : url
                         })()}
                         alt={release.title || ''}
                         className="w-full rounded"

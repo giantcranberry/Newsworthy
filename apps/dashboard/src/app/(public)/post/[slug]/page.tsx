@@ -51,7 +51,7 @@ export default async function ContactPage({
   const companyName = release.company?.companyName || ''
   const rawLogoUrl = release.company?.logoUrl || null
   const logoUrl = rawLogoUrl?.includes('filestackcontent.com') && rawLogoUrl.includes('RESIZE')
-    ? rawLogoUrl.replace('RESIZE', 'resize=width:200')
+    ? rawLogoUrl.replace('RESIZE', 'resize=width:200/output=format:png')
     : rawLogoUrl
   const releaseTitle = release.title || 'Untitled Press Release'
 

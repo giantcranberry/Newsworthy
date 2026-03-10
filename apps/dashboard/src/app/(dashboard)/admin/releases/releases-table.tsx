@@ -473,7 +473,7 @@ export function ReleasesTable({ initialReleases, isAdmin = false }: { initialRel
                                 <div className="flex items-center gap-3 min-w-0">
                                   {lookupResult.brand.logoUrl ? (
                                     <img
-                                      src={lookupResult.brand.logoUrl.includes('RESIZE') ? lookupResult.brand.logoUrl.replace('RESIZE', 'resize=width:200') : lookupResult.brand.logoUrl}
+                                      src={lookupResult.brand.logoUrl.includes('RESIZE') ? lookupResult.brand.logoUrl.replace('RESIZE', 'resize=width:200/output=format:png') : lookupResult.brand.logoUrl}
                                       alt={lookupResult.brand.companyName}
                                       className="h-9 w-9 rounded-lg object-contain bg-gray-50 dark:bg-gray-950 flex-shrink-0"
                                     />

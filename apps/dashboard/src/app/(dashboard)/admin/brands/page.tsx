@@ -103,7 +103,7 @@ export default async function AdminBrandsPage({
                       <div className="flex items-center gap-3">
                         {brand.logoUrl ? (
                           <img
-                            src={brand.logoUrl.includes('RESIZE') ? brand.logoUrl.replace('RESIZE', 'resize=width:100') : brand.logoUrl}
+                            src={brand.logoUrl.includes('RESIZE') ? brand.logoUrl.replace('RESIZE', 'resize=width:100/output=format:png') : brand.logoUrl}
                             alt={brand.companyName}
                             className="h-8 w-8 rounded object-contain bg-gray-50 dark:bg-gray-950"
                           />

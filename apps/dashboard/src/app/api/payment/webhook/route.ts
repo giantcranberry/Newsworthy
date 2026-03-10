@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
             sql`SELECT * FROM carts WHERE payment_intent = ${paymentIntentId} AND fulfilled_at IS NULL FOR UPDATE`
           )
 
-          if (locked.rows.length === 0) return []
+          if (locked.length === 0) return []
 
           // Now update — we hold the lock so no other webhook can claim these
           const updated = await tx

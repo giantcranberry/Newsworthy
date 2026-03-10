@@ -69,7 +69,7 @@ interface AssetsFormProps {
 
 function resizedUrl(url: string, width: number = 300) {
   if (url.startsWith('https://cdn.filestackcontent.com') && url.includes('RESIZE')) {
-    return url.replace('RESIZE', `resize=width:${width}`)
+    return url.replace('RESIZE', `resize=width:${width}/output=format:png`)
   }
   return url
 }
