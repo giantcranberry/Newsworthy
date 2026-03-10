@@ -560,6 +560,23 @@ export function ImagesContent({
   const [isLoadingBanner, setIsLoadingBanner] = useState(false)
   const [bannerError, setBannerError] = useState<string | null>(null)
 
+  // Track the clean (no text) banner URL so we always composite onto a fresh image.
+  // Persisted in localStorage so it survives page reloads.
+  const cleanBannerKey = `clean-banner-${releaseUuid}`
+  const cleanBannerUrlRef = useRef<string | null>(
+    typeof window !== 'undefined'
+      ? localStorage.getItem(cleanBannerKey) || banner?.url || null
+      : banner?.url || null
+  )
+  const setCleanBannerUrl = (url: string | null) => {
+    cleanBannerUrlRef.current = url
+    if (url) {
+      localStorage.setItem(cleanBannerKey, url)
+    } else {
+      localStorage.removeItem(cleanBannerKey)
+    }
+  }
+
   // Text overlay state
   const [textOverlay, setTextOverlay] = useState<TextOverlay>({
     text: '',
@@ -568,6 +585,7 @@ export function ImagesContent({
     color: '#ffffff',
     fontFamily: 'Inter',
   })
+  const [prevTextOverlay, setPrevTextOverlay] = useState<TextOverlay | null>(null)
 
   // Load the selected Google Font on change
   useEffect(() => {
@@ -998,6 +1016,7 @@ export function ImagesContent({
       }
 
       setCurrentBanner(libraryBanner)
+      setCleanBannerUrl(libraryBanner.url)
       setBannerFile(null)
       setBannerPreview(null)
       setBannerFormData({
@@ -1024,12 +1043,16 @@ export function ImagesContent({
         let fileToUpload: File
 
         if (hasText) {
-          // Composite text onto the image
-          const imageSrc = bannerPreview || currentBanner?.url
+          // Always composite onto the clean (no-text) banner to avoid stacking overlays
+          const imageSrc = bannerPreview || cleanBannerUrlRef.current || currentBanner?.url
           if (!imageSrc) throw new Error('No banner image to composite text onto')
           fileToUpload = await compositeTextOnBanner(imageSrc, textOverlay, `/api/pr/${releaseUuid}/social/proxy`)
         } else {
           fileToUpload = bannerFile!
+          // New banner file uploaded without text — this becomes the new clean source
+          if (bannerPreview) {
+            setCleanBannerUrl(bannerPreview)
+          }
         }
 
         const fd = new FormData()
@@ -1051,10 +1074,15 @@ export function ImagesContent({
         if (data.banner) {
           setCurrentBanner(data.banner)
           setBannerFormData({ title: data.banner.title || '', imgCredits: data.banner.imgCredits || '' })
+          // If no text was composited, update the clean URL to the new banner
+          if (!hasText) {
+            setCleanBannerUrl(data.banner.url)
+          }
         }
         setBannerFile(null)
         setBannerPreview(null)
         if (hasText) {
+          setPrevTextOverlay({ ...textOverlay })
           setTextOverlay({ ...textOverlay, text: '' })
         }
       } else if (currentBanner && (
@@ -1578,6 +1606,18 @@ export function ImagesContent({
                         className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:border-transparent"
                         maxLength={200}
                       />
+                      {prevTextOverlay && !textOverlay.text && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTextOverlay(prevTextOverlay)
+                            setPrevTextOverlay(null)
+                          }}
+                          className="mt-1.5 text-xs text-cyan-700 dark:text-cyan-400 hover:text-cyan-800 dark:hover:text-cyan-300 cursor-pointer"
+                        >
+                          Undo — restore previous overlay text
+                        </button>
+                      )}
                     </div>
                     <div>
                       <Label className="text-xs text-gray-500 dark:text-gray-400">Position</Label>

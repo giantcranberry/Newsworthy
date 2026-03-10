@@ -66,7 +66,12 @@ export function ReleasePreviewSidebar() {
   const isWizardComplete = searchParams.get('wizard') === 'complete'
 
   const [data, setData] = useState<PreviewData | null>(null)
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('preview-visible') === 'true'
+    }
+    return false
+  })
   const [textOverlay, setTextOverlay] = useState<TextOverlayData | null>(null)
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH)
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -188,11 +193,27 @@ export function ReleasePreviewSidebar() {
     }
   }, [fetchPreview])
 
-  // Listen for toggle events from WizardHeader
+  // Listen for toggle events from PRForm / WizardHeader
   useEffect(() => {
-    const handler = () => setVisible((v) => !v)
+    const handler = () => setVisible((v) => {
+      const next = !v
+      sessionStorage.setItem('preview-visible', String(next))
+      return next
+    })
     window.addEventListener('toggle-preview', handler)
     return () => window.removeEventListener('toggle-preview', handler)
+  }, [])
+
+  // Listen for real-time form field updates from PRForm
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const fields = (e as CustomEvent).detail
+      if (fields) {
+        setData((prev) => prev ? { ...prev, ...fields } : null)
+      }
+    }
+    window.addEventListener('preview-form-update', handler)
+    return () => window.removeEventListener('preview-form-update', handler)
   }, [])
 
   // Listen for text overlay updates from the images page
