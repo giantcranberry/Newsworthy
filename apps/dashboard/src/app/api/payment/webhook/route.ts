@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { db } from '@/db'
 import { carts, products, brandCredits, payfile, paymentLinks } from '@/db/schema'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, sql } from 'drizzle-orm'
 import type { PaymentLinkProduct } from '@/db/schema/payment'
 import { getStripe, getWebhookSecret } from '@/lib/stripe'
 import type Stripe from 'stripe'
@@ -46,19 +46,50 @@ export async function POST(request: NextRequest) {
           break
         }
 
-        // Atomic claim: only fulfill items not yet fulfilled.
-        // UPDATE ... WHERE fulfilledAt IS NULL prevents double-crediting
-        // if Stripe delivers the webhook more than once.
-        const claimed = await db
-          .update(carts)
-          .set({ fulfilledAt: new Date(), paidAt: new Date() })
-          .where(
-            and(
-              eq(carts.paymentIntent, paymentIntentId),
-              isNull(carts.fulfilledAt),
-            ),
+        // Atomic claim inside a transaction with row-level locking
+        // to prevent double-crediting from concurrent webhook retries.
+        const claimed = await db.transaction(async (tx) => {
+          // Lock the rows first with FOR UPDATE to prevent concurrent processing
+          const locked = await tx.execute(
+            sql`SELECT * FROM carts WHERE payment_intent = ${paymentIntentId} AND fulfilled_at IS NULL FOR UPDATE`
           )
-          .returning()
+
+          if (locked.rows.length === 0) return []
+
+          // Now update — we hold the lock so no other webhook can claim these
+          const updated = await tx
+            .update(carts)
+            .set({ fulfilledAt: new Date(), paidAt: new Date() })
+            .where(
+              and(
+                eq(carts.paymentIntent, paymentIntentId),
+                isNull(carts.fulfilledAt),
+              ),
+            )
+            .returning()
+
+          // Create BrandCredits within the same transaction
+          for (const item of updated) {
+            if (!item.productId) continue
+
+            const product = await tx.query.products.findFirst({
+              where: eq(products.id, item.productId),
+            })
+
+            if (product) {
+              await tx.insert(brandCredits).values({
+                userId: item.userId!,
+                companyId: item.companyId || null,
+                credits: product.productCredits || 1,
+                productType: product.productType || 'pr',
+                notes: `Purchase: ${product.shortName || product.displayName}`,
+                createdAt: new Date(),
+              })
+            }
+          }
+
+          return updated
+        })
 
         if (claimed.length === 0) {
           console.log('[Webhook] Already fulfilled or no cart items for:', paymentIntentId)
@@ -68,27 +99,7 @@ export async function POST(request: NextRequest) {
         const userId = claimed[0].userId
         if (!userId) break
 
-        // Create BrandCredits for each claimed item
-        for (const item of claimed) {
-          if (!item.productId) continue
-
-          const product = await db.query.products.findFirst({
-            where: eq(products.id, item.productId),
-          })
-
-          if (product) {
-            await db.insert(brandCredits).values({
-              userId,
-              companyId: item.companyId || null,
-              credits: product.productCredits || 1,
-              productType: product.productType || 'pr',
-              notes: `Purchase: ${product.shortName || product.displayName}`,
-              createdAt: new Date(),
-            })
-          }
-        }
-
-        // Create payfile record for receipt tracking
+        // Create payfile record for receipt tracking (outside transaction — best effort)
         let receiptUrl: string | null = null
         const latestChargeId = paymentIntent.latest_charge
         if (latestChargeId && typeof latestChargeId === 'string') {
