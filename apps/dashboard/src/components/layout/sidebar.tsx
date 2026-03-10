@@ -645,7 +645,7 @@ export function Sidebar({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={() => signOut({ callbackUrl: '/api/auth/sso-redirect?action=logout&next=/login' })}
                     className="flex items-center justify-center h-10 w-full rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                   >
                     <FaIcon icon="fa-light fa-right-from-bracket" className="text-base" />
@@ -688,7 +688,7 @@ export function Sidebar({
                   My Profile Settings
                 </Link>
                 <button
-                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  onClick={() => signOut({ callbackUrl: '/api/auth/sso-redirect?action=logout&next=/login' })}
                   className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 cursor-pointer"
                 >
                   <FaIcon icon="fa-light fa-right-from-bracket" className="w-5 text-center text-base" />

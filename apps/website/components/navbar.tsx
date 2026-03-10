@@ -50,6 +50,11 @@ export function NavBar() {
   const [menu_ad, setMenuAd] = useState<SiteAd | null>(null);
   const [aboutMenu, setAboutMenu] = useState<AboutMenu | null>(null);
   const [solutionsMenu, setSolutionsMenu] = useState<AboutMenu | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(document.cookie.split(';').some(c => c.trim().startsWith('nw_sso=')));
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -231,46 +236,41 @@ export function NavBar() {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem className="hidden lg:flex xl:hidden">
-              <NavigationMenuLink asChild>
-                <Link
-                  href="https://app.newsworthyai.com/login"
-                  className={navigationMenuTriggerStyle()}
-                >
-                  Login
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem className="hidden lg:flex xl:hidden">
-              <NavigationMenuLink asChild>
-                <Link
-                  href="/auth/coregister/pr/newsworthy"
-                  className={navigationMenuTriggerStyle()}
-                >
-                  Register Free
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem className="hidden xl:flex">
-              <NavigationMenuLink asChild>
-                <Link
-                  href="https://app.newsworthyai.com/login"
-                  className={navigationMenuTriggerStyle()}
-                >
-                  Login
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem className="hidden xl:flex">
-              <NavigationMenuLink asChild>
-                <Link
-                  href="/auth/coregister/pr/newsworthy"
-                  className={navigationMenuTriggerStyle()}
-                >
-                  Register Free
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            {isLoggedIn ? (
+              <NavigationMenuItem className="hidden lg:flex">
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="https://app.newsworthyai.com/dashboard"
+                    className={navigationMenuTriggerStyle()}
+                  >
+                    Go to Dashboard
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ) : (
+              <>
+                <NavigationMenuItem className="hidden lg:flex">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href="https://app.newsworthyai.com/login"
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Login
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem className="hidden lg:flex">
+                  <NavigationMenuLink asChild>
+                    <Link
+                      href="/auth/coregister/pr/newsworthy"
+                      className={navigationMenuTriggerStyle()}
+                    >
+                      Register Free
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+              </>
+            )}
           </NavigationMenuList>
         </NavigationMenu>
       </div>

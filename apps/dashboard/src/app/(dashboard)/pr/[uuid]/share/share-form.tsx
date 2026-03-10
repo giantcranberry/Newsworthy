@@ -150,7 +150,7 @@ export function ShareForm({
         {showAddForm && (
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="emails">Add Email Addresses</Label>
+              <Label htmlFor="emails">Add Email Addresses of People That You Want to Notify When Press Release is Distributed</Label>
               <Textarea
                 id="emails"
                 value={emails}

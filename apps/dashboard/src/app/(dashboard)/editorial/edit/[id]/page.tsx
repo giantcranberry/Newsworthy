@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, company, contact, category, region, releaseCategories, releaseRegions, releaseImages, banners, images } from '@/db/schema'
+import { releases, company, contact, category, region, releaseCategories, releaseRegions, releaseImages, banners, images, users } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import { EditorialEditForm } from './editorial-edit-form'
@@ -40,6 +40,14 @@ export default async function EditorialEditPage({ params }: PageProps) {
     .where(eq(company.id, release.companyId))
     .limit(1)
   const releaseCompany = companyResult[0]
+
+  // Fetch the release owner
+  const ownerResult = await db
+    .select({ id: users.id, email: users.email })
+    .from(users)
+    .where(eq(users.id, release.userId))
+    .limit(1)
+  const releaseOwner = ownerResult[0] || null
 
   // Fetch contacts for this company
   const contacts = await db
@@ -185,6 +193,7 @@ export default async function EditorialEditPage({ params }: PageProps) {
         selectedRegionIds={currentRegions.map((r) => r.regionId)}
         releaseImages={formReleaseImages}
         banner={bannerData}
+        owner={releaseOwner ? { id: releaseOwner.id, email: releaseOwner.email } : null}
       />
     </div>
   )

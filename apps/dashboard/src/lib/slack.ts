@@ -180,3 +180,33 @@ export function formatTaskAssignmentMessage(taskTitle: string, assignerName: str
     ],
   }
 }
+
+export function formatTaskStatusChangeMessage(taskTitle: string, newStageName: string, changedByName: string) {
+  return {
+    text: `Task moved to ${newStageName} by ${changedByName}: ${taskTitle}`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:clipboard: *Task Status Changed* by *${changedByName}*\nMoved to *${newStageName}*: ${taskTitle}\n<${appUrl}/admin/tasks|View Task Board>`,
+        },
+      },
+    ],
+  }
+}
+
+export function formatTaskNoteAddedMessage(taskTitle: string, noteAuthorName: string) {
+  return {
+    text: `New note added by ${noteAuthorName} on: ${taskTitle}`,
+    blocks: [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `:speech_balloon: *Note Added* by *${noteAuthorName}*\n${taskTitle}\n<${appUrl}/admin/tasks|View Task Board>`,
+        },
+      },
+    ],
+  }
+}

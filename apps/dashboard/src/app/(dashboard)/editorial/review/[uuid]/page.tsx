@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company, users, releaseCategories, releaseRegions, category, region, releaseNotes, banners, images, releaseImages, releaseFaqs } from '@/db/schema'
+import { releases, queue, company, users, releaseCategories, releaseRegions, category, region, releaseNotes, banners, images, releaseImages, releaseFaqs, contact } from '@/db/schema'
 import { eq, desc, asc } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import { ReviewForm } from './review-form'
@@ -72,6 +72,16 @@ async function getReleaseForReview(uuid: string) {
     .where(eq(releaseFaqs.prId, releaseData.release.id))
     .orderBy(asc(releaseFaqs.sortOrder))
 
+  // Get PR contact
+  let prContact: { name: string; title: string | null; email: string | null; phone: string | null } | null = null
+  if (releaseData.release.primaryContactId) {
+    const [c] = await db
+      .select({ name: contact.name, title: contact.title, email: contact.email, phone: contact.phone })
+      .from(contact)
+      .where(eq(contact.id, releaseData.release.primaryContactId))
+    if (c) prContact = c
+  }
+
   return {
     ...releaseData,
     categoryNames: categories.map(c => c.name).filter(Boolean),
@@ -79,6 +89,7 @@ async function getReleaseForReview(uuid: string) {
     releaseNotes: notes,
     releaseImgs,
     faqs,
+    prContact,
   }
 }
 
@@ -122,6 +133,7 @@ export default async function EditorialReviewPage({ params }: PageProps) {
         companyLogoUrl={data.companyLogoUrl}
         images={data.releaseImgs}
         faqs={data.faqs}
+        prContact={data.prContact}
       />
     </div>
   )

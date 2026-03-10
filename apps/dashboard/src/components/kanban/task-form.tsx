@@ -97,6 +97,9 @@ export interface KanbanTask {
   assigneeFirstName: string | null
   assigneeLastName: string | null
   assigneeEmail: string | null
+  creatorFirstName?: string | null
+  creatorLastName?: string | null
+  creatorEmail?: string | null
   files: TaskFile[]
   noteCount?: number
 }

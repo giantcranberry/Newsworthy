@@ -1,8 +1,11 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTasks, kanbanStages } from '@/db/schema'
+import { kanbanTasks, kanbanStages, userProfiles } from '@/db/schema'
 import { eq, and, isNull, sql, asc } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendSystemMessageWithEmail } from '@/lib/messages'
+import { sendSlackNotification, formatTaskStatusChangeMessage } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatTaskStatusChangeMessage } from '@/lib/google-chat'
 
 // PUT: Move task between/within global stages
 export async function PUT(request: NextRequest) {
@@ -53,6 +56,39 @@ export async function PUT(request: NextRequest) {
         .update(kanbanTasks)
         .set({ sortOrder: i })
         .where(eq(kanbanTasks.id, tasksInStage[i].id))
+    }
+
+    // Notify task creator of stage change (if different from current user)
+    const currentUserId = parseInt((session?.user as any)?.id)
+    const [task] = await db
+      .select({ createdBy: kanbanTasks.createdBy, title: kanbanTasks.title })
+      .from(kanbanTasks)
+      .where(eq(kanbanTasks.id, taskId))
+
+    if (task && task.createdBy && task.createdBy !== currentUserId) {
+      const [stage] = await db
+        .select({ name: kanbanStages.name })
+        .from(kanbanStages)
+        .where(eq(kanbanStages.id, stageId))
+
+      const currentUserProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, currentUserId),
+      })
+      const changedByName = currentUserProfile?.firstName || 'Someone'
+      const stageName = stage?.name || 'Unknown'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+
+      sendSystemMessageWithEmail(
+        task.createdBy,
+        'Task Moved: ' + task.title,
+        `<p>Your task <strong>${task.title}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+      ).catch(err => console.error('Failed to send task status change notification:', err))
+
+      sendSlackNotification(task.createdBy, formatTaskStatusChangeMessage(task.title, stageName, changedByName))
+        .catch(err => console.error('[Slack] task status change notification failed:', err))
+
+      sendGoogleChatNotification(task.createdBy, formatGChatTaskStatusChangeMessage(task.title, stageName, changedByName))
+        .catch(err => console.error('[GChat] task status change notification failed:', err))
     }
 
     return NextResponse.json({ success: true })

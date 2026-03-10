@@ -30,6 +30,17 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
+import {
   ArrowLeft,
   Check,
   Crop as CropIcon,
@@ -40,6 +51,7 @@ import {
   Save,
   Star,
   Upload,
+  UserCog,
   X,
   ZoomIn,
   ZoomOut,
@@ -114,6 +126,7 @@ interface EditorialEditFormProps {
   selectedRegionIds: number[]
   releaseImages: ReleaseImageRecord[]
   banner: BannerRecord | null
+  owner: { id: number; email: string } | null
 }
 
 type FitMode = 'crop' | 'fit'
@@ -287,11 +300,13 @@ export function EditorialEditForm({
   selectedRegionIds,
   releaseImages: initialImages,
   banner: initialBanner,
+  owner,
 }: EditorialEditFormProps) {
   const router = useRouter()
   const editorRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
+  const [impersonating, setImpersonating] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const [title, setTitle] = useState(release.title)
@@ -810,6 +825,29 @@ export function EditorialEditForm({
     }
   }
 
+  const handleImpersonate = async () => {
+    if (!owner) return
+    setImpersonating(true)
+    try {
+      const response = await fetch('/api/admin/impersonate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: owner.id }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to impersonate user')
+      }
+      router.push('/dashboard')
+      router.refresh()
+    } catch (error) {
+      console.error('Impersonation error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to impersonate user')
+    } finally {
+      setImpersonating(false)
+    }
+  }
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -890,7 +928,46 @@ export function EditorialEditForm({
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
           Editorial Edit &mdash; PR #{release.id}
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{company.name}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm text-gray-500 dark:text-gray-400">{company.name}</p>
+          {owner && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-amber-600 border-amber-300 hover:bg-amber-50 h-7 text-xs">
+                  <UserCog className="h-3.5 w-3.5 mr-1" />
+                  Impersonate User
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Impersonate User</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You are about to impersonate <strong>{owner.email}</strong>. You will see the application as this user would see it.
+                    <br /><br />
+                    A banner will be displayed at the top of the page while impersonating. Click &quot;Stop Impersonating&quot; to return to your account.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleImpersonate}
+                    disabled={impersonating}
+                    className="bg-amber-600 hover:bg-amber-700"
+                  >
+                    {impersonating ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Impersonating...
+                      </>
+                    ) : (
+                      'Start Impersonation'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
 
       {message && (
@@ -967,6 +1044,8 @@ export function EditorialEditForm({
                       'bold italic | alignleft aligncenter ' +
                       'alignright alignjustify | bullist numlist outdent indent | ' +
                       'link | removeformat | wordcount',
+                    toolbar_sticky: true,
+                    toolbar_sticky_offset: 0,
                     content_style:
                       'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
                     branding: false,

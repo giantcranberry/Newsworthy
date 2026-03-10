@@ -1,12 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTasks, kanbanTaskFiles, users, userProfiles } from '@/db/schema'
+import { kanbanTasks, kanbanTaskFiles, kanbanStages, users, userProfiles } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadTaskFile, deleteTaskFile } from '@/services/s3'
 import { sendSystemMessageWithEmail } from '@/lib/messages'
-import { sendSlackNotification, formatTaskAssignmentMessage } from '@/lib/slack'
-import { sendGoogleChatNotification, formatGChatTaskAssignmentMessage } from '@/lib/google-chat'
+import { sendSlackNotification, formatTaskAssignmentMessage, formatTaskStatusChangeMessage } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatTaskAssignmentMessage, formatGChatTaskStatusChangeMessage } from '@/lib/google-chat'
 
 // GET: Single task with files
 export async function GET(
@@ -85,9 +85,9 @@ export async function PUT(
   }
 
   try {
-    // Fetch existing task to detect assignee changes
+    // Fetch existing task to detect assignee/stage changes
     const [existingTask] = await db
-      .select({ assignedTo: kanbanTasks.assignedTo })
+      .select({ assignedTo: kanbanTasks.assignedTo, stageId: kanbanTasks.stageId, createdBy: kanbanTasks.createdBy, title: kanbanTasks.title })
       .from(kanbanTasks)
       .where(eq(kanbanTasks.id, taskId))
 
@@ -130,8 +130,8 @@ export async function PUT(
 
     // Notify if assignee changed to a new person (not self)
     const userId = parseInt((session?.user as any)?.id)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
     if (assignedTo && assignedTo !== existingTask.assignedTo && assignedTo !== userId) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
       sendSystemMessageWithEmail(
         assignedTo,
         'Task Assigned: ' + title.trim(),
@@ -149,6 +149,32 @@ export async function PUT(
       // Google Chat notification (best-effort)
       sendGoogleChatNotification(assignedTo, formatGChatTaskAssignmentMessage(title.trim(), assignerName))
         .catch(err => console.error('[GChat] task reassignment notification failed:', err))
+    }
+
+    // Notify task creator of stage change (if different from current user)
+    if (stageId !== undefined && stageId !== existingTask.stageId && existingTask.createdBy && existingTask.createdBy !== userId) {
+      const [stage] = await db
+        .select({ name: kanbanStages.name })
+        .from(kanbanStages)
+        .where(eq(kanbanStages.id, stageId))
+
+      const currentUserProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, userId),
+      })
+      const changedByName = currentUserProfile?.firstName || 'Someone'
+      const stageName = stage?.name || 'Unknown'
+
+      sendSystemMessageWithEmail(
+        existingTask.createdBy,
+        'Task Moved: ' + title.trim(),
+        `<p>Your task <strong>${title.trim()}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+      ).catch(err => console.error('Failed to send task status change notification:', err))
+
+      sendSlackNotification(existingTask.createdBy, formatTaskStatusChangeMessage(title.trim(), stageName, changedByName))
+        .catch(err => console.error('[Slack] task status change notification failed:', err))
+
+      sendGoogleChatNotification(existingTask.createdBy, formatGChatTaskStatusChangeMessage(title.trim(), stageName, changedByName))
+        .catch(err => console.error('[GChat] task status change notification failed:', err))
     }
 
     // Handle new file uploads
@@ -184,6 +210,49 @@ export async function PUT(
     return NextResponse.json({ ...task, files })
   } catch (error) {
     console.error('Error updating task:', error)
+    return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
+  }
+}
+
+// PATCH: Archive a task
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  const isAdmin = (session?.user as any)?.isAdmin
+  const isEditor = (session?.user as any)?.isEditor
+
+  if (!isAdmin && !isEditor) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  const taskId = parseInt(id)
+  if (isNaN(taskId)) {
+    return NextResponse.json({ error: 'Invalid task ID' }, { status: 400 })
+  }
+
+  try {
+    const body = await request.json()
+
+    if (body.action === 'archive') {
+      const [task] = await db
+        .update(kanbanTasks)
+        .set({ isArchived: true, updatedAt: sql`NOW()` })
+        .where(eq(kanbanTasks.id, taskId))
+        .returning()
+
+      if (!task) {
+        return NextResponse.json({ error: 'Task not found' }, { status: 404 })
+      }
+
+      return NextResponse.json({ success: true })
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+  } catch (error) {
+    console.error('Error patching task:', error)
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
   }
 }

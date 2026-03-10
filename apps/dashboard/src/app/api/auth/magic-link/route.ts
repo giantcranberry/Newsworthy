@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       properties: { method: 'magic_link' },
     })
 
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/api/auth/sso-redirect?next=/dashboard', request.url))
   } catch (error) {
     console.error('Magic link error:', error)
     getPostHog().captureException(error)

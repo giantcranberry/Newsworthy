@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { cn } from '@/lib/utils'
 import { ImageCarousel } from './image-carousel'
 import { InstagramEmbed } from './instagram-embed'
+import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 
 function hexLuminance(hex: string): number {
   const c = hex.replace('#', '')
@@ -21,6 +22,8 @@ export interface PreviewPanelProps {
     pullquote?: string | null
     location?: string | null
     videoUrl?: string | null
+    releaseAt?: Date | string | null
+    timezone?: string | null
   }
   company?: {
     logoUrl?: string | null
@@ -40,20 +43,23 @@ export interface PreviewPanelProps {
   deviceMode?: 'desktop' | 'tablet' | 'mobile'
 }
 
-export function formatDate() {
-  const now = new Date()
-  const weekday = now.toLocaleDateString('en-US', { weekday: 'long' })
-  const month = now.toLocaleDateString('en-US', { month: 'short' })
-  const day = now.getDate()
-  const year = now.getFullYear()
-  const time = now.toLocaleTimeString('en-US', {
+export function formatDate(releaseAt?: Date | string | null, timezone?: string | null) {
+  const d = releaseAt ? new Date(releaseAt) : new Date()
+  const tz = timezone ? normalizeTimezone(timezone) : undefined
+
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'long', ...(tz && { timeZone: tz }) })
+  const month = d.toLocaleDateString('en-US', { month: 'short', ...(tz && { timeZone: tz }) })
+  const dayNum = new Intl.DateTimeFormat('en-US', { day: 'numeric', ...(tz && { timeZone: tz }) }).format(d)
+  const year = new Intl.DateTimeFormat('en-US', { year: 'numeric', ...(tz && { timeZone: tz }) }).format(d)
+  const time = d.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true
+    hour12: true,
+    ...(tz && { timeZone: tz }),
   })
-  const tz = now.toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1] || 'CST'
+  const tzStr = timezone ? tzLabel(timezone) : (d.toLocaleDateString('en-US', { timeZoneName: 'short' }).split(', ')[1] || 'CST')
 
-  return `${weekday} ${month} ${day}, ${year} @ ${time} ${tz}`
+  return `${weekday} ${month} ${dayNum}, ${year} @ ${time} ${tzStr}`
 }
 
 export type EmbedInfo =
@@ -168,7 +174,7 @@ export function PreviewPanel({
           {/* Dateline */}
           <div className="flex mb-3">
             <p className={cn('text-gray-600 dark:text-gray-400', compact && 'text-xs')}>
-              {release?.location || 'Location'} (Newsworthy.ai) {formatDate()}
+              {release?.location || 'Location'} (Newsworthy.ai) {formatDate(release?.releaseAt, release?.timezone)}
             </p>
           </div>
 

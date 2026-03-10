@@ -37,7 +37,7 @@ function LoginForm() {
       if (result?.error) {
         setError('Invalid email or password')
       } else {
-        window.location.href = '/dashboard'
+        window.location.href = '/api/auth/sso-redirect?next=/dashboard'
       }
     } catch {
       setError('An error occurred. Please try again.')
@@ -71,7 +71,7 @@ function LoginForm() {
   }
 
   const handleOAuthLogin = (provider: string) => {
-    signIn(provider, { callbackUrl: '/dashboard' })
+    signIn(provider, { callbackUrl: '/api/auth/sso-redirect?next=/dashboard' })
   }
 
   return (

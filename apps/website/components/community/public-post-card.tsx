@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MessageSquare, Heart, Pin } from 'lucide-react'
 import { PostImages } from './post-images'
@@ -53,6 +56,18 @@ function getInitials(name: string): string {
 
 export function PublicPostCard({ post, showBoard = true }: PublicPostCardProps) {
   const timeAgo = getTimeAgo(new Date(post.createdAt))
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    setIsLoggedIn(document.cookie.split(';').some(c => c.trim().startsWith('nw_sso=')))
+  }, [])
+
+  const postUrl = isLoggedIn
+    ? `https://app.newsworthyai.com/community/post/${post.uuid}`
+    : `/community/post/${post.uuid}`
+
+  // Body HTML is from authenticated TinyMCE input, sanitized via linkifyHtml
+  const sanitizedBody = linkifyHtml(post.body)
 
   return (
     <div className={`rounded-lg border bg-white p-4 ${post.isPinned ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'}`}>
@@ -89,11 +104,11 @@ export function PublicPostCard({ post, showBoard = true }: PublicPostCardProps) 
       {/* Images */}
       <PostImages images={post.images} />
 
-      {/* Body - trusted HTML from authenticated TinyMCE input */}
-      <Link href={`/community/post/${post.uuid}`}>
+      {/* Body */}
+      <Link href={postUrl}>
         <div
           className="mt-3 text-sm text-gray-800 break-words prose prose-sm max-w-none line-clamp-6"
-          dangerouslySetInnerHTML={{ __html: linkifyHtml(post.body) }}
+          dangerouslySetInnerHTML={{ __html: sanitizedBody }}
         />
       </Link>
 
@@ -110,7 +125,7 @@ export function PublicPostCard({ post, showBoard = true }: PublicPostCardProps) 
           {post.commentCount > 0 ? `${post.commentCount} comments` : '0 comments'}
         </span>
         <Link
-          href={`/community/post/${post.uuid}`}
+          href={postUrl}
           className="ml-auto text-cyan-700 hover:text-cyan-900 hover:underline"
         >
           Read more

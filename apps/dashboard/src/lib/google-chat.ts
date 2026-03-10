@@ -95,3 +95,15 @@ export function formatGChatTaskAssignmentMessage(taskTitle: string, assignerName
     text: `\uD83D\uDCCB *Task Assigned* by *${assignerName}*\n${taskTitle}\n${appUrl}/admin/tasks`,
   }
 }
+
+export function formatGChatTaskStatusChangeMessage(taskTitle: string, newStageName: string, changedByName: string) {
+  return {
+    text: `\uD83D\uDCCB *Task Status Changed* by *${changedByName}*\nMoved to *${newStageName}*: ${taskTitle}\n${appUrl}/admin/tasks`,
+  }
+}
+
+export function formatGChatTaskNoteAddedMessage(taskTitle: string, noteAuthorName: string) {
+  return {
+    text: `\uD83D\uDCAC *Note Added* by *${noteAuthorName}*\n${taskTitle}\n${appUrl}/admin/tasks`,
+  }
+}

@@ -25,7 +25,7 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
-import { Plus, Settings, GripVertical, FileText, Calendar, MessageSquare, Building2 } from 'lucide-react'
+import { Plus, Settings, GripVertical, FileText, Calendar, MessageSquare, Building2, Archive } from 'lucide-react'
 import { StageManager, type Stage } from './stage-manager'
 import { TaskFormDialog, type KanbanTask, type BrandCompany, getPriorityConfig } from './task-form'
 
@@ -50,15 +50,21 @@ function TaskCard({
   onClick,
   isDragging,
   showAssignee = true,
+  onArchive,
 }: {
   task: KanbanTask
   onClick: () => void
   isDragging?: boolean
   showAssignee?: boolean
+  onArchive?: () => void
 }) {
   const assigneeName = task.assigneeFirstName || task.assigneeLastName
     ? `${task.assigneeFirstName || ''} ${task.assigneeLastName || ''}`.trim()
     : task.assigneeEmail
+
+  const creatorName = task.creatorFirstName || task.creatorLastName
+    ? `${task.creatorFirstName || ''} ${task.creatorLastName || ''}`.trim()
+    : task.creatorEmail || null
 
   return (
     <div
@@ -111,6 +117,26 @@ function TaskCard({
           {new Date(task.createdAt).toLocaleDateString()}
         </span>
       </div>
+
+      {creatorName && (
+        <p className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-500">
+          Created by {creatorName}
+        </p>
+      )}
+
+      {onArchive && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            onArchive()
+          }}
+          className="mt-2 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+        >
+          <Archive className="h-3 w-3" />
+          Archive
+        </button>
+      )}
     </div>
   )
 }
@@ -120,11 +146,13 @@ function SortableTaskCard({
   onClick,
   showAssignee,
   tourId,
+  onArchive,
 }: {
   task: KanbanTask
   onClick: () => void
   showAssignee: boolean
   tourId?: string
+  onArchive?: () => void
 }) {
   const {
     attributes,
@@ -150,7 +178,7 @@ function SortableTaskCard({
       >
         <GripVertical className="h-4 w-4 text-gray-400" />
       </div>
-      <TaskCard task={task} onClick={onClick} showAssignee={showAssignee} />
+      <TaskCard task={task} onClick={onClick} showAssignee={showAssignee} onArchive={onArchive} />
     </div>
   )
 }
@@ -162,6 +190,7 @@ function DroppableStageColumn({
   isOver,
   showAssignee,
   isFirst,
+  onArchiveTask,
 }: {
   stage: Stage
   tasks: KanbanTask[]
@@ -169,6 +198,7 @@ function DroppableStageColumn({
   isOver: boolean
   showAssignee: boolean
   isFirst?: boolean
+  onArchiveTask?: (taskId: number) => void
 }) {
   const { setNodeRef } = useDroppable({
     id: `stage-${stage.id}`,
@@ -204,6 +234,7 @@ function DroppableStageColumn({
               onClick={() => onTaskClick(task)}
               showAssignee={showAssignee}
               tourId={isFirst && index === 0 ? "tasks-first-card" : undefined}
+              onArchive={onArchiveTask ? () => onArchiveTask(task.id) : undefined}
             />
           ))}
         </SortableContext>
@@ -429,6 +460,21 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
     fetchTasks()
   }
 
+  const handleArchiveTask = async (taskId: number) => {
+    try {
+      const res = await fetch(`${config.apiBase}/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'archive' }),
+      })
+      if (res.ok) {
+        setTasks((prev) => prev.filter((t) => t.id !== taskId))
+      }
+    } catch (err) {
+      console.error('Error archiving task:', err)
+    }
+  }
+
   const handleStagesChanged = () => {
     fetchStages()
     fetchTasks()
@@ -513,17 +559,21 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-4 min-w-min">
-            {stages.map((stage, index) => (
-              <DroppableStageColumn
-                key={stage.id}
-                stage={stage}
-                tasks={getTasksForStage(stage.id)}
-                onTaskClick={handleEditTask}
-                isOver={overStageId === stage.id}
-                showAssignee={config.showAssignee}
-                isFirst={index === 0}
-              />
-            ))}
+            {stages.map((stage, index) => {
+              const isDoneStage = stage.name.toLowerCase() === 'done'
+              return (
+                <DroppableStageColumn
+                  key={stage.id}
+                  stage={stage}
+                  tasks={getTasksForStage(stage.id)}
+                  onTaskClick={handleEditTask}
+                  isOver={overStageId === stage.id}
+                  showAssignee={config.showAssignee}
+                  isFirst={index === 0}
+                  onArchiveTask={isDoneStage ? handleArchiveTask : undefined}
+                />
+              )
+            })}
           </div>
 
           <DragOverlay>

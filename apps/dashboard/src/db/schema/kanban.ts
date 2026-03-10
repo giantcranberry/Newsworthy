@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, integer, timestamp, boolean } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
 import { company } from './company'
@@ -30,6 +30,7 @@ export const kanbanTasks = pgTable('kanban_tasks', {
   assignedTo: integer('assigned_to').references(() => users.id, { onDelete: 'set null' }),
   createdBy: integer('created_by').notNull().references(() => users.id),
   companyId: integer('company_id').references(() => company.id, { onDelete: 'set null' }),
+  isArchived: boolean('is_archived').notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { kanbanTasks, kanbanTaskFiles, kanbanTaskNotes, kanbanStages, users, userProfiles } from '@/db/schema'
-import { eq, asc, sql, and, isNull } from 'drizzle-orm'
+import { eq, asc, sql, and, isNull, or } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadTaskFile } from '@/services/s3'
 import { sendSystemMessageWithEmail } from '@/lib/messages'
@@ -21,7 +21,10 @@ export async function GET(request: NextRequest) {
   const assignedTo = request.nextUrl.searchParams.get('assignedTo')
 
   try {
-    const conditions = [isNull(kanbanStages.userId)]
+    const conditions = [
+      isNull(kanbanStages.userId),
+      or(eq(kanbanTasks.isArchived, false), isNull(kanbanTasks.isArchived)),
+    ]
     if (assignedTo) {
       conditions.push(eq(kanbanTasks.assignedTo, parseInt(assignedTo)))
     }
@@ -87,11 +90,37 @@ export async function GET(request: NextRequest) {
       noteCountMap.set(row.taskId, row.count)
     }
 
-    const tasksWithFiles = tasks.map(task => ({
-      ...task,
-      files: filesByTask.get(task.id) || [],
-      noteCount: noteCountMap.get(task.id) || 0,
-    }))
+    // Fetch creator names
+    const creatorIds = [...new Set(tasks.map(t => t.createdBy).filter(Boolean))]
+    const creatorMap = new Map<number, { firstName: string | null; lastName: string | null; email: string }>()
+    if (creatorIds.length > 0) {
+      const creators = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: userProfiles.firstName,
+          lastName: userProfiles.lastName,
+        })
+        .from(users)
+        .leftJoin(userProfiles, eq(users.id, userProfiles.userId))
+        .where(sql`${users.id} IN (${sql.join(creatorIds.map(id => sql`${id}`), sql`, `)})`)
+
+      for (const c of creators) {
+        creatorMap.set(c.id, { firstName: c.firstName, lastName: c.lastName, email: c.email })
+      }
+    }
+
+    const tasksWithFiles = tasks.map(task => {
+      const creator = creatorMap.get(task.createdBy)
+      return {
+        ...task,
+        files: filesByTask.get(task.id) || [],
+        noteCount: noteCountMap.get(task.id) || 0,
+        creatorFirstName: creator?.firstName || null,
+        creatorLastName: creator?.lastName || null,
+        creatorEmail: creator?.email || null,
+      }
+    })
 
     return NextResponse.json(tasksWithFiles)
   } catch (error) {

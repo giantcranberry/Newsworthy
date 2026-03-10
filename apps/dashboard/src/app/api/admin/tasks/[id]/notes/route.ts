@@ -1,8 +1,11 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { kanbanTaskNotes, users, userProfiles } from '@/db/schema'
+import { kanbanTaskNotes, kanbanTasks, users, userProfiles } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendSystemMessageWithEmail } from '@/lib/messages'
+import { sendSlackNotification, formatTaskNoteAddedMessage } from '@/lib/slack'
+import { sendGoogleChatNotification, formatGChatTaskNoteAddedMessage } from '@/lib/google-chat'
 
 // GET: List notes for a task
 export async function GET(
@@ -83,6 +86,33 @@ export async function POST(
         createdBy: parseInt(userId),
       })
       .returning()
+
+    // Notify task creator of new note (if different from current user)
+    const currentUserId = parseInt(userId)
+    const [task] = await db
+      .select({ createdBy: kanbanTasks.createdBy, title: kanbanTasks.title })
+      .from(kanbanTasks)
+      .where(eq(kanbanTasks.id, taskId))
+
+    if (task && task.createdBy && task.createdBy !== currentUserId) {
+      const currentUserProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, currentUserId),
+      })
+      const noteAuthorName = currentUserProfile?.firstName || 'Someone'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+
+      sendSystemMessageWithEmail(
+        task.createdBy,
+        'New Note on Task: ' + task.title,
+        `<p><strong>${noteAuthorName}</strong> added a note on your task <strong>${task.title}</strong>.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+      ).catch(err => console.error('Failed to send task note notification:', err))
+
+      sendSlackNotification(task.createdBy, formatTaskNoteAddedMessage(task.title, noteAuthorName))
+        .catch(err => console.error('[Slack] task note notification failed:', err))
+
+      sendGoogleChatNotification(task.createdBy, formatGChatTaskNoteAddedMessage(task.title, noteAuthorName))
+        .catch(err => console.error('[GChat] task note notification failed:', err))
+    }
 
     return NextResponse.json(note)
   } catch (error) {

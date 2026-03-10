@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw, Phone, Mail } from 'lucide-react'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
 
@@ -52,6 +52,7 @@ interface ReviewFormProps {
   companyLogoUrl: string | null
   images: { id: number; url: string; title: string | null; caption: string | null; imgCredits: string | null }[]
   faqs: { question: string; answer: string }[]
+  prContact: { name: string; title: string | null; email: string | null; phone: string | null } | null
 }
 
 export function ReviewForm({
@@ -68,6 +69,7 @@ export function ReviewForm({
   companyLogoUrl,
   images,
   faqs,
+  prContact,
 }: ReviewFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
@@ -267,6 +269,31 @@ export function ReviewForm({
               )}
             </div>
           </div>
+          {prContact && (
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+              <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+                <User className="h-3.5 w-3.5" />
+                PR Contact
+              </div>
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {prContact.name}{prContact.title ? ` — ${prContact.title}` : ''}
+              </p>
+              <div className="flex items-center gap-4 mt-1">
+                {prContact.email && (
+                  <a href={`mailto:${prContact.email}`} className="inline-flex items-center gap-1 text-xs text-cyan-700 dark:text-cyan-400 hover:underline">
+                    <Mail className="h-3 w-3" />
+                    {prContact.email}
+                  </a>
+                )}
+                {prContact.phone && (
+                  <a href={`tel:${prContact.phone}`} className="inline-flex items-center gap-1 text-xs text-cyan-700 dark:text-cyan-400 hover:underline">
+                    <Phone className="h-3 w-3" />
+                    {prContact.phone}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
           {(categoryNames.length > 0 || regionNames.length > 0) && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-gray-100 dark:border-gray-800 pt-4">
               {categoryNames.length > 0 && (
@@ -333,6 +360,8 @@ export function ReviewForm({
             pullquote: release.pullquote,
             location: release.location,
             videoUrl: release.videoUrl,
+            releaseAt: release.releaseAt,
+            timezone: release.timezone,
           }}
           company={{
             logoUrl: companyLogoUrl,
