@@ -3,12 +3,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import dynamic from "next/dynamic";
-
-const Editor = dynamic(
-  () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
-  { ssr: false, loading: () => <div className="h-[800px] bg-gray-50 dark:bg-gray-950 rounded border border-gray-200 dark:border-gray-800 animate-pulse" /> },
-);
+import { Editor } from "@tinymce/tinymce-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1698,8 +1693,6 @@ export function PRForm({
                 "bold italic | alignleft aligncenter " +
                 "alignright alignjustify | bullist numlist outdent indent | " +
                 "link | removeformat | wordcount",
-              toolbar_sticky: true,
-              toolbar_sticky_offset: 90,
               block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
               content_style:
                 isDark

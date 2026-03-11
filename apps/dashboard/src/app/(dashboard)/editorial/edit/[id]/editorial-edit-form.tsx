@@ -4,12 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import dynamic from 'next/dynamic'
-
-const Editor = dynamic(
-  () => import('@tinymce/tinymce-react').then((mod) => mod.Editor),
-  { ssr: false, loading: () => <div className="h-[500px] bg-gray-50 dark:bg-gray-950 rounded border border-gray-200 dark:border-gray-800 animate-pulse" /> },
-)
+import { Editor } from '@tinymce/tinymce-react'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -1124,11 +1119,9 @@ export function EditorialEditForm({
                       'bold italic | alignleft aligncenter ' +
                       'alignright alignjustify | bullist numlist outdent indent | ' +
                       'link | removeformat | wordcount',
-                    toolbar_sticky: true,
-                    toolbar_sticky_offset: 0,
+                    branding: false,
                     content_style:
                       'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
-                    branding: false,
                   }}
                 />
               </div>
