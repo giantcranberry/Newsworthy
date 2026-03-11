@@ -791,7 +791,13 @@ export default async function PressRelease({ searchParams, params }: Props) {
               )}
               {release.pullquote && (
                 <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-4 py-3 text-sm">
-                  <p>{release.pullquote}</p>
+                  <p>{(() => {
+                    const text = release.pullquote.trim();
+                    if (/^[""\u201C]/.test(text)) return text;
+                    const match = text.match(/^(.*?)\s*(--\s*|—\s*|-\s+)(.+)$/s);
+                    if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>;
+                    return `\u201C${text}\u201D`;
+                  })()}</p>
                 </blockquote>
               )}
               <div className="flex items-center justify-end gap-1.5 mt-3">

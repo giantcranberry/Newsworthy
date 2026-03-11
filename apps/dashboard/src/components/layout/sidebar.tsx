@@ -550,16 +550,13 @@ export function Sidebar({
                           aria-expanded={isExpanded}
                           aria-controls={submenuId}
                         >
-                          <Link
-                            href={item.href}
-                            onClick={() => {
-                              if (!isExpanded) toggleGroup(groupKey, item)
-                            }}
-                            className="flex items-center gap-3 flex-1 min-w-0"
+                          <button
+                            onClick={() => toggleGroup(groupKey, item)}
+                            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                           >
                             <FaIcon icon={item.icon} className="w-5 text-center text-base" />
                             <span>{item.title}</span>
-                          </Link>
+                          </button>
                           <button
                             onClick={() => toggleGroup(groupKey, item)}
                             className="p-1 -mr-1 cursor-pointer"

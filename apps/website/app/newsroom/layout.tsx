@@ -39,7 +39,7 @@ export default async function NewsroomLayout({ children }: { children: React.Rea
     return (
         <html lang="en" className={`${nunitoSans.variable} ${lora.className}`}>
             <CrispProvider />
-            <body className="flex h-screen flex-col justify-between font-sans text-gray-950">
+            <body suppressHydrationWarning className="flex h-screen flex-col justify-between font-sans text-gray-950">
                 <GoogleAnalytics />
                 <header className="mx-auto w-full">
                     <NavBar />

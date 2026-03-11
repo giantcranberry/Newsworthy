@@ -20,13 +20,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = page?.title ?? flatPage?.title;
+  const description = page?.seo_description ?? `${title} - Newsworthy`;
 
   return {
     title,
-    description: page?.seo_description,
+    description,
     openGraph: {
       title: title!,
-      description: page?.seo_description ?? "",
+      description,
       images: [
         {
           url: "/nw-social-image.jpg",

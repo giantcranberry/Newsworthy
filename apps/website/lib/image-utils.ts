@@ -21,7 +21,7 @@ export const getImageClasses = (
   aspectRatio: "portrait" | "landscape" | "square",
   baseClasses: string = ""
 ) => {
-  const portraitClasses = "object-contain bg-gray-100 max-h-48";
+  const portraitClasses = "object-contain bg-gray-100";
   const landscapeClasses = "object-cover";
 
   switch (aspectRatio) {

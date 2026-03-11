@@ -284,7 +284,13 @@ export default async function FrenchPR({ params }: Props) {
                 className="text-blue-200/40 absolute flex -mt-3 -ml-2"
               />
               <blockquote className="text-lg italic text-green-700 w-full md:w-[300px] lg:w-[250px] z-10 ml-3 relative">
-                {currentPr.pullquote}
+                {(() => {
+                  const text = currentPr.pullquote!.trim();
+                  if (/^[""\u201C]/.test(text)) return text;
+                  const match = text.match(/^(.*?)\s*(--\s*|—\s*|-\s+)(.+)$/s);
+                  if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>;
+                  return `\u201C${text}\u201D`;
+                })()}
               </blockquote>
             </div>
           </div>

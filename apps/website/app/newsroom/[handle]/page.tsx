@@ -287,7 +287,7 @@ export default async function NewsroomPage({ params, searchParams }: Props) {
                         <div className="flex-shrink-0">
                           <Image
                             src={release.banner.cdnUrl}
-                            alt=""
+                            alt={release.title || "Press release image"}
                             width={150}
                             height={100}
                             className="rounded object-cover"
