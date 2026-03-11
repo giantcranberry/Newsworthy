@@ -22,6 +22,8 @@ import {
   Rocket,
   Target,
   Globe,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { ProductForm } from "./product-form";
 
@@ -38,6 +40,7 @@ interface Product {
   isSoloUpgrade: boolean | null;
   label: string | null;
   partnerId: number | null;
+  sortOrder: number;
 }
 
 interface Partner {
@@ -122,6 +125,7 @@ export function ProductList({
   const [showDialog, setShowDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
+  const [isReordering, setIsReordering] = useState<number | null>(null);
 
   const handleFilterChange = (value: string) => {
     const params = new URLSearchParams();
@@ -162,6 +166,25 @@ export function ProductList({
       alert("An error occurred");
     } finally {
       setIsDeleting(null);
+    }
+  };
+
+  const handleReorder = async (productId: number, direction: 'up' | 'down') => {
+    setIsReordering(productId);
+    try {
+      const response = await fetch('/api/admin/products/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, direction }),
+      });
+
+      if (response.ok) {
+        router.refresh();
+      }
+    } catch (error) {
+      console.error('Failed to reorder:', error);
+    } finally {
+      setIsReordering(null);
     }
   };
 
@@ -257,6 +280,24 @@ export function ProductList({
                     </div>
 
                     <div className="flex items-center gap-4 flex-shrink-0">
+                      <div className="flex flex-col">
+                        <button
+                          onClick={() => handleReorder(product.id, 'up')}
+                          disabled={index === 0 || isReordering === product.id}
+                          className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="Move up"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleReorder(product.id, 'down')}
+                          disabled={index === products.length - 1 || isReordering === product.id}
+                          className="p-0.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                          title="Move down"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </button>
+                      </div>
                       <p className="font-semibold text-gray-900 dark:text-gray-100">
                         {formatPrice(product.price)}
                       </p>

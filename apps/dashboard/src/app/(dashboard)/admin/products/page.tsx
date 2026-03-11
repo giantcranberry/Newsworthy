@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { products, partners } from '@/db/schema'
-import { eq, and, desc, isNull, or } from 'drizzle-orm'
+import { eq, and, asc, desc, isNull, or } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -15,7 +15,7 @@ async function getPartners() {
       handle: partners.handle,
     })
     .from(partners)
-    .where(eq(partners.isDeleted, false))
+    .where(and(eq(partners.isDeleted, false), eq(partners.isActive, true)))
     .orderBy(partners.company)
 }
 
@@ -32,21 +32,21 @@ async function getProducts(partnerId: number | null) {
       .select()
       .from(products)
       .where(and(baseConditions, isNull(products.partnerId)))
-      .orderBy(desc(products.createdAt))
+      .orderBy(asc(products.sortOrder), desc(products.createdAt))
   } else if (partnerId === -1) {
     // Show all products (no filter)
     return db
       .select()
       .from(products)
       .where(baseConditions)
-      .orderBy(desc(products.createdAt))
+      .orderBy(asc(products.sortOrder), desc(products.createdAt))
   } else {
     // Show products for specific partner
     return db
       .select()
       .from(products)
       .where(and(baseConditions, eq(products.partnerId, partnerId)))
-      .orderBy(desc(products.createdAt))
+      .orderBy(asc(products.sortOrder), desc(products.createdAt))
   }
 }
 

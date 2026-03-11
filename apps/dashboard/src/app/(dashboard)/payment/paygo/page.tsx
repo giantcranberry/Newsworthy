@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { products, brandCredits } from '@/db/schema'
-import { eq, and, or, isNull, ne, asc, desc, sql } from 'drizzle-orm'
+import { eq, and, or, isNull, ne, asc, desc, sql, SQL } from 'drizzle-orm'
 import { ProductGrid } from './product-grid'
 
 async function getProducts(partnerId: number) {
@@ -18,7 +18,8 @@ async function getProducts(partnerId: number) {
       )
     ))
     .orderBy(
-      asc(products.partnerId),
+      sql`${products.partnerId} IS NULL ASC`,
+      asc(products.sortOrder),
       desc(products.isPrimary),
       asc(products.shortName)
     )
@@ -66,6 +67,8 @@ export default async function PaygoPage() {
         isPrimary: p.isPrimary,
         stripeLivePrice: p.stripeLivePrice,
         stripeTestPrice: p.stripeTestPrice,
+        icon: p.icon,
+        label: p.label,
       }))}
       credits={credits}
     />

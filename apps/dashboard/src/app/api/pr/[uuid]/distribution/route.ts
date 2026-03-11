@@ -32,7 +32,7 @@ async function getAvailableProducts(partnerId: number | null) {
         )
       )
     )
-    .orderBy(products.price)
+    .orderBy(products.sortOrder, products.price)
 
   return availableProducts
 }

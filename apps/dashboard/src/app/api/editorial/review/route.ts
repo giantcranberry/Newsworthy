@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         .set({
           status: 'approved',
           approvedAt: now,
-          score: score ? parseInt(score, 10) : null,
+          score: score ? Math.max(2, Math.min(5, parseInt(score, 10))) : 4,
           distribution: distribution || 'standard',
           isFeatured: feature || false,
         })

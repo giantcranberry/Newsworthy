@@ -75,7 +75,7 @@ export function ReviewForm({
   const [isLoading, setIsLoading] = useState(false)
   const [action, setAction] = useState<string | null>(null)
   const [notes, setNotes] = useState('')
-  const [score, setScore] = useState(release.score?.toString() || '4')
+  const [score, setScore] = useState(release.score && release.score >= 2 ? release.score.toString() : '4')
   const [distribution, setDistribution] = useState(release.distribution || 'standard')
   const [feature, setFeature] = useState(release.isFeatured ?? true)
 

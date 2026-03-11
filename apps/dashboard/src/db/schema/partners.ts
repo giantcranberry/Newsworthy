@@ -58,6 +58,7 @@ export const products = pgTable('products', {
   isUpgrade: boolean('is_upgrade').default(false),
   isSoloUpgrade: boolean('is_solo_upgrade').default(false),
   serviceRoute: varchar('service_route', { length: 48 }),
+  sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

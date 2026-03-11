@@ -25,6 +25,7 @@ export async function POST(request: Request) {
       isSoloUpgrade,
       label,
       partnerId,
+      sortOrder,
     } = body
 
     if (!displayName || !price || !productType) {
@@ -49,6 +50,7 @@ export async function POST(request: Request) {
         label: label || null,
         partnerId: partnerId ?? null,
         partnerShare: 0, // Default value
+        sortOrder: sortOrder ?? 0,
       })
       .returning()
 

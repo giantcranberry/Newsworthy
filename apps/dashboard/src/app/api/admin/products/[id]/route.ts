@@ -36,6 +36,7 @@ export async function PUT(
       isSoloUpgrade,
       label,
       partnerId,
+      sortOrder,
     } = body
 
     if (!displayName || !price || !productType) {
@@ -59,6 +60,7 @@ export async function PUT(
         isSoloUpgrade: isSoloUpgrade ?? false,
         label: label || null,
         partnerId: partnerId ?? null,
+        sortOrder: sortOrder ?? 0,
       })
       .where(eq(products.id, productId))
       .returning()

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { ShoppingCart, Loader2 } from 'lucide-react'
+import { ShoppingCart, Loader2, Zap, Sparkles, Star, Crown, Rocket, Target } from 'lucide-react'
 
 type Product = {
   id: number
@@ -18,6 +18,8 @@ type Product = {
   isPrimary: boolean | null
   stripeLivePrice: string | null
   stripeTestPrice: string | null
+  icon: string | null
+  label: string | null
 }
 
 type Credits = {
@@ -251,6 +253,23 @@ export function ProductGrid({
   )
 }
 
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Zap, Sparkles, Star, Crown, Rocket, Target,
+}
+
+function ProductIcon({ iconName, className }: { iconName: string | null; className?: string }) {
+  if (!iconName) {
+    return <Zap className={className} />
+  }
+  const trimmed = iconName.trim()
+  if (trimmed.startsWith('fa:') || trimmed.startsWith('fa-') || trimmed.startsWith('fab ') || trimmed.startsWith('fas ') || trimmed.startsWith('far ')) {
+    const faClass = trimmed.startsWith('fa:') ? trimmed.slice(3) : trimmed
+    return <i className={`${faClass} ${className || ''}`} aria-hidden="true" />
+  }
+  const LucideIcon = ICON_MAP[trimmed] || Zap
+  return <LucideIcon className={className} />
+}
+
 function ProductCard({
   product,
   isSelected,
@@ -273,16 +292,21 @@ function ProductCard({
       }`}
       onClick={disabled ? undefined : onToggle}
     >
-      {product.isPrimary && (
+      {(product.isPrimary || product.label) && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="bg-cyan-800 dark:bg-cyan-600 text-white text-xs px-3 py-1 rounded-full">
-            Recommended
+          <span className="bg-cyan-800 dark:bg-cyan-600 text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
+            {product.label || 'Recommended'}
           </span>
         </div>
       )}
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg">{product.displayName || product.shortName}</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex-shrink-0">
+              <ProductIcon iconName={product.icon} className="h-5 w-5 text-cyan-800 dark:text-cyan-400" />
+            </div>
+            <CardTitle className="text-lg">{product.displayName || product.shortName}</CardTitle>
+          </div>
           <Checkbox
             checked={isSelected}
             onCheckedChange={() => onToggle()}
@@ -307,13 +331,19 @@ function ProductCard({
           </p>
         )}
         <Button
-          variant={isSelected ? 'default' : 'outline'}
-          className={`w-full mt-4 ${isSelected ? 'bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700' : ''}`}
+          variant="default"
+          size="lg"
+          className={`w-full mt-4 text-base font-semibold ${
+            isSelected
+              ? 'bg-red-600 hover:bg-red-700 text-white'
+              : 'bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white'
+          }`}
           onClick={(e) => {
             e.stopPropagation()
             onToggle()
           }}
         >
+          <ShoppingCart className="h-4 w-4 mr-2" />
           {isSelected ? 'Remove from Cart' : 'Add to Cart'}
         </Button>
       </CardContent>

@@ -22,6 +22,7 @@ interface Product {
   isSoloUpgrade: boolean | null
   label: string | null
   partnerId: number | null
+  sortOrder: number
 }
 
 interface Partner {
@@ -59,6 +60,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
     isSoloUpgrade: product?.isSoloUpgrade ?? false,
     description: product?.description || '',
     partnerId: product?.partnerId?.toString() || 'global',
+    sortOrder: product?.sortOrder?.toString() || '0',
   })
 
   const handleChange = (field: string, value: string | boolean) => {
@@ -86,6 +88,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
         isSoloUpgrade: formData.isSoloUpgrade,
         description,
         partnerId: formData.partnerId === 'global' ? null : parseInt(formData.partnerId),
+        sortOrder: parseInt(formData.sortOrder) || 0,
       }
 
       const url = product
@@ -224,6 +227,20 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
             maxLength={20}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="sortOrder">Display Order</Label>
+        <Input
+          id="sortOrder"
+          type="number"
+          value={formData.sortOrder}
+          onChange={(e) => handleChange('sortOrder', e.target.value)}
+          className="w-24"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Lower numbers appear first. Use the arrows on the product list for quick reordering.
+        </p>
       </div>
 
       <div className="space-y-2">

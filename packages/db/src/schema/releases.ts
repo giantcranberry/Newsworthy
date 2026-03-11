@@ -31,7 +31,7 @@ export const releases = pgTable('releases', {
   fir: boolean('fir').default(false),
   location: varchar('location', { length: 120 }),
   postalcode: varchar('postalcode', { length: 10 }),
-  score: integer('score').default(0),
+  score: integer('score'),
   editorialHold: boolean('editorial_hold').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   releaseAt: timestamp('release_at'),
