@@ -577,16 +577,16 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news').map((p: any, i: number) => {
               const logoUrl = p.logo && p.logo.includes('http')
                 ? p.logo
-                : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
+                : `https://cdn1.newsworthy.ai/images/clipreport/newsramp/${(p.placement || '').split('.')[0]}.png`
               return <LogoCard key={`pl-${i}`} logo={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} />
             })}
 
             {/* Social media cards (same card format) */}
             {nwrampReport.linkedin && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
             )}
             {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
             )}
             {nwrampReport.bluesky && (
               <LogoCard logo="https://cdn1.newsworthy.ai/bluesky.svg" name="Bluesky" link={nwrampReport.bluesky} />
@@ -595,10 +595,10 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <LogoCard logo="https://cdn1.newsworthy.ai/mastodon.svg" name="Mastodon" link={nwrampReport.mastodon} />
             )}
             {nwrampReport.github && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
             )}
             {nwrampReport.substack && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
             )}
           </div>
 
@@ -656,7 +656,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       className="inline-flex items-center text-[1.2rem] text-blue-600 dark:text-blue-400 hover:underline mr-4 mb-2"
                     >
                       <img
-                        src={`https://cdn1.newsworthy.ai/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`}
+                        src={`https://cdn1.newsworthy.ai/images/clipreport/translations/${langName.replace(/ /g, '-')}.png`}
                         width={35}
                         height={35}
                         alt={langName}
@@ -677,12 +677,12 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-database" iconColor="text-cyan-500">Subscription Research Databases</SectionTitle>
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Your content is indexed in premium research and analytics platforms</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/gale.png" name="Gale" link="https://www.gale.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
         </div>
       </SectionCard>
 
@@ -697,44 +697,44 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             <div className="mb-6">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/hcmtechnologyreport.jpg"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hcmtechnologyreport.jpg"
                   name="HCM Technology Report"
                   link={`https://www.hcmtechnologyreport.com/${release.slug}`}
                   city="Shelton" state="CT"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/talentculture.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/talentculture.png"
                   name="TalentCulture"
                   link={`https://www.talentculture.com/${release.slug}`}
                   city="Portland" state="OR"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/hrtechalliances.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrtechalliances.png"
                   name="HR Tech Alliances"
                   link={`https://www.hrtechalliances.com/wordpress/${release.slug}`}
                   city="West Chester" state="PA"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/hrotoday.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrotoday.png"
                   name="HRO Today"
                   link="https://www.hrotoday.com/hr-industry-news"
                   city="Philadelphia" state="PA"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/hrmarketer.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrmarketer.png"
                   name="HR Marketer"
                   link="https://hrmarketer.com"
                   city="Aptos" state="CA"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/reddit.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/reddit.png"
                   name="HR News on Reddit"
                   link={circuits.data.reddit && circuits.data.reddit.link ? circuits.data.reddit.link : 'https://www.reddit.com/r/HRnews'}
                   city="San Francisco" state="CA"
                 />
                 {circuits.data.hrtechfeed && (
                   <CircuitClipCard
-                    thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/hrtechfeed.png"
+                    thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrtechfeed.png"
                     name="HR Tech Feed"
                     link={circuits.data.hrtechfeed.link || 'https://hrtechfeed.com/press-releases'}
                     city="Trumbull" state="CT"
@@ -750,26 +750,26 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {circuits.data.weedweek && (
                   <CircuitClipCard
-                    thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/weedweek.png"
+                    thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/weedweek.png"
                     name="WeedWeek"
                     link={`https://www.weedweek.com/${release.slug}`}
                     city="Long Beach" state="CA"
                   />
                 )}
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/axiswire.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/axiswire.png"
                   name="AxisWire"
                   link={`https://www.axiswire.com/${release.slug}`}
                   city="Santa Monica" state="CA"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/cannabisradio.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/cannabisradio.png"
                   name="Cannabis Radio"
                   link="https://www.cannabisradio.com"
                   city="Scottsdale" state="AZ"
                 />
                 <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clip_report/circuits/reddit.png"
+                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/reddit.png"
                   name="Cannabis News on Reddit"
                   link={circuits.data.reddit && circuits.data.reddit.link ? circuits.data.reddit.link : 'https://www.reddit.com/r/CannabisNewsInfo'}
                   city="San Francisco" state="CA"

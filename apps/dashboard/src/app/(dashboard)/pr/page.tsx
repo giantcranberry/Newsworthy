@@ -345,7 +345,7 @@ export default async function PressReleasesPage({
                       {release.status === "sent" && (() => {
                         const url = getReleaseUrl(release);
                         if (!url) return null;
-                        const sentMoreThan48h = release.releasedAt && (Date.now() - new Date(release.releasedAt).getTime()) > 48 * 60 * 60 * 1000;
+                        const reportAvailable = release.releasedAt && (Date.now() - new Date(release.releasedAt).getTime()) > 24 * 60 * 60 * 1000;
                         return (
                           <div className="flex items-center gap-3 mt-2 flex-wrap">
                             <span className="inline-flex items-center gap-1.5 text-xs text-cyan-700 dark:text-cyan-400">
@@ -353,7 +353,7 @@ export default async function PressReleasesPage({
                               <a href={url} target="_blank" rel="noopener noreferrer" className="hover:underline truncate max-w-xs sm:max-w-md">{url}</a>
                               <CopyUrlButton url={url} />
                             </span>
-                            {sentMoreThan48h && (
+                            {reportAvailable && (
                               <Link href={`/pr/clips/${release.uuid}`} className="inline-flex items-center gap-1 text-xs text-purple-700 dark:text-purple-400 hover:underline">
                                 <BarChart3 className="h-3 w-3" />
                                 View Report

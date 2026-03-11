@@ -462,11 +462,11 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
         if (logoUrl.startsWith('http')) {
           // keep as-is
         } else if (logoUrl.startsWith('/images/clip_report/')) {
-          logoUrl = `https://cdn1.newsworthy.ai${logoUrl}`
+          logoUrl = `https://cdn1.newsworthy.ai${logoUrl.replace('/images/clip_report/', '/images/clipreport/')}`
         } else if (logoUrl.startsWith('/')) {
-          logoUrl = `https://cdn1.newsworthy.ai/images/clip_report${logoUrl}`
+          logoUrl = `https://cdn1.newsworthy.ai/images/clipreport${logoUrl}`
         } else {
-          logoUrl = `https://cdn1.newsworthy.ai/images/clip_report/${logoUrl}`
+          logoUrl = `https://cdn1.newsworthy.ai/images/clipreport/${logoUrl}`
         }
       }
       enhancedPublications.push({ name: pub.name || '', link: pub.link || '', logo_url: logoUrl })
