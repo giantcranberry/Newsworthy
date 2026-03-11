@@ -212,7 +212,7 @@ export default async function UserDetailPage({
               <ul className="space-y-2">
                 {recentReleases.map((pr) => (
                   <li key={pr.id}>
-                    <Link href={`/pr/${pr.uuid}`} className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <Link href={`/editorial/edit/${pr.id}`} className="text-blue-600 dark:text-blue-400 hover:underline">
                       {pr.title || 'Untitled'}
                     </Link>
                     <p className="text-xs text-gray-500 dark:text-gray-400">

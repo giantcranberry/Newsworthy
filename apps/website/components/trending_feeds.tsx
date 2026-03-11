@@ -18,7 +18,7 @@ export function TrendingFeeds() {
       <ul className="flex flex-wrap xl:flex-wrap gap-5 pt-4 group text-base">
         <li className="">
           <a
-            href="https://app.newsworthyai.com/feeds/rss/latest.rss"
+            href="https://app.newsworthy.ai/feeds/rss/latest.rss"
             className="font-bold hover:text-green-900 hover:bg-green-200/20 rounded p-2 text-center "
             target="_blank"
             rel="noopener dofollow"
@@ -28,7 +28,7 @@ export function TrendingFeeds() {
         </li>
         <li className="">
           <a
-            href="https://app.newsworthyai.com/feeds/circuit/hr/full/newsworty/latest.rss"
+            href="https://app.newsworthy.ai/feeds/circuit/hr/full/newsworty/latest.rss"
             className="font-bold hover:text-green-900 hover:bg-green-200/20  rounded p-2 text-center"
             target="_blank"
             rel="noopener dofollow"
@@ -38,7 +38,7 @@ export function TrendingFeeds() {
         </li>
         <li className="">
           <a
-            href="https://app.newsworthyai.com/feeds/circuit/cannadellic/full/newsworty/latest.rss"
+            href="https://app.newsworthy.ai/feeds/circuit/cannadellic/full/newsworty/latest.rss"
             className="font-bold hover:text-green-900 hover:bg-green-200/20  rounded p-2 text-center"
             target="_blank"
             rel="noopener dofollow"
@@ -48,7 +48,7 @@ export function TrendingFeeds() {
         </li>
         <li className="">
           <a
-            href="https://app.newsworthyai.com/feeds/beat/technology-news/full/newsworthy/latest.rss"
+            href="https://app.newsworthy.ai/feeds/beat/technology-news/full/newsworthy/latest.rss"
             className="font-bold hover:text-green-900 hover:bg-green-200/20 rounded p-2 text-center"
             target="_blank"
             rel="noopener dofollow"

@@ -1405,13 +1405,13 @@ export function PRForm({
               onChange={(e) =>
                 setFormData({ ...formData, abstract: e.target.value })
               }
-              placeholder="Brief summary of your press release (30-500 characters, min 12 words)"
+              placeholder="Brief summary of your press release (30-350 characters, min 12 words)"
               className="mt-1"
               rows={3}
-              maxLength={500}
+              maxLength={350}
             />
             <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-              {formData.abstract.length}/500 characters
+              {formData.abstract.length}/350 characters
             </p>
           </div>
 

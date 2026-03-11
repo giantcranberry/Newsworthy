@@ -338,6 +338,17 @@ export function EditorialEditForm({
   const [releaseDateStr, setReleaseDateStr] = useState(initialDateTime?.date || '')
   const [releaseTimeStr, setReleaseTimeStr] = useState(initialDateTime?.time || '06:00')
   const [timezone, setTimezone] = useState(effectiveTimezone)
+  const [dateError, setDateError] = useState<string | null>(null)
+
+  function validateReleaseDateTime(date: string, time: string, tz: string): string | null {
+    if (!date || !time) return null
+    const utcDate = toUTCFromTimezone(date, time, tz)
+    const minDateTime = new Date(Date.now() + 15 * 60 * 1000)
+    if (utcDate < minDateTime) {
+      return 'Release date must be at least 15 minutes from now'
+    }
+    return null
+  }
 
   // Determine initial topcat from selected categories
   const initialTopcat = selectedCategoryIds.find((id) =>
@@ -850,6 +861,14 @@ export function EditorialEditForm({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Re-validate release date before saving
+    const error = validateReleaseDateTime(releaseDateStr, releaseTimeStr, timezone)
+    if (error) {
+      setDateError(error)
+      return
+    }
+
     setLoading(true)
     setMessage(null)
 
@@ -1634,7 +1653,10 @@ export function EditorialEditForm({
                   id="releaseDate"
                   type="date"
                   value={releaseDateStr}
-                  onChange={(e) => setReleaseDateStr(e.target.value)}
+                  onChange={(e) => {
+                    setReleaseDateStr(e.target.value)
+                    setDateError(validateReleaseDateTime(e.target.value, releaseTimeStr, timezone))
+                  }}
                   className="mt-1"
                 />
               </div>
@@ -1644,7 +1666,10 @@ export function EditorialEditForm({
                   id="releaseTime"
                   type="time"
                   value={releaseTimeStr}
-                  onChange={(e) => setReleaseTimeStr(e.target.value)}
+                  onChange={(e) => {
+                    setReleaseTimeStr(e.target.value)
+                    setDateError(validateReleaseDateTime(releaseDateStr, e.target.value, timezone))
+                  }}
                   className="mt-1"
                 />
               </div>
@@ -1668,6 +1693,7 @@ export function EditorialEditForm({
                       const m = parts.find((p) => p.type === 'minute')?.value || '00'
                       setReleaseDateStr(newDate)
                       setReleaseTimeStr(`${h}:${m}`)
+                      setDateError(validateReleaseDateTime(newDate, `${h}:${m}`, newTz))
                     }
                     setTimezone(newTz)
                   }}
@@ -1679,6 +1705,9 @@ export function EditorialEditForm({
                 </Select>
               </div>
             </div>
+            {dateError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{dateError}</p>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
