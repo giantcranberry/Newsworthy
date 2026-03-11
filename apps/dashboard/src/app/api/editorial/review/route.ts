@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
             }).format(new Date(release.releaseAt)) + ` (${tzLabel(release.timezone)})`
           }
 
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
 
           // Inbox message
           await createSystemMessage(

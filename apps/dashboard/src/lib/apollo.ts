@@ -142,7 +142,7 @@ export function verifyWebhookToken(contactUuid: string, token: string): boolean 
 }
 
 export function buildWebhookUrl(contactUuid: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
   const token = generateWebhookToken(contactUuid)
   return `${baseUrl}/api/webhooks/apollo?contact=${contactUuid}&token=${token}`
 }

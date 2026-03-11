@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   let emailSent = false
   try {
     const recipientName = recipientProfile?.firstName || recipient.email
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
     const inboxLink = `${appUrl}/inbox`
 
     // Convert plain text newlines to <br> for HTML

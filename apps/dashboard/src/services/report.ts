@@ -461,11 +461,11 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
       if (logoUrl) {
         if (logoUrl.startsWith('http')) {
           // keep as-is
-        } else if (logoUrl.startsWith('/images/clip_report/')) {
-          logoUrl = `https://cdn1.newsworthy.ai${logoUrl.replace('/images/clip_report/', '/images/clipreport/')}`
         } else if (logoUrl.startsWith('/')) {
-          logoUrl = `https://cdn1.newsworthy.ai/images/clipreport${logoUrl}`
+          // Absolute path from root — fix legacy underscore variant
+          logoUrl = `https://cdn1.newsworthy.ai${logoUrl.replace('/images/clip_report/', '/images/clipreport/')}`
         } else {
+          // Bare filename — prepend full CDN path
           logoUrl = `https://cdn1.newsworthy.ai/images/clipreport/${logoUrl}`
         }
       }

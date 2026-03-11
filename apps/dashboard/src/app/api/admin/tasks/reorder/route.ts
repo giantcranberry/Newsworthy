@@ -76,7 +76,7 @@ export async function PUT(request: NextRequest) {
       })
       const changedByName = currentUserProfile?.firstName || 'Someone'
       const stageName = stage?.name || 'Unknown'
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
 
       sendSystemMessageWithEmail(
         task.createdBy,

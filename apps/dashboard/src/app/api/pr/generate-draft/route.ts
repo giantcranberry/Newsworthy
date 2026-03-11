@@ -27,6 +27,14 @@ interface DraftResult {
   body: string
   suggestedCategoryId: number | null
   suggestedRegionIds: number[]
+  event?: {
+    startDate: string | null
+    startTime: string | null
+    endDate: string | null
+    endTime: string | null
+    location: string | null
+    timezone: string | null
+  } | null
 }
 
 async function generateDraftWithAI(
@@ -86,6 +94,8 @@ Please generate a complete, professional press release with the following:
 
 7. **Regions**: Select up to 3 most relevant region IDs from the list above based on the geographic focus of the news.
 
+8. **Event**: If the content describes an event (conference, webinar, product launch, meetup, etc.), extract the event details. If no event is mentioned, set this to null.
+
 Respond with valid JSON in this exact format:
 {
   "title": "The headline here",
@@ -94,7 +104,8 @@ Respond with valid JSON in this exact format:
   "location": "City, State",
   "body": "<p>Professional press release content in HTML...</p>",
   "suggestedCategoryId": 123,
-  "suggestedRegionIds": [1, 2, 3]
+  "suggestedRegionIds": [1, 2, 3],
+  "event": null or { "startDate": "YYYY-MM-DD", "startTime": "HH:MM", "endDate": "YYYY-MM-DD" or null, "endTime": "HH:MM" or null, "location": "Full address of the event venue" or null, "timezone": "America/New_York" or other IANA timezone or null }
 }`
 
   const completion = await openai.chat.completions.create({

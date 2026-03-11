@@ -43,6 +43,7 @@ export default async function SeoPage({
         savedSeo={co.seo as Record<string, unknown> | null}
         companyData={{
           companyName: co.companyName,
+          nrUri: co.nrUri || '',
           website: co.website || '',
           logoUrl: co.logoUrl || '',
           phone: co.phone || '',

@@ -158,13 +158,23 @@ const navSections: NavSection[] = [
         ],
       },
       {
+        title: 'Users',
+        href: '/admin/users',
+        icon: 'fa-light fa-users',
+        roles: ['admin'],
+      },
+      {
+        title: 'Brands',
+        href: '/admin/brands',
+        icon: 'fa-light fa-flag',
+        roles: ['admin'],
+      },
+      {
         title: 'Admin',
         href: '/admin',
         icon: 'fa-light fa-gear',
         roles: ['admin'],
         children: [
-          { title: 'Users', href: '/admin/users', icon: 'fa-light fa-users' },
-          { title: 'Brands', href: '/admin/brands', icon: 'fa-light fa-flag' },
           { title: 'Partners', href: '/admin/partners', icon: 'fa-light fa-handshake' },
           { title: 'Products', href: '/admin/products', icon: 'fa-light fa-credit-card' },
           { title: 'Categories', href: '/admin/categories', icon: 'fa-light fa-tags' },

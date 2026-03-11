@@ -6,7 +6,8 @@ import { ExternalLink } from "lucide-react";
 import { ShareButtons } from "@/components/share-buttons";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { db, eq, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations } from '@/lib/db';
+import { createHash } from 'crypto';
+import { db, eq, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
 import {
   getDateline,
   newsTranslatedUrl,
@@ -416,7 +417,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
   }
 
   // Fetch additional data
-  const [ai_media, translatedPRs, qrcode, ai_content, siteMeta] =
+  const [ai_media, translatedPRs, qrcode, ai_content, siteMeta, eventData] =
     (await Promise.all([
       db.query.aiVideos.findFirst({
         columns: {
@@ -461,12 +462,17 @@ export default async function PressRelease({ searchParams, params }: Props) {
       }),
 
       release.prhashId ? getSiteMeta(release.prhashId) : null,
+
+      db.query.releaseEvents.findFirst({
+        where: eq(releaseEvents.prId, pr_id),
+      }),
     ])) as [
       AiMedia | null,
       TranslatedNews[],
       QrCode | null,
       Takeaways | null,
       SiteMetaJson | null,
+      { startDate: Date; endDate: Date | null; location: string | null; timezone: string | null } | undefined,
     ];
 
   // Now TypeScript knows exactly what type translatedPRs is
@@ -491,6 +497,26 @@ export default async function PressRelease({ searchParams, params }: Props) {
 
   // Process content
   const htmlContent = removeEmptyPTags(release.body!);
+
+  // Build contact email obfuscation link (same pattern as body email processing)
+  let contactEmailLink: string | null = null
+  if (release.primaryContact?.email) {
+    const emailLower = release.primaryContact.email.toLowerCase().trim()
+    const hash = createHash('md5').update(emailLower).digest('hex')
+
+    // Ensure the hash exists in release_emails
+    const existing = await db.query.releaseEmails.findFirst({
+      where: eq(releaseEmails.md5Hash, hash),
+    })
+    if (!existing) {
+      await db.insert(releaseEmails).values({
+        md5Hash: hash,
+        email: emailLower,
+      }).onConflictDoNothing()
+    }
+
+    contactEmailLink = `https://newsworthy.email/post/${hash}-${release.id}`
+  }
 
   // Build carousel images from releaseImages, fall back to primaryImage
   let carouselImages = (release.releaseImages || [])
@@ -601,6 +627,22 @@ export default async function PressRelease({ searchParams, params }: Props) {
   }
   if (release.body) {
     jsonLd.articleBody = removeHtmlTags(release.body)
+  }
+
+  // Add Event schema if event data exists
+  if (eventData) {
+    jsonLd["@type"] = ["NewsArticle", "Event"]
+    jsonLd.startDate = eventData.startDate.toISOString()
+    if (eventData.endDate) {
+      jsonLd.endDate = eventData.endDate.toISOString()
+    }
+    if (eventData.location) {
+      jsonLd.location = {
+        "@type": "Place",
+        address: eventData.location,
+      }
+    }
+    jsonLd.eventAttendanceMode = "https://schema.org/OfflineEventAttendanceMode"
   }
 
   return (
@@ -849,7 +891,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
 
           <div className="my-5 flex flex-col gap-5 clear-both">
             {/* Author / Media Contact Card */}
-            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+            <div className="rounded-xl border border-gray-200 bg-white overflow-hidden" itemScope itemType="https://schema.org/Person">
               <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
                 <h3 className="font-semibold text-sm text-gray-500 uppercase tracking-wider">Media Contact</h3>
               </div>
@@ -862,6 +904,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
                         src={release.primaryContact.avatar}
                         alt={release.primaryContact.name || ''}
                         className="w-16 h-16 rounded-full object-cover border-2 border-gray-100"
+                        itemProp="image"
                       />
                     ) : company_logo_url ? (
                       <img
@@ -879,22 +922,22 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <div className="flex-1 min-w-0">
                     {release.primaryContact && (
                       <>
-                        <h4 className="font-semibold text-lg text-gray-900 leading-tight">{release.primaryContact.name}</h4>
+                        <h4 className="font-semibold text-lg text-gray-900 leading-tight" itemProp="name">{release.primaryContact.name}</h4>
                         {release.primaryContact.title && (
-                          <p className="text-sm text-gray-500 mt-0.5">{release.primaryContact.title}</p>
+                          <p className="text-sm text-gray-500 mt-0.5" itemProp="jobTitle">{release.primaryContact.title}</p>
                         )}
                       </>
                     )}
-                    <Link href={`/newsroom/${release.company.nrUri || release.company.uuid}`} className="text-sm font-medium text-sky-700 hover:underline mt-1 block">{release.company.companyName}</Link>
+                    <Link href={`/newsroom/${release.company.nrUri || release.company.uuid}`} className="text-sm font-medium text-sky-700 hover:underline mt-1 block" itemProp="worksFor">{release.company.companyName}</Link>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm">
                       {release.primaryContact?.phone && (
-                        <Link href={`tel:${release.primaryContact.phone}`} className="text-sky-600 hover:underline">
+                        <Link href={`tel:${release.primaryContact.phone}`} className="text-sky-600 hover:underline" itemProp="telephone">
                           {release.primaryContact.phone}
                         </Link>
                       )}
-                      {release.primaryContact?.email && (
-                        <Link href={`mailto:${release.primaryContact.email}`} className="text-sky-600 hover:underline">
-                          {release.primaryContact.email}
+                      {release.primaryContact?.email && contactEmailLink && (
+                        <Link href={contactEmailLink} className="text-sky-600 hover:underline" itemProp="email">
+                          Email Contact
                         </Link>
                       )}
                     </div>

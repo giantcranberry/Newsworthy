@@ -656,7 +656,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       className="inline-flex items-center text-[1.2rem] text-blue-600 dark:text-blue-400 hover:underline mr-4 mb-2"
                     >
                       <img
-                        src={`https://cdn1.newsworthy.ai/images/clipreport/translations/${langName.replace(/ /g, '-')}.png`}
+                        src={`https://cdn1.newsworthy.ai/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`}
                         width={35}
                         height={35}
                         alt={langName}
@@ -677,12 +677,12 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-database" iconColor="text-cyan-500">Subscription Research Databases</SectionTitle>
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Your content is indexed in premium research and analytics platforms</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/gale.png" name="Gale" link="https://www.gale.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
+          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
         </div>
       </SectionCard>
 

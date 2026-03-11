@@ -130,7 +130,7 @@ export async function PUT(
 
     // Notify if assignee changed to a new person (not self)
     const userId = parseInt((session?.user as any)?.id)
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
     if (assignedTo && assignedTo !== existingTask.assignedTo && assignedTo !== userId) {
       sendSystemMessageWithEmail(
         assignedTo,

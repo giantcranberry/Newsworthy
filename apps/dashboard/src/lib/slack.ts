@@ -115,7 +115,7 @@ export async function sendSlackNotification(
 
 // ── Message Formatters ──────────────────────────────────────────────
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
 
 export function formatPrStatusMessage(title: string, status: string, notes?: string) {
   const statusEmoji: Record<string, string> = {

@@ -41,6 +41,9 @@ import {
   Smartphone,
   Eye,
   EyeOff,
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -392,6 +395,19 @@ export function PRForm({
     }
   };
 
+  // Populate event fields from AI-extracted data
+  const applyEventData = (data: any) => {
+    if (data.event) {
+      if (data.event.startDate) setEventStartDate(data.event.startDate)
+      if (data.event.startTime) setEventStartTime(data.event.startTime)
+      if (data.event.endDate) setEventEndDate(data.event.endDate)
+      if (data.event.endTime) setEventEndTime(data.event.endTime)
+      if (data.event.location) setEventLocation(data.event.location)
+      if (data.event.timezone) setEventTimezone(data.event.timezone)
+      setShowEventSection(true)
+    }
+  }
+
   const handleImportFromFile = async (file: File) => {
     setIsImporting(true);
     setImportError(null);
@@ -440,6 +456,8 @@ export function PRForm({
         editorRef.current.setContent(data.body);
         setPreviewBody(data.body);
       }
+
+      applyEventData(data);
 
       setShowImportDialog(false);
       setGoogleDocsUrl("");
@@ -504,6 +522,8 @@ export function PRForm({
         editorRef.current.setContent(data.body);
         setPreviewBody(data.body);
       }
+
+      applyEventData(data);
 
       setShowImportDialog(false);
       setGoogleDocsUrl("");
@@ -605,6 +625,8 @@ export function PRForm({
         setPreviewBody(data.body);
       }
 
+      applyEventData(data);
+
       setShowAIDraftDialog(false);
       setAiDraftInput("");
       setAiDraftSourceUrl("");
@@ -664,6 +686,44 @@ export function PRForm({
     selectedCategories: initialData?.selectedCategories || [],
     selectedRegions: initialData?.selectedRegions || [],
   });
+
+  // Announcing an Event? Provide Details Below state
+  const [eventStartDate, setEventStartDate] = useState('')
+  const [eventStartTime, setEventStartTime] = useState('')
+  const [eventEndDate, setEventEndDate] = useState('')
+  const [eventEndTime, setEventEndTime] = useState('')
+  const [eventLocation, setEventLocation] = useState('')
+  const [eventTimezone, setEventTimezone] = useState(formData.timezone)
+  const [showEventSection, setShowEventSection] = useState(false)
+
+  // Fetch event data on mount for edit mode
+  useEffect(() => {
+    if (!initialData?.uuid) return
+    fetch(`/api/pr/${initialData.uuid}/event`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.event) {
+          const tz = data.event.timezone || formData.timezone
+          setEventTimezone(tz)
+          if (data.event.startDate) {
+            const d = new Date(data.event.startDate)
+            setEventStartDate(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d))
+            const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)
+            setEventStartTime(`${parts.find(p => p.type === 'hour')?.value || '09'}:${parts.find(p => p.type === 'minute')?.value || '00'}`)
+          }
+          if (data.event.endDate) {
+            const d = new Date(data.event.endDate)
+            setEventEndDate(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d))
+            const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)
+            setEventEndTime(`${parts.find(p => p.type === 'hour')?.value || '17'}:${parts.find(p => p.type === 'minute')?.value || '00'}`)
+          }
+          setEventLocation(data.event.location || '')
+          setShowEventSection(true)
+        }
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Validate release date on mount when editing an existing release
   useEffect(() => {
@@ -853,6 +913,27 @@ export function PRForm({
 
       if (response.ok) {
         const data = await response.json();
+
+        // Save event data if any event field is populated
+        const hasEventData = eventStartDate || eventStartTime || eventEndDate || eventEndTime || eventLocation
+        if (hasEventData || showEventSection) {
+          try {
+            await fetch(`/api/pr/${data.uuid}/event`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                startDate: eventStartDate || null,
+                startTime: eventStartTime || null,
+                endDate: eventEndDate || null,
+                endTime: eventEndTime || null,
+                location: eventLocation || null,
+                timezone: eventTimezone,
+              }),
+            })
+          } catch (e) {
+            console.error('Error saving event data:', e)
+          }
+        }
 
         // Show validation errors if any, but data was saved
         if (validationErrors.length > 0) {
@@ -1671,6 +1752,109 @@ export function PRForm({
               branding: false,
             }}
           />
+      </div>
+
+      {/* Announcing an Event */}
+      <div className="p-6 space-y-5">
+          {!readOnly && (
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowEventSection(!showEventSection)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Announcing an Event? Provide Details Below</span>
+                  <span className="text-xs text-gray-400">(optional)</span>
+                </div>
+                {showEventSection ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+              </button>
+              {showEventSection && (
+                <div className="px-4 pb-4 space-y-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Announcing an event? Provide details below so your release includes structured event data for search engines and news aggregators.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="eventStartDate">Start Date *</Label>
+                      <Input
+                        id="eventStartDate"
+                        type="date"
+                        value={eventStartDate}
+                        onChange={(e) => setEventStartDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="eventStartTime">Start Time *</Label>
+                      <Input
+                        id="eventStartTime"
+                        type="time"
+                        value={eventStartTime}
+                        onChange={(e) => setEventStartTime(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="eventEndDate">End Date</Label>
+                      <Input
+                        id="eventEndDate"
+                        type="date"
+                        value={eventEndDate}
+                        onChange={(e) => setEventEndDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="eventEndTime">End Time</Label>
+                      <Input
+                        id="eventEndTime"
+                        type="time"
+                        value={eventEndTime}
+                        onChange={(e) => setEventEndTime(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="eventLocationInput">Event Location</Label>
+                    <Input
+                      id="eventLocationInput"
+                      value={eventLocation}
+                      onChange={(e) => setEventLocation(e.target.value)}
+                      placeholder="Convention Center, 123 Main St, Austin, TX 78701"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="eventTimezoneSelect">Event Timezone</Label>
+                    <Select
+                      id="eventTimezoneSelect"
+                      value={eventTimezone}
+                      onChange={(e) => setEventTimezone(e.target.value)}
+                      className="mt-1"
+                    >
+                      {TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>{tz.label}</option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {readOnly && showEventSection && (
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2 mb-3">
+                <CalendarDays className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Announcing an Event? Provide Details Below</span>
+              </div>
+              {eventStartDate && <p className="text-sm text-gray-600 dark:text-gray-400">Start: {eventStartDate} {eventStartTime}</p>}
+              {eventEndDate && <p className="text-sm text-gray-600 dark:text-gray-400">End: {eventEndDate} {eventEndTime}</p>}
+              {eventLocation && <p className="text-sm text-gray-600 dark:text-gray-400">Location: {eventLocation}</p>}
+            </div>
+          )}
       </div>
 
       {/* Additional Links */}

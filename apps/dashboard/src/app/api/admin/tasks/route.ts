@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
 
     // Notify assignee if assigned to someone other than the creator
     if (assignedTo && assignedTo !== parseInt(userId)) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
       sendSystemMessageWithEmail(
         assignedTo,
         'Task Assigned: ' + title.trim(),

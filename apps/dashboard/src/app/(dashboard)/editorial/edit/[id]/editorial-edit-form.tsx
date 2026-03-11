@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -55,6 +55,9 @@ import {
   X,
   ZoomIn,
   ZoomOut,
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 
 interface ImageRecord {
@@ -402,6 +405,43 @@ export function EditorialEditForm({
   const [newsRawFile, setNewsRawFile] = useState<File | null>(null)
   // Replace image cropper state
   const [replaceImageId, setReplaceImageId] = useState<number | null>(null)
+
+  // Announcing an Event? Provide Details Below state
+  const [eventStartDate, setEventStartDate] = useState('')
+  const [eventStartTime, setEventStartTime] = useState('')
+  const [eventEndDate, setEventEndDate] = useState('')
+  const [eventEndTime, setEventEndTime] = useState('')
+  const [eventLocation, setEventLocation] = useState('')
+  const [eventTimezone, setEventTimezone] = useState(timezone)
+  const [showEventSection, setShowEventSection] = useState(false)
+
+  // Fetch event data on mount
+  useEffect(() => {
+    fetch(`/api/pr/${release.uuid}/event`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.event) {
+          const tz = data.event.timezone || timezone
+          setEventTimezone(tz)
+          if (data.event.startDate) {
+            const d = new Date(data.event.startDate)
+            setEventStartDate(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d))
+            const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)
+            setEventStartTime(`${parts.find(p => p.type === 'hour')?.value || '09'}:${parts.find(p => p.type === 'minute')?.value || '00'}`)
+          }
+          if (data.event.endDate) {
+            const d = new Date(data.event.endDate)
+            setEventEndDate(new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d))
+            const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d)
+            setEventEndTime(`${parts.find(p => p.type === 'hour')?.value || '17'}:${parts.find(p => p.type === 'minute')?.value || '00'}`)
+          }
+          setEventLocation(data.event.location || '')
+          setShowEventSection(true)
+        }
+      })
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const processImageFile = useCallback((file: File, forReplaceId?: number) => {
     if (file.size > 5 * 1024 * 1024) {
@@ -907,6 +947,27 @@ export function EditorialEditForm({
       const data = await res.json()
 
       if (res.ok) {
+        // Save event data if any event field is populated
+        const hasEventData = eventStartDate || eventStartTime || eventEndDate || eventEndTime || eventLocation
+        if (hasEventData || showEventSection) {
+          try {
+            await fetch(`/api/pr/${release.uuid}/event`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                startDate: eventStartDate || null,
+                startTime: eventStartTime || null,
+                endDate: eventEndDate || null,
+                endTime: eventEndTime || null,
+                location: eventLocation || null,
+                timezone: eventTimezone,
+              }),
+            })
+          } catch (e) {
+            console.error('Error saving event data:', e)
+          }
+        }
+
         setMessage({ type: 'success', text: 'Release updated successfully.' })
         if (release.status === 'sent') {
           router.push('/editorial/released-edit')
@@ -1708,6 +1769,94 @@ export function EditorialEditForm({
             {dateError && (
               <p className="text-sm text-red-600 dark:text-red-400">{dateError}</p>
             )}
+
+            {/* Announcing an Event? Provide Details Below - Collapsible */}
+            <div className="border border-gray-200 dark:border-gray-800 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setShowEventSection(!showEventSection)}
+                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Announcing an Event? Provide Details Below</span>
+                  <span className="text-xs text-gray-400">(optional)</span>
+                </div>
+                {showEventSection ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+              </button>
+              {showEventSection && (
+                <div className="px-4 pb-4 space-y-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Announcing an event? Provide details below so your release includes structured event data for search engines and news aggregators.</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="eventStartDate">Start Date *</Label>
+                      <Input
+                        id="eventStartDate"
+                        type="date"
+                        value={eventStartDate}
+                        onChange={(e) => setEventStartDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="eventStartTime">Start Time *</Label>
+                      <Input
+                        id="eventStartTime"
+                        type="time"
+                        value={eventStartTime}
+                        onChange={(e) => setEventStartTime(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="eventEndDate">End Date</Label>
+                      <Input
+                        id="eventEndDate"
+                        type="date"
+                        value={eventEndDate}
+                        onChange={(e) => setEventEndDate(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="eventEndTime">End Time</Label>
+                      <Input
+                        id="eventEndTime"
+                        type="time"
+                        value={eventEndTime}
+                        onChange={(e) => setEventEndTime(e.target.value)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="edEventLocation">Event Location</Label>
+                    <Input
+                      id="edEventLocation"
+                      value={eventLocation}
+                      onChange={(e) => setEventLocation(e.target.value)}
+                      placeholder="Convention Center, 123 Main St, Austin, TX 78701"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edEventTimezone">Event Timezone</Label>
+                    <Select
+                      id="edEventTimezone"
+                      value={eventTimezone}
+                      onChange={(e) => setEventTimezone(e.target.value)}
+                      className="mt-1"
+                    >
+                      {TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>{tz.label}</option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>

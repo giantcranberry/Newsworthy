@@ -218,6 +218,7 @@ export const releasesRelations = relations(releases, ({ one, many }) => ({
   faqs: many(releaseFaqs),
   releaseCategories: many(releaseCategories),
   translations: many(translations),
+  event: one(releaseEvents, { fields: [releases.id], references: [releaseEvents.prId] }),
 }))
 
 export const queueRelations = relations(queue, ({ one }) => ({
@@ -296,4 +297,19 @@ export const releaseAnalysisRelations = relations(releaseAnalysis, ({ one }) => 
     fields: [releaseAnalysis.prId],
     references: [releases.id],
   }),
+}))
+
+export const releaseEvents = pgTable('release_events', {
+  id: serial('id').primaryKey(),
+  prId: integer('pr_id').notNull().references(() => releases.id, { onDelete: 'cascade' }).unique(),
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'),
+  location: text('location'),
+  timezone: varchar('timezone', { length: 32 }),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+export const releaseEventsRelations = relations(releaseEvents, ({ one }) => ({
+  release: one(releases, { fields: [releaseEvents.prId], references: [releases.id] }),
 }))

@@ -27,6 +27,14 @@ interface ImportResult {
   body: string
   suggestedCategoryId: number | null
   suggestedRegionIds: number[]
+  event?: {
+    startDate: string | null
+    startTime: string | null
+    endDate: string | null
+    endTime: string | null
+    location: string | null
+    timezone: string | null
+  } | null
 }
 
 async function fetchGoogleDoc(url: string): Promise<string> {
@@ -139,6 +147,8 @@ Please extract and generate the following:
 
 7. **Regions**: Select up to 3 most relevant region IDs from the list above based on the geographic focus of the news.
 
+8. **Event**: If the document announces an event (conference, webinar, product launch, meetup, etc.), extract the event details. If no event is mentioned, set this to null.
+
 Respond with valid JSON in this exact format:
 {
   "title": "The headline here",
@@ -147,7 +157,8 @@ Respond with valid JSON in this exact format:
   "location": "City, State",
   "body": "<p>Formatted HTML content with <strong>bold</strong>, <em>italics</em>, <a href='url'>links</a> preserved...</p>",
   "suggestedCategoryId": 123,
-  "suggestedRegionIds": [1, 2, 3]
+  "suggestedRegionIds": [1, 2, 3],
+  "event": null or { "startDate": "YYYY-MM-DD", "startTime": "HH:MM", "endDate": "YYYY-MM-DD" or null, "endTime": "HH:MM" or null, "location": "Full address of the event venue" or null, "timezone": "America/New_York" or other IANA timezone or null }
 }`
 
   const completion = await openai.chat.completions.create({
