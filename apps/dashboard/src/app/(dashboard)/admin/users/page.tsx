@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users } from '@/db/schema'
-import { desc, ilike, eq, and, sql } from 'drizzle-orm'
+import { users, company } from '@/db/schema'
+import { desc, ilike, eq, and, sql, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,11 +14,27 @@ import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
 
-async function getUsers(searchQuery?: string, filter?: FilterType) {
+async function getUserIdsByBrand(brandQuery: string): Promise<number[]> {
+  const matches = await db
+    .select({ userId: company.userId })
+    .from(company)
+    .where(ilike(company.companyName, `%${brandQuery}%`))
+  return [...new Set(matches.map((m) => m.userId))]
+}
+
+async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: string) {
   const conditions = []
 
   if (searchQuery) {
     conditions.push(ilike(users.email, `%${searchQuery}%`))
+  }
+
+  if (brandQuery) {
+    const userIds = await getUserIdsByBrand(brandQuery)
+    if (userIds.length === 0) {
+      return []
+    }
+    conditions.push(inArray(users.id, userIds))
   }
 
   if (filter === 'pending') {
@@ -35,10 +51,22 @@ async function getUsers(searchQuery?: string, filter?: FilterType) {
     .limit(100)
 }
 
-async function getCounts(searchQuery?: string) {
-  const baseCondition = searchQuery
-    ? ilike(users.email, `%${searchQuery}%`)
-    : undefined
+async function getCounts(searchQuery?: string, brandQuery?: string) {
+  const baseConditions = []
+
+  if (searchQuery) {
+    baseConditions.push(ilike(users.email, `%${searchQuery}%`))
+  }
+
+  if (brandQuery) {
+    const userIds = await getUserIdsByBrand(brandQuery)
+    if (userIds.length === 0) {
+      return { all: 0, verified: 0, pending: 0 }
+    }
+    baseConditions.push(inArray(users.id, userIds))
+  }
+
+  const baseCondition = baseConditions.length > 0 ? and(...baseConditions) : undefined
 
   const [allResult] = await db
     .select({ count: sql<number>`count(*)`.mapWith(Number) })
@@ -73,7 +101,7 @@ async function getCounts(searchQuery?: string) {
 export default async function AdminUsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; filter?: string }>
+  searchParams: Promise<{ q?: string; filter?: string; brand?: string }>
 }) {
   const session = await auth()
 
@@ -85,10 +113,10 @@ export default async function AdminUsersPage({
     redirect('/dashboard')
   }
 
-  const { q: searchQuery, filter: rawFilter } = await searchParams
+  const { q: searchQuery, filter: rawFilter, brand: brandQuery } = await searchParams
   const filter: FilterType = rawFilter === 'pending' || rawFilter === 'verified' ? rawFilter : 'all'
-  const allUsers = await getUsers(searchQuery, filter)
-  const counts = await getCounts(searchQuery)
+  const allUsers = await getUsers(searchQuery, filter, brandQuery)
+  const counts = await getCounts(searchQuery, brandQuery)
 
   return (
     <div className="space-y-6">
@@ -110,7 +138,7 @@ export default async function AdminUsersPage({
       {/* Filter Tabs */}
       <div data-tour="users-filters" className="flex gap-2">
         <Link
-          href={`/admin/users${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+          href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), ...(brandQuery ? { brand: brandQuery } : {}) }).toString()}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
             filter === 'all' ? 'bg-cyan-800/10 dark:bg-cyan-400/10 text-cyan-800 dark:text-cyan-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
@@ -119,7 +147,7 @@ export default async function AdminUsersPage({
           All ({counts.all})
         </Link>
         <Link
-          href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), filter: 'pending' }).toString()}`}
+          href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), ...(brandQuery ? { brand: brandQuery } : {}), filter: 'pending' }).toString()}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
             filter === 'pending' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
@@ -128,7 +156,7 @@ export default async function AdminUsersPage({
           Pending ({counts.pending})
         </Link>
         <Link
-          href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), filter: 'verified' }).toString()}`}
+          href={`/admin/users?${new URLSearchParams({ ...(searchQuery ? { q: searchQuery } : {}), ...(brandQuery ? { brand: brandQuery } : {}), filter: 'verified' }).toString()}`}
           className={cn(
             'inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer transition-colors',
             filter === 'verified' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 dark:bg-gray-800'
