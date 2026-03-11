@@ -34,7 +34,12 @@ export function WizardHeader({
   hideNext = false,
 }: WizardHeaderProps) {
   const router = useRouter()
-  const [previewVisible, setPreviewVisible] = useState(false)
+  const [previewVisible, setPreviewVisible] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('preview-visible') === 'true'
+    }
+    return false
+  })
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -151,7 +156,7 @@ export function WizardHeader({
             className="hidden xl:inline-flex"
           >
             {previewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {previewVisible ? 'Hide Preview' : 'Preview Your Release'}
+            {previewVisible ? 'Hide Preview' : 'Preview'}
           </Button>
         </div>
       </div>

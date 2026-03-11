@@ -202,7 +202,7 @@ export function PreviewPanel({
                     ? 'pl-4 py-3 text-sm'
                     : compact ? 'pl-3 py-2 text-xs' : 'pl-4 py-3 text-sm'
                 )}>
-                  <p>&ldquo;{release.pullquote}&rdquo;</p>
+                  <p>{/^[""\u201C]/.test(release.pullquote) ? release.pullquote : `\u201C${release.pullquote}\u201D`}</p>
                 </blockquote>
               )}
             </div>

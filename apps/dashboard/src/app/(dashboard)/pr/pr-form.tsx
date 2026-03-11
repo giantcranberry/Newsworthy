@@ -262,7 +262,12 @@ export function PRForm({
   const editorRef = useRef<any>(null);
   const bodyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isEditMode = !!initialData?.uuid;
-  const [showPreview, setShowPreview] = useState(isEditMode ? false : initialShowPreview);
+  const [showPreview, setShowPreview] = useState(() => {
+    if (isEditMode && typeof window !== 'undefined') {
+      return sessionStorage.getItem('preview-visible') === 'true'
+    }
+    return initialShowPreview;
+  });
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH);
 
   // In edit mode, sync preview visibility with the layout's ReleasePreviewSidebar
@@ -668,6 +673,21 @@ export function PRForm({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Broadcast form changes to ReleasePreviewSidebar in edit mode
+  useEffect(() => {
+    if (!isEditMode) return;
+    window.dispatchEvent(new CustomEvent('preview-form-update', {
+      detail: {
+        title: formData.title,
+        abstract: formData.abstract,
+        pullquote: formData.pullquote,
+        location: formData.location,
+        videoUrl: formData.videoUrl,
+      },
+    }));
+  }, [isEditMode, formData.title, formData.abstract, formData.pullquote, formData.location, formData.videoUrl]);
+
+  // Broadcast body changes separately (debounced via previewBody)
   const [previewBody, setPreviewBody] = useState(formData.body);
   const handleEditorChange = useCallback((content: string) => {
     if (bodyTimerRef.current) clearTimeout(bodyTimerRef.current);
@@ -675,6 +695,13 @@ export function PRForm({
       setPreviewBody(content);
     }, 150);
   }, []);
+
+  useEffect(() => {
+    if (!isEditMode) return;
+    window.dispatchEvent(new CustomEvent('preview-form-update', {
+      detail: { body: previewBody },
+    }));
+  }, [isEditMode, previewBody]);
 
   const handleCategoryChange = (categoryId: number) => {
     setFormData((prev) => {
@@ -873,21 +900,6 @@ export function PRForm({
           </div>
           <div className="flex items-center gap-2">
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                if (isEditMode) {
-                  window.dispatchEvent(new CustomEvent('toggle-preview'));
-                } else {
-                  setShowPreview((v) => !v);
-                }
-              }}
-              className="hidden xl:inline-flex cursor-pointer gap-2"
-            >
-              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              {showPreview ? 'Hide Preview' : 'Preview'}
-            </Button>
-            <Button
               variant="outline"
               onClick={() => router.back()}
               disabled={isLoading}
@@ -938,6 +950,21 @@ export function PRForm({
                 <Send className="h-4 w-4" />
               )}
               Save & Continue
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                if (isEditMode) {
+                  window.dispatchEvent(new CustomEvent('toggle-preview'));
+                } else {
+                  setShowPreview((v) => !v);
+                }
+              }}
+              className="hidden xl:inline-flex cursor-pointer gap-2"
+            >
+              {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPreview ? 'Hide Preview' : 'Preview'}
             </Button>
           </div>
         </div>
