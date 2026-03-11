@@ -12,9 +12,9 @@ type ReleaseProps = {
 export function TrendingFeeds() {
   return (
     <div className="my-3 py-5 rounded-lg">
-      <h3 className="text-lg uppercase font-extrabold m-0 text-cyan-800">
+      <h1 className="text-lg uppercase font-extrabold m-0 text-cyan-800">
         Trending RSS Feeds
-      </h3>
+      </h1>
       <ul className="flex flex-wrap xl:flex-wrap gap-5 pt-4 group text-base">
         <li className="">
           <a

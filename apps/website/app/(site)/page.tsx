@@ -6,8 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCategorySections, getSiteAdBySlug } from "@/sanity/sanity-utils";
 import TrustedDialog from "@/components/trusted";
-import LatestDialog from "@/components/latest";
-import { HorizontalNews } from "@/components/news_card";
 import { CardNews } from "@/components/home_news_card";
 import { MobileNewsCard } from "@/components/mobile_news_card";
 import SeeYourNews from "@/components/see_your_news";
@@ -245,52 +243,121 @@ export default async function Home({ searchParams }: Props) {
             <SeeYourNews />
           </section>
 
-          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-5 relative">
-            <LatestDialog />
-            <div className="grid grid-cols-1 lg:grid-flow-col gap-10">
-              <div className="lg:col-span-2 gird-row-1">
-                <div className="relative lg:hidden max-h-auto">
-                  <div className="flex flex-col border-0 mb-0">
-                    {releasesList.map(
-                      (release, index) =>
-                        index < 3 && (
-                          <MobileNewsCard key={release.id} release={release} />
-                        )
-                    )}
+          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-8 relative">
+            <div className="flex items-center gap-4 mb-6">
+              <h2 className="text-lg font-extrabold uppercase text-cyan-800">Latest News</h2>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
 
-                    {releasesList.map(
-                      (release, index) =>
-                        index > 2 && (
-                          <MobileNewsCard key={release.id} release={release} />
-                        )
-                    )}
-                  </div>
-                </div>
-                <div className="hidden lg:grid lg:grid-cols-6 lg:gap-10">
-                  <div className="col-span-4">
-                    {releasesList.map(
-                      (release, index) =>
-                        index < 2 && (
-                          <HorizontalNews key={release.id} release={release} />
-                        )
-                    )}
-                    <aside className="block lg:hidden relative my-5 px-5">
-                      <FreePrReview />
-                    </aside>
-                  </div>
-                  <aside className="col-span-2 relative mb-5">
-                    <FreePrReview />
-                  </aside>
-                </div>
-                <div className="hidden lg:grid lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
-                  {releasesList.map(
-                    (release, index) =>
-                      index > 1 && (
-                        <CardNews key={release.id} release={release} />
-                      )
-                  )}
-                </div>
+            {/* Mobile layout */}
+            <div className="lg:hidden">
+              <div className="flex flex-col">
+                {releasesList.map(
+                  (release, index) => (
+                    <MobileNewsCard key={release.id} release={release} />
+                  )
+                )}
               </div>
+              <aside className="my-5 px-5">
+                <FreePrReview />
+              </aside>
+            </div>
+
+            {/* Desktop magazine layout */}
+            <div className="hidden lg:block">
+              {/* Top row: lead story (large) + sidebar headlines */}
+              {releasesList.length > 0 && (
+                <div className="grid grid-cols-12 gap-8 pb-8 border-b border-gray-200">
+                  {/* Lead story — large image + content */}
+                  <div className="col-span-7 group">
+                    <Link href={newsUrl(releasesList[0])} className="block">
+                      {releasesList[0].banner?.cdnUrl && (
+                        <div className="overflow-hidden rounded-lg mb-4">
+                          <Image
+                            className="w-full aspect-[16/9] object-cover transition duration-300 ease-in-out group-hover:scale-105"
+                            src={releasesList[0].banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:1200")}
+                            width={800}
+                            height={450}
+                            alt={releasesList[0].title || "Press release image"}
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-2">
+                        {releasesList[0].releaseCategories?.[0]?.category && (
+                          <span className="text-xs font-medium text-sky-700">
+                            {releasesList[0].releaseCategories[0].category.name}
+                          </span>
+                        )}
+                        <h3 className="font-serif text-2xl xl:text-3xl leading-tight group-hover:text-sky-700 transition-colors">
+                          {releasesList[0].title}
+                        </h3>
+                        <p className="text-base text-gray-500 line-clamp-2">
+                          {releasesList[0].abstract}
+                        </p>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                          <span>{releasesList[0].company?.companyName}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+
+                  {/* Sidebar — stacked headline-only items */}
+                  <div className="col-span-5 flex flex-col">
+                    {releasesList.slice(1, 5).map((release, index) => (
+                      <Link
+                        key={release.id}
+                        href={newsUrl(release)}
+                        className={`group/item flex gap-4 py-4 ${index > 0 ? "border-t border-gray-100" : ""}`}
+                      >
+                        <div className="flex flex-col gap-1.5 flex-1">
+                          {release.releaseCategories?.[0]?.category && (
+                            <span className="text-xs font-medium text-sky-700">
+                              {release.releaseCategories[0].category.name}
+                            </span>
+                          )}
+                          <h3 className="font-serif text-base leading-snug line-clamp-3 group-hover/item:text-sky-700 transition-colors">
+                            {release.title}
+                          </h3>
+                          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                            <span>{release.company?.companyName}</span>
+                          </div>
+                        </div>
+                        {release.banner?.cdnUrl && (
+                          <div className="flex-shrink-0 w-[120px] rounded overflow-hidden">
+                            <Image
+                              className="w-full aspect-[16/9] object-cover rounded"
+                              src={release.banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:400")}
+                              width={120}
+                              height={68}
+                              alt={release.title || "Press release image"}
+                            />
+                          </div>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom grid: remaining stories as cards */}
+              {releasesList.length > 5 && (() => {
+                const remaining = releasesList.slice(5);
+                // +1 for the FreePrReview card, round down to nearest multiple of 4
+                const totalSlots = Math.floor((remaining.length + 1) / 4) * 4;
+                const cardCount = totalSlots - 1;
+                const cards = remaining.slice(0, cardCount);
+                return (
+                  <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 mt-8">
+                    {cards.slice(0, 2).map((release) => (
+                      <CardNews key={release.id} release={release} />
+                    ))}
+                    <FreePrReview />
+                    {cards.slice(2).map((release) => (
+                      <CardNews key={release.id} release={release} />
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </section>
           {/* <CenteredContentBand band={bands[1]} /> */}

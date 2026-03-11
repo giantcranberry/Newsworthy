@@ -1,5 +1,4 @@
 import Link from "next/link";
-
 import Image from "next/image";
 import { PressRelease } from "@/types/Release";
 import { newsUrl } from "@/lib/utils";
@@ -14,64 +13,90 @@ type ReleaseProps = {
   release: PressRelease;
 };
 
+function timeAgo(date: Date): string {
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 7) {
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  }
+  if (days > 0) return `${days}d ago`;
+  if (hours > 0) return `${hours}h ago`;
+  if (minutes > 0) return `${minutes}m ago`;
+  return "Just now";
+}
+
 export function CardNews({ release }: ReleaseProps) {
-  // Get the actual image dimensions from the release data or use defaults
   const originalWidth = release.banner?.width || 314;
   const originalHeight = release.banner?.height || 192;
-
-  // Determine aspect ratio
   const aspectRatio = getImageAspectRatio(originalWidth, originalHeight);
-
-  // Calculate dimensions - scale portrait images to match card height
   const dimensions =
     aspectRatio === "portrait"
       ? getScaledPortraitDimensions(originalWidth, originalHeight, 192)
       : { width: 314, height: 192 };
 
+  const firstCategory = release.releaseCategories?.[0]?.category;
+
   return (
-    <div
+    <Link
+      href={newsUrl(release)}
       key={release.id}
-      className="flex flex-col bg-white group mb-5 pb-2 w-full transition duration-300 max-w-[328px] rounded"
+      className="flex flex-col bg-white group w-full max-w-[328px] rounded-lg border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300"
     >
-      <div className="lg:col-span-2 rounded overflow-hidden w-full mb-3">
-        <div className="pt-5 pb-2 md:pt-0 rounded">
-          <Link href={newsUrl(release)}>
-            {release.banner?.cdnUrl && (
-              <Image
-                className={getImageClasses(
-                  aspectRatio,
-                  "w-full h-36 transition duration-300 ease-in-out group-hover:scale-105 rounded"
-                )}
-                src={release.banner.cdnUrl.replace(
-                  "resize=width:675",
-                  "resize=width:1200"
-                )}
-                width={dimensions.width}
-                height={dimensions.height}
-                alt={`banner image for: ${release.title}`}
-              />
+      {/* Image */}
+      <div className="overflow-hidden">
+        {release.banner?.cdnUrl ? (
+          <Image
+            className={getImageClasses(
+              aspectRatio,
+              "w-full aspect-[16/9] transition duration-300 ease-in-out group-hover:scale-105"
             )}
-          </Link>
-        </div>
+            src={release.banner.cdnUrl.replace(
+              "resize=width:675",
+              "resize=width:1200"
+            )}
+            width={dimensions.width}
+            height={dimensions.height}
+            alt={release.title || "Press release image"}
+          />
+        ) : (
+          <div className="w-full aspect-[16/9] bg-gray-100" />
+        )}
       </div>
 
-      <div className="lg:col-span-1 flex flex-col justify-between gap-3">
-        {release.selfHost && <TrustedDialog />}
-        <h2 className="font-serif text-xl group-hover:text-sky-700">
-          <Link
-            href={newsUrl(release)}
-          >
-            {release.title}
-          </Link>
+      {/* Content */}
+      <div className="flex flex-col gap-2 p-4 flex-1">
+        {/* Category */}
+        <div className="flex items-center gap-2">
+          {release.selfHost && <TrustedDialog />}
+          {firstCategory && (
+            <span className="text-xs font-medium text-sky-700">
+              {firstCategory.name}
+            </span>
+          )}
+        </div>
+
+        {/* Title */}
+        <h2 className="font-serif text-lg leading-snug line-clamp-3 group-hover:text-sky-700 transition-colors">
+          {release.title}
         </h2>
-        <p className="text-sans line-clamp-3 text-base">{release.abstract}</p>
-        <Link
-          className="py-3 text-lg md:text-base group-hover:text-sky-700 group-hover:underline"
-          href={newsUrl(release)}
-        >
-          Read more
-        </Link>
+
+        {/* Abstract */}
+        <p className="text-sm text-gray-500 line-clamp-2">{release.abstract}</p>
+
+        {/* Meta */}
+        <div className="flex items-center gap-1.5 mt-auto pt-2 text-xs text-gray-400">
+          <span>{release.company?.companyName}</span>
+          <span>&middot;</span>
+          {release.releasedAt && <time>{timeAgo(release.releasedAt)}</time>}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
