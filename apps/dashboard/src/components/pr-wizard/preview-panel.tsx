@@ -22,6 +22,7 @@ export interface PreviewPanelProps {
     pullquote?: string | null
     location?: string | null
     videoUrl?: string | null
+    landingPage?: string | null
     releaseAt?: Date | string | null
     timezone?: string | null
   }
@@ -220,6 +221,44 @@ export function PreviewPanel({
             dangerouslySetInnerHTML={{ __html: release?.body || '<p>No content provided.</p>' }}
           />
         </div>
+
+        {/* Landing page link */}
+        {release?.landingPage && (() => {
+          const value = release.landingPage.trim();
+          const anchorMatch = value.match(/^\[([^\]]+)\]\s*(https?:\/\/\S+)$/);
+          let anchor: string;
+          let href: string;
+          if (anchorMatch) {
+            anchor = anchorMatch[1];
+            href = anchorMatch[2];
+          } else {
+            anchor = 'Additional Information';
+            href = value;
+          }
+          try {
+            new URL(href);
+          } catch {
+            return null;
+          }
+          return (
+            <div className={cn(
+              'border-t border-gray-200 dark:border-gray-800',
+              compact ? 'pt-3 mt-1' : 'pt-4 mt-2'
+            )}>
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'text-sky-600 hover:text-sky-500 hover:underline font-medium',
+                  compact ? 'text-sm' : 'text-base'
+                )}
+              >
+                {anchor}
+              </a>
+            </div>
+          );
+        })()}
 
         {/* FAQ section */}
         {faqs && faqs.length > 0 && (

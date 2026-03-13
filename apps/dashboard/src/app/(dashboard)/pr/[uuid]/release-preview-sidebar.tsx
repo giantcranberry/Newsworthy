@@ -39,6 +39,7 @@ interface PreviewData {
   pullquote: string | null
   location: string | null
   videoUrl: string | null
+  landingPage: string | null
   companyName: string | null
   logoUrl: string | null
   bannerUrl: string | null
@@ -281,6 +282,7 @@ export function ReleasePreviewSidebar() {
                 pullquote: data.pullquote,
                 location: data.location,
                 videoUrl: data.videoUrl,
+                landingPage: data.landingPage,
               }}
               company={data.companyName ? {
                 logoUrl: data.logoUrl,

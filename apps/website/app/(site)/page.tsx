@@ -301,47 +301,46 @@ export default async function Home({ searchParams }: Props) {
                     </Link>
                   </div>
 
-                  {/* Sidebar — stacked headline-only items */}
-                  <div className="col-span-5 flex flex-col">
-                    {releasesList.slice(1, 5).map((release, index) => (
-                      <Link
-                        key={release.id}
-                        href={newsUrl(release)}
-                        className={`group/item flex gap-4 py-4 ${index > 0 ? "border-t border-gray-100" : ""}`}
-                      >
-                        <div className="flex flex-col gap-1.5 flex-1">
-                          {release.releaseCategories?.[0]?.category && (
-                            <span className="text-xs font-medium text-sky-700">
-                              {release.releaseCategories[0].category.name}
-                            </span>
-                          )}
-                          <h3 className="font-serif text-base leading-snug line-clamp-3 group-hover/item:text-sky-700 transition-colors">
-                            {release.title}
-                          </h3>
-                          <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                            <span>{release.company?.companyName}</span>
-                          </div>
-                        </div>
-                        {release.banner?.cdnUrl && (
-                          <div className="flex-shrink-0 w-[120px] rounded overflow-hidden">
+                  {/* Second story */}
+                  {releasesList.length > 1 && (
+                    <div className="col-span-5 group">
+                      <Link href={newsUrl(releasesList[1])} className="block">
+                        {releasesList[1].banner?.cdnUrl && (
+                          <div className="overflow-hidden rounded-lg mb-4">
                             <Image
-                              className="w-full aspect-[16/9] object-cover rounded"
-                              src={release.banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:400")}
-                              width={120}
-                              height={68}
-                              alt={release.title || "Press release image"}
+                              className="w-full aspect-[16/9] object-cover transition duration-300 ease-in-out group-hover:scale-105"
+                              src={releasesList[1].banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:800")}
+                              width={600}
+                              height={338}
+                              alt={releasesList[1].title || "Press release image"}
                             />
                           </div>
                         )}
+                        <div className="flex flex-col gap-2">
+                          {releasesList[1].releaseCategories?.[0]?.category && (
+                            <span className="text-xs font-medium text-sky-700">
+                              {releasesList[1].releaseCategories[0].category.name}
+                            </span>
+                          )}
+                          <h3 className="font-serif text-xl xl:text-2xl leading-tight group-hover:text-sky-700 transition-colors">
+                            {releasesList[1].title}
+                          </h3>
+                          <p className="text-sm text-gray-500 line-clamp-2">
+                            {releasesList[1].abstract}
+                          </p>
+                          <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                            <span>{releasesList[1].company?.companyName}</span>
+                          </div>
+                        </div>
                       </Link>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Bottom grid: remaining stories as cards */}
-              {releasesList.length > 5 && (() => {
-                const remaining = releasesList.slice(5);
+              {releasesList.length > 2 && (() => {
+                const remaining = releasesList.slice(2);
                 // +1 for the FreePrReview card, round down to nearest multiple of 4
                 const totalSlots = Math.floor((remaining.length + 1) / 4) * 4;
                 const cardCount = totalSlots - 1;

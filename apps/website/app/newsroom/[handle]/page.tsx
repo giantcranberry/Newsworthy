@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { db, eq, and, lte, desc, count, releases, company as companyTable } from "@/lib/db";
+import { createHash } from "crypto";
+import { db, eq, and, lte, desc, count, releases, company as companyTable, releaseEmails } from "@/lib/db";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { newsUrl, removeHtmlTags } from "@/lib/utils";
@@ -145,6 +146,25 @@ export default async function NewsroomPage({ params, searchParams }: Props) {
   });
 
   const skip = (page - 1) * itemsPerPage;
+
+  // Build obfuscated email links for each release's primary contact
+  const contactEmailLinks = new Map<number, string>();
+  for (const release of releaseList) {
+    if (release.primaryContact?.email) {
+      const emailLower = release.primaryContact.email.toLowerCase().trim();
+      const hash = createHash('md5').update(emailLower).digest('hex');
+      const existing = await db.query.releaseEmails.findFirst({
+        where: eq(releaseEmails.md5Hash, hash),
+      });
+      if (!existing) {
+        await db.insert(releaseEmails).values({
+          md5Hash: hash,
+          email: emailLower,
+        }).onConflictDoNothing();
+      }
+      contactEmailLinks.set(release.id, `https://newsworthy.email/post/${hash}-${release.id}`);
+    }
+  }
 
   const hasAgencyInfo = company.agencyName || company.agencyContactName ||
     company.agencyContactEmail || company.agencyContactPhone || company.agencyWebsite;
@@ -328,12 +348,11 @@ export default async function NewsroomPage({ params, searchParams }: Props) {
                             <p className="text-sm text-gray-500">
                               <span className="font-medium">Contact:</span> {release.primaryContact.name}
                               {release.primaryContact.title && <span> - {release.primaryContact.title}</span>}
-                              {release.primaryContact.email && (
-                                <span> • <a href={`mailto:${release.primaryContact.email}`} className="text-blue-600 hover:text-blue-800">
-                                  {release.primaryContact.email}
+                              {contactEmailLinks.has(release.id) && (
+                                <span> • <a href={contactEmailLinks.get(release.id)} className="text-blue-600 hover:text-blue-800">
+                                  Email Contact
                                 </a></span>
                               )}
-                              {release.primaryContact.phone && <span> • {release.primaryContact.phone}</span>}
                             </p>
                           </div>
                         )}

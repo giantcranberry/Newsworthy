@@ -240,6 +240,22 @@ function validateReleaseDateTime(
   return null;
 }
 
+function parseAnchorUrl(value: string): { anchor: string | null; url: string | null } {
+  const match = value.match(/^\[([^\]]+)\]\s*(https?:\/\/\S+)$/);
+  if (match) {
+    try {
+      new URL(match[2]);
+      return { anchor: match[1], url: match[2] };
+    } catch { /* fall through */ }
+  }
+  try {
+    new URL(value);
+    return { anchor: null, url: value };
+  } catch {
+    return { anchor: null, url: null };
+  }
+}
+
 export function PRForm({
   companies: initialCompanies,
   categories = [],
@@ -738,9 +754,10 @@ export function PRForm({
         pullquote: formData.pullquote,
         location: formData.location,
         videoUrl: formData.videoUrl,
+        landingPage: formData.landingPage,
       },
     }));
-  }, [isEditMode, formData.title, formData.abstract, formData.pullquote, formData.location, formData.videoUrl]);
+  }, [isEditMode, formData.title, formData.abstract, formData.pullquote, formData.location, formData.videoUrl, formData.landingPage]);
 
   // Broadcast body changes separately (debounced via previewBody)
   const [previewBody, setPreviewBody] = useState(formData.body);
@@ -1886,15 +1903,31 @@ export function PRForm({
             </div>
             <Input
               id="landingPage"
-              type="url"
               value={formData.landingPage}
               onChange={(e) =>
                 setFormData({ ...formData, landingPage: e.target.value })
               }
-              placeholder="https://yourwebsite.com/campaign"
+              placeholder="[My Page] https://yourwebsite.com/campaign"
               className="mt-1"
             />
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Must include https://</p>
+            {formData.landingPage && (() => {
+              const parsed = parseAnchorUrl(formData.landingPage.trim());
+              if (parsed.url) {
+                const urlObj = new URL(parsed.url);
+                const display = parsed.anchor || 'Additional Information';
+                return (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <a href={parsed.url} target="_blank" rel="noopener noreferrer" className="text-cyan-700 dark:text-cyan-400 hover:underline">
+                      {display}
+                    </a>
+                  </p>
+                );
+              }
+              return <p className="text-xs text-red-500 mt-1">Invalid URL — must include https://</p>;
+            })()}
+            {!formData.landingPage && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Must include https://</p>
+            )}
           </div>
 
           <div>
@@ -1904,17 +1937,33 @@ export function PRForm({
             </div>
             <Input
               id="publicDrive"
-              type="url"
               value={formData.publicDrive}
               onChange={(e) =>
                 setFormData({ ...formData, publicDrive: e.target.value })
               }
-              placeholder="https://drive.google.com/..."
+              placeholder="[Media Kit] https://drive.google.com/..."
               className="mt-1"
             />
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              Dropbox, Google Drive, or Box public URL
-            </p>
+            {formData.publicDrive && (() => {
+              const parsed = parseAnchorUrl(formData.publicDrive.trim());
+              if (parsed.url) {
+                const urlObj = new URL(parsed.url);
+                const display = parsed.anchor || 'Additional Information';
+                return (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <a href={parsed.url} target="_blank" rel="noopener noreferrer" className="text-cyan-700 dark:text-cyan-400 hover:underline">
+                      {display}
+                    </a>
+                  </p>
+                );
+              }
+              return <p className="text-xs text-red-500 mt-1">Invalid URL — must include https://</p>;
+            })()}
+            {!formData.publicDrive && (
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                Dropbox, Google Drive, or Box public URL
+              </p>
+            )}
           </div>
       </div>
 
