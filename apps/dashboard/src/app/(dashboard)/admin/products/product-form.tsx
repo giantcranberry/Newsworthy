@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Select } from '@/components/ui/select'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Trash2 } from 'lucide-react'
+import { ImageUpload } from '@/components/upload/image-upload'
 
 interface Product {
   id: number
@@ -21,6 +22,7 @@ interface Product {
   isUpgrade: boolean | null
   isSoloUpgrade: boolean | null
   label: string | null
+  logoUrl: string | null
   partnerId: number | null
   sortOrder: number
 }
@@ -41,13 +43,19 @@ interface ProductFormProps {
 const DISTRIBUTION_TAGS = [
   { value: 'yahoo', label: 'Yahoo Finance' },
   { value: 'enhanced', label: 'Enhanced' },
-  { value: 'basic', label: 'Basic' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'addon', label: 'Add-on' },
+  { value: 'service', label: 'Service' },
 ]
 
 export function ProductForm({ product, partners, onSuccess, onCancel }: ProductFormProps) {
   const editorRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const [isRemovingLogo, setIsRemovingLogo] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState(product?.logoUrl || '')
+  const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     displayName: product?.displayName || '',
     shortName: product?.shortName || '',
@@ -65,6 +73,66 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
 
   const handleChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const uploadLogoToProduct = async (file: File, productId: number) => {
+    const fd = new FormData()
+    fd.append('logo', file)
+    const res = await fetch(`/api/admin/products/${productId}/logo`, {
+      method: 'POST',
+      body: fd,
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error || 'Failed to upload logo')
+    }
+    const data = await res.json()
+    return data.logoUrl as string
+  }
+
+  const handleLogoUpload = async (file: File) => {
+    if (!product) {
+      // Create mode: stash the file and show a local preview
+      setPendingLogoFile(file)
+      setLogoUrl(URL.createObjectURL(file))
+      return
+    }
+    // Edit mode: upload immediately
+    setIsUploadingLogo(true)
+    setError(null)
+    try {
+      const url = await uploadLogoToProduct(file, product.id)
+      setLogoUrl(url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload logo')
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
+
+  const handleLogoRemove = async () => {
+    if (!product) {
+      // Create mode: just clear the pending file
+      setPendingLogoFile(null)
+      setLogoUrl('')
+      return
+    }
+    setIsRemovingLogo(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/logo`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to remove logo')
+      }
+      setLogoUrl('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove logo')
+    } finally {
+      setIsRemovingLogo(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,9 +169,20 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
         body: JSON.stringify(payload),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error || 'Failed to save product')
+      }
+
+      // If creating and a logo was selected, upload it now
+      if (!product && pendingLogoFile && data.id) {
+        try {
+          await uploadLogoToProduct(pendingLogoFile, data.id)
+        } catch {
+          // Product was created but logo failed — not critical
+          console.error('Logo upload failed after product creation')
+        }
       }
 
       onSuccess()
@@ -226,6 +305,48 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
             placeholder="e.g., Best Value"
             maxLength={20}
           />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Product Logo</Label>
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 h-16 w-20 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-center justify-center overflow-hidden">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Product logo"
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : null}
+          </div>
+          <div className="flex flex-col gap-2">
+            <ImageUpload
+              onFileSelect={(file) => handleLogoUpload(file)}
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              maxSize={5 * 1024 * 1024}
+              buttonText={isUploadingLogo ? 'Uploading...' : logoUrl ? 'Change Logo' : 'Upload Logo'}
+              buttonVariant="outline"
+              disabled={isUploadingLogo || isRemovingLogo}
+            />
+            {logoUrl && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleLogoRemove}
+                disabled={isRemovingLogo || isUploadingLogo}
+                className="text-red-600 dark:text-red-400 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+              >
+                {isRemovingLogo ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />
+                )}
+                Remove Logo
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

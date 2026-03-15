@@ -1,13 +1,14 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases } from "@/db/schema";
-import { eq, desc, and, or, isNull, ne, inArray } from "drizzle-orm";
+import { releases, company } from "@/db/schema";
+import { eq, desc, and, or, isNull, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink } from "lucide-react";
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
+import { MoveReleaseButton } from "./move-release-button";
 import { CopyUrlButton } from "./copy-url-button";
 import { BrandFilter } from "./brand-filter";
 import { getUserCompanyIds } from "@/lib/team-auth";
@@ -110,7 +111,21 @@ export default async function PressReleasesPage({
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
   const allReleases = await getUserReleases(userId);
-  const canCreate = allReleases.some((r) => r.canEdit) || (await getUserCompanyIds(userId, 'collaborator')).length > 0;
+  const editableIds = await getUserCompanyIds(userId, 'collaborator');
+  const canCreate = allReleases.some((r) => r.canEdit) || editableIds.length > 0;
+
+  // Fetch all brands the user can edit (for move button)
+  const allBrands = editableIds.length > 0
+    ? (await db.select({ id: company.id, name: company.companyName })
+        .from(company)
+        .where(and(
+          inArray(company.id, editableIds),
+          eq(company.isDeleted, false),
+          or(eq(company.isArchived, false), isNull(company.isArchived)),
+        )))
+        .map((c) => ({ id: c.id, name: c.name }))
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
 
   // Extract unique brands for filter dropdown
   const brandMap = new Map<number, string>();
@@ -392,6 +407,14 @@ export default async function PressReleasesPage({
                             View
                           </button>
                         </Link>
+                      )}
+                      {release.canEdit && allBrands.length >= 2 && (
+                        <MoveReleaseButton
+                          uuid={release.uuid!}
+                          title={release.title}
+                          currentCompanyId={release.companyId}
+                          brands={allBrands}
+                        />
                       )}
                       {release.canEdit && !["approved", "sent", "review", "hold"].includes(
                         release.status,

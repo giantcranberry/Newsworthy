@@ -12,6 +12,7 @@ async function getProducts(partnerId: number) {
       eq(products.isActive, true),
       eq(products.isDeleted, false),
       ne(products.productType, 'newsdb'),
+      ne(products.productType, 'addon'),
       or(
         eq(products.partnerId, partnerId),
         isNull(products.partnerId)

@@ -49,8 +49,9 @@ export async function POST(request: Request) {
         isSoloUpgrade: isSoloUpgrade ?? false,
         label: label || null,
         partnerId: partnerId ?? null,
-        partnerShare: 0, // Default value
+        partnerShare: 0,
         sortOrder: sortOrder ?? 0,
+        createdAt: new Date(),
       })
       .returning()
 

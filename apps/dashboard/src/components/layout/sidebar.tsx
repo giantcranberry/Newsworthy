@@ -15,8 +15,11 @@ interface NavChild {
   title: string
   href: string
   icon: string
+  iconClassName?: string
   requiresCreate?: boolean
   matchPaths?: string[]
+  dividerBefore?: boolean
+  dividerAfter?: boolean
 }
 
 interface NavGroup {
@@ -77,6 +80,7 @@ const navSections: NavSection[] = [
           { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
           { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus', requiresCreate: true },
           { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen', requiresCreate: true },
+          { title: 'Get Add-ons', href: '/addons', icon: 'fa-light fa-star', iconClassName: 'text-amber-500', dividerBefore: true, dividerAfter: true },
           { title: 'Reports', href: '/pr/reports', icon: 'fa-light fa-chart-bar', matchPaths: ['/pr/clips'] },
         ],
       },
@@ -593,20 +597,27 @@ export function Sidebar({
                           <div className={cn('ml-4 pl-3 border-l mt-1 space-y-1', isRoleRestricted(item.roles) ? 'border-purple-200 dark:border-purple-800' : 'border-slate-200 dark:border-gray-700')}>
                             {item.children.filter((child) => !child.requiresCreate || canCreateContent).map((child) => {
                               return (
-                                <Link
-                                  key={child.href}
-                                  href={child.href}
-                                  className={cn(
-                                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer',
-                                    isChildActive(child, item.children)
-                                      ? colors.activeBold
-                                      : colors.childIdle
+                                <div key={child.href}>
+                                  {child.dividerBefore && (
+                                    <div className="my-1 border-t border-slate-200 dark:border-gray-700" />
                                   )}
-                                  tabIndex={isExpanded ? 0 : -1}
-                                >
-                                  <FaIcon icon={child.icon} className="w-5 text-center text-base" />
-                                  <span>{child.title}</span>
-                                </Link>
+                                  <Link
+                                    href={child.href}
+                                    className={cn(
+                                      'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer',
+                                      isChildActive(child, item.children)
+                                        ? colors.activeBold
+                                        : colors.childIdle
+                                    )}
+                                    tabIndex={isExpanded ? 0 : -1}
+                                  >
+                                    <FaIcon icon={child.icon} className={cn("w-5 text-center text-base", child.iconClassName)} />
+                                    <span>{child.title}</span>
+                                  </Link>
+                                  {child.dividerAfter && (
+                                    <div className="my-1 border-t border-slate-200 dark:border-gray-700" />
+                                  )}
+                                </div>
                               )
                             })}
                           </div>

@@ -2,9 +2,11 @@
 
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Bell, CreditCard, Globe, Menu, MessageCircle, Plus, User } from 'lucide-react'
+import { Bell, CreditCard, Gift, Globe, Menu, MessageCircle, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { useState, useEffect, useCallback, useId } from 'react'
 
 interface HeaderProps {
@@ -27,6 +29,15 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
   const [popoverOpen, setPopoverOpen] = useState(false)
   const notificationsId = useId()
+
+  // Courtesy code state
+  const [hasRedeemedCourtesy, setHasRedeemedCourtesy] = useState(true) // hidden until check
+  const [courtesyDialogOpen, setCourtesyDialogOpen] = useState(false)
+  const [courtesyCode, setCourtesyCode] = useState('')
+  const [courtesyError, setCourtesyError] = useState('')
+  const [courtesyLoading, setCourtesyLoading] = useState(false)
+  const [courtesySuccess, setCourtesySuccess] = useState(false)
+  const [courtesyCredits, setCourtesyCredits] = useState(1)
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -70,6 +81,41 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
       window.removeEventListener('messages:read', handleMessageRead)
     }
   }, [session, fetchUnreadCount, fetchChatUnreadCount])
+
+  // Check courtesy code redemption status
+  useEffect(() => {
+    if (!session?.user) return
+    fetch('/api/credits/redeem-courtesy')
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) setHasRedeemedCourtesy(data.hasRedeemed)
+      })
+      .catch(() => {})
+  }, [session])
+
+  const handleRedeemCourtesy = async () => {
+    setCourtesyError('')
+    setCourtesyLoading(true)
+    try {
+      const res = await fetch('/api/credits/redeem-courtesy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: courtesyCode }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setCourtesyError(data.error || 'Failed to redeem code')
+        return
+      }
+      setCourtesySuccess(true)
+      setCourtesyCredits(data.credits || 1)
+      setHasRedeemedCourtesy(true)
+    } catch {
+      setCourtesyError('Failed to redeem code')
+    } finally {
+      setCourtesyLoading(false)
+    }
+  }
 
   // Fetch preview messages when popover opens
   const handlePopoverOpen = async (open: boolean) => {
@@ -120,6 +166,24 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
                 <span className="hidden sm:inline">Buy Credits</span>
               </Button>
             </Link>
+
+            {/* Redeem Code */}
+            {!hasRedeemedCourtesy && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 text-gray-700 dark:text-gray-300"
+                onClick={() => {
+                  setCourtesyDialogOpen(true)
+                  setCourtesyCode('')
+                  setCourtesyError('')
+                  setCourtesySuccess(false)
+                }}
+              >
+                <Gift className="h-4 w-4" />
+                <span className="hidden sm:inline">Redeem Code</span>
+              </Button>
+            )}
           </div>
         )}
 
@@ -203,6 +267,54 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
           </PopoverContent>
         </Popover>
       </div>
+
+      {/* Courtesy Code Dialog */}
+      <Dialog open={courtesyDialogOpen} onOpenChange={setCourtesyDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redeem Courtesy Code</DialogTitle>
+            <DialogDescription>
+              Enter your courtesy code to receive 1 free press release credit.
+            </DialogDescription>
+          </DialogHeader>
+          {courtesySuccess ? (
+            <div className="py-4 text-center">
+              <p className="text-green-600 font-medium">Code redeemed successfully!</p>
+              <p className="text-sm text-gray-500 mt-1">{courtesyCredits} PR credit{courtesyCredits !== 1 ? 's' : ''} added to your account.</p>
+              <Button
+                className="mt-4"
+                onClick={() => setCourtesyDialogOpen(false)}
+              >
+                Done
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <Input
+                placeholder="Enter code"
+                value={courtesyCode}
+                onChange={(e) => {
+                  setCourtesyCode(e.target.value)
+                  setCourtesyError('')
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && courtesyCode.trim()) handleRedeemCourtesy()
+                }}
+                disabled={courtesyLoading}
+              />
+              {courtesyError && (
+                <p className="text-sm text-red-600">{courtesyError}</p>
+              )}
+              <Button
+                onClick={handleRedeemCourtesy}
+                disabled={courtesyLoading || !courtesyCode.trim()}
+              >
+                {courtesyLoading ? 'Redeeming...' : 'Redeem'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </header>
   )
 }

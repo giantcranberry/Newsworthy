@@ -269,7 +269,7 @@ export default async function Home({ searchParams }: Props) {
               {releasesList.length > 0 && (
                 <div className="grid grid-cols-12 gap-8 pb-8 border-b border-gray-200">
                   {/* Lead story — large image + content */}
-                  <div className="col-span-7 group">
+                  <div className="col-span-6 group">
                     <Link href={newsUrl(releasesList[0])} className="block">
                       {releasesList[0].banner?.cdnUrl && (
                         <div className="overflow-hidden rounded-lg mb-4">
@@ -303,7 +303,7 @@ export default async function Home({ searchParams }: Props) {
 
                   {/* Second story */}
                   {releasesList.length > 1 && (
-                    <div className="col-span-5 group">
+                    <div className="col-span-6 group">
                       <Link href={newsUrl(releasesList[1])} className="block">
                         {releasesList[1].banner?.cdnUrl && (
                           <div className="overflow-hidden rounded-lg mb-4">
@@ -322,10 +322,10 @@ export default async function Home({ searchParams }: Props) {
                               {releasesList[1].releaseCategories[0].category.name}
                             </span>
                           )}
-                          <h3 className="font-serif text-xl xl:text-2xl leading-tight group-hover:text-sky-700 transition-colors">
+                          <h3 className="font-serif text-2xl xl:text-3xl leading-tight group-hover:text-sky-700 transition-colors">
                             {releasesList[1].title}
                           </h3>
-                          <p className="text-sm text-gray-500 line-clamp-2">
+                          <p className="text-base text-gray-500 line-clamp-2">
                             {releasesList[1].abstract}
                           </p>
                           <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">

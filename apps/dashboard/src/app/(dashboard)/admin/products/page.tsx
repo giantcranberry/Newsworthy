@@ -22,7 +22,7 @@ async function getPartners() {
 async function getProducts(partnerId: number | null) {
   // Base conditions: not deleted and active
   const baseConditions = and(
-    eq(products.isDeleted, false),
+    or(eq(products.isDeleted, false), isNull(products.isDeleted)),
     eq(products.isActive, true)
   )
 

@@ -13,8 +13,9 @@ interface PaymentFormProps {
   amount: number
   onSuccess: () => void
   onCancel: () => void
-  releaseUuid: string
+  releaseUuid?: string
   paymentIntentId: string
+  confirmPayment?: (paymentIntentId: string) => Promise<{ success: boolean; error?: string }>
 }
 
 export function PaymentForm({
@@ -23,6 +24,7 @@ export function PaymentForm({
   onCancel,
   releaseUuid,
   paymentIntentId,
+  confirmPayment: confirmPaymentProp,
 }: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
@@ -63,16 +65,21 @@ export function PaymentForm({
 
       if (paymentIntent?.status === 'succeeded') {
         // Confirm the payment on the server
-        const response = await fetch(`/api/pr/${releaseUuid}/distribution`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'confirm_payment',
-            paymentIntentId,
-          }),
-        })
+        let data: { success: boolean; error?: string }
 
-        const data = await response.json()
+        if (confirmPaymentProp) {
+          data = await confirmPaymentProp(paymentIntentId)
+        } else {
+          const response = await fetch(`/api/pr/${releaseUuid}/distribution`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'confirm_payment',
+              paymentIntentId,
+            }),
+          })
+          data = await response.json()
+        }
 
         if (data.success) {
           onSuccess()

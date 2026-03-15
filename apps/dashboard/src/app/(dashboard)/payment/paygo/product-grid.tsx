@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ShoppingCart, Loader2, Zap, Sparkles, Star, Crown, Rocket, Target } from 'lucide-react'
 
 type Product = {
@@ -29,6 +30,52 @@ type Credits = {
   remainingConcierge: number | null
 }
 
+/** Strip <hr>, ### end markers, AI citation artifacts, and --- separators from product descriptions. */
+function cleanDescription(html: string): string {
+  return html
+    // Horizontal rules: <hr> with any attributes
+    .replace(/<hr[^>]*\/?>/gi, '')
+    // HR-like elements: <p>/<div> with border styles acting as visual dividers
+    .replace(/<(p|div)[^>]*style="[^"]*border[^"]*"[^>]*>(\s|&nbsp;)*<\/\1>/gi, '')
+    // Markdown-style separators: ___, ***, ---
+    .replace(/<(p|div)[^>]*>\s*([_*-]{3,})\s*<\/\1>/gi, '')
+    // ### end-of-release markers in any wrapper tag, with optional bold/italic
+    .replace(/<(p|h[1-6]|div|span)[^>]*>\s*(<(strong|em|b|i)[^>]*>\s*)?#{3,}\s*(<\/(strong|em|b|i)>\s*)?<\/\1>/gi, '')
+    // Standalone ### anywhere
+    .replace(/#{3,}/g, '')
+    // ChatGPT numeric citations: [1], [7], [12]
+    .replace(/\s*\[\d+\]/g, '')
+    // Gemini-style citations: 【...】
+    .replace(/【[^】]*】/g, '')
+    // Empty paragraphs left behind after stripping
+    .replace(/<(p|div)[^>]*>\s*(&nbsp;|\s)*<\/\1>/gi, '')
+    .trim()
+}
+
+/** Truncate HTML description to roughly `maxLen` characters, splitting at the nearest tag boundary. */
+function truncateHtml(html: string, maxLen = 250): { preview: string; rest: string | null } {
+  if (html.length <= maxLen) return { preview: html, rest: null }
+  // Find the last closing tag before maxLen
+  let splitAt = maxLen
+  const chunk = html.substring(0, maxLen + 50)
+  // Try to split at the end of a closing tag near maxLen
+  const tagEndRegex = /<\/(p|li|ul|ol)>/gi
+  let best = -1
+  let m: RegExpExecArray | null
+  while ((m = tagEndRegex.exec(chunk)) !== null) {
+    const end = m.index + m[0].length
+    if (end <= maxLen + 50) best = end
+    if (end >= maxLen) break
+  }
+  if (best > maxLen * 0.4) {
+    splitAt = best
+  }
+  const preview = html.substring(0, splitAt).trim()
+  const rest = html.substring(splitAt).trim()
+  if (rest.length < 20) return { preview: html, rest: null }
+  return { preview, rest }
+}
+
 export function ProductGrid({
   products,
   credits,
@@ -39,6 +86,7 @@ export function ProductGrid({
   const router = useRouter()
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(false)
+  const [readMoreProduct, setReadMoreProduct] = useState<Product | null>(null)
 
   const prCredits = products.filter(p => p.productType === 'pr' || p.productType === 'credits')
   const otherProducts = products.filter(p => p.productType !== 'pr' && p.productType !== 'credits')
@@ -51,14 +99,11 @@ export function ProductGrid({
       const next = new Set(prev)
 
       if (next.has(id)) {
-        // Deselecting - just remove it
         next.delete(id)
       } else {
-        // Selecting - enforce mutual exclusivity rules
         const type = product.productType
 
         if (type === 'pr' || type === 'credits') {
-          // PR/credits products are mutually exclusive: deselect other PR/credits
           for (const otherId of next) {
             const other = products.find(p => p.id === otherId)
             if (other && (other.productType === 'pr' || other.productType === 'credits')) {
@@ -182,6 +227,7 @@ export function ProductGrid({
                 product={product}
                 isSelected={selected.has(product.id)}
                 onToggle={() => toggleProduct(product.id)}
+                onReadMore={() => setReadMoreProduct(product)}
               />
             ))}
           </div>
@@ -199,6 +245,7 @@ export function ProductGrid({
                 product={product}
                 isSelected={selected.has(product.id)}
                 onToggle={() => toggleProduct(product.id)}
+                onReadMore={() => setReadMoreProduct(product)}
               />
             ))}
           </div>
@@ -249,6 +296,54 @@ export function ProductGrid({
 
       {/* Spacer for sticky footer */}
       {selected.size > 0 && <div className="h-24" />}
+
+      {/* Read More Dialog */}
+      <Dialog open={!!readMoreProduct} onOpenChange={(open) => !open && setReadMoreProduct(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          {readMoreProduct && (
+            <>
+              <DialogHeader>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className="p-1.5 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex-shrink-0">
+                    <ProductIcon iconName={readMoreProduct.icon} className="h-5 w-5 text-cyan-800 dark:text-cyan-400" />
+                  </div>
+                  <DialogTitle className="text-xl">{readMoreProduct.displayName || readMoreProduct.shortName}</DialogTitle>
+                </div>
+              </DialogHeader>
+              {readMoreProduct.description && (
+                <div
+                  className="prose prose-sm max-w-none dark:prose-invert [&_ul]:list-disc [&_ul]:pl-4 [&_p]:my-2 [&_hr]:hidden"
+                  dangerouslySetInnerHTML={{ __html: cleanDescription(readMoreProduct.description) }}
+                />
+              )}
+              <div className="flex items-center justify-between pt-4 border-t mt-4">
+                <div>
+                  <div className="text-2xl font-bold">${((readMoreProduct.price || 0) / 100).toFixed(2)}</div>
+                  {readMoreProduct.productCredits ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {readMoreProduct.productCredits} {readMoreProduct.productCredits === 1 ? 'Credit' : 'Credits'}
+                    </p>
+                  ) : null}
+                </div>
+                <Button
+                  className={`text-base font-semibold ${
+                    selected.has(readMoreProduct.id)
+                      ? 'bg-red-600 hover:bg-red-700 text-white'
+                      : 'bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700 text-white'
+                  }`}
+                  onClick={() => {
+                    toggleProduct(readMoreProduct.id)
+                    setReadMoreProduct(null)
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  {selected.has(readMoreProduct.id) ? 'Remove from Cart' : 'Add to Cart'}
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -275,19 +370,25 @@ function ProductCard({
   isSelected,
   disabled,
   onToggle,
+  onReadMore,
 }: {
   product: Product
   isSelected: boolean
   disabled?: boolean
   onToggle: () => void
+  onReadMore: () => void
 }) {
+  const { preview, rest } = product.description
+    ? truncateHtml(cleanDescription(product.description))
+    : { preview: null, rest: null }
+
   return (
     <Card
-      className={`relative transition-all ${
+      className={`relative transition-all flex flex-col ${
         disabled
           ? 'opacity-50 pointer-events-none'
           : isSelected
-            ? 'ring-2 ring-cyan-600 bg-cyan-50 dark:bg-cyan-900/30/30 cursor-pointer'
+            ? 'ring-2 ring-cyan-600 bg-cyan-50 dark:bg-cyan-900/30 cursor-pointer'
             : 'hover:shadow-md cursor-pointer'
       }`}
       onClick={disabled ? undefined : onToggle}
@@ -299,7 +400,7 @@ function ProductCard({
           </span>
         </div>
       )}
-      <CardHeader>
+      <CardHeader className="flex-1">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex-shrink-0">
@@ -314,22 +415,34 @@ function ProductCard({
             className="mt-1"
           />
         </div>
-        {product.description && (
+        {preview && (
           <div
-            className="text-sm text-gray-500 dark:text-gray-400 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 dark:text-gray-400 [&_p]:text-gray-500 dark:text-gray-400 [&_p]:my-1"
-            dangerouslySetInnerHTML={{ __html: product.description }}
+            className="text-sm text-gray-500 dark:text-gray-400 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_li]:text-gray-500 dark:[&_li]:text-gray-400 [&_p]:text-gray-500 dark:[&_p]:text-gray-400 [&_p]:my-1 [&_hr]:hidden"
+            dangerouslySetInnerHTML={{ __html: preview }}
           />
+        )}
+        {rest && (
+          <button
+            type="button"
+            className="text-sm font-medium text-cyan-700 dark:text-cyan-400 hover:underline mt-1 text-left"
+            onClick={(e) => {
+              e.stopPropagation()
+              onReadMore()
+            }}
+          >
+            Read More...
+          </button>
         )}
       </CardHeader>
       <CardContent>
         <div className="text-3xl font-bold mb-2">
           ${((product.price || 0) / 100).toFixed(2)}
         </div>
-        {product.productCredits && (
+        {product.productCredits ? (
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {product.productCredits} {product.productCredits === 1 ? 'Credit' : 'Credits'}
           </p>
-        )}
+        ) : null}
         <Button
           variant="default"
           size="lg"

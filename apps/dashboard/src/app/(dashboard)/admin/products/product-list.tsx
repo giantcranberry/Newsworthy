@@ -39,6 +39,7 @@ interface Product {
   isUpgrade: boolean | null;
   isSoloUpgrade: boolean | null;
   label: string | null;
+  logoUrl: string | null;
   partnerId: number | null;
   sortOrder: number;
 }
@@ -242,12 +243,20 @@ export function ProductList({
                 <div className="flex-1 min-w-0 p-4 sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="p-2 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
-                        <ProductIcon
-                          iconName={product.icon}
-                          className="h-5 w-5 text-cyan-800 dark:text-cyan-400"
+                      {product.logoUrl ? (
+                        <img
+                          src={product.logoUrl}
+                          alt={product.displayName || ''}
+                          className="h-10 max-w-[80px] object-contain flex-shrink-0"
                         />
-                      </div>
+                      ) : (
+                        <div className="p-2 rounded-lg bg-cyan-800/10 dark:bg-cyan-400/10 flex items-center justify-center w-10 h-10 flex-shrink-0">
+                          <ProductIcon
+                            iconName={product.icon}
+                            className="h-5 w-5 text-cyan-800 dark:text-cyan-400"
+                          />
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-semibold text-gray-900 dark:text-gray-100">

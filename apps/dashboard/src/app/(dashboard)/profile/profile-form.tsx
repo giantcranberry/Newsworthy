@@ -727,9 +727,14 @@ function IntegrationsSection() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              In Google Chat, open your Space &rarr; Apps &amp; integrations &rarr; Webhooks &rarr; Create a webhook. Copy the URL and paste it below.
-            </p>
+            <ol className="text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1">
+              <li>Open <strong>Google Chat</strong> and go to the Space where you want notifications</li>
+              <li>Click the Space name at the top to open settings</li>
+              <li>Go to <strong>Apps &amp; integrations</strong></li>
+              <li>Click <strong>Webhooks</strong>, then <strong>Create a webhook</strong></li>
+              <li>Name it (e.g. &ldquo;Newsworthy&rdquo;) and click <strong>Save</strong></li>
+              <li>Copy the generated URL and paste it below</li>
+            </ol>
             <div>
               <Label htmlFor="gchatWebhookUrl">Webhook URL</Label>
               <Input
