@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { contact, company, releases } from '@/db/schema'
+import { contact, releases } from '@/db/schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
-
-async function getCompanyForUser(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 // GET: List contacts for a company
 export async function GET(
@@ -30,12 +20,13 @@ export async function GET(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
 
+  const co = access.company
   const contacts = await db
     .select()
     .from(contact)
@@ -60,11 +51,17 @@ export async function POST(
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
   const { uuid } = await params
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+  }
+
+  const co = access.company
 
   const body = await request.json()
   const { name, title, email, phone } = body
@@ -100,11 +97,17 @@ export async function PUT(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+  }
+
+  const co = access.company
 
   const body = await request.json()
   const { contactUuid, name, title, email, phone } = body
@@ -118,9 +121,7 @@ export async function PUT(
   }
 
   const existing = await db.query.contact.findFirst({
-    where: isAdmin
-      ? and(eq(contact.uuid, contactUuid), eq(contact.companyId, co.id))
-      : and(eq(contact.uuid, contactUuid), eq(contact.userId, userId)),
+    where: and(eq(contact.uuid, contactUuid), eq(contact.companyId, co.id)),
   })
 
   if (!existing) {
@@ -153,11 +154,17 @@ export async function DELETE(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+  }
+
+  const co = access.company
 
   const body = await request.json()
   const { contactUuid } = body
@@ -167,9 +174,7 @@ export async function DELETE(
   }
 
   const existing = await db.query.contact.findFirst({
-    where: isAdmin
-      ? and(eq(contact.uuid, contactUuid), eq(contact.companyId, co.id))
-      : and(eq(contact.uuid, contactUuid), eq(contact.userId, userId)),
+    where: and(eq(contact.uuid, contactUuid), eq(contact.companyId, co.id)),
   })
 
   if (!existing) {

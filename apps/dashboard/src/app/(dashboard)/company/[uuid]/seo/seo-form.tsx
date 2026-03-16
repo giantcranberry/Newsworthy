@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { HelpTip } from '@/components/ui/help-tip'
 import {
   Copy, Check, Info, Save, Loader2,
-  Globe, Bot, Braces, Plus, Trash2, Camera, Sparkles,
+  Globe, Bot, Braces, Plus, Trash2, Camera, Sparkles, BarChart3,
 } from 'lucide-react'
 
 interface CompanyData {
@@ -77,6 +77,14 @@ interface SeoConfig {
   indexing: {
     newsroomRobots: string
     prDefaultRobots: string
+  }
+  tracking: {
+    gtmId: string
+    googleAdsId: string
+    metaPixelId: string
+    redditPixelId: string
+    clarityId: string
+    hubspotId: string
   }
 }
 
@@ -233,6 +241,14 @@ const defaultSeoConfig: SeoConfig = {
     newsroomRobots: 'index, follow',
     prDefaultRobots: 'index, follow',
   },
+  tracking: {
+    gtmId: '',
+    googleAdsId: '',
+    metaPixelId: '',
+    redditPixelId: '',
+    clarityId: '',
+    hubspotId: '',
+  },
 }
 
 function mergeSeoConfig(saved: Record<string, unknown> | null): SeoConfig {
@@ -271,6 +287,10 @@ function mergeSeoConfig(saved: Record<string, unknown> | null): SeoConfig {
     indexing: {
       ...defaultSeoConfig.indexing,
       ...s.indexing,
+    },
+    tracking: {
+      ...defaultSeoConfig.tracking,
+      ...s.tracking,
     },
   }
 }
@@ -500,6 +520,13 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
     }))
   }
 
+  function updateTracking<K extends keyof SeoConfig['tracking']>(key: K, value: string) {
+    setConfig(prev => ({
+      ...prev,
+      tracking: { ...prev.tracking, [key]: value },
+    }))
+  }
+
   function updateBreadcrumb(enabled: boolean) {
     setConfig(prev => ({
       ...prev,
@@ -717,6 +744,116 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
               <option value="summary">Summary</option>
               <option value="summary_large_image">Summary with Large Image</option>
             </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Retargeting Pixels Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <CardTitle>Retargeting Pixels</CardTitle>
+          </div>
+          <CardDescription>
+            Add tracking pixels to your press releases for audience retargeting. These will be automatically injected into every published press release for this brand.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="gtm-id">Google Tag Manager ID</Label>
+              <HelpTip
+                title="Google Tag Manager ID"
+                content="Your Google Tag Manager container ID. This loads GTM on your press release pages, allowing you to manage all your marketing tags in one place. Find this in your GTM account — the format is 'GTM-' followed by an alphanumeric string (e.g., GTM-XXXXXXX)."
+              />
+            </div>
+            <Input
+              id="gtm-id"
+              value={config.tracking.gtmId}
+              onChange={(e) => updateTracking('gtmId', e.target.value)}
+              placeholder="GTM-XXXXXXX"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="google-ads-id">Google Ads Remarketing ID</Label>
+              <HelpTip
+                title="Google Ads Remarketing ID"
+                content="Your Google Ads conversion tracking ID. This loads the Google global site tag (gtag.js) on your press release pages, enabling remarketing and conversion tracking. Find this in your Google Ads account under Tools > Conversions. The format is 'AW-' followed by a numeric ID (e.g., AW-123456789)."
+              />
+            </div>
+            <Input
+              id="google-ads-id"
+              value={config.tracking.googleAdsId}
+              onChange={(e) => updateTracking('googleAdsId', e.target.value)}
+              placeholder="AW-123456789"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="meta-pixel-id">Meta (Facebook) Pixel ID</Label>
+              <HelpTip
+                title="Meta (Facebook) Pixel ID"
+                content="Your Meta (Facebook) Pixel ID for conversion tracking and audience retargeting. Find this in your Meta Events Manager. The format is a numeric string (e.g., 123456789012345)."
+              />
+            </div>
+            <Input
+              id="meta-pixel-id"
+              value={config.tracking.metaPixelId}
+              onChange={(e) => updateTracking('metaPixelId', e.target.value)}
+              placeholder="123456789012345"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="reddit-pixel-id">Reddit Pixel ID</Label>
+              <HelpTip
+                title="Reddit Pixel ID"
+                content="Your Reddit Ads pixel ID for conversion tracking and audience retargeting. Find this in your Reddit Ads account under Events Manager > Pixel. The format is 't2_' followed by an alphanumeric string (e.g., t2_abc123)."
+              />
+            </div>
+            <Input
+              id="reddit-pixel-id"
+              value={config.tracking.redditPixelId}
+              onChange={(e) => updateTracking('redditPixelId', e.target.value)}
+              placeholder="t2_abc123"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="clarity-id">Microsoft Clarity ID</Label>
+              <HelpTip
+                title="Microsoft Clarity ID"
+                content="Your Microsoft Clarity project ID for heatmaps and session recordings. Find this in your Clarity dashboard under Settings > Overview. The format is an alphanumeric string (e.g., abc123def4)."
+              />
+            </div>
+            <Input
+              id="clarity-id"
+              value={config.tracking.clarityId}
+              onChange={(e) => updateTracking('clarityId', e.target.value)}
+              placeholder="abc123def4"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="hubspot-id">HubSpot Portal ID</Label>
+              <HelpTip
+                title="HubSpot Portal ID"
+                content="Your HubSpot portal (account) ID for tracking visitors and capturing leads. Find this in your HubSpot account under Settings > Account Management. The format is a numeric string (e.g., 12345678)."
+              />
+            </div>
+            <Input
+              id="hubspot-id"
+              value={config.tracking.hubspotId}
+              onChange={(e) => updateTracking('hubspotId', e.target.value)}
+              placeholder="12345678"
+            />
           </div>
         </CardContent>
       </Card>
