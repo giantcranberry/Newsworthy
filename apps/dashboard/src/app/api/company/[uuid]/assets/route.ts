@@ -5,17 +5,7 @@ import { eq, and, desc, sql } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { uploadCompanyImage, uploadPRImage, deletePRImage } from '@/services/s3'
-
-async function getCompanyForUser(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 // GET: Paginated image assets for a company
 export async function GET(
@@ -31,11 +21,13 @@ export async function GET(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
@@ -84,11 +76,13 @@ export async function POST(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -191,11 +185,13 @@ export async function PUT(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const { imageId, title, imgCredits, filter } = await request.json()
 
@@ -209,7 +205,7 @@ export async function PUT(
 
   if (filter === 'social') {
     const banner = await db.query.banners.findFirst({
-      where: isAdmin
+      where: hasMinRole(access.role, 'brand_admin')
         ? and(eq(banners.id, imageId), eq(banners.companyId, co.id))
         : and(eq(banners.id, imageId), eq(banners.companyId, co.id), eq(banners.userId, userId)),
     })
@@ -230,7 +226,7 @@ export async function PUT(
   }
 
   const image = await db.query.images.findFirst({
-    where: isAdmin
+    where: hasMinRole(access.role, 'brand_admin')
       ? and(eq(images.id, imageId), eq(images.companyId, co.id))
       : and(eq(images.id, imageId), eq(images.companyId, co.id), eq(images.userId, userId)),
   })
@@ -264,11 +260,13 @@ export async function PATCH(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const { videoShortsOptOut } = await request.json()
 
@@ -293,11 +291,13 @@ export async function DELETE(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const { imageId, filter } = await request.json()
 
@@ -307,7 +307,7 @@ export async function DELETE(
 
   if (filter === 'social') {
     const banner = await db.query.banners.findFirst({
-      where: isAdmin
+      where: hasMinRole(access.role, 'brand_admin')
         ? and(eq(banners.id, imageId), eq(banners.companyId, co.id))
         : and(eq(banners.id, imageId), eq(banners.companyId, co.id), eq(banners.userId, userId)),
     })
@@ -340,7 +340,7 @@ export async function DELETE(
   }
 
   const image = await db.query.images.findFirst({
-    where: isAdmin
+    where: hasMinRole(access.role, 'brand_admin')
       ? and(eq(images.id, imageId), eq(images.companyId, co.id))
       : and(eq(images.id, imageId), eq(images.companyId, co.id), eq(images.userId, userId)),
   })

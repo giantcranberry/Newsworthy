@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { company } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { uploadPersonHeadshot, deleteLogo } from '@/services/s3'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 export async function POST(
   request: NextRequest,
@@ -19,15 +20,17 @@ export async function POST(
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(eq(company.uuid, uuid), eq(company.userId, userId)),
-  })
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  const co = access.company
 
   try {
     const formData = await request.formData()

@@ -4,6 +4,7 @@ import { company } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { uploadLogo, deleteLogo } from '@/services/s3'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 export async function POST(request: Request) {
   const session = await getEffectiveSession()
@@ -28,18 +29,17 @@ export async function POST(request: Request) {
     }
 
     const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-    const existing = await db.query.company.findFirst({
-      where: isAdmin
-        ? eq(company.uuid, companyUuid)
-        : and(
-            eq(company.uuid, companyUuid),
-            eq(company.userId, userId)
-          ),
-    })
+    const access = await getCompanyAccess(companyUuid, userId, isAdmin)
 
-    if (!existing) {
+    if (!access) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
+
+    if (!hasMinRole(access.role, 'brand_admin')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const existing = access.company
 
     // Delete old logo if exists
     if (existing.logoUrl) {

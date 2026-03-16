@@ -3,17 +3,7 @@ import { db } from '@/db'
 import { company, crmContacts } from '@/db/schema'
 import { eq, and, desc, sql, isNotNull, isNull, inArray, ilike, or } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
-
-async function getCompanyForUser(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
-}
+import { getCompanyAccess } from '@/lib/team-auth'
 
 function escapeCsvField(value: string | null | undefined): string {
   if (!value) return ''
@@ -37,11 +27,13 @@ export async function GET(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const { searchParams } = new URL(request.url)
   const query = searchParams.get('q')?.trim() || ''

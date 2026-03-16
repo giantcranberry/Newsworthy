@@ -4,6 +4,7 @@ import { db } from '@/db'
 import { company } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import OpenAI from 'openai'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -50,15 +51,17 @@ export async function POST(
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
 
-  const co = await db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(eq(company.uuid, uuid), eq(company.userId, userId)),
-  })
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
+
+  const co = access.company
 
   // Accept optional website override from request body
   let body: { website?: string } = {}

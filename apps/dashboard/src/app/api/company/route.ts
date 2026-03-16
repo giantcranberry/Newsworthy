@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import slugify from 'slugify'
 import { getPostHog } from '@/lib/posthog'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 // Create a slug for newsroom URL
 function createNrUri(name: string): string {
@@ -122,19 +123,19 @@ export async function PUT(request: NextRequest) {
       email,
     } = body
 
-    // Find existing company
-    const existingCompany = await db.query.company.findFirst({
-      where: eq(company.uuid, uuid),
-    })
+    // Check access via team-auth (owner, brand_admin, or platform admin/staff)
+    const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
+    const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-    if (!existingCompany) {
+    if (!access) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 })
     }
 
-    const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-    if (existingCompany.userId !== userId && !isAdmin) {
+    if (!hasMinRole(access.role, 'brand_admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
+
+    const existingCompany = access.company
 
     // Update company
     await db.update(company)

@@ -5,20 +5,10 @@ import { eq, and, desc, sql, isNotNull, isNull, inArray } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createHash } from 'crypto'
+import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
-}
-
-async function getCompanyForUser(uuid: string, userId: number, isAdmin = false) {
-  return db.query.company.findFirst({
-    where: isAdmin
-      ? eq(company.uuid, uuid)
-      : and(
-          eq(company.uuid, uuid),
-          eq(company.userId, userId)
-        ),
-  })
 }
 
 async function getOrCreateGroup(companyId: number, userId: number, companyName: string) {
@@ -53,11 +43,13 @@ export async function GET(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const group = await getOrCreateGroup(co.id, userId, co.companyName)
 
@@ -127,11 +119,13 @@ export async function POST(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const body = await request.json()
 
@@ -297,11 +291,13 @@ export async function PUT(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const body = await request.json()
   const { contactUuid, firstName, lastName, email, tld, publication, phone, notes, unsubscribed } = body
@@ -384,11 +380,13 @@ export async function DELETE(
 
   const userId = parseInt(session.user.id)
   const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
-  const co = await getCompanyForUser(uuid, userId, isAdmin)
+  const access = await getCompanyAccess(uuid, userId, isAdmin)
 
-  if (!co) {
+  if (!access) {
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
+
+  const co = access.company
 
   const body = await request.json()
   const { contactUuid, contactUuids } = body
