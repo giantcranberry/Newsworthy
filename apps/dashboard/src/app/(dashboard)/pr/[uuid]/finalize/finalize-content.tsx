@@ -8,7 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Flag, Loader2, Check, AlertCircle } from 'lucide-react'
+import { Flag, Loader2, Check, AlertCircle, AlertTriangle } from 'lucide-react'
+import Link from 'next/link'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
 import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
@@ -81,6 +82,7 @@ interface FinalizeContentProps {
   distribution: string | null
   initialApprovals: Approval[]
   priorApprovers: PriorApprover[]
+  missingItems?: { label: string; path: string }[]
   wizardNav?: React.ReactNode
 }
 
@@ -92,6 +94,7 @@ export function FinalizeContent({
   distribution,
   initialApprovals,
   priorApprovers,
+  missingItems = [],
   wizardNav,
 }: FinalizeContentProps) {
   const router = useRouter()
@@ -295,6 +298,34 @@ export function FinalizeContent({
             )}
           </div>
 
+          {missingItems.length > 0 && (
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium text-amber-800 dark:text-amber-300">
+                    Required items are incomplete
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
+                    Please complete the following before submitting:
+                  </p>
+                  <ul className="mt-2 space-y-1">
+                    {missingItems.map((item) => (
+                      <li key={item.label}>
+                        <Link
+                          href={item.path}
+                          className="text-sm text-amber-700 dark:text-amber-400 underline hover:text-amber-900 dark:hover:text-amber-200"
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="border-t dark:border-gray-700 pt-4">
             <div
               className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-colors ${
@@ -329,8 +360,8 @@ export function FinalizeContent({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={!confirmed || isSubmitting || hasBlockingApprovals || !!dateError}
-              className={`flex-1 ${confirmed && !hasBlockingApprovals && !dateError ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
+              disabled={!confirmed || isSubmitting || hasBlockingApprovals || !!dateError || missingItems.length > 0}
+              className={`flex-1 ${confirmed && !hasBlockingApprovals && !dateError && missingItems.length === 0 ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (

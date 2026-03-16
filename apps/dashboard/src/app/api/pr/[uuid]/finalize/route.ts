@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue } from '@/db/schema'
+import { releases, queue, company } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
@@ -31,6 +31,29 @@ export async function POST(
 
     if (release.userId !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    // Validate required fields before allowing submission
+    const missingFields: string[] = []
+    if (!release.title) missingFields.push('title')
+    if (!release.abstract) missingFields.push('abstract')
+    if (!release.body) missingFields.push('body')
+    if (!release.location) missingFields.push('location')
+    if (!release.primaryContactId) missingFields.push('primaryContactId')
+    if (!release.bannerId) missingFields.push('bannerId')
+
+    // Check company logo
+    const comp = await db.query.company.findFirst({
+      where: eq(company.id, release.companyId),
+      columns: { logoUrl: true },
+    })
+    if (!comp?.logoUrl) missingFields.push('companyLogo')
+
+    if (missingFields.length > 0) {
+      return NextResponse.json(
+        { error: 'Missing required fields', missingFields },
+        { status: 400 }
+      )
     }
 
     // Check if already submitted

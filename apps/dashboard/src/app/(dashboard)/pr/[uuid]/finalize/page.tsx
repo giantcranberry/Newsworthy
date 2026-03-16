@@ -77,6 +77,16 @@ export default async function FinalizePage({
     await processReleaseEmails(release.id, release.body)
   }
 
+  // Check for missing required fields
+  const missingItems: { label: string; path: string }[] = []
+  if (!release.title) missingItems.push({ label: 'Headline', path: `/pr/${uuid}` })
+  if (!release.abstract) missingItems.push({ label: 'Abstract/Summary', path: `/pr/${uuid}` })
+  if (!release.body) missingItems.push({ label: 'Press release content', path: `/pr/${uuid}` })
+  if (!release.location) missingItems.push({ label: 'Location', path: `/pr/${uuid}` })
+  if (!release.primaryContactId) missingItems.push({ label: 'Primary contact', path: `/pr/${uuid}` })
+  if (!release.company?.logoUrl) missingItems.push({ label: 'Company logo', path: `/pr/${uuid}/logo` })
+  if (!release.bannerId) missingItems.push({ label: 'Social banner image', path: `/pr/${uuid}/social` })
+
   const options = release.id ? await getReleaseOptions(release.id) : null
   const releaseApprovals = await getApprovals(release.id)
   const priorApprovers = await getPriorApprovers(release.companyId, release.id)
@@ -98,6 +108,7 @@ export default async function FinalizePage({
         distribution={release.distribution}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
+        missingItems={missingItems}
         wizardNav={
           <WizardNav
             releaseUuid={uuid}
