@@ -89,7 +89,7 @@ export default async function FrenchPR({ params }: Props) {
       },
       banner: {
         columns: {
-          cdnUrl: true,
+          url: true,
         },
       },
     },
@@ -265,13 +265,10 @@ export default async function FrenchPR({ params }: Props) {
           </div>
           <div className="lg:float-right pb-3 md:ml-5 mt-3 lg:mt-0 md:grid md:grid-cols-2 lg:block">
             <div>
-              {pr.banner?.cdnUrl && (
+              {pr.banner?.url && (
                 <Image
                   className="w-full md:w-[300px] lg:w-[320px] md:h-[180px] rounded mb-4"
-                  src={pr.banner.cdnUrl.replace(
-                    "resize=width:328",
-                    "resize=width:1200",
-                  )}
+                  src={pr.banner.url}
                   width={1200}
                   height={1}
                   alt={`banner image for: ${currentPr.title}`}

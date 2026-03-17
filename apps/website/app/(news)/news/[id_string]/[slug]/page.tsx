@@ -163,7 +163,7 @@ export async function generateMetadata({
       },
       banner: {
         columns: {
-          cdnUrl: true,
+          url: true,
         },
       },
     },
@@ -172,11 +172,7 @@ export async function generateMetadata({
 
   if (!release) return notFound();
 
-  const cdn_url =
-    release.banner?.cdnUrl!.replace(
-      "resize=width:328",
-      "resize=width:1200"
-    ) ?? "";
+  const cdn_url = release.banner?.url ?? "";
 
   const canonicalURL = newsUrl(release);
 
@@ -278,7 +274,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
       },
       banner: {
         columns: {
-          cdnUrl: true,
+          url: true,
         },
       },
       primaryImage: {
@@ -542,7 +538,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
   }
 
   // Banner URL for hero
-  const bannerUrl = release.banner?.cdnUrl?.replace("resize=width:328", "resize=width:1400") ?? null;
+  const bannerUrl = release.banner?.url ?? null;
 
   const companyData: subscribeFormSchemaType = {
     id: release.company.uuid,
@@ -603,7 +599,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
     description: release.abstract,
     image: {
       "@type": "ImageObject",
-      url: release.banner?.cdnUrl?.replace("resize=width:328", "resize=width:1200") ?? "",
+      url: release.banner?.url ?? "",
       width: 1200,
       height: 630,
     },
@@ -1048,8 +1044,8 @@ export default async function PressRelease({ searchParams, params }: Props) {
                     {release.company.website && (
                       <>
                         <div className="w-px h-5 bg-gray-200 mx-1" />
-                        <Link href={release.company.website} target="_blank" rel="noopener noreferrer" className="text-sm text-sky-600 hover:underline flex items-center gap-1">
-                          {new URL(release.company.website).hostname} <ExternalLink size={12} />
+                        <Link href={release.company.website.startsWith('http') ? release.company.website : `https://${release.company.website}`} target="_blank" rel="noopener noreferrer" className="text-sm text-sky-600 hover:underline flex items-center gap-1">
+                          {new URL(release.company.website.startsWith('http') ? release.company.website : `https://${release.company.website}`).hostname} <ExternalLink size={12} />
                         </Link>
                       </>
                     )}
@@ -1147,12 +1143,12 @@ export default async function PressRelease({ searchParams, params }: Props) {
               )}
             {release.company?.website && (
               <Link
-                href={release.company?.website}
+                href={release.company?.website?.startsWith('http') ? release.company.website : `https://${release.company.website}`}
                 className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
                 target="_blank"
               >
                 <span className="text-gray-500">Website</span>
-                <span className="text-sky-600 flex items-center gap-1">{new URL(release.company.website).hostname} <ExternalLink size={12} /></span>
+                <span className="text-sky-600 flex items-center gap-1">{new URL(release.company.website.startsWith('http') ? release.company.website : `https://${release.company.website}`).hostname} <ExternalLink size={12} /></span>
               </Link>
             )}
             {release.company.nrUri && (
