@@ -45,6 +45,9 @@ export async function GET(request: NextRequest) {
       releaseAt: release.releaseAt,
       releasedAt: release.releasedAt,
       slug: release.slug,
+      elasticDoc: release.elasticDoc,
+      isDeleted: release.isDeleted,
+      isArchived: release.isArchived,
     },
     user: user ? {
       id: user.id,

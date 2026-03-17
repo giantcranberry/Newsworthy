@@ -1,8 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 
 import axios from "axios";
-import { NextApiResponse } from "next";
-import { parse } from "querystring";
 
 interface QueryTemplate {
   size: number;
@@ -131,6 +129,7 @@ export async function GET(request: NextRequest) {
 
     if (responseData && responseData.hits && responseData.hits.hits) {
       const hits = responseData.hits.hits;
+
       return NextResponse.json(hits);
     } else {
       console.error("Response data structure is unexpected:", responseData);

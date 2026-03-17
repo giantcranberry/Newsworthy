@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon } from 'lucide-react'
+import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon, Trash2 } from 'lucide-react'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface LookupResult {
@@ -19,6 +19,9 @@ interface LookupResult {
     releaseAt: string | null
     releasedAt: string | null
     slug: string | null
+    elasticDoc: string | null
+    isDeleted: boolean | null
+    isArchived: boolean | null
   }
   user: {
     id: number
@@ -82,6 +85,9 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
   const [reportUrlInput, setReportUrlInput] = useState('')
   const [savingReportUrl, setSavingReportUrl] = useState(false)
   const [reportUrlMessage, setReportUrlMessage] = useState('')
+  const [takingDown, setTakingDown] = useState(false)
+  const [takedownConfirm, setTakedownConfirm] = useState(false)
+  const [takedownMessage, setTakedownMessage] = useState('')
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,6 +106,8 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
     setUpgradeSuccess('')
     setReportUrlInput('')
     setReportUrlMessage('')
+    setTakedownConfirm(false)
+    setTakedownMessage('')
 
     try {
       const res = await fetch(`/api/admin/lookup?prId=${resolvedId}`)
@@ -181,6 +189,42 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
       setReportUrlMessage('Failed to save URL')
     } finally {
       setSavingReportUrl(false)
+    }
+  }
+
+  const handleTakedown = async () => {
+    if (!result) return
+
+    setTakingDown(true)
+    setTakedownMessage('')
+
+    try {
+      const res = await fetch('/api/admin/lookup/takedown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ releaseId: result.release.id }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({
+          ...result,
+          release: { ...result.release, isDeleted: true, isArchived: true },
+        })
+        setTakedownMessage(
+          data.esDeleted
+            ? 'Release taken down and removed from search index'
+            : 'Release taken down' + (result.release.elasticDoc ? ' (ES document was already removed)' : '')
+        )
+        setTakedownConfirm(false)
+      } else {
+        setTakedownMessage(data.error || 'Failed to take down release')
+      }
+    } catch {
+      setTakedownMessage('Failed to take down release')
+    } finally {
+      setTakingDown(false)
     }
   }
 
@@ -448,6 +492,68 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                       </p>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+            {/* Takedown - Admin Only */}
+            {isAdmin && !result.release.isDeleted && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Trash2 className="h-4 w-4 text-red-700" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-red-900">Takedown Release</p>
+                    <p className="text-xs text-red-700 mt-0.5">
+                      This will mark the release as deleted and archived, and remove it from the search index.
+                    </p>
+                    {!takedownConfirm ? (
+                      <Button
+                        size="sm"
+                        className="mt-2 h-8 bg-red-700 text-white hover:bg-red-800 text-xs"
+                        onClick={() => setTakedownConfirm(true)}
+                      >
+                        Takedown
+                      </Button>
+                    ) : (
+                      <div className="flex items-center gap-2 mt-2">
+                        <p className="text-xs text-red-800 font-medium">Are you sure?</p>
+                        <Button
+                          size="sm"
+                          className="h-8 bg-red-700 text-white hover:bg-red-800 text-xs"
+                          disabled={takingDown}
+                          onClick={handleTakedown}
+                        >
+                          {takingDown ? 'Taking down...' : 'Yes, take it down'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs"
+                          onClick={() => setTakedownConfirm(false)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
+                    {takedownMessage && (
+                      <p className={`text-xs mt-2 font-medium ${takedownMessage.includes('taken down') ? 'text-green-700' : 'text-red-700'}`}>
+                        {takedownMessage}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Already taken down indicator */}
+            {result.release.isDeleted && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
+                    <Trash2 className="h-4 w-4 text-red-700" />
+                  </div>
+                  <p className="text-sm font-medium text-red-900">This release has been taken down</p>
                 </div>
               </div>
             )}

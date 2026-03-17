@@ -145,7 +145,7 @@ async function fetchBackupRows(): Promise<BackupRow[]> {
   const logos = await db.execute<{ id: number; company_id: number; original_logo_url: string }>(
     sql`SELECT id, company_id, original_logo_url FROM logos_filestack_backup`
   )
-  for (const r of logos.rows ?? logos) {
+  for (const r of logos) {
     if (r.original_logo_url) {
       rows.push({ type: 'logo', id: r.id, entityId: r.company_id, urls: [r.original_logo_url], labels: ['logo'] })
     }
@@ -155,7 +155,7 @@ async function fetchBackupRows(): Promise<BackupRow[]> {
   const banners = await db.execute<{ id: number; banner_id: number; original_url: string; original_front_page_url: string; original_cdn_url: string }>(
     sql`SELECT id, banner_id, original_url, original_front_page_url, original_cdn_url FROM banners_filestack_backup`
   )
-  for (const r of banners.rows ?? banners) {
+  for (const r of banners) {
     // Only archive the full-size original — front_page_url/cdn_url are
     // Filestack-generated resized copies, not unique assets
     if (r.original_url) {
@@ -167,7 +167,7 @@ async function fetchBackupRows(): Promise<BackupRow[]> {
   const avatars = await db.execute<{ id: number; user_id: number; original_avatar: string }>(
     sql`SELECT id, user_id, original_avatar FROM avatars_filestack_backup`
   )
-  for (const r of avatars.rows ?? avatars) {
+  for (const r of avatars) {
     if (r.original_avatar) {
       rows.push({ type: 'avatar', id: r.id, entityId: r.user_id, urls: [r.original_avatar], labels: ['avatar'] })
     }
@@ -177,7 +177,7 @@ async function fetchBackupRows(): Promise<BackupRow[]> {
   const images = await db.execute<{ id: number; image_id: number; original_url: string }>(
     sql`SELECT id, image_id, original_url FROM images_filestack_backup`
   )
-  for (const r of images.rows ?? images) {
+  for (const r of images) {
     if (r.original_url) {
       rows.push({ type: 'image', id: r.id, entityId: r.image_id, urls: [r.original_url], labels: ['image'] })
     }

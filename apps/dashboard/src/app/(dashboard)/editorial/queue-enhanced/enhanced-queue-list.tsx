@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sparkles, Loader2 } from 'lucide-react'
 
 interface EnhancedQueueItem {
   releaseId: number
@@ -53,6 +55,37 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
   const [urls, setUrls] = useState<Record<number, string>>({})
   const [loading, setLoading] = useState<Record<string, boolean>>({})
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [tldrOpen, setTldrOpen] = useState(false)
+  const [tldrBullets, setTldrBullets] = useState<{ label: string; text: string }[]>([])
+  const [tldrError, setTldrError] = useState('')
+  const [tldrTitle, setTldrTitle] = useState('')
+  const [tldrLoading, setTldrLoading] = useState(false)
+
+  const handleGenerateTldr = async (item: EnhancedQueueItem) => {
+    setTldrTitle(item.title || 'Untitled Release')
+    setTldrBullets([])
+    setTldrError('')
+    setTldrOpen(true)
+    setTldrLoading(true)
+
+    try {
+      const res = await fetch('/api/admin/lookup/tldr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ releaseId: item.releaseId }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setTldrBullets(data.bullets)
+      } else {
+        setTldrError(data.error || 'Failed to generate TLDR')
+      }
+    } catch {
+      setTldrError('Failed to generate TLDR')
+    } finally {
+      setTldrLoading(false)
+    }
+  }
 
   const handleSaveUrl = async (item: EnhancedQueueItem) => {
     const url = urls[item.releaseId]
@@ -163,10 +196,43 @@ export function EnhancedQueueList({ items }: { items: EnhancedQueueItem[] }) {
               >
                 {loading[`reset-${item.releaseId}`] ? 'Resetting...' : 'Reset to Standard'}
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs h-8 gap-1.5"
+                onClick={() => handleGenerateTldr(item)}
+              >
+                <Sparkles className="h-3 w-3" />
+                TLDR
+              </Button>
             </div>
           </div>
         </Card>
       ))}
+
+      <Dialog open={tldrOpen} onOpenChange={setTldrOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base">TLDR</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">{tldrTitle}</p>
+          {tldrLoading ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" /> Generating...
+            </div>
+          ) : tldrError ? (
+            <p className="text-sm text-red-600">{tldrError}</p>
+          ) : (
+            <ul className="space-y-3">
+              {tldrBullets.map((bullet, i) => (
+                <li key={i} className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+                  <span className="font-bold">{bullet.label}:</span> {bullet.text}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

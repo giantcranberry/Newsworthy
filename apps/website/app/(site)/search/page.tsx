@@ -2,8 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ElasticNwRelease } from "@/types/ElasticNwRelease";
 import { baseUrl } from "@/lib/utils";
+import { db, eq, inArray, releases, banners } from "@/lib/db";
 import SeeYourNews from "@/components/see_your_news";
-import Influencer from "@/components/influencer_card";
 
 export default async function SearchPage({
   searchParams,
@@ -30,6 +30,28 @@ export default async function SearchPage({
     );
 
     searchResults = await response.json();
+
+    // Replace stale og_image URLs with banner URLs from database
+    const prIds = searchResults.map((r) => r._source.pr_id).filter(Boolean);
+    if (prIds.length > 0) {
+      const bannerRows = await db
+        .select({
+          releaseId: releases.id,
+          bannerUrl: banners.url,
+        })
+        .from(releases)
+        .innerJoin(banners, eq(releases.bannerId, banners.id))
+        .where(inArray(releases.id, prIds));
+
+      const bannerMap = new Map(
+        bannerRows.map((row) => [row.releaseId, row.bannerUrl])
+      );
+
+      for (const result of searchResults) {
+        const bannerUrl = bannerMap.get(result._source.pr_id);
+        result._source.og_image = bannerUrl || "";
+      }
+    }
   } catch (error) {
     console.error("Error fetching data:", error);
   }
@@ -54,25 +76,22 @@ export default async function SearchPage({
             searchResults.map((release) => (
               <div
                 key={release._source.pr_id}
-                className="group my-5 pb-2 w-full transition duration-300 grid lg:grid-flow-col gap-5 border-b"
+                className="group my-5 pb-2 w-full transition duration-300 grid lg:grid-cols-[235px_1fr] gap-5 border-b"
               >
-                <div className="lg:col-span-2 rounded overflow-hidden lg:w-[235px] lg:h-[135px] w-full mb-7">
+                <div className="rounded overflow-hidden lg:h-[135px] w-full mb-7">
                   <Link href={release._source.url}>
                     {release._source.og_image && (
                       <Image
                         className="h-full transition duration-300 ease-in-out group-hover:scale-105"
-                        src={release._source.og_image.replace(
-                          "resize=width:675",
-                          "resize=width:1200",
-                        )}
+                        src={release._source.og_image}
                         width={1200}
-                        height={1}
+                        height={630}
                         alt={`banner image for: ${release._source.headline}`}
                       />
                     )}
                   </Link>
                 </div>
-                <div className="lg:col-span-1 flex flex-col justify-between gap-3 px-5">
+                <div className="flex flex-col gap-3 px-5">
                   <Link
                     className="font-serif text-xl group-hover:text-sky-700"
                     href={release._source.url}

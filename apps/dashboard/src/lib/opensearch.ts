@@ -26,3 +26,9 @@ export async function queryIndex(index: string, query: Record<string, unknown>):
   const result = await os.search({ index, body: query })
   return result.body
 }
+
+export async function deleteDocument(index: string, documentId: string): Promise<any> {
+  const os = getClient()
+  const result = await os.delete({ index, id: documentId })
+  return result.body
+}

@@ -12,6 +12,8 @@
 | 2026-03-14 | user | Created new `courtesy_codes` + `courtesy_code_redemptions` tables when existing `coupons` + `coupon_log` tables already exist in partners.ts schema (and in Flask) | Always check existing schema/Flask models before creating new tables. Coupon system: `coupons` (coupon_code, pr_count, single_use, is_used, redeemed counter, expires_at) + `coupon_log` (user_id, coupon_code) in `db/schema/partners.ts`. |
 | 2026-03-15 | user | Used FilestackPicker for product logo upload — Filestack is deprecated in this project | All image uploads use Linode Object Storage via `@/services/s3.ts`. Pattern: `ImageUpload` component → FormData POST to a dedicated `/logo` API route → `s3.ts` upload function (sharp resize + S3 PutObject). Never use FilestackPicker. |
 | 2026-03-15 | self | Schema exists in BOTH `packages/db/src/schema/` and `apps/dashboard/src/db/schema/` — must update both when adding columns | Dashboard has its own copy of schema files that re-export from the shared package. Adding a column to only one location causes type mismatches. Always update both. |
+| 2026-03-17 | self | Tried modifying website API route but `baseUrl` is hardcoded to `https://www.newsworthy.ai` — local API changes had no effect | Website's `baseUrl` in `lib/utils.ts` points to production. Server component fetch calls hit production API, not local. For data enrichment, do it directly in the server component page, not in the API route. |
+| 2026-03-17 | self | Used `grid-flow-col` for search results layout — columns auto-sized causing variable text indentation | Use explicit `grid-cols-[235px_1fr]` instead of `grid-flow-col` when you need fixed column widths in a grid layout. |
 | 2026-03-15 | self | `is_deleted` is `null` (not `false`) on many products rows — `eq(isDeleted, false)` misses them | Always use `or(eq(field, false), isNull(field))` for nullable boolean columns like `is_deleted`. Same pattern as `is_archived`. |
 
 ## User Preferences
@@ -62,6 +64,8 @@
 - Website's `next.config.js` needs `experimental.serverActions: true` and `serverComponentsExternalPackages: ['cheerio', 'undici']` — cheerio's undici dep has private class fields that webpack can't parse
 - Dashboard uses Zod 4 (`^4.3.5`), website uses Zod 3.25 compat layer (`^3.25.0`). Both resolve to 3.25.76 for website — this is required so `@hookform/resolvers` types align
 - Always run builds via `bun run build:website` / `bun run build:dashboard` from monorepo root — parent `~/Dev/nextjs/node_modules/` has stale Next.js 13 that `npx` picks up
+- Website `baseUrl` (`lib/utils.ts`) = `https://www.newsworthy.ai` (production). Server component fetches hit production API, not local dev. Do data enrichment in the server component directly.
+- Images migrated from Filestack to Linode Object Storage at `cdn.newsramp.app`. Banner URLs in `banners.url` column. ElasticSearch `og_image` field still has stale Filestack URLs — must be overridden from DB.
 - `lib/neon.ts` uses raw `pg` Pool for separate newsramp articles DB (NEON_DIRECT_URL) — NOT part of Drizzle schema
 - Flask app at ~/Dev/flaskapps/newsworthy is the legacy version; editorial routes in news/editorial/routes.py
 - Both Flask and Next.js use status='review' for editorial queue. 'editorial' is NOT a valid status — it was a ghost reference that has been cleaned up.
