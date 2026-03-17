@@ -50,6 +50,7 @@ export default async function PendingPage() {
             id: item.id,
             uuid: item.uuid,
             title: item.title,
+            slug: item.slug,
             distribution: item.distribution,
             releaseAt: item.releaseAt?.toISOString() ?? null,
             timezone: item.timezone,

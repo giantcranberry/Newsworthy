@@ -84,6 +84,9 @@ async function fetchGoogleDoc(url: string): Promise<string> {
     // Clean up empty spans
     content = content.replace(/<span>\s*<\/span>/gi, '')
     content = content.replace(/<span>([^<]*)<\/span>/gi, '$1')
+    // Downgrade h1 to h2 — release body should not contain h1 tags
+    content = content.replace(/<h1([^>]*)>/gi, '<h2$1>')
+    content = content.replace(/<\/h1>/gi, '</h2>')
     return content
   }
 
@@ -94,7 +97,7 @@ async function parseWordDocument(buffer: Buffer): Promise<string> {
   // Convert to HTML to preserve formatting (bold, italics, links, etc.)
   const result = await mammoth.convertToHtml({ buffer }, {
     styleMap: [
-      "p[style-name='Heading 1'] => h1:fresh",
+      "p[style-name='Heading 1'] => h2:fresh",
       "p[style-name='Heading 2'] => h2:fresh",
       "p[style-name='Heading 3'] => h3:fresh",
       "b => strong",
@@ -136,6 +139,7 @@ Please extract and generate the following:
 
 5. **Body Content**: This is the main press release body. IMPORTANT:
    - Preserve ALL formatting from the original document including: <strong>/<b> for bold, <em>/<i> for italics, <u> for underline, <a href="..."> for hyperlinks, <h2>/<h3> for section headings
+   - NEVER use <h1> tags in the body. If the original document has h1 headings, convert them to <h2> instead. The release title is already the h1.
    - Wrap paragraphs in <p> tags
    - Keep all hyperlinks intact with their original URLs
    - Remove any title/headline that would duplicate the extracted title
@@ -245,6 +249,11 @@ export async function POST(request: Request) {
 
     // Analyze with AI
     const result = await analyzeWithAI(documentContent, categories, regions)
+
+    // Safety net: downgrade any h1 tags the AI may have produced
+    if (result.body) {
+      result.body = result.body.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')
+    }
 
     return NextResponse.json({
       success: true,

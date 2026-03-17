@@ -11,9 +11,20 @@ interface PendingItem {
   id: number
   uuid: string
   title: string | null
+  slug: string | null
   distribution: string | null
   releaseAt: string | null
   timezone: string | null
+}
+
+function buildPublishedUrl(item: PendingItem): string | null {
+  if (!item.slug) return null
+  const releaseAt = item.releaseAt ? new Date(item.releaseAt) : null
+  if (!releaseAt) return null
+  const year = releaseAt.getFullYear()
+  const month = (releaseAt.getMonth() + 1).toString().padStart(2, '0')
+  const day = releaseAt.getDate().toString().padStart(2, '0')
+  return `https://www.newsworthy.ai/news/${year}${month}${day}${item.id}/${item.slug}`
 }
 
 function DistributionBadge({ distribution }: { distribution: string | null }) {
@@ -97,6 +108,12 @@ export function PendingList({ items }: { items: PendingItem[] }) {
                 <DistributionBadge distribution={item.distribution} />
               )}
             </div>
+
+            {buildPublishedUrl(item) && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1 truncate">
+                {buildPublishedUrl(item)}
+              </p>
+            )}
 
             <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               For Release {formatReleaseDate(item.releaseAt, item.timezone)}
