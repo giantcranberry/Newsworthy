@@ -577,16 +577,16 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news').map((p: any, i: number) => {
               const logoUrl = p.logo && p.logo.includes('http')
                 ? p.logo
-                : `https://cdn1.newsworthy.ai/images/clipreport/newsramp/${(p.placement || '').split('.')[0]}.png`
+                : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
               return <LogoCard key={`pl-${i}`} logo={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} />
             })}
 
             {/* Social media cards (same card format) */}
             {nwrampReport.linkedin && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
             )}
             {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
             )}
             {nwrampReport.bluesky && (
               <LogoCard logo="https://cdn1.newsworthy.ai/bluesky.svg" name="Bluesky" link={nwrampReport.bluesky} />
@@ -595,7 +595,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <LogoCard logo="https://cdn1.newsworthy.ai/mastodon.svg" name="Mastodon" link={nwrampReport.mastodon} />
             )}
             {nwrampReport.github && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
             )}
             {nwrampReport.substack && (
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />

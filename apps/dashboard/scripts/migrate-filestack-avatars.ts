@@ -1,13 +1,13 @@
 /**
- * Migrate Filestack company logos to Linode Object Storage.
+ * Migrate Filestack user avatars to Linode Object Storage.
  *
- * For each company with a Filestack logo_url:
- * 1. Backs up original URL to logos_filestack_backup
+ * For each user_profile with a Filestack avatar URL:
+ * 1. Backs up original URL to avatars_filestack_backup
  * 2. Downloads the original image (no resize — preserves transparency)
  * 3. Uploads to Linode Object Storage in original format
- * 4. Updates company.logo_url in the database
+ * 4. Updates user_profiles.avatar in the database
  *
- * Usage: bun scripts/migrate-filestack-logos.ts [--dry-run]
+ * Usage: bun scripts/migrate-filestack-avatars.ts [--dry-run]
  */
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
@@ -58,12 +58,10 @@ async function detectFormat(buffer: Buffer): Promise<{ ext: string; mime: string
 }
 
 /**
- * Strip the RESIZE transform to download the original full-resolution image.
- *
- * Input:  https://cdn.filestackcontent.com/RESIZE/security=policy:...,signature:.../HANDLE
- * Output: https://cdn.filestackcontent.com/security=policy:...,signature:.../HANDLE
- *
- * Also handles URLs without RESIZE (just a handle or resize= transform).
+ * Strip the RESIZE transform to download the original image.
+ * Handles both patterns:
+ *   .../RESIZE/security=.../HANDLE  →  .../security=.../HANDLE
+ *   .../security=.../HANDLE         →  unchanged
  */
 function toDownloadUrl(filestackUrl: string): string {
   return filestackUrl.replace('/RESIZE/', '/')
@@ -73,32 +71,36 @@ async function main() {
   console.log(dryRun ? '=== DRY RUN ===' : '=== LIVE RUN ===')
   console.log()
 
-  // Find all companies with any Filestack logo URL
-  const companies = await db
+  // Find all user profiles with any Filestack avatar URL
+  const profiles = await db
     .select({
-      id: schema.company.id,
-      companyName: schema.company.companyName,
-      logoUrl: schema.company.logoUrl,
+      id: schema.userProfiles.id,
+      userId: schema.userProfiles.userId,
+      firstName: schema.userProfiles.firstName,
+      lastName: schema.userProfiles.lastName,
+      avatar: schema.userProfiles.avatar,
     })
-    .from(schema.company)
-    .where(like(schema.company.logoUrl, 'https://cdn.filestackcontent.com%'))
+    .from(schema.userProfiles)
+    .where(like(schema.userProfiles.avatar, 'https://cdn.filestackcontent.com%'))
 
-  console.log(`Found ${companies.length} companies with Filestack logos`)
+  console.log(`Found ${profiles.length} user profiles with Filestack avatars`)
 
   let migrated = 0
   let failed = 0
   let skipped = 0
 
-  for (const co of companies) {
-    if (!co.logoUrl) {
+  for (const profile of profiles) {
+    const { id, userId, firstName, lastName, avatar } = profile
+
+    if (!avatar) {
       skipped++
       continue
     }
 
-    const downloadUrl = toDownloadUrl(co.logoUrl)
+    const downloadUrl = toDownloadUrl(avatar)
 
-    console.log(`\n[${co.id}] ${co.companyName}`)
-    console.log(`  From: ${co.logoUrl}`)
+    console.log(`\n[profile:${id} user:${userId}] ${firstName || ''} ${lastName || ''}`)
+    console.log(`  From: ${avatar}`)
     console.log(`  Fetch: ${downloadUrl}`)
 
     if (dryRun) {
@@ -109,8 +111,8 @@ async function main() {
     try {
       // 1. Backup original URL
       await db.execute(sql`
-        INSERT INTO logos_filestack_backup (company_id, original_logo_url)
-        VALUES (${co.id}, ${co.logoUrl})
+        INSERT INTO avatars_filestack_backup (user_profile_id, user_id, original_avatar)
+        VALUES (${id}, ${userId}, ${avatar})
       `)
 
       // 2. Download the original image
@@ -131,9 +133,9 @@ async function main() {
 
       console.log(`  Downloaded: ${(buffer.length / 1024).toFixed(1)} KB`)
 
-      // 3. Detect actual format from image bytes (preserves PNG transparency)
+      // 3. Detect actual format from image bytes
       const { ext, mime } = await detectFormat(buffer)
-      const key = `logos/${co.id}-${Date.now()}.${ext}`
+      const key = `avatars/user-${userId}-${Date.now()}.${ext}`
 
       // 4. Upload original bytes to Linode (no resize/recompression)
       await s3Client.send(
@@ -148,10 +150,11 @@ async function main() {
 
       const newUrl = `${CDN_BASE_URL}/${key}`
 
-      // 5. Update the company record
-      await db.update(schema.company)
-        .set({ logoUrl: newUrl })
-        .where(eq(schema.company.id, co.id))
+      // 5. Update the user profile record
+      await db
+        .update(schema.userProfiles)
+        .set({ avatar: newUrl })
+        .where(eq(schema.userProfiles.id, id))
 
       console.log(`  Uploaded: ${newUrl} (${(buffer.length / 1024).toFixed(1)} KB, ${ext})`)
       migrated++
@@ -165,7 +168,7 @@ async function main() {
   }
 
   console.log('\n=== Summary ===')
-  console.log(`Total:    ${companies.length}`)
+  console.log(`Total:    ${profiles.length}`)
   console.log(`Migrated: ${migrated}`)
   console.log(`Failed:   ${failed}`)
   console.log(`Skipped:  ${skipped}`)
