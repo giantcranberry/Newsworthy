@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles } from '@/db/schema'
+import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles, postQueue, releaseOptions } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { createSystemMessage } from '@/lib/messages'
@@ -153,6 +153,41 @@ export async function POST(request: NextRequest) {
         }
       } catch (err) {
         console.error('Failed to send approval notification:', err)
+      }
+
+      // Create post_queue records for distribution processing
+      try {
+        const [releaseRow] = await db
+          .select({ releaseAt: releases.releaseAt })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+
+        const releaseAt = releaseRow?.releaseAt ?? null
+
+        // Always create sms and email queue entries
+        await db.insert(postQueue).values([
+          { prid: releaseId, target: 'sms', subTarget: null, msg: '', releaseAt },
+          { prid: releaseId, target: 'email', subTarget: null, msg: '', releaseAt },
+        ])
+
+        // Create advocacy queue entry if release options have advocacy enabled
+        const [ro] = await db
+          .select({ advocacy: releaseOptions.advocacy })
+          .from(releaseOptions)
+          .where(eq(releaseOptions.prId, releaseId))
+          .limit(1)
+
+        if (ro?.advocacy) {
+          await db.insert(postQueue).values({
+            prid: releaseId,
+            target: 'advocacy',
+            subTarget: null,
+            msg: '',
+            releaseAt,
+          })
+        }
+      } catch (err) {
+        console.error('Failed to create post_queue records:', err)
       }
 
       getPostHog().capture({

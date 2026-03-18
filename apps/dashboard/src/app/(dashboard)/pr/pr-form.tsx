@@ -2399,6 +2399,10 @@ export function PRForm({
                 pullquote: formData.pullquote,
                 location: formData.location,
                 videoUrl: formData.videoUrl,
+                releaseAt: formData.releaseDate && formData.releaseTime
+                  ? `${formData.releaseDate}T${formData.releaseTime}`
+                  : null,
+                timezone: formData.timezone,
               }}
               company={selectedCompany ? {
                 logoUrl: selectedCompany.logoUrl,

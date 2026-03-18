@@ -40,6 +40,8 @@ interface PreviewData {
   location: string | null
   videoUrl: string | null
   landingPage: string | null
+  releaseAt: string | null
+  timezone: string | null
   companyName: string | null
   logoUrl: string | null
   bannerUrl: string | null
@@ -283,6 +285,8 @@ export function ReleasePreviewSidebar() {
                 location: data.location,
                 videoUrl: data.videoUrl,
                 landingPage: data.landingPage,
+                releaseAt: data.releaseAt,
+                timezone: data.timezone,
               }}
               company={data.companyName ? {
                 logoUrl: data.logoUrl,
