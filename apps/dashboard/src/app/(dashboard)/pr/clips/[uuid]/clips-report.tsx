@@ -21,6 +21,27 @@ import { Pie, Line, Bar } from 'react-chartjs-2'
 ChartJS.register(ArcElement, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
 
 // --- Helpers ---
+
+/** Rewrite SVG/WebP image URLs to their PNG equivalents on cdn.newsramp.app */
+function toPngUrl(url: string): string {
+  if (!url) return url
+  // Newsworthy logo special case
+  if (url === 'https://www.newsworthy.ai/logo.svg') {
+    return 'https://cdn.newsramp.app/logos/newsworthy-logo.png'
+  }
+  // Rewrite cdn1.newsworthy.ai SVG/WebP → cdn.newsramp.app PNG
+  if (url.startsWith('https://cdn1.newsworthy.ai/') && /\.(svg|webp)$/i.test(url)) {
+    return url
+      .replace('https://cdn1.newsworthy.ai/', 'https://cdn.newsramp.app/')
+      .replace(/\.(svg|webp)$/i, '.png')
+  }
+  // Rewrite cdn.newsramp.app SVG → PNG
+  if (url.startsWith('https://cdn.newsramp.app/') && /\.svg$/i.test(url)) {
+    return url.replace(/\.svg$/i, '.png')
+  }
+  return url
+}
+
 function formatDate(iso: string | null) {
   if (!iso) return ''
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -541,7 +562,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
           <LogoCard logo="/img/logos/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
           <LogoCard logo="/img/logos/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
-          <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.svg" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
+          <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.png" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
           <LogoCard logo="/img/logos/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${formatCityBuzzDate(release.releasedAt)}/${release.slug}/`} />
           {yahooFinanceUrls.map((url, i) => (
             <LogoCard key={`yahoo-${i}`} logo="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
@@ -549,7 +570,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           {clips.streetinsiderUrl && (
             <LogoCard logo="https://cdn.newsramp.app/logos/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
           )}
-          <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.svg" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
+          <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
         </div>
       </SectionCard>
 
@@ -560,7 +581,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of 354 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
             {enhancedPublications.slice(0, 36).map((pub, i) => (
-              <LogoCard key={i} logo={pub.logo_url} name={pub.name} link={pub.link || undefined} />
+              <LogoCard key={i} logo={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} />
             ))}
           </div>
         </SectionCard>
@@ -576,7 +597,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 mb-6">
             {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news').map((p: any, i: number) => {
               const logoUrl = p.logo && p.logo.includes('http')
-                ? p.logo
+                ? toPngUrl(p.logo)
                 : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
               return <LogoCard key={`pl-${i}`} logo={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} />
             })}
@@ -589,13 +610,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
             )}
             {nwrampReport.bluesky && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/bluesky.svg" name="Bluesky" link={nwrampReport.bluesky} />
+              <LogoCard logo="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} />
             )}
             {nwrampReport.mastodon && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/mastodon.svg" name="Mastodon" link={nwrampReport.mastodon} />
+              <LogoCard logo="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} />
             )}
             {nwrampReport.github && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/github.webp" name="GitHub" link={nwrampReport.github} />
+              <LogoCard logo="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />
             )}
             {nwrampReport.substack && (
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
@@ -624,15 +645,15 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               {/* Listen On Badges */}
               <h5 className="font-bold text-gray-900 dark:text-gray-100 pt-3 mb-3">Listen On:</h5>
               <div className="flex items-center flex-wrap gap-4">
-                <img src="https://cdn.newsramp.app/badges/apple-badge.svg" width={150} alt="Listen on Apple Podcasts" />
-                <img src="https://cdn.newsramp.app/badges/iheart-badge.svg" width={150} alt="Listen on iHeart Radio" />
-                <img src="https://cdn.newsramp.app/badges/spotify-badge.svg" width={150} alt="Listen on Spotify" />
-                <img src="https://cdn.newsramp.app/badges/pandora-badge.svg" width={150} alt="Listen on Pandora" />
-                <img src="https://cdn.newsramp.app/badges/youtube-badge.svg" width={150} alt="Listen on YouTube" />
-                <img src="https://cdn.newsramp.app/badges/castbox-badge.svg" width={150} alt="Listen on Castbox" />
-                <img src="https://cdn.newsramp.app/badges/android-badge.svg" width={150} alt="Listen on Android" />
-                <img src="https://cdn.newsramp.app/badges/podcast-index-badge.svg" width={150} alt="Listen on PodcastIndex" />
-                <img src="https://cdn.newsramp.app/badges/deezer.svg" width={150} alt="Listen on Deezer" />
+                <img src="https://cdn.newsramp.app/badges/apple-badge.png" width={150} alt="Listen on Apple Podcasts" />
+                <img src="https://cdn.newsramp.app/badges/iheart-badge.png" width={150} alt="Listen on iHeart Radio" />
+                <img src="https://cdn.newsramp.app/badges/spotify-badge.png" width={150} alt="Listen on Spotify" />
+                <img src="https://cdn.newsramp.app/badges/pandora-badge.png" width={150} alt="Listen on Pandora" />
+                <img src="https://cdn.newsramp.app/badges/youtube-badge.png" width={150} alt="Listen on YouTube" />
+                <img src="https://cdn.newsramp.app/badges/castbox-badge.png" width={150} alt="Listen on Castbox" />
+                <img src="https://cdn.newsramp.app/badges/android-badge.png" width={150} alt="Listen on Android" />
+                <img src="https://cdn.newsramp.app/badges/podcast-index-badge.png" width={150} alt="Listen on PodcastIndex" />
+                <img src="https://cdn.newsramp.app/badges/deezer.png" width={150} alt="Listen on Deezer" />
               </div>
             </div>
           )}
@@ -656,7 +677,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       className="inline-flex items-center text-[1.2rem] text-blue-600 dark:text-blue-400 hover:underline mr-4 mb-2"
                     >
                       <img
-                        src={`https://cdn1.newsworthy.ai/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`}
+                        src={`https://cdn.newsramp.app/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`}
                         width={35}
                         height={35}
                         alt={langName}
@@ -677,12 +698,12 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-database" iconColor="text-cyan-500">Subscription Research Databases</SectionTitle>
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Your content is indexed in premium research and analytics platforms</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
-          <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
+          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
         </div>
       </SectionCard>
 

@@ -46,9 +46,11 @@
 - Don't check `if (product.productCredits)` — 0 is falsy. Use `product.productCredits || 1` to default to 1 for products with 0 credits.
 - `chartjs-node-canvas` uses native canvas bindings incompatible with Next.js/Turbopack bundler (MODULE_NOT_FOUND). Use react-pdf's built-in SVG primitives (Svg, Path, Rect, Circle, G, Line) to draw charts natively in PDFs instead.
 - `@react-pdf/renderer` rejects SVG and WebP images — only PNG, JPEG, GIF, BMP, TIFF work. Use `isValidPdfImageUrl()` to validate and fall back to text. Dynamic image URLs without file extensions (like QR code APIs) can work if they serve PNG/JPEG — skip the extension check for those.
+- react-pdf `renderToBuffer` chokes on many concurrent remote image fetches (dozens of URLs). Pre-fetch all remote images as base64 data URLs in the route handler and pass via imageMap. Never leave react-pdf to fetch remote images during rendering.
 - react-pdf `rgba()` in SVG fill attrs renders wrong colors. Use `fill={hexColor} fillOpacity={0.15}` instead.
 - react-pdf `wrap={false}` on large sections (many clips/logos) causes headers to strand on previous page while content jumps to next. Fix: allow wrapping on the outer section, use `wrap={false}` only on the header/tab row so it stays together, let the grid content flow naturally across pages.
-- PDF report file: `src/app/api/pr/[uuid]/report/pdf/report-pdf.tsx`. Web report: `src/app/(dashboard)/pr/clips/[uuid]/clips-report.tsx`. Data service: `src/services/report.ts`. Still has remaining page-break issues to revisit.
+- PDF report file: `src/app/api/pr/[uuid]/report/pdf/report-pdf.tsx`. Web report: `src/app/(dashboard)/pr/clips/[uuid]/clips-report.tsx`. Data service: `src/services/report.ts`.
+- Newsramp API (`reports.newsramp.net`) returns dynamic SVG logo URLs from `cdn.newsramp.app/storydesk/` and `cdn.newsramp.app/burstable/` paths. New placements can appear at any time with SVG logos. Always use `toPngUrl()` on placement logos in both web and PDF reports — it rewrites `cdn.newsramp.app/*.svg` → `.png`. When new SVGs appear, convert to PNG with `sharp({density:300})` and upload to same path with `.png` extension.
 
 ## Patterns That Work (continued)
 - Community feature: community schema in `/src/db/schema/community.ts`, all tables use snake_case DB columns with camelCase JS fields

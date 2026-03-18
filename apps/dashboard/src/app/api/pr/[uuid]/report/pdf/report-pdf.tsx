@@ -1,5 +1,5 @@
 import React from 'react'
-import { Document, Page, View, Text, Image, Link, StyleSheet, Svg, Path, Rect, Circle, G, Line as SvgLine } from '@react-pdf/renderer'
+import { Document, Page, View, Text, Image, Link, StyleSheet, Svg, Path, Circle, Line as SvgLine } from '@react-pdf/renderer'
 import type { ReportData, ClipRecord, TimeBucket } from '@/services/report'
 
 // --- Colors ---
@@ -93,6 +93,23 @@ function isValidPdfImageUrl(url: string | null | undefined): boolean {
   if (url.startsWith('data:image/')) return true
   const cleanUrl = url.split('?')[0].split('#')[0].toLowerCase()
   return /\.(png|jpe?g|gif|bmp|tiff?)$/.test(cleanUrl)
+}
+
+/** Rewrite SVG/WebP image URLs to their PNG equivalents on cdn.newsramp.app */
+function toPngUrl(url: string): string {
+  if (!url) return url
+  if (url === 'https://www.newsworthy.ai/logo.svg') {
+    return 'https://cdn.newsramp.app/logos/newsworthy-logo.png'
+  }
+  if (url.startsWith('https://cdn1.newsworthy.ai/') && /\.(svg|webp)$/i.test(url)) {
+    return url
+      .replace('https://cdn1.newsworthy.ai/', 'https://cdn.newsramp.app/')
+      .replace(/\.(svg|webp)$/i, '.png')
+  }
+  if (url.startsWith('https://cdn.newsramp.app/') && /\.svg$/i.test(url)) {
+    return url.replace(/\.svg$/i, '.png')
+  }
+  return url
 }
 
 // --- Helpers ---
@@ -202,41 +219,6 @@ function LineChartSvg({ data, multiplier }: { data: TimeBucket[]; multiplier: nu
   )
 }
 
-function BarChartSvg({ data, multiplier }: { data: TimeBucket[]; multiplier: number }) {
-  if (!data.length) return null
-  const w = 500, h = 180
-  const pad = { top: 10, right: 10, bottom: 10, left: 10 }
-  const chartW = w - pad.left - pad.right
-  const chartH = h - pad.top - pad.bottom
-
-  const maxVal = Math.max(...data.map(d => Math.max(d.views, d.shares_multiplied ?? d.shares)), 1)
-  const groupW = chartW / data.length
-  const barW = Math.max(2, (groupW - 4) / 2)
-
-  return (
-    <View>
-      <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-        <SvgLine x1={pad.left} y1={pad.top + chartH} x2={pad.left + chartW} y2={pad.top + chartH} stroke={C.gray200} strokeWidth={1} />
-        {data.map((d, i) => {
-          const x = pad.left + i * groupW + 2
-          const viewsH = (d.views / maxVal) * chartH
-          const sharesH = ((d.shares_multiplied ?? d.shares) / maxVal) * chartH
-          return (
-            <G key={i}>
-              <Rect x={x} y={pad.top + chartH - viewsH} width={barW} height={Math.max(viewsH, 0.5)} fill={C.blue} />
-              <Rect x={x + barW} y={pad.top + chartH - sharesH} width={barW} height={Math.max(sharesH, 0.5)} fill={C.green} />
-            </G>
-          )
-        })}
-      </Svg>
-      <ChartLegend items={[
-        { color: C.blue, label: 'Views' },
-        { color: C.green, label: multiplier > 1 ? `Shares (x${multiplier})` : 'Shares' },
-      ]} />
-    </View>
-  )
-}
-
 function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 4 }}>
@@ -252,13 +234,15 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
 
 // --- Sub-components ---
 
-// imageMap lookup: returns data URL from pre-loaded static images, or the src if it's a valid remote URL
+// imageMap lookup: returns data URL from pre-loaded images (by full URL or filename), or the src if it's a valid remote URL
 function resolveImage(src: string, imageMap: Record<string, string>): string | null {
   if (!src) return null
-  // Check imageMap by filename
+  // Check imageMap by full URL first (pre-fetched remote images)
+  if (imageMap[src]) return imageMap[src]
+  // Check imageMap by filename (local static images)
   const filename = src.split('/').pop() || ''
   if (imageMap[filename]) return imageMap[filename]
-  // Check if it's a valid remote URL
+  // Check if it's a valid remote URL (fallback — shouldn't be needed if pre-fetched)
   if (isValidPdfImageUrl(src)) return src
   return null
 }
@@ -318,7 +302,7 @@ function CircuitCardPdf({ thumbnail, name, city, state, imageMap }: { thumbnail:
 }
 
 function SectionCardPdf({ borderColor, children }: { borderColor: string; children: React.ReactNode }) {
-  return <View wrap={false} style={[s.sectionCard, { borderLeftColor: borderColor }]}>{children}</View>
+  return <View style={[s.sectionCard, { borderLeftColor: borderColor }]}>{children}</View>
 }
 
 // --- Main PDF Document ---
@@ -330,12 +314,13 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
   const reportDate = fmtReportDate(data.fetchedAt)
   const hasStats = data.combStats.length > 0
 
-  const companyLogoSrc = company.logoUrl
+  const rawCompanyLogo = company.logoUrl
     ? company.logoUrl.includes('cdn.filestac')
       ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300/output=format:png')
       : company.logoUrl
     : null
-  const validCompanyLogo = companyLogoSrc ? isValidPdfImageUrl(companyLogoSrc) : false
+  const companyLogoSrc = rawCompanyLogo ? resolveImage(rawCompanyLogo, imageMap) : null
+  const validCompanyLogo = !!companyLogoSrc
 
   const newsUrl = (() => {
     if (!release.releaseAt) return ''
@@ -354,6 +339,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
 
   return (
     <Document>
+      {/* Page 1: Header, Hero, Metrics, Analytics */}
       <Page size="A4" style={s.page} wrap>
         {/* Header */}
         <View wrap={false} style={s.headerRow}>
@@ -397,6 +383,11 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             <Text style={s.metricLabel}>Total Shares</Text>
           </View>
           <View style={s.metricWide}>
+            <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+              {resolveImage('https://cdn.newsramp.app/logos/openai.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/openai.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
+              {resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
+              {resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
+            </View>
             <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 2 }}>AIO / SEO?</Text>
             <Text style={{ fontSize: 7, color: C.gray500, textTransform: 'uppercase' }}>We&apos;ve got you covered.</Text>
             <Text style={{ fontSize: 7, color: C.gray500, marginTop: 2 }}>Your Press Release is optimized for AI and Search.</Text>
@@ -449,15 +440,6 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
           </View>
         )}
 
-        {/* Daily Activity Chart */}
-        {hasStats && !data.releaseIsYearOld && (
-          <View wrap={false} style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, padding: 12, marginBottom: 12 }}>
-            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.gray800, marginBottom: 4 }}>Daily Activity</Text>
-            <Text style={{ fontSize: 7, color: C.gray500, marginBottom: 8 }}>Day-by-day breakdown of views and shares</Text>
-            <BarChartSvg data={data.combStats} multiplier={data.shStatsMultiplier} />
-          </View>
-        )}
-
         {/* Share List Alert */}
         {hasAdvGroup ? (
           <View wrap={false} style={[s.advBox, { backgroundColor: C.greenLight, borderColor: C.greenBorder }]}>
@@ -476,18 +458,22 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
         {/* Blockchain */}
         {nwrampReport && nwrampReport.blockchain_qrcode && isValidPdfImageUrl(nwrampReport.blockchain_qrcode) && (
           <SectionCardPdf borderColor={C.purple}>
-            <Text style={s.sectionTitle}>Blockchain Verification</Text>
-            <Text style={s.sectionDesc}>Immutable proof of publication secured on the blockchain</Text>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Blockchain Verification</Text>
+              <Text style={s.sectionDesc}>Immutable proof of publication secured on the blockchain</Text>
+            </View>
             <View style={{ alignItems: 'center' }}>
-              <Image src={nwrampReport.blockchain_qrcode} style={{ width: 120, height: 120 }} />
+              <Image src={resolveImage(nwrampReport.blockchain_qrcode, imageMap) || nwrampReport.blockchain_qrcode} style={{ width: 120, height: 120 }} />
             </View>
           </SectionCardPdf>
         )}
 
         {/* Search & News Portals */}
         <SectionCardPdf borderColor={C.primary}>
-          <Text style={s.sectionTitle}>Search &amp; News Portals</Text>
-          <Text style={s.sectionDesc}>Your press release is discoverable across major search engines and news aggregators</Text>
+          <View wrap={false}>
+            <Text style={s.sectionTitle}>Search &amp; News Portals</Text>
+            <Text style={s.sectionDesc}>Your press release is discoverable across major search engines and news aggregators</Text>
+          </View>
           <View style={s.logoGrid}>
             <LogoCardPdf src="google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} imageMap={imageMap} />
             <LogoCardPdf src="microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} imageMap={imageMap} />
@@ -503,62 +489,40 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
           </View>
         </SectionCardPdf>
 
-        {/* Enhanced Distribution */}
-        {enhancedPublications.length > 0 && (
-          <SectionCardPdf borderColor={C.primary}>
-            <Text style={s.sectionTitle}>Enhanced Distribution</Text>
-            <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of 354 endpoints.</Text>
-            <View style={s.logoGrid}>
-              {enhancedPublications.slice(0, 36).map((pub, i) => (
-                <LogoCardPdf key={i} src={pub.logo_url} name={pub.name} link={pub.link || undefined} imageMap={imageMap} />
-              ))}
-            </View>
-          </SectionCardPdf>
-        )}
-
-        {/* Newsramp Boostify - Placements */}
-        {nwrampReport && (
-          <SectionCardPdf borderColor={C.green}>
-            <Text style={s.sectionTitle}>Newsramp Boostify{'\u2122'} Circuit</Text>
-            <Text style={s.sectionDesc}>Extended distribution network amplifying your message across specialized platforms</Text>
-            <View style={s.logoGrid}>
-              {nwrampReport.placements && nwrampReport.placements
-                .filter((p: any) => p.placement !== 'https://newswriter.ai/news')
-                .map((p: any, i: number) => {
-                  const logoUrl = p.logo && p.logo.includes('http') ? p.logo : ''
-                  return <LogoCardPdf key={`pl-${i}`} src={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} imageMap={imageMap} />
-                })}
-              {nwrampReport.linkedin && <LogoCardPdf src="linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} imageMap={imageMap} />}
-              {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="" name="Telegram" link={nwrampReport.telegram_posts[0]} imageMap={imageMap} />}
-              {nwrampReport.bluesky && <LogoCardPdf src="" name="Bluesky" link={nwrampReport.bluesky} imageMap={imageMap} />}
-              {nwrampReport.mastodon && <LogoCardPdf src="" name="Mastodon" link={nwrampReport.mastodon} imageMap={imageMap} />}
-              {nwrampReport.github && <LogoCardPdf src="" name="GitHub" link={nwrampReport.github} imageMap={imageMap} />}
-              {nwrampReport.substack && <LogoCardPdf src="substack.png" name="Substack" link={nwrampReport.substack} imageMap={imageMap} />}
-            </View>
-          </SectionCardPdf>
-        )}
-
         {/* Newsramp Podcasts */}
         {nwrampReport && nwrampReport.podcasts && nwrampReport.podcasts.length > 0 && (
           <SectionCardPdf borderColor={C.green}>
-            <Text style={s.sectionTitle}>Podcasts</Text>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Podcasts</Text>
+            </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
               {nwrampReport.podcasts.map((pod: any, i: number) => {
-                if (!pod.artwork || !isValidPdfImageUrl(pod.artwork)) return null
+                const artSrc = resolveImage(pod.artwork, imageMap)
+                if (!artSrc) return null
                 return (
                   <View key={i} style={s.podcastCard}>
-                    <Image src={pod.artwork} style={s.podcastImg} />
+                    <Image src={artSrc} style={s.podcastImg} />
                   </View>
                 )
               })}
             </View>
             <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 6 }}>Listen On:</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-              {['Apple Podcasts', 'iHeart Radio', 'Spotify', 'Pandora', 'YouTube', 'Castbox', 'Android', 'PodcastIndex', 'Deezer'].map((name) => (
-                <View key={name} style={{ backgroundColor: C.gray800, borderRadius: 4, paddingHorizontal: 8, paddingVertical: 4 }}>
-                  <Text style={{ fontSize: 7, color: C.white }}>{name}</Text>
-                </View>
-              ))}
+              {[
+                { name: 'Apple Podcasts', src: 'https://cdn.newsramp.app/badges/apple-badge.png' },
+                { name: 'iHeart Radio', src: 'https://cdn.newsramp.app/badges/iheart-badge.png' },
+                { name: 'Spotify', src: 'https://cdn.newsramp.app/badges/spotify-badge.png' },
+                { name: 'Pandora', src: 'https://cdn.newsramp.app/badges/pandora-badge.png' },
+                { name: 'YouTube', src: 'https://cdn.newsramp.app/badges/youtube-badge.png' },
+                { name: 'Castbox', src: 'https://cdn.newsramp.app/badges/castbox-badge.png' },
+                { name: 'Android', src: 'https://cdn.newsramp.app/badges/android-badge.png' },
+                { name: 'PodcastIndex', src: 'https://cdn.newsramp.app/badges/podcast-index-badge.png' },
+                { name: 'Deezer', src: 'https://cdn.newsramp.app/badges/deezer.png' },
+              ].map((badge) => {
+                const badgeSrc = resolveImage(badge.src, imageMap)
+                if (!badgeSrc) return null
+                return <Image key={badge.name} src={badgeSrc} style={{ width: 80, height: 24, objectFit: 'contain' }} />
+              })}
             </View>
           </SectionCardPdf>
         )}
@@ -566,16 +530,23 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
         {/* Newsramp Translations */}
         {nwrampReport && nwrampReport.translations && nwrampReport.translations.length > 0 && (
           <SectionCardPdf borderColor={C.green}>
-            <Text style={s.sectionTitle}>Language Translations</Text>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Language Translations</Text>
+            </View>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {nwrampReport.translations.map((t: any, i: number) => {
                 const entries = Object.entries(t)
                 if (entries.length === 0) return null
                 const [langName, langLink] = entries[0]
+                const flagUrl = `https://cdn.newsramp.app/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`
+                const flagSrc = resolveImage(flagUrl, imageMap)
                 return (
-                  <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Link src={langLink as string}><Text style={{ fontSize: 9, color: C.blue }}>{langName}</Text></Link>
-                  </View>
+                  <Link key={i} src={langLink as string}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                      {flagSrc && <Image src={flagSrc} style={{ width: 18, height: 18, objectFit: 'contain' }} />}
+                      <Text style={{ fontSize: 9, color: C.blue }}>{langName}</Text>
+                    </View>
+                  </Link>
                 )
               })}
             </View>
@@ -584,23 +555,27 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
 
         {/* Subscription Research Databases */}
         <SectionCardPdf borderColor={C.cyan}>
-          <Text style={s.sectionTitle}>Subscription Research Databases</Text>
-          <Text style={s.sectionDesc}>Your content is indexed in premium research and analytics platforms</Text>
+          <View wrap={false}>
+            <Text style={s.sectionTitle}>Subscription Research Databases</Text>
+            <Text style={s.sectionDesc}>Your content is indexed in premium research and analytics platforms</Text>
+          </View>
           <View style={s.logoGrid}>
-            <LogoCardPdf src="" name="Gale" link="https://www.gale.com" imageMap={imageMap} />
-            <LogoCardPdf src="" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" imageMap={imageMap} />
-            <LogoCardPdf src="" name="Moody's Analytics" link="https://www.moodysanalytics.com" imageMap={imageMap} />
-            <LogoCardPdf src="" name="ProQuest" link="https://www.proquest.com" imageMap={imageMap} />
-            <LogoCardPdf src="" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" imageMap={imageMap} />
-            <LogoCardPdf src="" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" imageMap={imageMap} />
+            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" imageMap={imageMap} />
           </View>
         </SectionCardPdf>
 
         {/* Circuits */}
         {hasCircuits && (
           <SectionCardPdf borderColor={C.pink}>
-            <Text style={s.sectionTitle}>Specialized Circuits</Text>
-            <Text style={s.sectionDesc}>Targeted distribution to industry-specific platforms and communities</Text>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Specialized Circuits</Text>
+              <Text style={s.sectionDesc}>Targeted distribution to industry-specific platforms and communities</Text>
+            </View>
 
             {circuits.hr && (
               <View style={{ marginBottom: 10 }}>
@@ -630,51 +605,98 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             )}
           </SectionCardPdf>
         )}
+      </Page>
 
-        {/* Distribution Network */}
-        {hasDistNetwork && (
+      {/* Enhanced Distribution - own page */}
+      {enhancedPublications.length > 0 && (
+        <Page size="A4" style={s.page} wrap>
           <SectionCardPdf borderColor={C.primary}>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Enhanced Distribution</Text>
+              <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of 354 endpoints.</Text>
+            </View>
+            <View style={s.logoGrid}>
+              {enhancedPublications.slice(0, 36).map((pub, i) => (
+                <LogoCardPdf key={i} src={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} imageMap={imageMap} />
+              ))}
+            </View>
+          </SectionCardPdf>
+        </Page>
+      )}
+
+      {/* Newsramp Boostify - own page */}
+      {nwrampReport && (
+        <Page size="A4" style={s.page} wrap>
+          <SectionCardPdf borderColor={C.green}>
+            <View wrap={false}>
+              <Text style={s.sectionTitle}>Newsramp Boostify{'\u2122'} Circuit</Text>
+              <Text style={s.sectionDesc}>Extended distribution network amplifying your message across specialized platforms</Text>
+            </View>
+            <View style={s.logoGrid}>
+              {nwrampReport.placements && nwrampReport.placements
+                .filter((p: any) => p.placement !== 'https://newswriter.ai/news')
+                .map((p: any, i: number) => {
+                  const logoUrl = p.logo && p.logo.includes('http')
+                    ? toPngUrl(p.logo)
+                    : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
+                  return <LogoCardPdf key={`pl-${i}`} src={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} imageMap={imageMap} />
+                })}
+              {nwrampReport.linkedin && <LogoCardPdf src="linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} imageMap={imageMap} />}
+              {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} imageMap={imageMap} />}
+              {nwrampReport.bluesky && <LogoCardPdf src="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} imageMap={imageMap} />}
+              {nwrampReport.mastodon && <LogoCardPdf src="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} imageMap={imageMap} />}
+              {nwrampReport.github && <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} imageMap={imageMap} />}
+              {nwrampReport.substack && <LogoCardPdf src="substack.png" name="Substack" link={nwrampReport.substack} imageMap={imageMap} />}
+            </View>
+          </SectionCardPdf>
+        </Page>
+      )}
+
+      {/* Distribution Network - own page */}
+      {hasDistNetwork && (
+        <Page size="A4" style={s.page} wrap>
+          <View wrap={false}>
             <Text style={s.sectionTitle}>Distribution Network</Text>
             <Text style={s.sectionDesc}>Representative sampling of your distribution network. Your release reaches hundreds of additional endpoints through our syndication partners.</Text>
+          </View>
 
-            {clips.gomedia.length > 0 && (
-              <View style={{ marginBottom: 12 }}>
-                <View style={s.tabHeader}>
-                  <Text style={s.tabLabel}>Online Sources</Text>
-                  <Text style={s.tabBadge}>{clips.gomedia.length}</Text>
-                </View>
-                <View style={s.clipGrid}>
-                  {clips.gomedia.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
-                </View>
+          {clips.gomedia.length > 0 && (
+            <View style={{ marginBottom: 12 }}>
+              <View wrap={false} style={s.tabHeader}>
+                <Text style={s.tabLabel}>Online Sources</Text>
+                <Text style={s.tabBadge}>{clips.gomedia.length}</Text>
               </View>
-            )}
+              <View style={s.clipGrid}>
+                {clips.gomedia.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
+              </View>
+            </View>
+          )}
 
-            {clips.synacor.length > 0 && (
-              <View style={{ marginBottom: 12 }}>
-                <View style={s.tabHeader}>
-                  <Text style={s.tabLabel}>ISP Portals</Text>
-                  <Text style={s.tabBadge}>{clips.synacor.length}</Text>
-                </View>
-                <View style={s.clipGrid}>
-                  {clips.synacor.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
-                </View>
+          {clips.synacor.length > 0 && (
+            <View style={{ marginBottom: 12 }}>
+              <View wrap={false} style={s.tabHeader}>
+                <Text style={s.tabLabel}>ISP Portals</Text>
+                <Text style={s.tabBadge}>{clips.synacor.length}</Text>
               </View>
-            )}
+              <View style={s.clipGrid}>
+                {clips.synacor.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
+              </View>
+            </View>
+          )}
 
-            {marketClips.length > 0 && (
-              <View style={{ marginBottom: 12 }}>
-                <View style={s.tabHeader}>
-                  <Text style={s.tabLabel}>Market Sources</Text>
-                  <Text style={s.tabBadge}>{marketClips.length}</Text>
-                </View>
-                <View style={s.clipGrid}>
-                  {marketClips.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
-                </View>
+          {marketClips.length > 0 && (
+            <View style={{ marginBottom: 12 }}>
+              <View wrap={false} style={s.tabHeader}>
+                <Text style={s.tabLabel}>Market Sources</Text>
+                <Text style={s.tabBadge}>{marketClips.length}</Text>
               </View>
-            )}
-          </SectionCardPdf>
-        )}
-      </Page>
+              <View style={s.clipGrid}>
+                {marketClips.map((c) => <ClipCardPdf key={c.id} clip={c} imageMap={imageMap} />)}
+              </View>
+            </View>
+          )}
+        </Page>
+      )}
     </Document>
   )
 }
