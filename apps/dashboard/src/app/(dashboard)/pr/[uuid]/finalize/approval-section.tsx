@@ -256,20 +256,18 @@ export function ApprovalSection({
                         <span className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(approval.requestedAt)}
                         </span>
-                        {isPending && (
-                          <button
-                            onClick={() => handleDelete(approval.uuid)}
-                            disabled={deletingId === approval.uuid}
-                            className="text-red-400 hover:text-red-600 dark:text-red-400 disabled:opacity-50"
-                            title="Delete request"
-                          >
-                            {deletingId === approval.uuid ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <MinusCircle className="h-4 w-4" />
-                            )}
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDelete(approval.uuid)}
+                          disabled={deletingId === approval.uuid}
+                          className="text-red-400 hover:text-red-600 dark:text-red-400 disabled:opacity-50"
+                          title="Delete request"
+                        >
+                          {deletingId === approval.uuid ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <MinusCircle className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
                     {isPending && (

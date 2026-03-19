@@ -221,10 +221,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Approval not found' }, { status: 404 })
     }
 
-    if (approval.signedAt) {
-      return NextResponse.json({ error: 'Cannot delete a signed approval' }, { status: 400 })
-    }
-
     await db.delete(approvals).where(eq(approvals.uuid, approvalUuid))
 
     return NextResponse.json({ success: true })

@@ -215,18 +215,6 @@ function PressReleasePdf({ data }: { data: PdfReleaseData }) {
         <View style={styles.companyInfoSection}>
           <View style={styles.companyInfoLeft}>
             <Text style={styles.companyName}>{data.companyName}</Text>
-            {data.companyCity && data.companyState && (
-              <Text style={styles.contactDetail}>
-                {data.companyCity}, {data.companyState}
-              </Text>
-            )}
-            {data.companyPhone &&
-              data.companyPhone !== "1111111111" &&
-              data.companyPhone !== "111-111-1111" && (
-                <Text style={styles.contactDetail}>
-                  Tel. {data.companyPhone}
-                </Text>
-              )}
             {data.companyWebsite && (
               <Link src={data.companyWebsite} style={styles.companyDetail}>
                 {data.companyWebsite}
@@ -241,9 +229,6 @@ function PressReleasePdf({ data }: { data: PdfReleaseData }) {
                 <Text style={styles.contactName}>{data.contactName}</Text>
                 {data.contactTitle && (
                   <Text style={styles.contactDetail}>{data.contactTitle}</Text>
-                )}
-                {data.contactPhone && (
-                  <Text style={styles.contactDetail}>{data.contactPhone}</Text>
                 )}
                 {data.contactEmail && (
                   <Text style={styles.contactDetail}>{data.contactEmail}</Text>
