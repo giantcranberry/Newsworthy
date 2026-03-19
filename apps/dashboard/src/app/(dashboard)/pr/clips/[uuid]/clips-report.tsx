@@ -220,7 +220,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     )
   }
 
-  const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, shStatsMultiplier, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle } = data
+  const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, shStatsMultiplier, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
 
   const marketClips = [...clips.fcmarkets, ...clips.marketminute]
   const hasDistNetwork = clips.gomedia.length > 0 || clips.synacor.length > 0 || marketClips.length > 0
@@ -396,12 +396,20 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       </div>
                       <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalSh.toLocaleString()}</h4>
                     </div>
-                    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                    <div className={`flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800`}>
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                         <i className="fa-solid fa-mouse-pointer text-amber-500" aria-hidden="true" /> Other Engagements
                       </div>
                       <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">0</h4>
                     </div>
+                    {pdfDownloadCount > 0 && (
+                      <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                          <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" /> PDF Downloads
+                        </div>
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{pdfDownloadCount.toLocaleString()}</h4>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center py-3">
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                         <i className="fa-solid fa-users text-cyan-500" aria-hidden="true" /> Total Engagement

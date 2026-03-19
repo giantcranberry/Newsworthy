@@ -405,6 +405,17 @@ export const aiJobs = pgTable('ai_jobs', {
   userKeywords: text('user_keywords'),
 })
 
+export const pdfDownloads = pgTable('pdf_downloads', {
+  id: serial('id').primaryKey(),
+  releaseId: integer('release_id').notNull().references(() => releases.id),
+  companyId: integer('company_id').references(() => company.id),
+  userId: integer('user_id').references(() => users.id),
+  requestIp: varchar('request_ip', { length: 64 }),
+  userAgent: text('user_agent'),
+  referrer: text('referrer'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const aiVideos = pgTable('ai_videos', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull(),

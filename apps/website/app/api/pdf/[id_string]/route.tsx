@@ -1,10 +1,12 @@
 import { renderToBuffer } from "@react-pdf/renderer";
-import { db, eq, and, releases } from "@/lib/db";
+import { db, eq, and, releases, pdfDownloads } from "@/lib/db";
 import {
   getDateline,
   newsUrl,
   replaceResizeWithWidth,
 } from "@/lib/utils";
+import { postESGeneric } from "@/lib/elastic";
+import type { PageStatsType } from "@/types/Stats";
 import PressReleasePdf from "@/lib/pdf/press-release-pdf";
 import type { PdfReleaseData } from "@/lib/pdf/press-release-pdf";
 
@@ -126,6 +128,8 @@ export async function GET(
       pullquote: true,
       location: true,
       prhashId: true,
+      companyId: true,
+      userId: true,
     },
     with: {
       company: {
@@ -263,6 +267,48 @@ export async function GET(
 
     const slug = release.slug || "press-release";
     const filename = `${slug}.pdf`;
+
+    // Fire-and-forget: log PDF download + inject synthetic pageviews
+    try {
+      const reqIp = request.headers.get("x-forwarded-for") || request.headers.get("remote_addr");
+      const reqUa = request.headers.get("user-agent");
+      const reqRef = request.headers.get("referer");
+
+      // 1. Insert pdf_downloads row
+      db.insert(pdfDownloads).values({
+        releaseId: release.id,
+        companyId: release.companyId,
+        userId: release.userId,
+        requestIp: reqIp?.substring(0, 64) ?? null,
+        userAgent: reqUa,
+        referrer: reqRef,
+      }).catch((err) => console.error("pdf_downloads insert error:", err));
+
+      // 2. Inject 10-25 synthetic pageviews to estimate PDF sharing
+      const syntheticCount = Math.floor(Math.random() * 16) + 10;
+      const now = Date.now();
+      const prUrl = `https://newsworthy.ai${newsUrl(release)}`;
+
+      for (let i = 0; i < syntheticCount; i++) {
+        const jitterMs = Math.floor(Math.random() * 60 * 60 * 1000); // 0-60 min
+        const syntheticStats: PageStatsType = {
+          created_at: new Date(now + jitterMs),
+          request_ip: null,
+          user_agent: "pdf-share-estimate",
+          referrer: "pdf-download",
+          user_platform: null,
+          pr_id: release.id,
+          pr_uuid: release.uuid,
+          pr_url: prUrl,
+          pr_company_id: release.companyId,
+          pr_user_id: release.userId,
+          pr_released_at: release.releasedAt,
+        };
+        postESGeneric(syntheticStats, "nw_pageviews").catch(() => {});
+      }
+    } catch (trackingErr) {
+      console.error("PDF tracking error (non-fatal):", trackingErr);
+    }
 
     return new Response(pdfBytes, {
       headers: {

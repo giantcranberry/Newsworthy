@@ -1,9 +1,9 @@
 import { db } from '@/db'
 import { releases, releaseEnhanced, releaseOptions, releaseCategories } from '@/db/schema'
-import { clipReport } from '@/db/schema'
+import { clipReport, pdfDownloads } from '@/db/schema'
 import { circuits, circuitCategories } from '@/db/schema'
 import { users } from '@/db/schema'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, inArray, count } from 'drizzle-orm'
 import { queryIndex } from '@/lib/opensearch'
 
 // --- 4-hour in-memory cache ---
@@ -89,6 +89,7 @@ export interface ReportData {
   enhancedPublications: EnhancedPublication[]
   yahooFinanceUrls: string[]
   circuits: CircuitsData
+  pdfDownloadCount: number
   encodedTitle: string
   fetchedAt: string
 }
@@ -489,6 +490,18 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
   const releaseIsYearOld = release.releasedAt ? release.releasedAt <= oneYearAgo : false
 
+  // PDF download count
+  let pdfDownloadCount = 0
+  try {
+    const pdfCountResult = await db
+      .select({ value: count() })
+      .from(pdfDownloads)
+      .where(eq(pdfDownloads.releaseId, release.id))
+    pdfDownloadCount = pdfCountResult[0]?.value ?? 0
+  } catch {
+    // table may not exist yet
+  }
+
   const encodedTitle = encodeURIComponent(`"${release.title || ''}"`)
 
   const data: ReportData = {
@@ -530,6 +543,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     enhancedPublications,
     yahooFinanceUrls,
     circuits: circuitsData,
+    pdfDownloadCount,
     encodedTitle,
     fetchedAt: new Date().toISOString(),
   }
