@@ -5,13 +5,11 @@ import { eq, and, sql, asc } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { UpgradesForm } from './upgrades-form'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
-async function getReleaseWithDetails(uuid: string, userId: number) {
+async function getReleaseWithDetails(uuid: string) {
   const release = await db.query.releases.findFirst({
-    where: and(
-      eq(releases.uuid, uuid),
-      eq(releases.userId, userId)
-    ),
+    where: eq(releases.uuid, uuid),
     with: {
       company: true,
       primaryImage: true,
@@ -69,10 +67,18 @@ export default async function UpgradesPage({
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
 
-  const release = await getReleaseWithDetails(uuid, userId)
+  const release = await getReleaseWithDetails(uuid)
 
   if (!release) {
     notFound()
+  }
+
+  // Check access: owner or team member
+  if (release.userId !== userId) {
+    const companyIds = await getUserCompanyIds(userId)
+    if (!companyIds.includes(release.companyId)) {
+      notFound()
+    }
   }
 
   const options = release.id ? await getReleaseOptions(release.id) : null

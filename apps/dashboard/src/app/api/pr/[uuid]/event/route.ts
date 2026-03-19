@@ -1,26 +1,32 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, releaseEvents } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 function isEditorialUser(session: any): boolean {
   const user = session?.user
   return !!(user && ((user as any).isEditor || (user as any).isAdmin))
 }
 
-async function getRelease(uuid: string, userId: number, isEditorial: boolean = false) {
-  if (isEditorial) {
-    return db.query.releases.findFirst({
-      where: eq(releases.uuid, uuid),
-    })
-  }
-  return db.query.releases.findFirst({
-    where: and(
-      eq(releases.uuid, uuid),
-      eq(releases.userId, userId)
-    ),
+async function getRelease(uuid: string, userId: number, session: any) {
+  const release = await db.query.releases.findFirst({
+    where: eq(releases.uuid, uuid),
   })
+  if (!release) return null
+
+  // Editorial users can access any release
+  if (isEditorialUser(session)) return release
+
+  // Owner can access their own release
+  if (release.userId === userId) return release
+
+  // Team members can access their company's releases
+  const companyIds = await getUserCompanyIds(userId)
+  if (companyIds.includes(release.companyId)) return release
+
+  return null
 }
 
 /**
@@ -56,10 +62,9 @@ export async function GET(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId, editorial)
+    const release = await getRelease(uuid, userId, session)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -92,10 +97,9 @@ export async function PUT(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
 
   try {
-    const release = await getRelease(uuid, userId, editorial)
+    const release = await getRelease(uuid, userId, session)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })

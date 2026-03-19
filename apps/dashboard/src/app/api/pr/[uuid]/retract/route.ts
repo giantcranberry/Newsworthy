@@ -3,6 +3,7 @@ import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, queue } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 export async function POST(
   request: NextRequest,
@@ -26,7 +27,10 @@ export async function POST(
     }
 
     if (release.userId !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     if (release.status !== 'review' && release.status !== 'hold' && release.status !== 'approved') {

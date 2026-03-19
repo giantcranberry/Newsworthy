@@ -219,7 +219,8 @@ export async function POST(request: NextRequest) {
       sendSystemMessageWithEmail(
         assignedTo,
         'Task Assigned: ' + title.trim(),
-        `<p>You have been assigned a new task: <strong>${title.trim()}</strong></p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+        `<p>You have been assigned a new task: <strong>${title.trim()}</strong></p>`,
+        { taskId: task.id }
       ).catch(err => console.error('Failed to send task assignment notification:', err))
 
       // Slack notification (best-effort)

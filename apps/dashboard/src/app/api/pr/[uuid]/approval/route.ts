@@ -5,14 +5,23 @@ import { eq, and, ne } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import { sendApprovalRequestEmail } from '@/lib/email'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 async function getReleaseForUser(uuid: string, userId: number) {
-  return db.query.releases.findFirst({
-    where: and(
-      eq(releases.uuid, uuid),
-      eq(releases.userId, userId)
-    ),
+  const release = await db.query.releases.findFirst({
+    where: eq(releases.uuid, uuid),
   })
+
+  if (!release) return null
+
+  if (release.userId !== userId) {
+    const companyIds = await getUserCompanyIds(userId)
+    if (!companyIds.includes(release.companyId)) {
+      return null
+    }
+  }
+
+  return release
 }
 
 export async function GET(

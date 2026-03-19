@@ -1,25 +1,28 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, banners } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { uploadPRImage, deletePRImage } from '@/services/s3'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 function isEditorialUser(session: any): boolean {
   const user = session?.user
   return !!(user && ((user as any).isEditor || (user as any).isAdmin))
 }
 
-async function getRelease(uuid: string, userId: number, editorial: boolean, withBanner: boolean = false) {
-  const where = editorial
-    ? eq(releases.uuid, uuid)
-    : and(eq(releases.uuid, uuid), eq(releases.userId, userId))
-
-  if (withBanner) {
-    return db.query.releases.findFirst({ where, with: { banner: true } })
-  }
-  return db.query.releases.findFirst({ where })
+async function getRelease(uuid: string, userId: number, session: any, withBanner: boolean = false) {
+  const where = eq(releases.uuid, uuid)
+  const release = withBanner
+    ? await db.query.releases.findFirst({ where, with: { banner: true } })
+    : await db.query.releases.findFirst({ where })
+  if (!release) return null
+  if (isEditorialUser(session)) return release
+  if (release.userId === userId) return release
+  const companyIds = await getUserCompanyIds(userId)
+  if (companyIds.includes(release.companyId)) return release
+  return null
 }
 
 export async function POST(
@@ -34,10 +37,10 @@ export async function POST(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
+
 
   try {
-    const release = await getRelease(uuid, userId, editorial, true) as any
+    const release = await getRelease(uuid, userId, session, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -128,10 +131,10 @@ export async function PUT(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
+
 
   try {
-    const release = await getRelease(uuid, userId, editorial)
+    const release = await getRelease(uuid, userId, session)
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -169,10 +172,10 @@ export async function GET(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
+
 
   try {
-    const release = await getRelease(uuid, userId, editorial, true) as any
+    const release = await getRelease(uuid, userId, session, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
@@ -199,10 +202,10 @@ export async function DELETE(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
+
 
   try {
-    const release = await getRelease(uuid, userId, editorial, true) as any
+    const release = await getRelease(uuid, userId, session, true) as any
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })

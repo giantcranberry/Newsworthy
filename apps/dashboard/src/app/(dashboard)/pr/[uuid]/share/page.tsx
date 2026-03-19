@@ -5,13 +5,11 @@ import { eq, and, sql, asc, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { ShareForm } from './share-form'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
-async function getReleaseWithOptions(uuid: string, userId: number) {
+async function getReleaseWithOptions(uuid: string) {
   const release = await db.query.releases.findFirst({
-    where: and(
-      eq(releases.uuid, uuid),
-      eq(releases.userId, userId)
-    ),
+    where: eq(releases.uuid, uuid),
     with: {
       company: true,
       primaryImage: true,
@@ -56,10 +54,18 @@ export default async function SharePage({
   const session = await getEffectiveSession()
   const userId = parseInt(session?.user?.id || '0')
 
-  const release = await getReleaseWithOptions(uuid, userId)
+  const release = await getReleaseWithOptions(uuid)
 
   if (!release) {
     notFound()
+  }
+
+  // Check access: owner or team member
+  if (release.userId !== userId) {
+    const companyIds = await getUserCompanyIds(userId)
+    if (!companyIds.includes(release.companyId)) {
+      notFound()
+    }
   }
 
   const options = release.id ? await getReleaseOptions(release.id) : null

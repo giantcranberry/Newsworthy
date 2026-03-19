@@ -3,6 +3,7 @@ import { db } from '@/db'
 import { releases, releaseFaqs } from '@/db/schema'
 import { eq, and, asc } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 export async function GET(
   request: Request,
@@ -19,14 +20,18 @@ export async function GET(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const faqs = await db.query.releaseFaqs.findMany({
@@ -56,14 +61,18 @@ export async function PUT(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const body = await request.json()

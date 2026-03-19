@@ -3,6 +3,7 @@ import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
 import { releases } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getUserCompanyIds } from "@/lib/team-auth";
 
 // Decode HTML entities to their plain text equivalents
 function decodeEntities(html: string): string {
@@ -138,7 +139,10 @@ export async function POST(
     }
 
     if (release.userId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      const companyIds = await getUserCompanyIds(userId);
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const lockedStatuses = ["review", "approved", "sent"];

@@ -135,7 +135,8 @@ export async function PUT(
       sendSystemMessageWithEmail(
         assignedTo,
         'Task Assigned: ' + title.trim(),
-        `<p>You have been assigned a task: <strong>${title.trim()}</strong></p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+        `<p>You have been assigned a task: <strong>${title.trim()}</strong></p>`,
+        { taskId: taskId }
       ).catch(err => console.error('Failed to send task assignment notification:', err))
 
       // Slack notification (best-effort)
@@ -167,7 +168,8 @@ export async function PUT(
       sendSystemMessageWithEmail(
         existingTask.createdBy,
         'Task Moved: ' + title.trim(),
-        `<p>Your task <strong>${title.trim()}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+        `<p>Your task <strong>${title.trim()}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p>`,
+        { taskId: taskId }
       ).catch(err => console.error('Failed to send task status change notification:', err))
 
       sendSlackNotification(existingTask.createdBy, formatTaskStatusChangeMessage(title.trim(), stageName, changedByName))

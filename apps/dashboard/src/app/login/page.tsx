@@ -77,15 +77,6 @@ function LoginForm() {
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 sm:bg-gradient-to-br sm:from-slate-50 sm:to-slate-100 dark:sm:from-gray-950 dark:sm:to-gray-900">
       <div className="flex-1 flex flex-col sm:items-center sm:justify-start px-6 py-8 sm:pt-[30px]">
-        {/* Migration notice */}
-        <div className="w-full sm:max-w-lg mb-6 rounded-xl border border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-950/30 px-6 py-5 text-center">
-          <p className="text-xl font-bold text-cyan-900 dark:text-cyan-200">Welcome to your new dashboard!</p>
-          <p className="mt-2 text-base text-gray-600 dark:text-gray-400">
-            We&apos;ve upgraded your News Marketing experience. The previous dashboard remains available for 30 days at{' '}
-            <a href="https://app.newsworthy.ai" className="font-medium text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300">app.newsworthy.ai</a>.
-          </p>
-        </div>
-
         {/* Logo */}
         <div className="flex justify-center mb-8 sm:mb-6">
           <Image src="/logo.svg" alt="Newsworthy" width={260} height={49} priority className="dark:brightness-0 dark:invert" />

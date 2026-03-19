@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { releases, company, banners, images, releaseImages, releaseFaqs } from "@/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { getUserCompanyIds } from "@/lib/team-auth";
 
 export async function GET(
   req: NextRequest,
@@ -21,6 +22,8 @@ export async function GET(
   const result = await db
     .select({
       id: releases.id,
+      userId: releases.userId,
+      companyId: releases.companyId,
       title: releases.title,
       abstract: releases.abstract,
       body: releases.body,
@@ -37,11 +40,19 @@ export async function GET(
     .from(releases)
     .leftJoin(company, eq(releases.companyId, company.id))
     .leftJoin(banners, eq(releases.bannerId, banners.id))
-    .where(and(eq(releases.uuid, uuid), eq(releases.userId, userId)))
+    .where(eq(releases.uuid, uuid))
     .limit(1);
 
   if (!result[0]) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Check access: owner or team member
+  if (result[0].userId !== userId) {
+    const companyIds = await getUserCompanyIds(userId);
+    if (!companyIds.includes(result[0].companyId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
   }
 
   const releaseData = result[0];

@@ -2,6 +2,7 @@ import { pgTable, serial, varchar, text, boolean, timestamp, integer, uniqueInde
 import { relations } from 'drizzle-orm'
 import { users } from './users'
 import { releases } from './releases'
+import { kanbanTasks } from './kanban'
 
 export const globalMessages = pgTable('global_messages', {
   id: serial('id').primaryKey(),
@@ -31,6 +32,7 @@ export const userMessages = pgTable('user_messages', {
   fromId: integer('from_id').references(() => users.id),
   toId: integer('to_id').notNull().references(() => users.id),
   releaseId: integer('release_id').references(() => releases.id),
+  taskId: integer('task_id').references(() => kanbanTasks.id),
   subject: varchar('subject', { length: 255 }).notNull(),
   body: text('body').notNull(),
   isRead: boolean('is_read').default(false).notNull(),
@@ -42,6 +44,7 @@ export const userMessages = pgTable('user_messages', {
 }, (table) => [
   index('idx_user_messages_to_id').on(table.toId),
   index('idx_user_messages_release_id').on(table.releaseId),
+  index('idx_user_messages_task_id').on(table.taskId),
 ])
 
 // Relations

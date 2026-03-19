@@ -4,6 +4,7 @@ import { releases, company } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { uploadLogo, deleteLogo } from '@/services/s3'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 export async function POST(
   request: Request,
@@ -21,10 +22,7 @@ export async function POST(
   try {
     // Get the release to find the company
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
       with: {
         company: true,
       },
@@ -32,6 +30,13 @@ export async function POST(
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const formData = await request.formData()
@@ -82,10 +87,7 @@ export async function GET(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
       with: {
         company: true,
       },
@@ -93,6 +95,13 @@ export async function GET(
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     return NextResponse.json({
@@ -120,10 +129,7 @@ export async function DELETE(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
       with: {
         company: true,
       },
@@ -131,6 +137,13 @@ export async function DELETE(
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Delete logo from S3

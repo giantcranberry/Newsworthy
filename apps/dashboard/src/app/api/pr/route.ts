@@ -11,6 +11,7 @@ import { eq, and, isNull, sql } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
 import { getPostHog } from "@/lib/posthog";
+import { getUserCompanyIds } from "@/lib/team-auth";
 
 // Check if user has credits (either for specific company or user-level)
 // Uses net balance (sum of all credits including deductions) rather than filtering by prId
@@ -277,7 +278,10 @@ export async function PUT(request: NextRequest) {
     }
 
     if (existingRelease.userId !== userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      const companyIds = await getUserCompanyIds(userId);
+      if (!companyIds.includes(existingRelease.companyId)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      }
     }
 
     // Prevent edits to releases in certain statuses

@@ -4,6 +4,7 @@ import { releases, releaseCategories, category } from '@/db/schema'
 import { eq, and, inArray } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -24,12 +25,11 @@ export async function POST(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
       columns: {
         id: true,
+        userId: true,
+        companyId: true,
         title: true,
         abstract: true,
         body: true,
@@ -48,6 +48,13 @@ export async function POST(
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     if (!release.title || !release.body) {

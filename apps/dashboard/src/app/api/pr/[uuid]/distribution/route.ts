@@ -5,6 +5,7 @@ import { eq, and, sql, isNull, or } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
+import { getUserCompanyIds } from '@/lib/team-auth'
 // Get the correct Stripe secret key based on environment
 function getStripeSecretKey(host: string): string | undefined {
   const isSandbox = host.includes('localhost') || host.includes('vercel.app')
@@ -53,10 +54,7 @@ export async function GET(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
       with: {
         company: true,
       },
@@ -64,6 +62,13 @@ export async function GET(
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Get credit balance for all product types
@@ -133,14 +138,18 @@ export async function POST(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const body = await request.json()
@@ -366,14 +375,18 @@ export async function PUT(
 
   try {
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     const { sessionId, productTypes } = await request.json()

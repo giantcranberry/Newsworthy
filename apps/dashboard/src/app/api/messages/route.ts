@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
       isArchived: userMessages.isArchived,
       isDeleted: userMessages.isDeleted,
       fromId: userMessages.fromId,
+      taskId: userMessages.taskId,
       senderEmail: users.email,
       senderFirstName: userProfiles.firstName,
       senderLastName: userProfiles.lastName,
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
     isDeleted: boolean
     senderName: string
     fromId: number | null
+    taskId: number | null
   }
 
   const messages: InboxMessage[] = []
@@ -101,6 +103,7 @@ export async function GET(request: NextRequest) {
       isDeleted: false,
       senderName: 'Newsworthy',
       fromId: null,
+      taskId: null,
     })
   }
 
@@ -124,6 +127,7 @@ export async function GET(request: NextRequest) {
       isDeleted: false,
       senderName,
       fromId: row.fromId,
+      taskId: row.taskId,
     })
   }
 

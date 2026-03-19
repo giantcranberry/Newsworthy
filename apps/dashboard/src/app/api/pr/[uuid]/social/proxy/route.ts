@@ -1,8 +1,9 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, banners } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 function isEditorialUser(session: any): boolean {
   const user = session?.user
@@ -21,13 +22,22 @@ export async function GET(
   }
 
   const userId = parseInt(session.user.id)
-  const editorial = isEditorialUser(session)
 
-  const where = editorial
-    ? eq(releases.uuid, uuid)
-    : and(eq(releases.uuid, uuid), eq(releases.userId, userId))
+  const release = await db.query.releases.findFirst({
+    where: eq(releases.uuid, uuid),
+    with: { banner: true },
+  }) as any
 
-  const release = await db.query.releases.findFirst({ where, with: { banner: true } }) as any
+  if (!release) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  if (!isEditorialUser(session) && release.userId !== userId) {
+    const companyIds = await getUserCompanyIds(userId)
+    if (!companyIds.includes(release.companyId)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+  }
 
   if (!release?.banner?.url) {
     return NextResponse.json({ error: 'No banner found' }, { status: 404 })

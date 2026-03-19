@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 export async function POST(
   request: NextRequest,
@@ -30,7 +31,10 @@ export async function POST(
     }
 
     if (release.userId !== userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      }
     }
 
     // Validate required fields before allowing submission

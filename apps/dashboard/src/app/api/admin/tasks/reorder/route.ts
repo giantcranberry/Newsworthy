@@ -81,7 +81,8 @@ export async function PUT(request: NextRequest) {
       sendSystemMessageWithEmail(
         task.createdBy,
         'Task Moved: ' + task.title,
-        `<p>Your task <strong>${task.title}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+        `<p>Your task <strong>${task.title}</strong> was moved to <strong>${stageName}</strong> by ${changedByName}.</p>`,
+        { taskId: taskId }
       ).catch(err => console.error('Failed to send task status change notification:', err))
 
       sendSlackNotification(task.createdBy, formatTaskStatusChangeMessage(task.title, stageName, changedByName))

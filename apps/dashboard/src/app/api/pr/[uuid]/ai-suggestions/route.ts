@@ -4,6 +4,7 @@ import OpenAI from 'openai'
 import { db } from '@/db'
 import { releases, releaseAnalysis } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
+import { getUserCompanyIds } from '@/lib/team-auth'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -34,14 +35,18 @@ export async function POST(
 
     // Get the release to find the pr_id
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Check for cached analysis (unless force refresh requested)
@@ -282,14 +287,18 @@ export async function GET(
   try {
     // Get the release
     const release = await db.query.releases.findFirst({
-      where: and(
-        eq(releases.uuid, uuid),
-        eq(releases.userId, userId)
-      ),
+      where: eq(releases.uuid, uuid),
     })
 
     if (!release) {
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
+    }
+
+    if (release.userId !== userId) {
+      const companyIds = await getUserCompanyIds(userId)
+      if (!companyIds.includes(release.companyId)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
     // Check for cached analysis

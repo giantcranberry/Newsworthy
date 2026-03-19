@@ -104,7 +104,8 @@ export async function POST(
       sendSystemMessageWithEmail(
         task.createdBy,
         'New Note on Task: ' + task.title,
-        `<p><strong>${noteAuthorName}</strong> added a note on your task <strong>${task.title}</strong>.</p><p><a href="${appUrl}/admin/tasks">View Task Board</a></p>`
+        `<p><strong>${noteAuthorName}</strong> added a note on your task <strong>${task.title}</strong>.</p>`,
+        { taskId: taskId }
       ).catch(err => console.error('Failed to send task note notification:', err))
 
       sendSlackNotification(task.createdBy, formatTaskNoteAddedMessage(task.title, noteAuthorName))

@@ -5,16 +5,21 @@ import { sendMessageNotificationEmail } from '@/lib/email'
 import { sendSlackNotification, formatNewMessageAlert } from '@/lib/slack'
 import { sendGoogleChatNotification, formatGChatNewMessageAlert } from '@/lib/google-chat'
 
+interface MessageOptions {
+  taskId?: number
+}
+
 /**
  * Create a system-generated message for a user.
  * fromId is null for system messages — the inbox UI shows "Newsworthy" as the sender.
  */
-export async function createSystemMessage(toId: number, subject: string, body: string) {
+export async function createSystemMessage(toId: number, subject: string, body: string, options?: MessageOptions) {
   await db.insert(userMessages).values({
     fromId: null,
     toId,
     subject,
     body,
+    taskId: options?.taskId ?? null,
     createdAt: new Date(),
   })
 }
@@ -22,7 +27,7 @@ export async function createSystemMessage(toId: number, subject: string, body: s
 /**
  * Send a system message and email notification to a user.
  */
-export async function sendSystemMessageWithEmail(toId: number, subject: string, body: string) {
+export async function sendSystemMessageWithEmail(toId: number, subject: string, body: string, options?: MessageOptions) {
   let emailSent = false
 
   try {
@@ -46,6 +51,7 @@ export async function sendSystemMessageWithEmail(toId: number, subject: string, 
     toId,
     subject,
     body,
+    taskId: options?.taskId ?? null,
     emailSent,
     createdAt: new Date(),
   })
