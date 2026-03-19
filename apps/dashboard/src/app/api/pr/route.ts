@@ -12,6 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
 import { getPostHog } from "@/lib/posthog";
 import { getUserCompanyIds } from "@/lib/team-auth";
+import { sanitizeReleaseBody } from "@/lib/sanitize-body";
 
 // Check if user has credits (either for specific company or user-level)
 // Uses net balance (sum of all credits including deductions) rather than filtering by prId
@@ -115,6 +116,9 @@ export async function POST(request: NextRequest) {
     // Status remains 'draftnxt' until finalize step submits for review
     const status = "draftnxt";
 
+    // Sanitize body content
+    const sanitizedContent = content ? sanitizeReleaseBody(content) : content;
+
     // Create release
     const [newRelease] = await db
       .insert(releases)
@@ -125,7 +129,7 @@ export async function POST(request: NextRequest) {
         primaryContactId: primaryContactId || null,
         title,
         abstract,
-        body: content,
+        body: sanitizedContent,
         pullquote: pullquote || null,
         slug,
         location,
@@ -302,13 +306,16 @@ export async function PUT(request: NextRequest) {
     // Status remains unchanged during wizard steps - only finalize route sets to 'review'
     const status = existingRelease.status;
 
+    // Sanitize body content
+    const sanitizedContent = content ? sanitizeReleaseBody(content) : content;
+
     // Update release
     await db
       .update(releases)
       .set({
         title,
         abstract,
-        body: content,
+        body: sanitizedContent,
         pullquote: pullquote || null,
         slug,
         companyId,

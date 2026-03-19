@@ -2,6 +2,7 @@ import { getEffectiveSession } from '@/lib/auth'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import mammoth from 'mammoth'
+import { sanitizeReleaseBody } from '@/lib/sanitize-body'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
@@ -84,9 +85,9 @@ async function fetchGoogleDoc(url: string): Promise<string> {
     // Clean up empty spans
     content = content.replace(/<span>\s*<\/span>/gi, '')
     content = content.replace(/<span>([^<]*)<\/span>/gi, '$1')
-    // Downgrade h1 to h2 — release body should not contain h1 tags
-    content = content.replace(/<h1([^>]*)>/gi, '<h2$1>')
-    content = content.replace(/<\/h1>/gi, '</h2>')
+    // Downgrade headings: h2→h3 first, then h1→h2 (order matters)
+    content = content.replace(/<h2([^>]*)>/gi, '<h3$1>').replace(/<\/h2>/gi, '</h3>')
+    content = content.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')
     return content
   }
 
@@ -97,8 +98,8 @@ async function parseWordDocument(buffer: Buffer): Promise<string> {
   // Convert to HTML to preserve formatting (bold, italics, links, etc.)
   const result = await mammoth.convertToHtml({ buffer }, {
     styleMap: [
-      "p[style-name='Heading 1'] => h2:fresh",
-      "p[style-name='Heading 2'] => h2:fresh",
+      "p[style-name='Heading 1'] => h3:fresh",
+      "p[style-name='Heading 2'] => h3:fresh",
       "p[style-name='Heading 3'] => h3:fresh",
       "b => strong",
       "i => em",
@@ -138,12 +139,14 @@ Please extract and generate the following:
 4. **Location/Dateline**: Identify the city and state/country where the news originates (e.g., "New York, NY" or "London, UK"). Return as plain text.
 
 5. **Body Content**: This is the main press release body. IMPORTANT:
-   - Preserve ALL formatting from the original document including: <strong>/<b> for bold, <em>/<i> for italics, <u> for underline, <a href="..."> for hyperlinks, <h2>/<h3> for section headings
-   - NEVER use <h1> tags in the body. If the original document has h1 headings, convert them to <h2> instead. The release title is already the h1.
+   - Preserve ALL formatting from the original document including: <strong>/<b> for bold, <em>/<i> for italics, <u> for underline, <a href="..."> for hyperlinks, <h3>/<h4> for section headings
+   - NEVER use <h1> or <h2> tags in the body. Use <h3> or lower for section headings. The release title is already the h1.
    - Wrap paragraphs in <p> tags
-   - Keep all hyperlinks intact with their original URLs
+   - Keep all hyperlinks intact with their original URLs. All URLs in href attributes must start with https://
+   - Do NOT include ### or # # # end-of-release markers
+   - Use regular hyphens (-) instead of em-dashes or en-dashes
    - Remove any title/headline that would duplicate the extracted title
-   - Remove any dateline (e.g., "CITY, State — " or "CITY, State, Date — ") from the beginning of the body content since it is captured separately in the Location field
+   - Remove any dateline (e.g., "CITY, State - " or "CITY, State, Date - ") from the beginning of the body content since it is captured separately in the Location field
    - Clean up any messy HTML but preserve semantic formatting
    - The output must be valid HTML suitable for a TinyMCE editor
 
@@ -250,9 +253,9 @@ export async function POST(request: Request) {
     // Analyze with AI
     const result = await analyzeWithAI(documentContent, categories, regions)
 
-    // Safety net: downgrade any h1 tags the AI may have produced
+    // Safety net: sanitize the AI output
     if (result.body) {
-      result.body = result.body.replace(/<h1([^>]*)>/gi, '<h2$1>').replace(/<\/h1>/gi, '</h2>')
+      result.body = sanitizeReleaseBody(result.body)
     }
 
     return NextResponse.json({

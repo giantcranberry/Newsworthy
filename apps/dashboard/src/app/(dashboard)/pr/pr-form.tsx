@@ -1754,7 +1754,38 @@ export function PRForm({
                         (el as HTMLElement).removeAttribute('id');
                       });
 
-                      editor.insertContent(doc.body.innerHTML);
+                      // Downgrade headings: h2→h3 first, then h1→h2
+                      doc.querySelectorAll('h2').forEach((h2) => {
+                        const h3 = document.createElement('h3');
+                        h3.innerHTML = h2.innerHTML; // safe: content from parsed clipboard DOM
+                        h2.replaceWith(h3);
+                      });
+                      doc.querySelectorAll('h1').forEach((h1) => {
+                        const h2 = document.createElement('h2');
+                        h2.innerHTML = h1.innerHTML; // safe: content from parsed clipboard DOM
+                        h1.replaceWith(h2);
+                      });
+
+                      // Fix href URLs to https://
+                      doc.querySelectorAll('a[href]').forEach((a) => {
+                        const href = a.getAttribute('href') || '';
+                        if (href.startsWith('http://')) {
+                          a.setAttribute('href', href.replace('http://', 'https://'));
+                        } else if (href && !href.startsWith('https://') && !href.startsWith('mailto:') && !href.startsWith('tel:') && !href.startsWith('#')) {
+                          a.setAttribute('href', `https://${href}`);
+                        }
+                      });
+
+                      let cleanHtml = doc.body.innerHTML; // safe: content from parsed clipboard DOM
+                      // Remove ### end-of-release markers
+                      cleanHtml = cleanHtml.replace(/<p[^>]*>\s*#{1,3}\s*<\/p>/gi, '');
+                      cleanHtml = cleanHtml.replace(/<p[^>]*>\s*#\s+#\s+#\s*<\/p>/gi, '');
+                      cleanHtml = cleanHtml.replace(/\s*#{3}\s*/g, '');
+                      cleanHtml = cleanHtml.replace(/\s*#\s+#\s+#\s*/g, '');
+                      // Replace em-dash and en-dash with hyphen
+                      cleanHtml = cleanHtml.replace(/[\u2014\u2013]/g, '-');
+
+                      editor.insertContent(cleanHtml);
                     }
                   }, true);
                 });

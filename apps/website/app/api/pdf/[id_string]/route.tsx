@@ -9,6 +9,7 @@ import { postESGeneric } from "@/lib/elastic";
 import type { PageStatsType } from "@/types/Stats";
 import PressReleasePdf from "@/lib/pdf/press-release-pdf";
 import type { PdfReleaseData } from "@/lib/pdf/press-release-pdf";
+import { sanitizeReleaseBody } from "@/lib/sanitize-body";
 
 export const dynamic = "force-dynamic";
 
@@ -229,7 +230,7 @@ export async function GET(
     .map((rc) => rc.category?.name)
     .filter((name): name is string => !!name);
 
-  const htmlBody = flattenLists(stripIframes(stripUnsupportedImages(removeEmptyPTags(release.body || ""))));
+  const htmlBody = flattenLists(stripIframes(stripUnsupportedImages(removeEmptyPTags(sanitizeReleaseBody(release.body || "")))));
 
   const data: PdfReleaseData = {
     title: decodeHtmlEntities(release.title || "Untitled Press Release"),
