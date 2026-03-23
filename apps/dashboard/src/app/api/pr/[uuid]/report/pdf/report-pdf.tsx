@@ -420,12 +420,10 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                   <Text style={s.engLabel}>Other Engagements</Text>
                   <Text style={s.engValue}>0</Text>
                 </View>
-                {pdfDownloadCount > 0 && (
-                  <View style={s.engRow}>
-                    <Text style={s.engLabel}>PDF Downloads</Text>
-                    <Text style={[s.engValue, { color: C.red }]}>{pdfDownloadCount.toLocaleString()}</Text>
-                  </View>
-                )}
+                <View style={s.engRow}>
+                  <Text style={s.engLabel}>PDF Downloads</Text>
+                  <Text style={[s.engValue, { color: C.red }]}>{pdfDownloadCount.toLocaleString()}</Text>
+                </View>
                 <View style={[s.engRow, { borderBottomWidth: 0 }]}>
                   <Text style={s.engLabel}>Total Engagement</Text>
                   <Text style={s.engValue}>{(totalPv + totalSh).toLocaleString()}</Text>

@@ -8,7 +8,7 @@ import { ShareButtons } from "@/components/share-buttons";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createHash } from 'crypto';
-import { db, eq, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
+import { db, eq, ne, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
 import {
   getDateline,
   newsTranslatedUrl,
@@ -333,10 +333,9 @@ export default async function PressRelease({ searchParams, params }: Props) {
     release.timezone ?? "Unknown Timezone"
   );
 
-  // Fetch recent releases
+  // Fetch recent releases (exclude current release)
   const recent = await db.query.releases.findMany({
-    limit: 6,
-    offset: 1,
+    limit: 5,
     columns: {
       id: true,
       title: true,
@@ -351,6 +350,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
     where: and(
       eq(releases.isDeleted, false),
       eq(releases.companyId, release.companyId),
+      ne(releases.id, release.id),
       lte(releases.releasedAt, new Date())
     ),
     orderBy: desc(releases.releasedAt),
@@ -372,6 +372,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
     pr_company_id: release.companyId,
     pr_user_id: release.userId,
     pr_released_at: release.releasedAt,
+    prhash_id: release.prhashId,
   };
 
   await postESGeneric(stats, "nw_pageviews");

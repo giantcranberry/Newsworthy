@@ -171,7 +171,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
   const [activeTab, setActiveTab] = useState<'online' | 'isp' | 'market'>('online')
 
   useEffect(() => {
-    const url = `/api/pr/${uuid}/report${isPublic ? '?public=true' : ''}`
+    const params = new URLSearchParams(window.location.search)
+    const refresh = params.get('refresh') === 'true'
+    const qp = new URLSearchParams()
+    if (isPublic) qp.set('public', 'true')
+    if (refresh) qp.set('refresh', 'true')
+    const qs = qp.toString()
+    const url = `/api/pr/${uuid}/report${qs ? `?${qs}` : ''}`
     fetch(url)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load report')
@@ -402,14 +408,12 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       </div>
                       <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">0</h4>
                     </div>
-                    {pdfDownloadCount > 0 && (
-                      <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                          <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" /> PDF Downloads
-                        </div>
-                        <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{pdfDownloadCount.toLocaleString()}</h4>
+                    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                        <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" /> PDF Downloads
                       </div>
-                    )}
+                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{pdfDownloadCount.toLocaleString()}</h4>
+                    </div>
                     <div className="flex justify-between items-center py-3">
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                         <i className="fa-solid fa-users text-cyan-500" aria-hidden="true" /> Total Engagement

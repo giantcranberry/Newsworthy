@@ -1,4 +1,4 @@
-import Image from "next/image";
+import SafeImage from "@/components/safe-image";
 import Link from "next/link";
 import { ElasticNwRelease } from "@/types/ElasticNwRelease";
 import { baseUrl } from "@/lib/utils";
@@ -81,7 +81,7 @@ export default async function SearchPage({
                 <div className="rounded overflow-hidden lg:h-[135px] w-full mb-7">
                   <Link href={release._source.url}>
                     {release._source.og_image && (
-                      <Image
+                      <SafeImage
                         className="h-full transition duration-300 ease-in-out group-hover:scale-105"
                         src={release._source.og_image}
                         width={1200}

@@ -233,20 +233,6 @@ export function CrmContactForm({ companyUuid, companyName, readOnly, contact, en
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleEnrich}
-                disabled={isEnriching || isLoading}
-                className="gap-2 cursor-pointer"
-              >
-                {isEnriching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                Enrich Record
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
                 onClick={() => router.back()}
                 disabled={isLoading}
                 className="cursor-pointer"

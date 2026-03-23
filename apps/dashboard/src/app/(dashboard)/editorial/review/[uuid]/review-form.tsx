@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw, Phone, Mail } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw, Phone, Mail, Video, Link as LinkIcon, FolderOpen } from 'lucide-react'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
 
@@ -20,6 +20,8 @@ interface ReviewFormProps {
     pullquote: string | null
     location: string | null
     videoUrl: string | null
+    landingPage: string | null
+    publicDrive: string | null
     status: string | null
     releaseAt: Date | null
     timezone: string | null
@@ -328,6 +330,37 @@ export function ReviewForm({
               )}
             </div>
           )}
+          {(release.videoUrl || release.landingPage || release.publicDrive) && (
+            <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
+              {release.videoUrl && (
+                <div className="flex items-center gap-2">
+                  <Video className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 shrink-0" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">Video:</span>
+                  <a href={release.videoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline truncate">
+                    {release.videoUrl}
+                  </a>
+                </div>
+              )}
+              {release.landingPage && (
+                <div className="flex items-center gap-2">
+                  <LinkIcon className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 shrink-0" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">Additional Info:</span>
+                  <a href={release.landingPage.replace(/^\[.*?\]\s*/, '')} target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline truncate">
+                    {release.landingPage}
+                  </a>
+                </div>
+              )}
+              {release.publicDrive && (
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400 shrink-0" />
+                  <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">Media Assets:</span>
+                  <a href={release.publicDrive} target="_blank" rel="noopener noreferrer" className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline truncate">
+                    {release.publicDrive}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -360,6 +393,7 @@ export function ReviewForm({
             pullquote: release.pullquote,
             location: release.location,
             videoUrl: release.videoUrl,
+            landingPage: release.landingPage,
             releaseAt: release.releaseAt,
             timezone: release.timezone,
           }}

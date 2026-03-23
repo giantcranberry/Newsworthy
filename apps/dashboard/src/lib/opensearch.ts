@@ -32,3 +32,15 @@ export async function deleteDocument(index: string, documentId: string): Promise
   const result = await os.delete({ index, id: documentId })
   return result.body
 }
+
+export async function indexDocument(index: string, content: Record<string, unknown>): Promise<any> {
+  const os = getClient()
+  const result = await os.index({ index, body: content })
+  return result.body
+}
+
+export async function updateDocument(index: string, documentId: string, content: Record<string, unknown>): Promise<any> {
+  const os = getClient()
+  const result = await os.update({ index, id: documentId, body: { doc: content } })
+  return result.body
+}

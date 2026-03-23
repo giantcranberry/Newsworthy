@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles, postQueue, releaseOptions } from '@/db/schema'
+import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles, postQueue, releaseOptions, releaseCategories, releaseRegions, company, images, banners, partners } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { createSystemMessage } from '@/lib/messages'
@@ -9,6 +9,14 @@ import { sendSlackNotification, formatPrStatusMessage } from '@/lib/slack'
 import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/google-chat'
 import { getPostHog } from '@/lib/posthog'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
+import { indexDocument, updateDocument } from '@/lib/opensearch'
+
+const CIRCUITS: Record<string, number[]> = {
+  hr: [29, 34, 216, 217, 218, 219, 221, 254, 260],
+  cannadellic: [125, 237, 236],
+  cannabis: [125, 237],
+  psychedelics: [236],
+}
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -61,6 +69,140 @@ export async function POST(request: NextRequest) {
             createdAt: now,
           })
         }
+      }
+
+      // Index release in OpenSearch nw_releases
+      try {
+        const [rel] = await db
+          .select({
+            id: releases.id,
+            uuid: releases.uuid,
+            title: releases.title,
+            abstract: releases.abstract,
+            body: releases.body,
+            location: releases.location,
+            releaseAt: releases.releaseAt,
+            slug: releases.slug,
+            userId: releases.userId,
+            companyId: releases.companyId,
+            elasticDoc: releases.elasticDoc,
+          })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+
+        const [comp] = await db
+          .select({ uuid: company.uuid })
+          .from(company)
+          .where(eq(company.id, rel.companyId))
+
+        // Get partner handle
+        const [usr] = await db
+          .select({ partnerId: users.partnerId })
+          .from(users)
+          .where(eq(users.id, rel.userId))
+
+        let partnerHandle = 'newsworthy'
+        if (usr?.partnerId) {
+          const [p] = await db
+            .select({ handle: partners.handle })
+            .from(partners)
+            .where(eq(partners.id, usr.partnerId))
+          if (p?.handle) partnerHandle = p.handle
+        }
+
+        // Get primary image and banner
+        const [primaryImg] = await db
+          .select({ url: images.url })
+          .from(images)
+          .innerJoin(releases, eq(releases.primaryImageId, images.id))
+          .where(eq(releases.id, releaseId))
+
+        const [banner] = await db
+          .select({ url: banners.url })
+          .from(banners)
+          .innerJoin(releases, eq(releases.bannerId, banners.id))
+          .where(eq(releases.id, releaseId))
+
+        // Get categories and regions
+        const cats = await db
+          .select({ categoryId: releaseCategories.categoryId })
+          .from(releaseCategories)
+          .where(eq(releaseCategories.releaseId, releaseId))
+
+        const regs = await db
+          .select({ regionId: releaseRegions.regionId })
+          .from(releaseRegions)
+          .where(eq(releaseRegions.releaseId, releaseId))
+
+        const categoryIds = cats.map(c => c.categoryId)
+        const regionIds = regs.map(r => r.regionId)
+
+        // Compute circuits from categories
+        const circuitNames: string[] = []
+        for (const [name, catIds] of Object.entries(CIRCUITS)) {
+          if (categoryIds.some(id => catIds.includes(id))) {
+            circuitNames.push(name)
+          }
+        }
+
+        // Build dateline
+        let dateline = ''
+        if (rel.releaseAt) {
+          const d = new Date(rel.releaseAt)
+          dateline = `${rel.location || ''} - ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+        }
+
+        // Build news URL
+        let newsUrlStr = ''
+        if (rel.releaseAt && rel.slug) {
+          const d = new Date(rel.releaseAt)
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          newsUrlStr = `https://newsworthy.ai/news/${y}${m}${day}${rel.id}/${rel.slug}`
+        }
+
+        const content: Record<string, unknown> = {
+          pr_id: rel.id,
+          created_at: now.toISOString(),
+          release_at: rel.releaseAt ? new Date(rel.releaseAt).toISOString() : null,
+          headline: rel.title,
+          abstract: rel.abstract,
+          location: rel.location,
+          partner: partnerHandle,
+          body: rel.body,
+          pr_uuid: rel.uuid,
+          dateline,
+          edscore: score ? Math.max(2, Math.min(5, parseInt(score, 10))) : 4,
+          user_id: rel.userId,
+          company_id: rel.companyId,
+          company_uuid: comp?.uuid || null,
+          url: newsUrlStr,
+          regions: regionIds,
+          categories: categoryIds,
+          circuits: circuitNames,
+          placements: [partnerHandle],
+        }
+
+        if (primaryImg?.url) {
+          content.news_image = primaryImg.url.replace('/RESIZE/', '/resize=w:500/')
+        }
+        if (banner?.url) {
+          content.og_image = banner.url.replace('/RESIZE/', '/resize=w:1200/')
+        }
+
+        if (rel.elasticDoc) {
+          await updateDocument('nw_releases', rel.elasticDoc, content)
+        } else {
+          const res = await indexDocument('nw_releases', content)
+          if (res?._id) {
+            await db.update(releases)
+              .set({ elasticDoc: res._id })
+              .where(eq(releases.id, releaseId))
+          }
+        }
+      } catch (err) {
+        console.error('Failed to index release in OpenSearch:', err)
       }
 
       // Add editor notes if provided

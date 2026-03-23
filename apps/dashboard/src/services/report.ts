@@ -368,6 +368,22 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
   if (!refresh) {
     const cached = reportCache.get(uuid)
     if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+      // Always refresh pdfDownloadCount from DB (cheap query, should be live)
+      try {
+        const rel = await db.query.releases.findFirst({
+          columns: { id: true },
+          where: eq(releases.uuid, uuid),
+        })
+        if (rel) {
+          const pdfCountResult = await db
+            .select({ value: count() })
+            .from(pdfDownloads)
+            .where(eq(pdfDownloads.releaseId, rel.id))
+          cached.data.pdfDownloadCount = Number(pdfCountResult[0]?.value ?? 0)
+        }
+      } catch {
+        // non-critical
+      }
       return cached.data
     }
   }
@@ -497,7 +513,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
       .select({ value: count() })
       .from(pdfDownloads)
       .where(eq(pdfDownloads.releaseId, release.id))
-    pdfDownloadCount = pdfCountResult[0]?.value ?? 0
+    pdfDownloadCount = Number(pdfCountResult[0]?.value ?? 0)
   } catch {
     // table may not exist yet
   }

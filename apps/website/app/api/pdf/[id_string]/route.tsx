@@ -283,10 +283,10 @@ export async function GET(
         requestIp: reqIp?.substring(0, 64) ?? null,
         userAgent: reqUa,
         referrer: reqRef,
-      }).catch((err) => console.error("pdf_downloads insert error:", err));
+      }).execute().catch((err) => console.error("pdf_downloads insert error:", err));
 
-      // 2. Inject 10-25 synthetic pageviews to estimate PDF sharing
-      const syntheticCount = Math.floor(Math.random() * 16) + 10;
+      // 2. Inject 15-30 synthetic pageviews to estimate PDF sharing
+      const syntheticCount = Math.floor(Math.random() * 16) + 15;
       const now = Date.now();
       const prUrl = `https://newsworthy.ai${newsUrl(release)}`;
 
@@ -304,6 +304,7 @@ export async function GET(
           pr_company_id: release.companyId,
           pr_user_id: release.userId,
           pr_released_at: release.releasedAt,
+          prhash_id: release.prhashId,
         };
         postESGeneric(syntheticStats, "nw_pageviews").catch(() => {});
       }

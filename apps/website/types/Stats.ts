@@ -34,7 +34,8 @@ export type FeedStatsType = {
     pr_url: string | null
     pr_company_id: number | null
     pr_user_id: number | null
-    pr_released_at: Date | null 
+    pr_released_at: Date | null
+    prhash_id?: string | null
   }
 
 
