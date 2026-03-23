@@ -75,7 +75,7 @@ export default async function SharePage({
     <ShareForm
       releaseUuid={uuid}
       companyUuid={release.company?.uuid || ''}
-      shareWithList={options?.advocacy || false}
+      shareWithList={options?.advocacy ?? listCount > 0}
       companyName={release.company?.companyName || ''}
       listCount={listCount}
     >

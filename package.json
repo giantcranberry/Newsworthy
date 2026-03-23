@@ -13,7 +13,9 @@
     "dev:dashboard": "turbo dev --filter=@nwai/dashboard",
     "dev:website": "turbo dev --filter=@nwai/website",
     "build:dashboard": "turbo build --filter=@nwai/dashboard",
-    "build:website": "turbo build --filter=@nwai/website"
+    "build:website": "turbo build --filter=@nwai/website",
+    "dev:oauth": "turbo dev --filter=@nwai/oauth",
+    "build:oauth": "turbo build --filter=@nwai/oauth"
   },
   "devDependencies": {
     "turbo": "^2.5.0"

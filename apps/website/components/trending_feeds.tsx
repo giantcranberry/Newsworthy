@@ -28,22 +28,22 @@ export function TrendingFeeds() {
         </li>
         <li className="">
           <a
-            href="https://app.newsworthy.ai/feeds/circuit/hr/full/newsworty/latest.rss"
-            className="font-bold hover:text-green-900 hover:bg-green-200/20  rounded p-2 text-center"
+            href="https://app.newsworthy.ai/feeds/beat/business/full/newsworthy/latest.rss"
+            className="font-bold hover:text-green-900 hover:bg-green-200/20 rounded p-2 text-center"
             target="_blank"
             rel="noopener dofollow"
           >
-            Human Resources
+            Business
           </a>
         </li>
         <li className="">
           <a
-            href="https://app.newsworthy.ai/feeds/circuit/cannadellic/full/newsworty/latest.rss"
-            className="font-bold hover:text-green-900 hover:bg-green-200/20  rounded p-2 text-center"
+            href="https://app.newsworthy.ai/feeds/beat/health/full/newsworthy/latest.rss"
+            className="font-bold hover:text-green-900 hover:bg-green-200/20 rounded p-2 text-center"
             target="_blank"
             rel="noopener dofollow"
           >
-            Cannabis & Psychedelics
+            Health & Fitness
           </a>
         </li>
         <li className="">
@@ -54,6 +54,16 @@ export function TrendingFeeds() {
             rel="noopener dofollow"
           >
             Technology
+          </a>
+        </li>
+        <li className="">
+          <a
+            href="https://app.newsworthy.ai/feeds/beat/politics-public-policy/full/newsworthy/latest.rss"
+            className="font-bold hover:text-green-900 hover:bg-green-200/20 rounded p-2 text-center"
+            target="_blank"
+            rel="noopener dofollow"
+          >
+            Politics
           </a>
         </li>
       </ul>

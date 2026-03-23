@@ -604,7 +604,7 @@ export function TaskBoard({ config }: { config: TaskBoardConfig }) {
         stages={stages}
         users={users}
         companies={companies}
-        defaultStageId={stages[0]?.id}
+        defaultStageId={stages.find((s) => s.name.toLowerCase() === 'to do')?.id || stages[0]?.id}
         currentUserId={currentUserId ? parseInt(currentUserId) : null}
         onSaved={handleTaskSaved}
         apiBase={config.apiBase}

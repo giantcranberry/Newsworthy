@@ -14,6 +14,7 @@
 | 2026-03-15 | self | Schema exists in BOTH `packages/db/src/schema/` and `apps/dashboard/src/db/schema/` — must update both when adding columns | Dashboard has its own copy of schema files that re-export from the shared package. Adding a column to only one location causes type mismatches. Always update both. |
 | 2026-03-17 | self | Tried modifying website API route but `baseUrl` is hardcoded to `https://www.newsworthy.ai` — local API changes had no effect | Website's `baseUrl` in `lib/utils.ts` points to production. Server component fetch calls hit production API, not local. For data enrichment, do it directly in the server component page, not in the API route. |
 | 2026-03-17 | self | Used `grid-flow-col` for search results layout — columns auto-sized causing variable text indentation | Use explicit `grid-cols-[235px_1fr]` instead of `grid-flow-col` when you need fixed column widths in a grid layout. |
+| 2026-03-19 | self | Drizzle `db.insert().values({}).catch()` — query may not execute reliably without `.execute()` | Always use `.execute()` before `.catch()` for fire-and-forget Drizzle inserts: `db.insert().values({}).execute().catch(...)` |
 | 2026-03-15 | self | `is_deleted` is `null` (not `false`) on many products rows — `eq(isDeleted, false)` misses them | Always use `or(eq(field, false), isNull(field))` for nullable boolean columns like `is_deleted`. Same pattern as `is_archived`. |
 
 ## User Preferences
