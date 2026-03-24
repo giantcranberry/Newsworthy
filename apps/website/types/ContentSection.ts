@@ -11,7 +11,7 @@ export type ContentSection = {
   };
   centered_content: boolean;
   content: PortableTextBlock[];
-  section_type: string;
+  section_type: string | string[];
   sectionCta: {
     ctaLabel: string;
     ctaUrl: string;
@@ -20,7 +20,7 @@ export type ContentSection = {
     asset: {
       url: string;
     };
-    image_type: string;
+    image_type: string | string[];
     alt: string;
     credit: string;
   };

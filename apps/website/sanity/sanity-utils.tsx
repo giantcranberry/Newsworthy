@@ -112,6 +112,7 @@ export async function getPage(slug: string): Promise<Page> {
         ...,
         content_sections[]->,
         card_sections[]->,
+        primary_testimonial[]->,
     }`,
 		{ slug: slug }
 	);

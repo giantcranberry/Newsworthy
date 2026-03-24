@@ -38,4 +38,15 @@ export type Page = {
 	sortOrder: number;
 	content_sections: ContentSection[];
 	card_sections: CardSection[];
+	primary_testimonial: {
+		_id: string;
+		person: string;
+		quote: string;
+		image: {
+			asset: {
+				url: string;
+			};
+			alt: string;
+		};
+	}[];
 };

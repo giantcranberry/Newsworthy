@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { Menu } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/sidebar";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,11 +21,11 @@ export const MobileSidebar = () => {
 
 	return (
 		<Sheet>
-			<div className="flex justify-between">
-				<Link href="/" className="lg:hidden">
+			<div className="flex items-center justify-between">
+				<Link href="/" className="xl:hidden">
 					<Image
 						src="/logo.svg"
-						className="mr-5 w-48"
+						className="w-48"
 						width="0"
 						height="0"
 						sizes="100vw"
@@ -35,17 +34,16 @@ export const MobileSidebar = () => {
 				</Link>
 
 				<SheetTrigger asChild title={"Navigation Menu"} aria-label="Site Navigation">
-					<Button
-						variant="ghost"
-						size="icon"
-						className="lg:hidden"
+					<button
+						className="xl:hidden inline-flex items-center justify-center rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
 						title={"Navigation Menu"}
 						aria-label="Site Navigation">
-						<Menu />
-					</Button>
+						<Menu size={24} />
+					</button>
 				</SheetTrigger>
 			</div>
-			<SheetContent side="left" className="p-0 overflow-y-scroll">
+			<SheetContent side="left" className="p-0 overflow-y-auto border-r-0">
+				<SheetTitle className="sr-only">Navigation Menu</SheetTitle>
 				<Sidebar />
 			</SheetContent>
 		</Sheet>

@@ -12,7 +12,6 @@ export const revalidate = 0;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  // fetch data
   const page = await getPage(slug);
   const flatPage = !page ? await getFlatPage(slug) : null;
   if (!page && !flatPage) {
@@ -49,6 +48,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+// Sanity stores some select fields as arrays — unwrap to get the string value
+function sanityValue(field: string | string[] | undefined): string | undefined {
+  if (Array.isArray(field)) return field[0];
+  return field;
+}
+
+const portableTextComponents = {
+  types: {
+    image: PortableTextImageComponent,
+  },
+  marks: {
+    link: ({ value, children }: { value?: { href?: string }; children: React.ReactNode }) => {
+      const target = (value?.href || "").startsWith("http")
+        ? "_blank"
+        : undefined;
+      return (
+        <a
+          className="text-cyan-700 hover:text-cyan-600 transition-colors"
+          href={value?.href}
+          target={target}
+          rel={target === "_blank" ? "noopener noreferrer" : undefined}
+        >
+          {children}
+        </a>
+      );
+    },
+  },
+};
+
 export default async function Page({ params }: Props) {
   const { slug } = await params;
   const page = await getPage(slug);
@@ -59,28 +87,38 @@ export default async function Page({ params }: Props) {
       return notFound();
     }
     return (
-      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 py-5">
-        <div className="prose mt-10 max-w-none prose-headings:font-serif prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-headings:font-normal prose-strong:font-bold">
-          {flatPage.title && (
-            <h1 className="text-4xl font-serif font-semibold">{flatPage.title}</h1>
-          )}
-          <PortableText value={flatPage.content} />
+      <div className="pb-16">
+        <div className="border-b border-gray-100 bg-gray-50/50">
+          <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-8 lg:py-12">
+            {flatPage.title && (
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+                {flatPage.title}
+              </h1>
+            )}
+          </div>
+        </div>
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 mt-8">
+          <div className="max-w-3xl prose prose-gray prose-headings:font-serif prose-headings:font-semibold prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:text-cyan-600 prose-strong:text-gray-900">
+            <PortableText value={flatPage.content} />
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <section className={page.hero_background_css}>
-        <div className="mx-auto w-full lg:max-w-4xl xl:max-w-5xl px-5 py-10 lg:py-20 text-center flex flex-col items-center gap-5">
+    <div className="pb-16">
+      {/* Hero */}
+      <section className={cn("relative overflow-hidden", page.hero_background_css)}>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)]" />
+        <div className="relative mx-auto w-full lg:max-w-4xl xl:max-w-5xl px-5 py-14 lg:py-24 text-center flex flex-col items-center gap-5">
           {page.hero_headline && (
-            <h1 className="font-serif font-semibold text-4xl 2xl:text-5xl m-0 text-white">
+            <h1 className="font-serif font-semibold text-4xl lg:text-5xl leading-tight text-white">
               {page.hero_headline}
             </h1>
           )}
           {page.hero_text && (
-            <div className="font-sans prose-p:text-lg prose-p:lg:text-xl text-white">
+            <div className="max-w-2xl prose prose-p:text-lg lg:prose-p:text-xl prose-p:text-white/85 prose-p:leading-relaxed">
               <PortableText value={page.hero_text} />
             </div>
           )}
@@ -88,137 +126,160 @@ export default async function Page({ params }: Props) {
             <Link
               href={page.hero_cta.cta_link}
               className={cn(
-                "rounded bg-cyan-900 text-white font-bold px-5 py-3",
+                "mt-2 inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/30 px-7 py-3 text-base font-semibold text-white transition-all hover:bg-white/25 hover:shadow-lg hover:shadow-white/10",
                 page.hero_button_css
               )}
             >
               {page.hero_cta.cta_text}
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
             </Link>
           )}
         </div>
       </section>
 
+      {/* Page content (above) */}
       {page.pageContent &&
         page.pageContent.pageContentPlacement === "above" && (
-          <>
-            <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 px-5 relative pb-10">
-              {page.pageContent.pageContentHeadline && (
-                <h2 className="text-3xl font-serif font-semibold text-gray-950 mb-3">
-                  {page.pageContent.pageContentHeadline}
-                </h2>
-              )}
-              {page.pageContent.formattedPageContent && (
-                <div className="max-w-none prose prose-headings:font-serif prose-p:text-lg md:prose-p:text-md lg:prose-p:text-lg prose-li:text-lg prose-a:text-sky-800 page-content">
-                  <PortableText
-                    value={page.pageContent.formattedPageContent}
-                    components={{
-                      // ...
-                      types: {
-                        image: PortableTextImageComponent,
-                      },
-                      marks: {
-                        link: ({ value, children }) => {
-                          const target = (value?.href || "").startsWith("http")
-                            ? "_blank"
-                            : undefined;
-                          return (
-                            <a
-                              className="hover:text-sky-500"
-                              href={value?.href}
-                              target={target}
-                            >
-                              {children}
-                            </a>
-                          );
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              )}
-            </section>
-          </>
+          <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-10 lg:py-14">
+            {page.pageContent.pageContentHeadline && (
+              <h2 className="text-3xl font-serif font-semibold text-gray-900 mb-6">
+                {page.pageContent.pageContentHeadline}
+              </h2>
+            )}
+            {page.pageContent.formattedPageContent && (
+              <div className="max-w-none prose prose-gray prose-p:text-lg prose-p:leading-relaxed prose-li:text-lg prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:text-cyan-600 page-content">
+                <PortableText
+                  value={page.pageContent.formattedPageContent}
+                  components={portableTextComponents}
+                />
+              </div>
+            )}
+          </section>
         )}
 
+      {/* Content sections */}
       {page.content_sections &&
         page.content_sections.map((section, index) => {
-          if (section.section_type == "band") {
+          if (sanityValue(section.section_type) === "band") {
             return (
-              <section key={section._id} className="bg-teal-800/30 py-5">
-                <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col-reverse md:flex-row md:gap-10 px-10">
-                  <div>
-                    {section.headline && (
-                      <h2 className="text-teal-800 text-3xl lg:text-4xl font-serif font-semibold">
-                        {section.headline}
-                      </h2>
-                    )}
-                    {section.content && (
-                      <div className="prose prose-blockquote:text-teal-800 prose-p:text-teal-800 text-xl lg:text-xl prose:font-san pt-5">
-                        <PortableText value={section.content} />
-                      </div>
-                    )}
-                  </div>
-                  {section.sectionImage && (
-                    <div className="md:flex justify-center">
-                      <div className="flex justify-center overflow-hidden w-[200px] h-[200px] rounded-full">
+              <section key={section._id} className="bg-gray-50 border-y border-gray-100">
+                {section.sectionImage ? (
+                  /* Testimonial-style: circle image left, quote right, centered */
+                  <div className="mx-auto w-full max-w-4xl flex flex-col md:flex-row items-center gap-8 px-5 lg:px-8 py-12 lg:py-16">
+                    <div className="shrink-0">
+                      <div className="w-[120px] h-[120px] rounded-full overflow-hidden bg-gray-100 ring-4 ring-white shadow-sm">
                         <Image
-                          className="object-cover"
-                          src={
-                            section.sectionImage &&
-                            urlFor(section.sectionImage.asset)
-                          }
-                          alt={section.sectionImage && section.sectionImage.alt}
-                          width={250}
-                          height={250}
+                          className="w-full h-full object-cover"
+                          src={urlFor(section.sectionImage.asset)}
+                          alt={section.sectionImage.alt || ""}
+                          width={240}
+                          height={240}
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              </section>
-            );
-          }
-          if (index % 2 === 0) {
-            // odd number sections
-            return (
-              <section
-                key={section._id}
-                className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-10 mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 py-10 mb-0 md:px-10 lg:px-0"
-              >
-                {section._type === "content_section" && (
-                  <>
-                    <div className="flex flex-col items-start gap-5 px-5 lg:px-7 md:px-0 md:pb-0">
+                    <div>
                       {section.headline && (
-                        <h2 className="font-serif text-3xl lg:text-3xl text-gray-950 font-semibold">
+                        <p className="text-base font-semibold text-gray-900">
                           {section.headline}
-                        </h2>
+                        </p>
                       )}
                       {section.content && (
-                        <div className="max-w-none prose prose-p:text-lg md:prose-p:text-md lg:prose-p:text-lg prose-li:text-lg prose-a:text-sky-800 prose-a:hover:text-sky-600">
+                        <div className="mt-2 prose prose-gray prose-p:text-base prose-p:leading-relaxed prose-blockquote:border-cyan-600 prose-blockquote:text-gray-600 prose-blockquote:font-normal">
                           <PortableText value={section.content} />
                         </div>
                       )}
                     </div>
+                  </div>
+                ) : (
+                  /* Regular band: full-width content */
+                  <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-10 lg:py-14">
+                    {section.headline && (
+                      <h2 className="text-2xl lg:text-3xl font-serif font-semibold text-gray-900">
+                        {section.headline}
+                      </h2>
+                    )}
+                    {section.content && (
+                      <div className="mt-4 prose prose-gray prose-p:text-lg prose-p:leading-relaxed">
+                        <PortableText value={section.content} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </section>
+            );
+          }
+
+          const imageType = section.sectionImage ? sanityValue(section.sectionImage.image_type) : undefined;
+
+          // Circle image sections → handled inline with alternating layout below
+
+          // Rectangle image sections → alternating left/right layout
+          const isEven = index % 2 === 0;
+          return (
+            <section
+              key={section._id}
+              className={cn(
+                "py-10 lg:py-16",
+                !isEven && (section.background_color || "bg-gray-50/50")
+              )}
+            >
+              <div className={cn(
+                "mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8",
+                "flex flex-col gap-8 lg:gap-14",
+                isEven ? "lg:flex-row" : "lg:flex-row-reverse"
+              )}>
+                {section._type === "content_section" && (
+                  <>
+                    {/* Text */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center gap-4">
+                      {section.headline && (
+                        <h2 className="font-serif text-2xl lg:text-3xl text-gray-900 font-semibold leading-snug">
+                          {section.headline}
+                        </h2>
+                      )}
+                      {section.content && (
+                        <div className="max-w-none prose prose-gray prose-p:text-lg prose-p:leading-relaxed prose-li:text-lg prose-a:text-cyan-700 hover:prose-a:text-cyan-600">
+                          <PortableText value={section.content} />
+                        </div>
+                      )}
+                      {section.sectionCta?.ctaLabel && (
+                        <div className="mt-2">
+                          <Link
+                            href={section.sectionCta.ctaUrl}
+                            className="inline-flex items-center gap-1.5 text-sm font-medium text-cyan-700 hover:text-cyan-600 transition-colors"
+                          >
+                            {section.sectionCta.ctaLabel}
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                            </svg>
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Image */}
                     {section.sectionImage && (
-                      <div className="md:flex justify-center items-center">
-                        {section.sectionImage.image_type == "circle" ? (
-                          <div className="flex justify-center overflow-hidden w-[300px] h-[300px] rounded-full">
+                      <div className={cn("flex items-center justify-center", imageType === "circle" ? "shrink-0" : "flex-1")}>
+                        {imageType === "circle" ? (
+                          <div className="w-[220px] h-[220px] lg:w-[280px] lg:h-[280px] rounded-full overflow-hidden bg-gray-100">
                             <Image
-                              className="object-cover"
+                              className="w-full h-full object-cover"
                               src={urlFor(section.sectionImage.asset)}
-                              alt={section.sectionImage.alt}
-                              width={1200}
-                              height={464}
+                              alt={section.sectionImage.alt || ""}
+                              width={560}
+                              height={560}
                             />
                           </div>
                         ) : (
-                          <div>
+                          <div className="w-full rounded-xl overflow-hidden bg-gray-100">
                             <Image
-                              className="w-full md:w-[435px] md:h-[321px] xl:w-[635px] xl:h-[421px] object-cover rounded"
+                              className="w-full aspect-[16/10] object-cover"
                               src={urlFor(section.sectionImage.asset)}
-                              alt={section.sectionImage.alt}
+                              alt={section.sectionImage.alt || ""}
                               width={1200}
-                              height={464}
+                              height={750}
                             />
                           </div>
                         )}
@@ -226,101 +287,117 @@ export default async function Page({ params }: Props) {
                     )}
                   </>
                 )}
-              </section>
-            );
-          } else {
-            return (
-              <section
-                key={section._id}
-                className={`${section.background_color} md:my-20 px-10 lg:px-0 py-20`}
-              >
-                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-10 mx-auto max-w-screen-xl xl:max-w-screen-2xl">
-                  {section._type === "content_section" && (
-                    <>
-                      {section.sectionImage && (
-                        <div className="md:flex justify-center items-center">
-                          {section.sectionImage.image_type == "circle" ? (
-                            <div className="flex justify-center overflow-hidden w-[300px] h-[300px] rounded-full float-right">
-                              <Image
-                                className="object-cover"
-                                src={urlFor(section.sectionImage.asset)}
-                                alt={section.sectionImage.alt}
-                                width={1200}
-                                height={464}
-                              />
-                            </div>
-                          ) : (
-                            <div>
-                              <Image
-                                className="w-full md:w-[435px] md:h-[321px] xl:w-[635px] xl:h-[421px] object-cover rounded"
-                                src={urlFor(section.sectionImage.asset)}
-                                alt={section.sectionImage.alt}
-                                width={1200}
-                                height={464}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {section.sectionImage && section.content && (
-                        <div className="flex flex-col items-start gap-5 px-5 lg:px-7 pb-5 md:px-0 md:pb-0">
-                          <h2 className="font-serif text-3xl lg:text-3xl text-gray-950 font-semibold m-0">
-                            {section.headline}
-                          </h2>
-                          <div className="max-w-none prose prose-p:text-lg md:prose-p:text-md lg:prose-p:text-lg prose-li:text-lg prose-a:text-sky-800 prose-a:hover:text-sky-600">
-                            <PortableText value={section.content} />
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </section>
-            );
-          }
+              </div>
+            </section>
+          );
         })}
 
+      {/* Testimonials */}
+      {page.primary_testimonial && page.primary_testimonial.length > 0 && (
+        <section className="border-t border-gray-100">
+          <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-12 lg:py-16">
+            <p className="text-center text-xs font-semibold uppercase tracking-widest text-gray-400 mb-8">
+              Trusted by teams everywhere
+            </p>
+            <div className={cn(
+              "grid gap-8",
+              page.primary_testimonial.length === 1 && "max-w-xl mx-auto",
+              page.primary_testimonial.length === 2 && "md:grid-cols-2 max-w-3xl mx-auto",
+              page.primary_testimonial.length >= 3 && "md:grid-cols-2 lg:grid-cols-3",
+            )}>
+              {page.primary_testimonial.map((testimonial) => (
+                <figure key={testimonial._id} className="flex flex-col gap-4">
+                  <blockquote className="text-gray-600 text-base leading-relaxed">
+                    &ldquo;{testimonial.quote}&rdquo;
+                  </blockquote>
+                  <figcaption className="flex items-center gap-2.5 mt-auto">
+                    {testimonial.image && (
+                      <div className="h-8 w-8 shrink-0 rounded-full overflow-hidden bg-gray-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          className="h-full w-full object-cover"
+                          src={urlFor(testimonial.image.asset)}
+                          alt={testimonial.image.alt || testimonial.person}
+                        />
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-900">
+                      {testimonial.person}
+                    </span>
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Card sections */}
+      {page.card_sections && page.card_sections.length > 0 && (
+        <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-12 lg:py-16">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {page.card_sections.map((card) => (
+              <div
+                key={card._id}
+                className="group rounded-xl border border-gray-100 bg-white p-6 transition-all hover:shadow-lg hover:shadow-gray-200/50 hover:border-gray-200"
+              >
+                {card.sectionImage && (
+                  <div className="rounded-lg overflow-hidden bg-gray-100 mb-4 aspect-[16/10]">
+                    <Image
+                      className="w-full h-full object-cover"
+                      src={urlFor(card.sectionImage.asset)}
+                      alt={card.sectionImage.alt || ""}
+                      width={600}
+                      height={375}
+                    />
+                  </div>
+                )}
+                {card.headline && (
+                  <h3 className="font-serif text-lg font-semibold text-gray-900 leading-snug">
+                    {card.headline}
+                  </h3>
+                )}
+                {card.content && (
+                  <div className="mt-2 prose prose-sm prose-gray prose-p:leading-relaxed">
+                    <PortableText value={card.content} />
+                  </div>
+                )}
+                {card.sectionCta?.ctaLabel && (
+                  <Link
+                    href={card.sectionCta.ctaUrl}
+                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-cyan-700 hover:text-cyan-600 transition-colors"
+                  >
+                    {card.sectionCta.ctaLabel}
+                    <svg className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Page content (below) */}
       {page.pageContent &&
         page.pageContent.pageContentPlacement === "below" && (
-          <>
-            <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 md:mt-10 px-5 relative">
-              {page.pageContent.pageContentHeadline && (
-                <h2 className="text-3xl font-serif font-semibold text-gray-950 mb-3">
-                  {page.pageContent.pageContentHeadline}
-                </h2>
-              )}
-              {page.pageContent.formattedPageContent && (
-                <div className="max-w-none prose prose-p:text-lg md:prose-p:text-md lg:prose-p:text-lg prose-li:text-lg prose-a:text-sky-600 page-content">
-                  <PortableText
-                    value={page.pageContent.formattedPageContent}
-                    components={{
-                      // ...
-                      types: {
-                        image: PortableTextImageComponent,
-                      },
-                      marks: {
-                        link: ({ value, children }) => {
-                          const target = (value?.href || "").startsWith("http")
-                            ? "_blank"
-                            : undefined;
-                          return (
-                            <a
-                              className="hover:text-sky-500"
-                              href={value?.href}
-                              target={target}
-                            >
-                              {children}
-                            </a>
-                          );
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              )}
-            </section>
-          </>
+          <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-10 lg:py-14">
+            {page.pageContent.pageContentHeadline && (
+              <h2 className="text-3xl font-serif font-semibold text-gray-900 mb-6">
+                {page.pageContent.pageContentHeadline}
+              </h2>
+            )}
+            {page.pageContent.formattedPageContent && (
+              <div className="max-w-none prose prose-gray prose-p:text-lg prose-p:leading-relaxed prose-li:text-lg prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:text-cyan-600 page-content">
+                <PortableText
+                  value={page.pageContent.formattedPageContent}
+                  components={portableTextComponents}
+                />
+              </div>
+            )}
+          </section>
         )}
-    </>
+    </div>
   );
 }

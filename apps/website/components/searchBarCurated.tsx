@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-import { Input } from "@/components/ui/input";
-import { Button } from "./ui/button";
 import { Search } from "lucide-react";
 
 export default function SearchCuratedComponent() {
@@ -18,22 +15,18 @@ export default function SearchCuratedComponent() {
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit} className="py-5 px-6 h-fit w-full">
-        <Input
-          type="text"
-          placeholder="Search News"
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-slate-200/50 text-stone-900 placeholder:text-stone-900 h-12 md:h-12 px-6 rounded-full text-lg ring-offset-1 ring-1 ring-stone-300/50 border-0 placeholder:font-semibold focus:ring-green-600 w-full"
-          value={searchQuery}
-        />
-        <Button
-          className="bg-transparent hover:bg-transparent text-stone-900 absolute right-6 top-6 md:top-6"
-          aria-label="Search"
-        >
-          <Search size={20} />
-        </Button>
-      </form>
-    </>
+    <form onSubmit={handleSubmit} className="relative">
+      <Search
+        size={18}
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+      />
+      <input
+        type="text"
+        placeholder="Search curated news..."
+        onChange={(e) => setSearchQuery(e.target.value)}
+        value={searchQuery}
+        className="w-full h-11 pl-11 pr-4 rounded-full bg-white text-sm text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-cyan-600/20 focus:border-cyan-600 transition-all"
+      />
+    </form>
   );
 }
