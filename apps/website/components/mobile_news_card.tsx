@@ -31,14 +31,14 @@ export function MobileNewsCard({ release }: ReleaseProps) {
       : { width: 328, height: 200 };
 
   return (
-    <div key={release.id} className="px-5 pt-5">
+    <div key={release.id} className="pt-5">
       <div className="">
         <Link href={newsUrl(release)}>
           {release.banner?.cdnUrl && (
             <Image
               className={getImageClasses(
                 aspectRatio,
-                "w-full h-56 rounded border bg-slate-100"
+                "w-full aspect-[16/9] rounded border bg-slate-100"
               )}
               src={release.banner.cdnUrl.replace("RESIZE", "resize=w:500")}
               width={dimensions.width}

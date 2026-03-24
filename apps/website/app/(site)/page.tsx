@@ -243,7 +243,7 @@ export default async function Home({ searchParams }: Props) {
             <SeeYourNews />
           </section>
 
-          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-8 relative">
+          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-3 lg:px-5 pt-8 relative">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-lg font-extrabold uppercase text-cyan-800">Latest News</h2>
               <div className="flex-1 h-px bg-gray-200" />
