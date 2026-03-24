@@ -1,15 +1,5 @@
-import React from "react";
-
-import {
-  Card,
-  CardDescription,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { getImageAspectRatio, getImageClasses } from "@/lib/image-utils";
 
 interface FeedProps {
   link: string;
@@ -25,37 +15,36 @@ export default function FeedCard({
   newsImage,
 }: FeedProps) {
   return (
-    <Card className="h-full border-0 shadow-none">
-      <CardContent className="flex flex-col flex-1 gap-3 max-w-none prose prose-h3:my-0 prose-a:text-stone-900 prose-a:no-underline prose-a:font-semibold prose-h3:text-lg hover:prose-a:text-sky-700 prose-p:text-stone-900 prose-p:text-base prose-p:font-medium prose-p:mt-3 prose-img:my-0 p-0">
-        <div className="overflow-hidden w-full flex-none rounded-t-lg">
-          <Link href={link}>
-            <Image
-              src={newsImage}
-              width={300}
-              height={180}
-              className={getImageClasses(
-                getImageAspectRatio(300, 180),
-                "w-full h-[180px] rounded-lg object-cover object-top"
-              )}
-              alt={title}
-              sizes="100vw"
-            />
-          </Link>
+    <article className="group">
+      <Link href={link} className="block">
+        {/* Image */}
+        <div className="rounded-xl overflow-hidden bg-gray-100 aspect-[16/10]">
+          <Image
+            src={newsImage}
+            width={600}
+            height={375}
+            className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+            alt={title}
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          />
         </div>
-        <div className="flex flex-col justify-between flex-auto pt-2 pb-3">
-          <CardTitle>
-            <Link href={link}>{title}</Link>
-          </CardTitle>
-          <div>
-            <CardDescription className="line-clamp-3">
-              {abstract}
-            </CardDescription>
-            <Link href={link} className="flex items-center gap-1">
-              Read the full story
-            </Link>
-          </div>
+
+        {/* Text */}
+        <div className="mt-4 space-y-2">
+          <h3 className="font-serif text-lg font-semibold text-gray-900 leading-snug group-hover:text-cyan-700 transition-colors line-clamp-2">
+            {title}
+          </h3>
+          <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
+            {abstract}
+          </p>
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-400 group-hover:text-cyan-600 transition-colors">
+            Read full story
+            <svg className="h-3 w-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      </Link>
+    </article>
   );
 }

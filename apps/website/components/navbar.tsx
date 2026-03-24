@@ -87,18 +87,18 @@ export function NavBar() {
   }, []);
 
   return (
-    <div className="border-b border-gray-200 shadow-sm relative z-10">
-      <div className="px-5 pt-5 lg:px-0 lg:pt-0">
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-lg">
+      <div className="px-5 py-4 xl:hidden">
         <MobileSidebar />
       </div>
-      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl lg:flex justify-between items-center px-5">
-        <NavigationMenu className="hidden lg:flex lg:py-5">
-          <Link href="/">
+      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl hidden xl:flex items-center justify-between px-6 py-3">
+        <NavigationMenu className="flex">
+          <Link href="/" className="shrink-0">
             <Image
               src="/logo.svg"
-              className="mr-5 w-64"
-              width={256}
-              height={40}
+              className="mr-6 w-56"
+              width={224}
+              height={36}
               sizes="75vw"
               alt="Newsworthy Logo"
             />
@@ -236,45 +236,35 @@ export function NavBar() {
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            {isLoggedIn ? (
-              <NavigationMenuItem className="hidden lg:flex">
-                <NavigationMenuLink asChild>
-                  <Link
-                    href="https://app.newsworthyai.com/dashboard"
-                    className={navigationMenuTriggerStyle()}
-                  >
-                    Go to Dashboard
-                  </Link>
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ) : (
-              <>
-                <NavigationMenuItem className="hidden lg:flex">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href="https://app.newsworthyai.com/login"
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      Login
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-                <NavigationMenuItem className="hidden lg:flex">
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href="/auth/coregister/pr/newsworthy"
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      Register Free
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              </>
-            )}
           </NavigationMenuList>
         </NavigationMenu>
+        {isLoggedIn ? (
+          <div className="flex items-center">
+            <Link
+              href="https://app.newsworthyai.com/dashboard"
+              className="rounded-full bg-cyan-700 px-5 py-2 text-sm font-medium text-white transition-all hover:bg-cyan-800 hover:shadow-md hover:shadow-cyan-700/20"
+            >
+              Go to Dashboard
+            </Link>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1">
+            <Link
+              href="https://app.newsworthyai.com/login"
+              className="rounded-full px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
+            >
+              Login
+            </Link>
+            <Link
+              href="/auth/coregister/pr/newsworthy"
+              className="rounded-full bg-cyan-700 px-5 py-2 text-sm font-medium text-white transition-all hover:bg-cyan-800 hover:shadow-md hover:shadow-cyan-700/20"
+            >
+              Register Free
+            </Link>
+          </div>
+        )}
       </div>
-    </div>
+    </nav>
   );
 }
 

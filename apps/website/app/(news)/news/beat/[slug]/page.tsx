@@ -1,22 +1,11 @@
-import Image from 'next/image'
 import Link from 'next/link'
-import SearchInput from '@/components/search'
 import { db, eq, and, ne, lte, desc, inArray, releases, releaseCategories, category } from '@/lib/db'
-
-import { newsUrl } from '@/lib/utils'
 
 import { PressRelease } from '@/types/Release'
 
-import Influencer from '@/components/influencer_card'
 import { notFound } from 'next/navigation'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { MobileNewsCard } from '@/components/mobile_news_card'
-import LatestDialog from '@/components/latest'
-import TrendingDialog from '@/components/trending'
-import { TrendingNews } from '@/components/trending_news'
-import TrustedDialog from '@/components/trusted'
 import { HorizontalNews } from '@/components/news_card'
-import SeeYourNews from '@/components/see_your_news'
+import SeeYourNewsGutter from '@/components/see_your_news_gutter'
 import { headers } from 'next/headers'
 import { FeedStatsType } from '@/types/Stats'
 import { postESGeneric } from '@/lib/elastic'
@@ -133,38 +122,58 @@ export default async function NewsBeat({ params }: Props) {
   postESGeneric(stats, 'nw_feedstats')
 
   return (
-    <div className="mx-auto w-full pb-10">
-      <div>
-        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-5 px-5 lg:px-0">
-          <div className="grid grid-cols-1 lg:grid-flow-col gap-10">
-            <div className="md:col-span-1">
-              <div className="px-5 mb-5 md:px-10 lg:px-0">
-                <div className="flex justify-between items-baseline">
-                  <h1 className="text-2xl lg:text-4xl font-bold pb-2">
-                    {beat_info.name}
-                  </h1>
-                  <a
-                    href="/"
-                    className="md:text-lg text-sky-700 hover:underline"
-                  >
-                    Latest News on Newsworthy
-                  </a>
-                </div>
-                <hr />
-              </div>
-
-              <div className="grid md:grid-cols-2 lg:grid-cols-1 gap-10 md:px-10 lg:px-0 lg:border-b lg:last-of-type:border-0">
-                {release_list.map((release) => (
-                  <HorizontalNews key={release.id} release={release} />
-                ))}
-              </div>
+    <div className="mx-auto w-full pb-16">
+      {/* Category header */}
+      <div className="border-b border-gray-100 bg-gray-50/50">
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-8 lg:py-12">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              {beat_info.parent_beat && (
+                <Link
+                  href={beat_info.parent_slug ? `/news/beat/${beat_info.parent_slug}` : '/'}
+                  className="text-xs font-medium uppercase tracking-widest text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {beat_info.parent_beat}
+                </Link>
+              )}
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mt-1">
+                {beat_info.name}
+              </h1>
+              {beat_info.beat_desc && (
+                <p className="mt-2 text-gray-500 text-base max-w-2xl">
+                  {beat_info.beat_desc}
+                </p>
+              )}
             </div>
-            <div className="w-full lg:max-w-[350px] flex flex-col md:flex-col gap-5 px-5 lg:px-0">
-              <SeeYourNews />
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-400 hover:text-gray-900 transition-colors shrink-0"
+            >
+              All News
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 lg:gap-14">
+          {/* News feed */}
+          <div>
+            <div className="divide-y divide-gray-100">
+              {release_list.map((release) => (
+                <HorizontalNews key={release.id} release={release} />
+              ))}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="hidden lg:block">
+            <div className="sticky top-24 space-y-6">
+              <SeeYourNewsGutter />
             </div>
           </div>
         </div>
-        {/* <CenteredContentBand band={bands[1]} /> */}
       </div>
     </div>
   )

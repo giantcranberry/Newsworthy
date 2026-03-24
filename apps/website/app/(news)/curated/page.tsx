@@ -65,68 +65,77 @@ export default async function Home({ searchParams }: Props) {
   };
 
   return (
-    <>
-      <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col xl:flex-row gap-10 relative mt-5">
-        <SearchCuratedComponent />
-      </section>
-      <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl flex flex-col xl:flex-row gap-10 relative mb-32 px-5 lg:px-10">
-        <div className="w-full">
-          <h1 className="px-10 lg:px-0 py-5 font-semibold text-2xl text-stone-900">
-            Curated News Stories
-          </h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10 px-10 lg:px-0">
-            {articles.map((article) => (
-              <article key={article.feed_item_id}>
-                <FeedCard
-                  link={`/curated/${slugify(
-                    article.headline
-                  )}/${article.published.substring(0, 4)}${
-                    article.feed_item_id
-                  }`}
-                  title={article.headline}
-                  abstract={article.summary}
-                  newsImage={article.enclosure}
-                />
-              </article>
-            ))}
+    <div className="pb-16">
+      {/* Header */}
+      <div className="border-b border-gray-100 bg-gray-50/50">
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 py-8 lg:py-12">
+          <div className="max-w-2xl">
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">
+              Curated News Stories
+            </h1>
+            <p className="mt-2 text-gray-500 text-base">
+              Hand-picked stories from across the web, curated for relevance and quality.
+            </p>
           </div>
-
-          {totalPages > 1 && (
-            <Pagination className="mt-10">
-              <PaginationContent>
-                {currentPage > 1 && (
-                  <PaginationItem>
-                    <PaginationPrevious href={`/curated?page=${currentPage - 1}`} />
-                  </PaginationItem>
-                )}
-
-                {getPageNumbers().map((pageNum, index) =>
-                  pageNum === "ellipsis" ? (
-                    <PaginationItem key={`ellipsis-${index}`}>
-                      <PaginationEllipsis />
-                    </PaginationItem>
-                  ) : (
-                    <PaginationItem key={pageNum}>
-                      <PaginationLink
-                        href={`/curated?page=${pageNum}`}
-                        isActive={pageNum === currentPage}
-                      >
-                        {pageNum}
-                      </PaginationLink>
-                    </PaginationItem>
-                  )
-                )}
-
-                {currentPage < totalPages && (
-                  <PaginationItem>
-                    <PaginationNext href={`/curated?page=${currentPage + 1}`} />
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          )}
+          <div className="mt-6 max-w-xl">
+            <SearchCuratedComponent />
+          </div>
         </div>
-      </section>
-    </>
+      </div>
+
+      {/* Content */}
+      <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {articles.map((article) => (
+            <FeedCard
+              key={article.feed_item_id}
+              link={`/curated/${slugify(
+                article.headline
+              )}/${article.published.substring(0, 4)}${
+                article.feed_item_id
+              }`}
+              title={article.headline}
+              abstract={article.summary}
+              newsImage={article.enclosure}
+            />
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <Pagination className="mt-12">
+            <PaginationContent>
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious href={`/curated?page=${currentPage - 1}`} />
+                </PaginationItem>
+              )}
+
+              {getPageNumbers().map((pageNum, index) =>
+                pageNum === "ellipsis" ? (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={pageNum}>
+                    <PaginationLink
+                      href={`/curated?page=${pageNum}`}
+                      isActive={pageNum === currentPage}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationNext href={`/curated?page=${currentPage + 1}`} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
+    </div>
   );
 }
