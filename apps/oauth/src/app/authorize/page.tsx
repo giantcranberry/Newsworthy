@@ -58,7 +58,7 @@ export default async function AuthorizePage({ searchParams }: AuthorizePageProps
 
   // Validate redirect_uri (exact match) — MUST validate before any redirect
   if (!validateRedirectUri(client, redirectUri)) {
-    return <ErrorPage message="Invalid redirect_uri. It must exactly match a registered URI." />
+    return <ErrorPage message={`Invalid redirect_uri. It must exactly match a registered URI. Received: "${redirectUri}" | Registered: ${JSON.stringify(client.redirectUris)}`} />
   }
 
   // Validate scopes
