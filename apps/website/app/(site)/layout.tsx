@@ -69,7 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     return (
         <html lang="en" className={`${nunitoSans.variable} ${lora.className}`}>
             <CrispProvider />
-            <body suppressHydrationWarning className="flex h-screen flex-col justify-between font-sans text-gray-950">
+            <body suppressHydrationWarning className="flex min-h-screen flex-col justify-between font-sans text-gray-950">
                 <GoogleAnalytics />
                 <script
                     type="application/ld+json"
@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         })
                     }}
                 />
-                <header className="mx-auto w-full">
+                <header className="sticky top-0 z-50 mx-auto w-full">
                     <NavBar />
                 </header>
                 <main className="mx-auto mb-auto w-full">{children}</main>

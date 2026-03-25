@@ -21,17 +21,7 @@ export const getImageClasses = (
   aspectRatio: "portrait" | "landscape" | "square",
   baseClasses: string = ""
 ) => {
-  const portraitClasses = "object-contain bg-gray-100";
-  const landscapeClasses = "object-cover";
-
-  switch (aspectRatio) {
-    case "portrait":
-      return `${baseClasses} ${portraitClasses}`;
-    case "landscape":
-    case "square":
-    default:
-      return `${baseClasses} ${landscapeClasses}`;
-  }
+  return `${baseClasses} object-cover object-center`;
 };
 
 /**
