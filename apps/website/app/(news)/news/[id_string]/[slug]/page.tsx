@@ -896,14 +896,14 @@ export default async function PressRelease({ searchParams, params }: Props) {
             })()}
           </p>
 
-          {/* Image carousel + pullquote floated right */}
+          {/* Image carousel + pullquote — floated on desktop only */}
           {(carouselImages.length > 0 || release.pullquote) && (
-            <div className="w-full md:float-right md:ml-5 md:mb-4 md:w-[45%] md:max-w-[350px]">
+            <div className="hidden lg:block lg:float-right lg:ml-5 lg:mb-4 lg:w-[55%] lg:max-w-[425px]">
               {carouselImages.length > 0 && (
                 <ImageCarousel images={carouselImages} />
               )}
               {release.pullquote && (
-                <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-4 py-3 text-sm">
+                <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
                   <p>{(() => {
                     const text = release.pullquote.trim();
                     if (/^[""\u201C]/.test(text)) return text;
@@ -926,7 +926,40 @@ export default async function PressRelease({ searchParams, params }: Props) {
             </div>
           )}
 
-          <Article htmlContent={htmlContent} />
+          <Article
+            htmlContent={htmlContent}
+            insertAfterParagraph={2}
+            insertContent={
+              (carouselImages.length > 0 || release.pullquote) ? (
+                <div className="w-full my-6 lg:hidden">
+                  {carouselImages.length > 0 && (
+                    <ImageCarousel images={carouselImages} />
+                  )}
+                  {release.pullquote && (
+                    <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
+                      <p>{(() => {
+                        const text = release.pullquote.trim();
+                        if (/^[""\u201C]/.test(text)) return text;
+                        const match = text.match(/^(.*?)\s*(--\s*|—\s*|-\s+)(.+)$/s);
+                        if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>;
+                        return `\u201C${text}\u201D`;
+                      })()}</p>
+                    </blockquote>
+                  )}
+                  <div className="flex items-center justify-end gap-1.5 mt-3">
+                    <span className="text-xs text-gray-500 uppercase tracking-wide">Share</span>
+                    <div className="w-px h-4 bg-gray-200" />
+                    <ShareButtons
+                      url={`https://www.newsworthy.ai${newsUrl(release)}`}
+                      title={release.title}
+                      abstract={release.abstract}
+                      compact
+                    />
+                  </div>
+                </div>
+              ) : undefined
+            }
+          />
 
           {release.landingPage &&
             (/\[.*?\]\s?(http\S+)/.test(release.landingPage) ? (
