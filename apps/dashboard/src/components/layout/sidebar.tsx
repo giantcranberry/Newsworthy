@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import { signOut, useSession } from 'next-auth/react'
 import { useState, useEffect, useCallback } from 'react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useTour } from '@/hooks/use-tour'
 import { routeTourMap } from '@/components/tour/tour-button'
 
@@ -635,7 +634,6 @@ export function Sidebar({
         <div className="border-t border-slate-200 dark:border-gray-800 p-2">
           {collapsed ? (
             <div className="space-y-1">
-              <ThemeToggle collapsed />
               {currentTourRoute && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -684,9 +682,6 @@ export function Sidebar({
                   </p>
                   <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{session?.user?.email}</p>
                 </div>
-              </div>
-              <div className="mt-2 px-2 mb-2">
-                <ThemeToggle />
               </div>
               <div className="mt-2 space-y-1">
                 {currentTourRoute && (

@@ -2,16 +2,10 @@ import { sanitizeReleaseBody } from '@/lib/sanitize-body';
 
 type ArticleProps = {
   htmlContent: string;
-  pullquote?: string | null;
 };
 
-export default function Article({ htmlContent, pullquote }: ArticleProps) {
-  let html = sanitizeReleaseBody(htmlContent);
-
-  // Strip the pullquote blockquote from the body since it's displayed separately
-  if (pullquote) {
-    html = html.replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/i, '');
-  }
+export default function Article({ htmlContent }: ArticleProps) {
+  const html = sanitizeReleaseBody(htmlContent);
 
   return (
     <div

@@ -926,7 +926,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
             </div>
           )}
 
-          <Article htmlContent={htmlContent} pullquote={release.pullquote} />
+          <Article htmlContent={htmlContent} />
 
           {release.landingPage &&
             (/\[.*?\]\s?(http\S+)/.test(release.landingPage) ? (
