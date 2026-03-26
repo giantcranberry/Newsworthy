@@ -1118,7 +1118,7 @@ export function EditorialEditForm({
                       'undo redo | blocks | ' +
                       'bold italic | alignleft aligncenter ' +
                       'alignright alignjustify | bullist numlist outdent indent | ' +
-                      'link | removeformat | wordcount',
+                      'blockquote link | removeformat | wordcount',
                     branding: false,
                     content_style:
                       'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',

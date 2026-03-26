@@ -41,15 +41,20 @@ async function getUserData(userId: number) {
     .where(eq(staffNotes.userId, userId))
     .orderBy(desc(staffNotes.createdAt))
 
-  const accountCreditsResult = await db
-    .select({ total: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)` })
+  const creditsByType = await db
+    .select({
+      productType: brandCredits.productType,
+      total: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`,
+    })
     .from(brandCredits)
-    .where(and(
-      eq(brandCredits.userId, userId),
-      eq(brandCredits.productType, 'pr'),
-      sql`${brandCredits.companyId} IS NULL`
-    ))
-  const accountCredits = Number(accountCreditsResult[0]?.total) || 0
+    .where(eq(brandCredits.userId, userId))
+    .groupBy(brandCredits.productType)
+
+  const creditTotals: Record<string, number> = {}
+  for (const row of creditsByType) {
+    creditTotals[row.productType || 'pr'] = Number(row.total) || 0
+  }
+  const accountCredits = creditTotals['pr'] || 0
 
   const creditHistory = await db
     .select()
@@ -91,6 +96,7 @@ async function getUserData(userId: number) {
     recentReleases,
     notes,
     accountCredits,
+    creditTotals,
     creditHistory,
     companies,
     allPartners,
@@ -125,7 +131,7 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  const { user, recentReleases, notes, accountCredits, creditHistory, companies, allPartners, managedPartnerIds } = data
+  const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, companies, allPartners, managedPartnerIds } = data
 
   return (
     <div className="space-y-6">
@@ -194,10 +200,9 @@ export default async function UserDetailPage({
             <CardTitle className="text-base">Credits</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-500 dark:text-gray-400">Account Credits:</span> <strong>{accountCredits.toLocaleString()}</strong></p>
-            <p><span className="text-gray-500 dark:text-gray-400">PR Credits:</span> {user.subscription?.remainingPr || 0}</p>
-            <p><span className="text-gray-500 dark:text-gray-400">Enhanced:</span> {user.subscription?.remainingPluspr || 0}</p>
-            <p><span className="text-gray-500 dark:text-gray-400">NewsDB:</span> {user.subscription?.newsdbCredits || 0}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">PR Credits:</span> <strong>{(creditTotals['pr'] || 0).toLocaleString()}</strong></p>
+            <p><span className="text-gray-500 dark:text-gray-400">Yahoo:</span> <strong>{(creditTotals['yahoo'] || 0).toLocaleString()}</strong></p>
+            <p><span className="text-gray-500 dark:text-gray-400">Enhanced:</span> <strong>{(creditTotals['enhanced'] || 0).toLocaleString()}</strong></p>
           </CardContent>
         </Card>
 

@@ -10,6 +10,7 @@ import { UserSearchForm } from './search-form'
 import { VerifyButton } from './verify-button'
 import { SendMessageDialog } from './[id]/send-message-dialog'
 import { ActAsButton } from './act-as-button'
+import { SyncShareListButton } from './sync-share-list-button'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
@@ -128,9 +129,12 @@ export default async function AdminUsersPage({
         <ArrowLeft className="h-4 w-4" />
         Admin
       </Link>
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">User Management</h1>
-        <p className="text-gray-600 dark:text-gray-400">View and manage all users</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">User Management</h1>
+          <p className="text-gray-600 dark:text-gray-400">View and manage all users</p>
+        </div>
+        {isAdmin && <SyncShareListButton />}
       </div>
 
       <UserSearchForm />
