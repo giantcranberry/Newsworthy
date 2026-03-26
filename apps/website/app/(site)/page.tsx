@@ -15,7 +15,6 @@ import { postESGeneric } from "@/lib/elastic";
 import { TrendingFeeds } from "@/components/trending_feeds";
 
 import FreePrReview from "@/components/free-pr-review";
-import SearchBoxComponent from "@/components/search";
 
 export const revalidate = 0;
 
@@ -141,10 +140,9 @@ export default async function Home({ searchParams }: Props) {
 
   return (
     <>
-      <SearchBoxComponent />
       <div className="mx-auto w-full pb-10">
         <div>
-          <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-7 px-5">
+          <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-7 px-3 lg:px-5">
             <TrendingFeeds />
           </section>
           <section className="grid lg:grid-cols-8 mx-auto max-w-screen-xl xl:max-w-screen-2xl gap-10 mt-5 px-5">
@@ -243,7 +241,7 @@ export default async function Home({ searchParams }: Props) {
             <SeeYourNews />
           </section>
 
-          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-8 relative">
+          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-3 lg:px-5 pt-8 relative">
             <div className="flex items-center gap-4 mb-6">
               <h2 className="text-lg font-extrabold uppercase text-cyan-800">Latest News</h2>
               <div className="flex-1 h-px bg-gray-200" />
@@ -365,11 +363,11 @@ export default async function Home({ searchParams }: Props) {
           {totalPages > 1 && (
             <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-5 pt-10">
               <div className="flex justify-center">
-                <nav className="flex items-center gap-2">
+                <nav className="flex items-center gap-1.5">
                   {page > 1 && (
                     <Link
                       href={`/?page=${page - 1}`}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="px-4 py-2 text-sm font-medium text-cyan-700 rounded-full hover:bg-cyan-50 transition-colors"
                     >
                       Previous
                     </Link>
@@ -386,10 +384,10 @@ export default async function Home({ searchParams }: Props) {
                           <Link
                             key={pageNum}
                             href={pageNum === 1 ? '/' : `/?page=${pageNum}`}
-                            className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            className={`h-9 w-9 flex items-center justify-center text-sm font-medium rounded-full transition-colors ${
                               pageNum === page
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-700 bg-white border border-gray-300 hover:bg-gray-50'
+                                ? 'bg-cyan-700 text-white'
+                                : 'text-gray-600 hover:bg-cyan-50 hover:text-cyan-700'
                             }`}
                           >
                             {pageNum}
@@ -399,7 +397,7 @@ export default async function Home({ searchParams }: Props) {
                         pageNum === page - 3 ||
                         pageNum === page + 3
                       ) {
-                        return <span key={pageNum} className="px-2 py-2 text-gray-500">...</span>;
+                        return <span key={pageNum} className="h-9 w-9 flex items-center justify-center text-gray-400">...</span>;
                       }
                       return null;
                     })}
@@ -408,7 +406,7 @@ export default async function Home({ searchParams }: Props) {
                   {page < totalPages && (
                     <Link
                       href={`/?page=${page + 1}`}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                      className="px-4 py-2 text-sm font-medium text-cyan-700 rounded-full hover:bg-cyan-50 transition-colors"
                     >
                       Next
                     </Link>
@@ -416,7 +414,7 @@ export default async function Home({ searchParams }: Props) {
                 </nav>
               </div>
 
-              <div className="mt-4 text-center text-sm text-gray-600">
+              <div className="mt-4 text-center text-sm text-gray-500">
                 Showing {skip + 1}-{Math.min(skip + itemsPerPage, totalCount)} of {totalCount} press releases
               </div>
             </section>

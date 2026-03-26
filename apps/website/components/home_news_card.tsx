@@ -50,23 +50,20 @@ export function CardNews({ release }: ReleaseProps) {
       className="flex flex-col bg-white group w-full max-w-[328px] rounded-lg border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300"
     >
       {/* Image */}
-      <div className="overflow-hidden">
+      <div className="overflow-hidden h-48">
         {release.banner?.cdnUrl ? (
           <Image
-            className={getImageClasses(
-              aspectRatio,
-              "w-full aspect-[16/9] transition duration-300 ease-in-out group-hover:scale-105"
-            )}
+            className="w-full h-full object-cover object-top transition duration-300 ease-in-out group-hover:scale-105"
             src={release.banner.cdnUrl.replace(
               "resize=width:675",
               "resize=width:1200"
             )}
-            width={dimensions.width}
-            height={dimensions.height}
+            width={314}
+            height={192}
             alt={release.title || "Press release image"}
           />
         ) : (
-          <div className="w-full aspect-[16/9] bg-gray-100" />
+          <div className="w-full h-full bg-gray-100" />
         )}
       </div>
 

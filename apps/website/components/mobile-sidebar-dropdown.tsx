@@ -46,38 +46,30 @@ export function MobileDropdown() {
   const [aboutMenu, setAboutMenu] = useState<AboutMenu | null>(null);
   const [solutionsMenu, setSolutionsMenu] = useState<AboutMenu | null>(null);
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : "http://localhost:3000";
-
     async function fetchData() {
-      const categoriesResponse = await fetch(
-        `${baseUrl}/api/navbar/categories`,
-        { next: { revalidate: 3600 } }
-      );
-      const categoriesJson = await categoriesResponse.json();
-      const categoriesData = JSON.parse(categoriesJson.data);
-      setCategories(categoriesData);
+      try {
+        const [categoriesResponse, menuAdResponse, menuAboutResponse, menuSolutionsResponse] = await Promise.all([
+          fetch("/api/navbar/categories"),
+          fetch("/api/navbar/navbarad"),
+          fetch("/api/navbar/about_navbar"),
+          fetch("/api/navbar/solutions_navbar"),
+        ]);
 
-      const menuAdResponse = await fetch(`${baseUrl}/api/navbar/navbarad`, {
-        next: { revalidate: 3600 },
-      });
-      const menuAdJson = await menuAdResponse.json();
-      setMenuAd(menuAdJson.res);
+        const categoriesJson = await categoriesResponse.json();
+        const categoriesData = JSON.parse(categoriesJson.data);
+        setCategories(categoriesData);
 
-      const menuAboutResponse = await fetch(
-        `${baseUrl}/api/navbar/about_navbar`,
-        { next: { revalidate: 3600 } }
-      );
-      const menuAboutJson = await menuAboutResponse.json();
-      setAboutMenu(menuAboutJson.res);
+        const menuAdJson = await menuAdResponse.json();
+        setMenuAd(menuAdJson.res);
 
-      const menuSolutionsResponse = await fetch(
-        `${baseUrl}/api/navbar/solutions_navbar`,
-        { next: { revalidate: 3600 } }
-      );
-      const menuSolutionsJson = await menuSolutionsResponse.json();
-      setSolutionsMenu(menuSolutionsJson.res);
+        const menuAboutJson = await menuAboutResponse.json();
+        setAboutMenu(menuAboutJson.res);
+
+        const menuSolutionsJson = await menuSolutionsResponse.json();
+        setSolutionsMenu(menuSolutionsJson.res);
+      } catch (error) {
+        console.error("Failed to fetch mobile navbar data:", error);
+      }
     }
 
     fetchData();

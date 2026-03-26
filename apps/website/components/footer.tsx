@@ -3,17 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Instagram, Linkedin, Music2, Youtube } from "lucide-react";
-import ContactInfo from "./contact-info";
 import { useEffect, useState } from "react";
-
-const twitter = "/twitter-x-blue.svg";
-const telegram = "https://cdn1.newsworthy.ai/telegram-blue-icon.svg";
 
 interface MenuPage {
   _id: string;
   _updatedAt: string;
-  // Add other properties as needed
   slug: { current: string };
   title: string;
   seo_description: string;
@@ -24,7 +18,6 @@ interface AboutMenu {
   _id: string;
   _createdAt: string;
   pages: MenuPage[];
-  // Add other properties as needed
 }
 
 export default function Footer() {
@@ -34,231 +27,199 @@ export default function Footer() {
   const [solutionsMenu, setSolutionsMenu] = useState<AboutMenu | null>(null);
 
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : typeof window !== "undefined"
-      ? window.location.origin
-      : "http://localhost:3008";
-
     async function fetchData() {
-      const menuAboutResponse = await fetch(
-        `${baseUrl}/api/navbar/about_navbar`,
-        {
-          next: { revalidate: 3600 },
-        },
-      );
-      const menuAboutJson = await menuAboutResponse.json(); // Parse the JSON response into an object
-      const menuAboutData = menuAboutJson.res; // Access the 'res' property of the parsed response
+      try {
+        const [menuAboutResponse, menuSolutionsResponse] = await Promise.all([
+          fetch("/api/navbar/about_navbar"),
+          fetch("/api/navbar/solutions_navbar"),
+        ]);
 
-      setAboutMenu(menuAboutData);
+        const menuAboutJson = await menuAboutResponse.json();
+        setAboutMenu(menuAboutJson.res);
 
-      const menuSolutionsResponse = await fetch(
-        `${baseUrl}/api/navbar/solutions_navbar`,
-        {
-          next: { revalidate: 3600 },
-        },
-      );
-      const menuSolutionsJson = await menuSolutionsResponse.json(); // Parse the JSON response into an object
-      const menuSolutionsData = menuSolutionsJson.res; // Access the 'res' property of the parsed response
-
-      setSolutionsMenu(menuSolutionsData);
+        const menuSolutionsJson = await menuSolutionsResponse.json();
+        setSolutionsMenu(menuSolutionsJson.res);
+      } catch (error) {
+        console.error("Failed to fetch footer data:", error);
+      }
     }
 
     fetchData();
   }, []);
 
   return (
-    <footer className="static bottom-0 bg-blue-500/5 border-t">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl py-5 md:py-5 px-5">
-        <div className="md:col-start-1 md:col-end-2">
+    <footer className="bg-gray-50 text-gray-700 border-t border-gray-200">
+      <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-6 pt-16 pb-8">
+        {/* Top section: Logo + tagline */}
+        <div className="pb-12 border-b border-gray-200">
           <Link href="/">
             <Image
               src="/logo.svg"
-              className="mt-2 mb-4 w-[175px] h-auto"
-              width="0"
-              height="0"
-              sizes="100vw"
+              className="w-56 h-auto"
+              width={224}
+              height={36}
               alt="Newsworthy Logo"
             />
           </Link>
-          <ContactInfo />
-          <div className="flex gap-4 items-center mt-3">
-            <Link
-              href="https://www.linkedin.com/company/newsworthyai"
-              title="Newsworthy on LinkedIn"
-            >
-              <Linkedin size={18} className="text-cyan-900" />
-            </Link>
-
-            <Link
-              href="https://t.me/NewsworthyAI"
-              title="Newsworthy on Telegram"
-            >
-              <div>
-                <Image
-                  src={telegram}
-                  className="w-[16px]"
-                  width={16}
-                  height={16}
-                  alt={`Telegram Icon`}
-                />
-              </div>
-            </Link>
-            <Link
-              href="https://www.youtube.com/channel/UCqAWp6V46oRa5lzFYvYf2Dg/"
-              title="Newsworthy on Youtube"
-            >
-              <Youtube size={18} className="text-cyan-900" />
-            </Link>
-          </div>
+          <p className="mt-6 text-sm text-gray-500 max-w-md">
+            Your AI-powered platform for creating, distributing, and analyzing press releases and news content.
+          </p>
         </div>
-        <nav className="md:col-start-2 md:col-end-4 lg:col-start-2 lg:col-end-5 mt-5 md:mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-0">
-            <div>
-              <h3 className="font-bold text-lg lg:py-2">About Us</h3>
+
+        {/* Link columns */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[auto_auto_auto_auto_auto] gap-8 lg:gap-10 py-12">
+          {/* About Us */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">
+              About Us
+            </h3>
+            <ul className="space-y-3">
               {aboutMenu &&
                 aboutMenu.pages.map((menuItem) => (
-                  <ul key={menuItem.slug.current} className="pt-3">
-                    <li>
-                      <Link
-                        href={`/${menuItem.slug.current}`}
-                        title={menuItem.menu_title}
-                        className="text-lg md:text-base hover:underline hover:text-sky-700"
-                      >
-                        {menuItem.menu_title}
-                      </Link>
-                    </li>
-                  </ul>
+                  <li key={menuItem.slug.current}>
+                    <Link
+                      href={`/${menuItem.slug.current}`}
+                      className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                    >
+                      {menuItem.menu_title}
+                    </Link>
+                  </li>
                 ))}
-              <div className="mt-5">
-                <ul className="flex flex-col md:flex-row gap-3">
-                  <li>
-                    <Link
-                      className="text-lg md:text-base hover:underline hover:text-sky-700"
-                      href="/blog"
-                    >
-                      Blog
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      className="text-lg md:text-base hover:underline hover:text-sky-700"
-                      href="/pricing"
-                    >
-                      Pricing
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      className="text-lg md:text-base hover:underline hover:text-sky-700"
-                      href="/contact"
-                    >
-                      Contact Us
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="mt-0 lg:mt-5">
-              <ul className="flex flex-col gap-4">
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={"https://newsworthy.ai/wordpress-plugin"}
-                    className="text-lg md:text-base hover:underline hover:text-sky-700 pb-3"
-                  >
-                    WordPress Plugin
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={
-                      "https://newsworthy.ai/become-an-influencer-on-newsworthy"
-                    }
-                    className="text-lg md:text-base hover:underline hover:text-sky-700"
-                  >
-                    Become an Influencer Partner
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={"/press-releases-newswires-and-pr-glossary-of-terms"}
-                    className="text-lg md:text-base hover:underline hover:text-sky-700"
-                  >
-                    PR Glossary of Terms
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={"/terms-of-service"}
-                    className="text-lg md:text-base hover:underline hover:text-sky-700"
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={"/privacy-policy"}
-                    className="text-lg md:text-base hover:underline hover:text-sky-700"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    key="blogindex"
-                    href={"/editorial-guidelines"}
-                    className="text-lg md:text-base hover:underline hover:text-sky-700"
-                  >
-                    Editorial Guidelines
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div className="flex items-start flex-wrap gap-5">
-              <div className="flex">
-                <Image
-                  src="/get-the-book-qrcode.svg"
-                  width={150}
-                  height={1}
-                  className="w-[150px] h-[150px]"
-                  alt="Scan QRcode to Get David's Marketing Book"
-                />
-                <Link
-                  href="https://sourceforge.net/software/product/Newsworthy.ai/?pk_campaign=badge&amp;pk_source=vendor"
-                  target="_blank"
-                  title="Newsworthy.ai Reviews"
-                >
-                  <Image
-                    src="/sourceforge-badge.svg"
-                    width={130}
-                    height={1}
-                    className="w-[130px] h-[130px] mt-3"
-                    alt="Newsworthy.ai Reviews"
-                  />
+              <li>
+                <Link href="/blog" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Blog
                 </Link>
-              </div>
-              <div>
-                <Image
-                  width={275}
-                  height={100}
-                  src="https://aitsmarketing.s3.amazonaws.com/aits-verified-tool.svg?width=600"
-                  alt="AI Tech Suite Verified Tool Badge"
-                />
-              </div>
-            </div>
+              </li>
+              <li>
+                <Link href="/contact" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Contact Us
+                </Link>
+              </li>
+            </ul>
           </div>
-        </nav>
-      </div>
-      <div className="bg-cyan-900 py-3 px-5">
-        <div className="text-left flex flex-col lg:flex-row mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl items-center gap-3 lg:gap-20">
-          <p className="font-sans text-sm text-white">
+
+          {/* Solutions */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">
+              Solutions
+            </h3>
+            <ul className="space-y-3">
+              {solutionsMenu &&
+                solutionsMenu.pages.map((menuItem) => (
+                  <li key={menuItem.slug.current}>
+                    <Link
+                      href={`/${menuItem.slug.current}`}
+                      className="text-sm text-gray-600 transition-colors hover:text-gray-900"
+                    >
+                      {menuItem.title}
+                    </Link>
+                  </li>
+                ))}
+              <li>
+                <Link href="/pricing" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Pricing
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">
+              Resources
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="https://newsworthy.ai/wordpress-plugin" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  WordPress Plugin
+                </Link>
+              </li>
+              <li>
+                <Link href="https://newsworthy.ai/become-an-influencer-on-newsworthy" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Become an Influencer Partner
+                </Link>
+              </li>
+              <li>
+                <Link href="/press-releases-newswires-and-pr-glossary-of-terms" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  PR Glossary of Terms
+                </Link>
+              </li>
+              <li>
+                <Link href="/community" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Community
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-4">
+              Legal
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/terms-of-service" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy-policy" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/editorial-guidelines" className="text-sm text-gray-600 transition-colors hover:text-gray-900">
+                  Editorial Guidelines
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Badges */}
+          <div className="flex flex-row sm:flex-col items-center gap-4 col-span-1 sm:col-span-2 lg:col-span-1">
+            <Link
+              href="https://sourceforge.net/software/product/Newsworthy.ai/?pk_campaign=badge&pk_source=vendor"
+              target="_blank"
+              title="Newsworthy.ai Reviews"
+            >
+              <Image
+                src="/sourceforge-badge.svg"
+                width={100}
+                height={100}
+                className="w-[100px] h-auto"
+                alt="Newsworthy.ai Reviews"
+              />
+            </Link>
+            <Image
+              width={140}
+              height={52}
+              className="w-[140px] h-auto"
+              src="https://aitsmarketing.s3.amazonaws.com/aits-verified-tool.svg?width=600"
+              alt="AI Tech Suite Verified Tool Badge"
+            />
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-gray-200">
+          <p className="text-xs text-gray-400">
             Newsworthy.ai &copy; {currentYear} All Rights Reserved
           </p>
+          <div className="flex items-center gap-4">
+            <Link href="https://www.linkedin.com/company/newsworthyai" target="_blank" title="LinkedIn" className="text-gray-400 hover:text-gray-700 transition-colors">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </Link>
+            <Link href="https://twitter.com/NewsworthyAI" target="_blank" title="X" className="text-gray-400 hover:text-gray-700 transition-colors">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </Link>
+            <Link href="https://www.youtube.com/channel/UCqAWp6V46oRa5lzFYvYf2Dg/" target="_blank" title="YouTube" className="text-gray-400 hover:text-gray-700 transition-colors">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            </Link>
+            <Link href="https://t.me/NewsworthyAI" target="_blank" title="Telegram" className="text-gray-400 hover:text-gray-700 transition-colors">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

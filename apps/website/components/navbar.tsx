@@ -87,10 +87,13 @@ export function NavBar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-lg">
+    <nav className="bg-white/85 backdrop-blur-xl border-b border-gray-200/50">
+      {/* Mobile nav */}
       <div className="px-5 py-4 xl:hidden">
         <MobileSidebar />
       </div>
+
+      {/* Main nav — desktop */}
       <div className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl hidden xl:flex items-center justify-between px-6 py-3">
         <NavigationMenu className="flex">
           <Link href="/" className="shrink-0">
@@ -278,7 +281,7 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-200/70 hover:text-gray-900 focus:bg-gray-200/70 focus:text-gray-900",
             className
           )}
           {...props}
