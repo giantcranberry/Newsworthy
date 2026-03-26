@@ -140,6 +140,8 @@ export async function POST(
       caption: title.trim(),
       imgCredits: imgCredits?.trim() || null,
       url,
+      frontPageUrl: url,
+      cdnUrl: url,
       width,
       height,
       filesize,

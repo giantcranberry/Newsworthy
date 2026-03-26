@@ -1,0 +1,11 @@
+setup:
+  apps/dashboard:
+    project: newsworthy-dashboard
+    config: dev
+  apps/website:
+    project: newsworthy-website
+    config: dev
+  apps/oauth:
+    project: newsworthy-oauth
+    config: dev
+

@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "doppler run -- next dev --port 3000",
     "build": "next build",
+    "build:dev": "doppler run -- env NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint"
   },

@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:dev": "turbo build:dev",
     "lint": "turbo lint",
     "dev:dashboard": "turbo dev --filter=@nwai/dashboard",
     "dev:website": "turbo dev --filter=@nwai/website",

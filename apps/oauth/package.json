@@ -4,8 +4,9 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3002",
+    "dev": "doppler run -- next dev --turbopack --port 3002",
     "build": "next build",
+    "build:dev": "doppler run -- next build",
     "start": "next start",
     "lint": "next lint"
   },

@@ -99,6 +99,8 @@ export async function POST(
       userId: bannerOwnerId,
       companyId: release.companyId,
       url,
+      frontPageUrl: url,
+      cdnUrl: url,
       title: title || null,
       imgCredits: imgCredits || null,
       width,
