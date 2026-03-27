@@ -79,6 +79,7 @@ interface ReleaseImageRecord {
 }
 
 interface EditorialEditFormProps {
+  isAdmin: boolean
   release: {
     id: number
     uuid: string
@@ -288,6 +289,7 @@ function resizedUrl(url: string) {
 }
 
 export function EditorialEditForm({
+  isAdmin,
   release,
   company,
   contacts,
@@ -340,6 +342,7 @@ export function EditorialEditForm({
 
   function validateReleaseDateTime(date: string, time: string, tz: string): string | null {
     if (!date || !time) return null
+    if (isAdmin) return null
     const utcDate = toUTCFromTimezone(date, time, tz)
     const minDateTime = new Date(Date.now() + 15 * 60 * 1000)
     if (utcDate < minDateTime) {

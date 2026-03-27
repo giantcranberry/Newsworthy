@@ -148,6 +148,7 @@ export default async function EditorialEditPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <EditorialEditForm
+        isAdmin={!!isAdmin}
         release={{
           id: release.id,
           uuid: release.uuid,
