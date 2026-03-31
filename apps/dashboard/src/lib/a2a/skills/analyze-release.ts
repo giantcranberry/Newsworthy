@@ -4,9 +4,9 @@ import { eq, and } from 'drizzle-orm'
 import OpenAI from 'openai'
 import type { Message, SkillResult, DataPart, TextPart } from '../types'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 function parseUuid(message: Message): string {
   for (const part of message.parts) {
@@ -115,7 +115,7 @@ Provide a JSON response with:
 
 Respond with valid JSON only.`
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {

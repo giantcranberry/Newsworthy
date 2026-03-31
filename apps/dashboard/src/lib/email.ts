@@ -3,7 +3,9 @@ import { db } from '@/db'
 import { emailTemplates } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY)
+}
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'support@newsworthyai.com'
 
 export async function sendEmail({
@@ -18,7 +20,7 @@ export async function sendEmail({
   text?: string
 }) {
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: `Newsworthy <${fromEmail}>`,
       to: [to],
       subject,

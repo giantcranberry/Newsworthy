@@ -1,20 +1,24 @@
 import { Pool } from "pg";
 
-if (!process.env.NEON_DIRECT_URL) {
-  console.error("NEON_DATABASE_URL is not set.");
-  process.exit(1); // Exit in case of missing environment variable
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    if (!process.env.NEON_DIRECT_URL) {
+      throw new Error("NEON_DATABASE_URL is not set.");
+    }
+    pool = new Pool({
+      connectionString: process.env.NEON_DIRECT_URL,
+      max: 3,
+    });
+  }
+  return pool;
 }
 
-const pool = new Pool({
-  connectionString: process.env.NEON_DIRECT_URL,
-  max: 3,
-});
-
-export default pool;
-
+export { getPool };
 
 export async function runQuery<T>(query: string): Promise<T[]> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const res = await client.query(query);
     return res.rows;
@@ -24,7 +28,7 @@ export async function runQuery<T>(query: string): Promise<T[]> {
 }
 
 export async function runSingleRowQuery<T>(query: string, params: any[]): Promise<T | null> {
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const res = await client.query(query, params);
     if (res.rows.length === 0) {

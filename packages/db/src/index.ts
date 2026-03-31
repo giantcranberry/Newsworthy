@@ -6,7 +6,7 @@ import * as schema from './schema'
 // concurrent queries and prepared statements. Fall back to DATABASE_URL (transaction
 // pooler, port 6543) which requires prepare:false and max:1.
 const isDev = process.env.NODE_ENV !== 'production'
-const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!
+const connectionString = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL || ''
 const usesPgBouncer = connectionString.includes('pgbouncer=true')
 
 // Use global singleton to prevent HMR from creating multiple connections

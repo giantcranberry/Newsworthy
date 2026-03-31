@@ -5,9 +5,9 @@ import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   const plainBody = release.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {

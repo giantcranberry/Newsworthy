@@ -1,4 +1,4 @@
-import pool from "@/lib/neon";
+import { getPool } from "@/lib/neon";
 
 export type ReleaseMonths = {
     year: number;
@@ -35,7 +35,7 @@ export async function getReleaseMonths(): Promise<ReleaseMonths[] > {
     let client;
 
     try {
-        client = await pool.connect();
+        client = await getPool().connect();
         const { rows } = await client.query(query);
         client.release();
         return rows.map((row: any) => ({
@@ -83,7 +83,7 @@ export async function getSitemapUrls(month: number, year: number, lang_code: str
     let client;
 
     try {
-        client = await pool.connect();
+        client = await getPool().connect();
         const { rows } = await client.query(query, [lang_code, month, year]);
         client.release();
         return rows.map((row: any) => ({

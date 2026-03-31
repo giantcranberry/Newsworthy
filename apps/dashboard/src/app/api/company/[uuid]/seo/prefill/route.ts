@@ -6,9 +6,9 @@ import { eq, and } from 'drizzle-orm'
 import OpenAI from 'openai'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 async function fetchWebsiteContent(url: string): Promise<string> {
   try {
@@ -123,7 +123,7 @@ Important:
 - Only include person data if you can identify the CEO/founder with confidence
 - Return ONLY valid JSON, no markdown or explanation`
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       temperature: 0.3,

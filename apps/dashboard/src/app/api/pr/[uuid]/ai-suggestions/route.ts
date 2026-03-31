@@ -6,9 +6,9 @@ import { releases, releaseAnalysis } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 export async function POST(
   request: Request,
@@ -193,7 +193,7 @@ Format your response as JSON with this exact structure:
   "aiGroundingScoreReason": "Brief justification for the AI Grounding score"
 }`
 
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {

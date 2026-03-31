@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { getPostHog } from '@/lib/posthog'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 interface Category {
   id: number
@@ -108,7 +108,7 @@ Respond with valid JSON in this exact format:
   "event": null or { "startDate": "YYYY-MM-DD", "startTime": "HH:MM", "endDate": "YYYY-MM-DD" or null, "endTime": "HH:MM" or null, "location": "Full address of the event venue" or null, "timezone": "America/New_York" or other IANA timezone or null }
 }`
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o',
     messages: [
       {

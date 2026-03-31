@@ -6,9 +6,9 @@ import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { getUserCompanyIds } from '@/lib/team-auth'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_KEY })
+}
 
 export async function POST(
   request: Request,
@@ -86,7 +86,7 @@ export async function POST(
     const releaseContext = contextParts.join('\n')
 
     // Step 1: Research — ask the model to identify knowledge gaps using its training data
-    const researchCompletion = await openai.chat.completions.create({
+    const researchCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
@@ -142,7 +142,7 @@ Respond with JSON:
     const research = JSON.parse(researchContent)
 
     // Step 2: Generate FAQs grounded in the research
-    const faqCompletion = await openai.chat.completions.create({
+    const faqCompletion = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
