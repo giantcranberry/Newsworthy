@@ -853,6 +853,11 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <Image src="https://cdn1.newsworthy.ai/github.svg" alt="GitHub" width={24} height={24} className="w-[24px] h-[24px]" />
                 </Link>
               )}
+              {release.company.uuid && (
+                <Link href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid.replace(/-/g, '')}/latest.rss`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="RSS Feed">
+                  <svg className="w-[24px] h-[24px] text-orange-500" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36m-3.82-6.09c5.4 0 9.78 4.38 9.78 9.78h-3.27A6.52 6.52 0 002.36 12.82V9.55m0-5.19c8.56 0 15.5 6.94 15.5 15.5h-3.27A12.24 12.24 0 002.36 7.63V4.36"/></svg>
+                </Link>
+              )}
               <div className="w-px h-5 bg-gray-200 mx-1" />
               <DownloadPdfButton
                 idString={resolvedParams.id_string}
@@ -1194,6 +1199,20 @@ export default async function PressRelease({ searchParams, params }: Props) {
               >
                 <span className="text-gray-500">Newsroom</span>
                 <span className="text-sky-600 flex items-center gap-1">Visit <ExternalLink size={12} /></span>
+              </Link>
+            )}
+            {release.company.uuid && (
+              <Link
+                href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid.replace(/-/g, '')}/latest.rss`}
+                className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="text-gray-500">RSS Feed</span>
+                <span className="text-orange-500 flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36m-3.82-6.09c5.4 0 9.78 4.38 9.78 9.78h-3.27A6.52 6.52 0 002.36 12.82V9.55m0-5.19c8.56 0 15.5 6.94 15.5 15.5h-3.27A12.24 12.24 0 002.36 7.63V4.36"/></svg>
+                  Subscribe <ExternalLink size={12} />
+                </span>
               </Link>
             )}
             {release.publicDrive && (

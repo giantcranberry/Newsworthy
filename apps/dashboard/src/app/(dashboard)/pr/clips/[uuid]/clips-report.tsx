@@ -189,6 +189,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
   }, [uuid, isPublic])
 
   const [pdfGenerating, setPdfGenerating] = useState(false)
+  const [xlsGenerating, setXlsGenerating] = useState(false)
 
   const handleDownloadPdf = async () => {
     if (!data) return
@@ -207,6 +208,26 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       console.error('PDF download error:', err)
     } finally {
       setPdfGenerating(false)
+    }
+  }
+
+  const handleDownloadXls = async () => {
+    if (!data) return
+    setXlsGenerating(true)
+    try {
+      const res = await fetch(`/api/pr/${uuid}/report/xls`)
+      if (!res.ok) throw new Error('XLS generation failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `clip-report-${data.release.slug || uuid}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('XLS download error:', err)
+    } finally {
+      setXlsGenerating(false)
     }
   }
 
@@ -248,18 +269,32 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               Open public page
             </a>
           )}
-          <button
-            onClick={handleDownloadPdf}
-            disabled={pdfGenerating}
-            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {pdfGenerating ? (
-              <i className="fa-solid fa-spinner fa-spin text-red-500" aria-hidden="true" />
-            ) : (
-              <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" />
-            )}
-            {pdfGenerating ? 'Generating...' : 'Download PDF'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownloadXls}
+              disabled={xlsGenerating}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {xlsGenerating ? (
+                <i className="fa-solid fa-spinner fa-spin text-green-600" aria-hidden="true" />
+              ) : (
+                <i className="fa-solid fa-file-excel text-green-600" aria-hidden="true" />
+              )}
+              {xlsGenerating ? 'Generating...' : 'Download XLS'}
+            </button>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={pdfGenerating}
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {pdfGenerating ? (
+                <i className="fa-solid fa-spinner fa-spin text-red-500" aria-hidden="true" />
+              ) : (
+                <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" />
+              )}
+              {pdfGenerating ? 'Generating...' : 'Download PDF'}
+            </button>
+          </div>
         </div>
         <hr className="my-4 border-gray-200 dark:border-gray-800" />
       </div>
