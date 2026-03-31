@@ -2,6 +2,7 @@ import { db, eq, and, or, gt, lte, desc, releases } from '@/lib/db';
 import { baseUrl, newsUrl } from '@/lib/utils';
 import RSS from 'rss';
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // once an hour
 
 function getCategoryNames(categories: Array<{ category?: { name?: string } | null }>) {
