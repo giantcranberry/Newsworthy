@@ -120,7 +120,10 @@ export default async function EditorialReviewPage({ params }: PageProps) {
   return (
     <div className="space-y-6">
       <ReviewForm
-        release={data.release}
+        release={{
+          ...data.release,
+          adScreening: data.release.adScreening as { eligible: boolean; reason: string | null; categories: string[]; screenedAt: string } | null,
+        }}
         queue={data.queue}
         company={data.company}
         user={data.user}

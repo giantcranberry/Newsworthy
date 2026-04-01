@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
+import { AdCampaignCard } from '@/components/ads/ad-campaign-card'
 import Cropper, { Area } from 'react-easy-crop'
 import {
   Dialog,
@@ -1946,6 +1947,9 @@ export function EditorialEditForm({
           </Link>
         </div>
       </form>
+
+      {/* Ad Campaign Status */}
+      <AdCampaignCard releaseUuid={release.uuid} isEditorial={true} />
     </>
   )
 }

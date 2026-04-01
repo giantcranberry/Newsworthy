@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { releases } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getUserCompanyIds } from "@/lib/team-auth";
+import slugify from "slugify";
 
 // Decode HTML entities to their plain text equivalents
 function decodeEntities(html: string): string {
@@ -153,11 +154,17 @@ export async function POST(
       );
     }
 
-    // Handle title update
+    // Handle title update — also regenerate slug
     if (field === "title") {
+      const slug = slugify(improvedText, {
+        lower: true,
+        strict: true,
+        trim: true,
+      }).slice(0, 200);
+
       await db
         .update(releases)
-        .set({ title: improvedText })
+        .set({ title: improvedText, slug })
         .where(eq(releases.id, release.id));
 
       return NextResponse.json({ success: true });

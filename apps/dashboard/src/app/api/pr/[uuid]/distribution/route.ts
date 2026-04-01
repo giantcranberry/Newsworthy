@@ -1,11 +1,13 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, brandCredits, products } from '@/db/schema'
+import { releases, brandCredits, products, adCampaigns } from '@/db/schema'
 import { eq, and, sql, isNull, or } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { randomUUID } from 'crypto'
+import { screenAdContent, type AdScreeningResult } from '@/services/ad-content-screener'
 // Get the correct Stripe secret key based on environment
 function getStripeSecretKey(host: string): string | undefined {
   const isSandbox = host.includes('localhost') || host.includes('vercel.app')
@@ -96,8 +98,35 @@ export async function GET(
     // Get available products from database
     const availableProducts = await getAvailableProducts(partnerId)
 
+    // Check if any products are ads type - if so, run screening
+    const hasAdsProducts = availableProducts.some(p => p.productType === 'ads')
+    let adScreening: AdScreeningResult | null = null
+
+    if (hasAdsProducts) {
+      // Check for cached screening result
+      adScreening = release.adScreening as AdScreeningResult | null
+
+      if (!adScreening) {
+        // No cache — run AI screening and cache the result
+        adScreening = await screenAdContent({
+          title: release.title,
+          abstract: release.abstract,
+          body: release.body,
+        })
+
+        await db.update(releases)
+          .set({ adScreening })
+          .where(eq(releases.id, release.id))
+      }
+    }
+
+    // Filter out ads products if screening flagged them
+    const filteredProducts = adScreening?.eligible === false
+      ? availableProducts.filter(p => p.productType !== 'ads')
+      : availableProducts
+
     // Transform to expected format - use array to preserve order
-    const productList = availableProducts
+    const productList = filteredProducts
       .filter((p) => p.productType)
       .map((p) => ({
         id: p.id,
@@ -311,10 +340,35 @@ export async function POST(
         return NextResponse.json({ error: 'No products in payment' }, { status: 400 })
       }
 
-      // Update release distribution
+      // Update release distribution (exclude 'ads' from distribution string)
+      const distributionTypes = distribution.split(',').filter((t: string) => t !== 'ads')
+      const distributionStr = distributionTypes.length > 0 ? distributionTypes.join(',') : 'standard'
+
       await db.update(releases)
-        .set({ distribution })
+        .set({ distribution: distributionStr })
         .where(eq(releases.id, release.id))
+
+      // If 'ads' was purchased, create an ad_campaigns record
+      if (distribution.includes('ads')) {
+        const adsProduct = availableProducts.find(p => p.productType === 'ads')
+        // Budget = product price minus 25% markup, minimum $10
+        const adBudget = adsProduct ? Math.max(10, Math.round((adsProduct.price / 100) * 0.75)) : 10
+
+        try {
+          await db.insert(adCampaigns).values({
+            uuid: randomUUID(),
+            releaseId: release.id,
+            companyId: release.companyId,
+            userId,
+            budgetAmount: adBudget,
+            status: 'pending',
+            paymentIntentId,
+            paidAt: new Date(),
+          })
+        } catch (adError) {
+          console.error('[API] Failed to create ad campaign record:', adError)
+        }
+      }
 
       // Send receipt email
       const userEmail = session.user.email

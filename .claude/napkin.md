@@ -16,6 +16,7 @@
 | 2026-03-17 | self | Used `grid-flow-col` for search results layout — columns auto-sized causing variable text indentation | Use explicit `grid-cols-[235px_1fr]` instead of `grid-flow-col` when you need fixed column widths in a grid layout. |
 | 2026-03-19 | self | Drizzle `db.insert().values({}).catch()` — query may not execute reliably without `.execute()` | Always use `.execute()` before `.catch()` for fire-and-forget Drizzle inserts: `db.insert().values({}).execute().catch(...)` |
 | 2026-03-15 | self | `is_deleted` is `null` (not `false`) on many products rows — `eq(isDeleted, false)` misses them | Always use `or(eq(field, false), isNull(field))` for nullable boolean columns like `is_deleted`. Same pattern as `is_archived`. |
+| 2026-04-01 | self | Drizzle `jsonb()` columns return `unknown` type — passing them to typed component props causes TS error | Cast jsonb fields at the call site: `data.release.adScreening as MyType \| null`. Don't fight Drizzle's generic jsonb typing. |
 
 ## User Preferences
 - Use bun, not npm/yarn/node
@@ -54,6 +55,7 @@
 - Newsramp API (`reports.newsramp.net`) returns dynamic SVG logo URLs from `cdn.newsramp.app/storydesk/` and `cdn.newsramp.app/burstable/` paths. New placements can appear at any time with SVG logos. Always use `toPngUrl()` on placement logos in both web and PDF reports — it rewrites `cdn.newsramp.app/*.svg` → `.png`. When new SVGs appear, convert to PNG with `sharp({density:300})` and upload to same path with `.png` extension.
 
 ## Patterns That Work (continued)
+- Google Ads API (`google-ads-api` v23): Campaign uses `start_date_time`/`end_date_time` (not `start_date`), Maximize Clicks = `target_spend` (not `maximize_clicks`), create RSA via `adGroupAds.create` (not `ads.create`), keywords via `adGroupCriteria.create`
 - Community feature: community schema in `/src/db/schema/community.ts`, all tables use snake_case DB columns with camelCase JS fields
 - Large feature implementation: create schema first, then API routes, then pages/components. TypeScript catches integration issues early.
 - Chat polling pattern: active conversation polls every 5s, conversation list every 30s, header badge every 60s

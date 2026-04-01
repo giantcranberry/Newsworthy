@@ -44,6 +44,7 @@ export const releases = pgTable('releases', {
   status: varchar('status', { length: 10 }).default('start').notNull(),
   distribution: varchar('distribution', { length: 20 }),
   prhashId: varchar('prhash_id', { length: 42 }),
+  adScreening: jsonb('ad_screening'),
 })
 
 export const queue = pgTable('queue', {

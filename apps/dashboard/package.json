@@ -52,6 +52,7 @@
     "crisp-sdk-web": "^1.0.27",
     "drizzle-orm": "^0.45.1",
     "filestack-js": "^3.46.3",
+    "google-ads-api": "^23.0.0",
     "googleapis": "^171.4.0",
     "lucide-react": "^0.563.0",
     "mammoth": "^1.11.0",

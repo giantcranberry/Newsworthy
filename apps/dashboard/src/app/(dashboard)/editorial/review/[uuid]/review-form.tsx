@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw, Phone, Mail, Video, Link as LinkIcon, FolderOpen } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Loader2, User, Building2, Calendar, Clock, Tag, MapPin, Hand, RotateCcw, Phone, Mail, Video, Link as LinkIcon, FolderOpen, AlertCircle } from 'lucide-react'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
+import { AdCampaignCard } from '@/components/ads/ad-campaign-card'
 
 interface ReviewFormProps {
   release: {
@@ -29,6 +30,7 @@ interface ReviewFormProps {
     distribution: string | null
     score: number | null
     isFeatured: boolean | null
+    adScreening: { eligible: boolean; reason: string | null; categories: string[]; screenedAt: string } | null
   }
   queue: {
     id: number
@@ -80,6 +82,7 @@ export function ReviewForm({
   const [score, setScore] = useState(release.score && release.score >= 2 ? release.score.toString() : '4')
   const [distribution, setDistribution] = useState(release.distribution || 'standard')
   const [feature, setFeature] = useState(release.isFeatured ?? true)
+  const [adSpend, setAdSpend] = useState('')
 
   const handleCheckout = async () => {
     try {
@@ -152,6 +155,7 @@ export function ReviewForm({
           score: actionType === 'approve' ? score : undefined,
           distribution: actionType === 'approve' ? distribution : undefined,
           feature: actionType === 'approve' ? feature : undefined,
+          adSpend: actionType === 'approve' && adSpend ? parseInt(adSpend, 10) : undefined,
         }),
       })
 
@@ -407,6 +411,9 @@ export function ReviewForm({
         />
       </Card>
 
+      {/* Ad Campaign Status */}
+      <AdCampaignCard releaseUuid={release.uuid} isEditorial={true} />
+
       {/* Review Actions */}
       {canAct && (
         <>
@@ -456,6 +463,32 @@ export function ReviewForm({
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">Feature Release</span>
                 </label>
+              </div>
+
+              <div>
+                <Label htmlFor="adSpend">Google Ads Spend (optional)</Label>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-gray-500">$</span>
+                  <input
+                    id="adSpend"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={adSpend}
+                    onChange={(e) => setAdSpend(e.target.value)}
+                    placeholder="e.g. 11"
+                    className="w-32 h-9 px-3 border border-gray-300 dark:border-gray-700 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-cyan-700 focus:border-cyan-700"
+                  />
+                  <span className="text-xs text-gray-400">Leave blank for no ad campaign</span>
+                </div>
+                {release.adScreening?.eligible === false && (
+                  <div className="mt-2 flex items-start gap-2 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                      AI screening flagged this content as potentially ineligible for Google Ads: {release.adScreening.reason || 'Content may violate Google Ads policies'}. Google may disapprove this ad.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>

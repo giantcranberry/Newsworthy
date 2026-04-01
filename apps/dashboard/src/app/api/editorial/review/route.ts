@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles, postQueue, releaseOptions, releaseCategories, releaseRegions, company, images, banners, partners } from '@/db/schema'
+import { queue, releases, releaseNotes, releaseEnhanced, users, userProfiles, postQueue, releaseOptions, releaseCategories, releaseRegions, company, images, banners, partners, adCampaigns } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { sendEmail } from '@/lib/email'
 import { createSystemMessage } from '@/lib/messages'
@@ -10,6 +10,7 @@ import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/go
 import { getPostHog } from '@/lib/posthog'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { indexDocument, updateDocument } from '@/lib/opensearch'
+import { randomUUID } from 'crypto'
 
 const CIRCUITS: Record<string, number[]> = {
   hr: [29, 34, 216, 217, 218, 219, 221, 254, 260],
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { releaseId, queueId, action, notes, editorId, editorName, score, distribution, feature } = body
+    const { releaseId, queueId, action, notes, editorId, editorName, score, distribution, feature, adSpend } = body
 
     const now = new Date()
 
@@ -330,6 +331,57 @@ export async function POST(request: NextRequest) {
         }
       } catch (err) {
         console.error('Failed to create post_queue records:', err)
+      }
+
+      // Google Ads campaign: create if editor specified ad spend, or launch if user already purchased
+      try {
+        const [existingAd] = await db
+          .select()
+          .from(adCampaigns)
+          .where(eq(adCampaigns.releaseId, releaseId))
+          .limit(1)
+
+        const [rel2] = await db
+          .select({ uuid: releases.uuid, userId: releases.userId, companyId: releases.companyId })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+
+        // If editor specified ad spend and no campaign exists, create one
+        if (adSpend && adSpend > 0 && !existingAd && rel2) {
+          await db.insert(adCampaigns).values({
+            uuid: randomUUID(),
+            releaseId,
+            companyId: rel2.companyId,
+            userId: rel2.userId,
+            budgetAmount: adSpend,
+            status: 'pending',
+          })
+        }
+
+        // If editor specified ad spend and campaign exists, update the budget
+        if (adSpend && adSpend > 0 && existingAd) {
+          await db.update(adCampaigns)
+            .set({ budgetAmount: adSpend, updatedAt: now })
+            .where(eq(adCampaigns.id, existingAd.id))
+        }
+
+        // Launch the campaign (existing or newly created)
+        const [adToLaunch] = await db
+          .select()
+          .from(adCampaigns)
+          .where(eq(adCampaigns.releaseId, releaseId))
+          .limit(1)
+
+        if (adToLaunch && adToLaunch.status === 'pending' && rel2?.uuid) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+          fetch(`${appUrl}/api/pr/${rel2.uuid}/ads`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Cookie: request.headers.get('cookie') || '' },
+            body: JSON.stringify({ action: 'launch' }),
+          }).catch(err => console.error('[Ads] Failed to trigger ad campaign launch:', err))
+        }
+      } catch (err) {
+        console.error('[Ads] Error processing ad campaign:', err)
       }
 
       getPostHog().capture({

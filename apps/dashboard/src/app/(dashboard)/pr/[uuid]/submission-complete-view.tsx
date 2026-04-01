@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { PreviewPanel } from '@/components/pr-wizard/preview-panel'
 import { RetractReleaseButton } from '../retract-release-button'
+import { AdCampaignCard } from '@/components/ads/ad-campaign-card'
 
 interface PreviewData {
   title: string | null
@@ -64,6 +65,9 @@ export function SubmissionCompleteView({ releaseUuid, releaseTitle, canRetract }
           <RetractReleaseButton uuid={releaseUuid} title={releaseTitle} />
         )}
       </div>
+
+      {/* Ad Campaign Status */}
+      <AdCampaignCard releaseUuid={releaseUuid} />
 
       <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800">
