@@ -1,11 +1,14 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+
+const GOOGLE_ADS_ID = "AW-17934303480";
 
 export const revalidate = 3600;
 
@@ -34,6 +37,24 @@ export const metadata: Metadata = {
 export default function CampaignsPage() {
   return (
     <>
+      {/* Google Ads Remarketing tag */}
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+      />
+      <Script
+        id="google-ads-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ADS_ID}');
+          `,
+        }}
+      />
+
       {/* ── Section 1: Hero ── */}
       <section className="bg-gradient-to-b from-sky-50 to-white">
         <div className="mx-auto max-w-screen-xl px-5 py-16 lg:py-24">
