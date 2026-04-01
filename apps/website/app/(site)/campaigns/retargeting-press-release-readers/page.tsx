@@ -16,11 +16,11 @@ const BOOKING_URL = "https://tidycal.com/newsmarketer/30-minute-meeting";
 export const metadata: Metadata = {
   title: "Retarget Press Release Readers | News Marketing by Newsworthy.ai",
   description:
-    "Turn press release readers into customers with retargeting. The first PR platform with built-in retargeting pixels. Start free.",
+    "Turn press release readers into customers with retargeting. The first press release newswire with built-in retargeting pixels. Start free.",
   openGraph: {
     title: "Retarget Press Release Readers | News Marketing by Newsworthy.ai",
     description:
-      "Turn press release readers into customers with retargeting. The first PR platform with built-in retargeting pixels. Start free.",
+      "Turn press release readers into customers with retargeting. The first press release newswire with built-in retargeting pixels. Start free.",
     images: [
       {
         url: "https://newsworthy.ai/nw-social-image.jpg",
@@ -41,7 +41,7 @@ export default function CampaignsPage() {
             {/* Copy */}
             <div className="flex-1 text-center lg:text-left">
               <p className="text-sm font-bold uppercase tracking-widest text-cyan-700 mb-4">
-                A News Marketing Innovation
+                Another News Marketing Innovation
               </p>
               <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight">
                 Press Releases That Pay&nbsp;For&nbsp;Themselves
@@ -50,7 +50,7 @@ export default function CampaignsPage() {
                 Retarget every reader. Measure every click. Close more deals.
               </p>
               <p className="mt-4 text-lg text-gray-600 max-w-lg mx-auto lg:mx-0">
-                The first press release platform with built-in retargeting. Turn
+                The first press release newswire with built-in retargeting. Turn
                 the people who read your news into customers — with ads that
                 follow up automatically.
               </p>
@@ -218,7 +218,7 @@ export default function CampaignsPage() {
                 step: 3,
                 title: "Retarget & Convert",
                 description:
-                  "Run follow-up ads on Google, Meta, LinkedIn, and more. Nurture warm leads who already showed interest in your news.",
+                  "Run follow-up ads on Google, Meta, Reddit, and more. Nurture warm leads who already showed interest in your news.",
               },
             ].map((item) => (
               <div
@@ -269,7 +269,7 @@ export default function CampaignsPage() {
                 stat: "1st",
                 label: "Only Platform",
                 description:
-                  "Newsworthy is the first and only press release platform with built-in retargeting pixel support.",
+                  "Newsworthy is the first and only press release newswire with built-in retargeting pixel support.",
               },
             ].map((item) => (
               <div
@@ -303,10 +303,11 @@ export default function CampaignsPage() {
                   How does the retargeting pixel work?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-600">
-                  You add your Google/Meta/LinkedIn pixel to your Newsworthy
-                  newsroom. When readers visit your press releases, the pixel
-                  fires and adds them to your retargeting audience — just like it
-                  would on your own website.
+                  You add your Google Ads, Meta, or Reddit pixel to your
+                  Newsworthy newsroom. We also support Google Tag Manager,
+                  Microsoft Clarity, and HubSpot. When readers visit your press
+                  releases, the pixel fires and adds them to your retargeting
+                  audience — just like it would on your own website.
                 </AccordionContent>
               </AccordionItem>
 
@@ -315,9 +316,9 @@ export default function CampaignsPage() {
                   Which ad platforms can I retarget on?
                 </AccordionTrigger>
                 <AccordionContent className="text-gray-600">
-                  Any platform that supports retargeting pixels: Google Ads, Meta
-                  (Facebook and Instagram), LinkedIn, Twitter/X, and more. If it
-                  uses a JavaScript pixel, it works with Newsworthy.
+                  We currently support Google Ads Remarketing, Meta (Facebook
+                  and Instagram) Pixel, Reddit Pixel, Google Tag Manager,
+                  Microsoft Clarity, and HubSpot. More platforms coming soon.
                 </AccordionContent>
               </AccordionItem>
 

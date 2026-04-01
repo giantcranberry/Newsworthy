@@ -1,0 +1,69 @@
+<h2>Landing Page Structure</h2>
+<p class="subtitle">Which page flow feels right for converting marketing managers?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 20px; background: #f8fafc; font-family: monospace; font-size: 12px; line-height: 2;">
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px; margin-bottom: 8px;">HERO: Bold headline + subhead + dual CTA</div>
+        <div style="background: #e0f2fe; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">Pain Point: "Your PR readers disappear"</div>
+        <div style="background: #f0fdf4; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">Solution: How retargeting works (3 steps)</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+          <div style="background: #fef3c7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Benefit 1</div>
+          <div style="background: #fef3c7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Benefit 2</div>
+          <div style="background: #fef3c7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Benefit 3</div>
+        </div>
+        <div style="background: #f5f3ff; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">Social Proof / Testimonial</div>
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px;">DUAL CTA: Register Free | Book Meeting</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Classic Funnel</h3>
+      <p>Linear scroll: Hero &rarr; Problem &rarr; Solution &rarr; Benefits &rarr; Social Proof &rarr; CTA. Clean, proven conversion pattern. Dual CTA in hero and bottom.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 20px; background: #f8fafc; font-family: monospace; font-size: 12px; line-height: 2;">
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px; margin-bottom: 8px;">HERO: Headline + animated flow diagram</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+          <div style="background: #fee2e2; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">OLD WAY<br/>Publish &rarr; hope</div>
+          <div style="background: #dcfce7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">NEW WAY<br/>Publish &rarr; retarget &rarr; convert</div>
+        </div>
+        <div style="background: #e0f2fe; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">3-Step Visual Process (icon cards)</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+          <div style="background: #fef3c7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Stat: "82% never return"</div>
+          <div style="background: #fef3c7; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Stat: "3x higher intent"</div>
+        </div>
+        <div style="background: #f5f3ff; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">FAQ Accordion</div>
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px;">SPLIT CTA: Two equal cards side by side</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: Before/After Contrast</h3>
+      <p>Leads with old way vs new way comparison. Visual process steps. Stats for credibility. FAQ section handles objections. Split CTA cards at bottom.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 20px; background: #f8fafc; font-family: monospace; font-size: 12px; line-height: 2;">
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px; margin-bottom: 8px;">HERO: Bold claim + CTA sticky bar</div>
+        <div style="background: #e0f2fe; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">"The Problem" — narrative storytelling</div>
+        <div style="background: #dcfce7; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">"The Breakthrough" — News Marketing intro</div>
+        <div style="background: #fef3c7; padding: 8px; border-radius: 4px; margin-bottom: 8px; text-align: center;">How It Works — vertical timeline</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+          <div style="background: #f5f3ff; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Use Case 1</div>
+          <div style="background: #f5f3ff; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Use Case 2</div>
+          <div style="background: #f5f3ff; padding: 8px; border-radius: 4px; text-align: center; font-size: 11px;">Use Case 3</div>
+        </div>
+        <div style="background: #0e7490; color: white; padding: 12px; text-align: center; border-radius: 4px;">STICKY BAR CTA (always visible)</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C: Story-Driven</h3>
+      <p>Narrative flow with sticky CTA bar that's always visible. More editorial/storytelling approach. Use cases section to help visitors self-identify. Higher word count but more persuasive.</p>
+    </div>
+  </div>
+</div>
