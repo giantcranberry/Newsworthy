@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation'
+import Script from 'next/script'
 import { auth, getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { company, companyMembers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { DashboardShell } from './dashboard-shell'
+
+const GOOGLE_ADS_ID = 'AW-18056538801'
 
 async function canUserCreateContent(userId: number): Promise<boolean> {
   // User can create content if they own any company
@@ -38,5 +41,25 @@ export default async function DashboardLayout({
   const userId = parseInt(effectiveSession?.user?.id || '0')
   const canCreate = userId > 0 ? await canUserCreateContent(userId) : true
 
-  return <DashboardShell canCreateContent={canCreate}>{children}</DashboardShell>
+  return (
+    <>
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+      />
+      <Script
+        id="google-ads-dashboard"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GOOGLE_ADS_ID}');
+          `,
+        }}
+      />
+      <DashboardShell canCreateContent={canCreate}>{children}</DashboardShell>
+    </>
+  )
 }

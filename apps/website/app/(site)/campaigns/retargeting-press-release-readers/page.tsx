@@ -8,7 +8,7 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 
-const GOOGLE_ADS_ID = "AW-17934303480";
+const GOOGLE_ADS_ID = "AW-18056538801";
 
 export const revalidate = 3600;
 

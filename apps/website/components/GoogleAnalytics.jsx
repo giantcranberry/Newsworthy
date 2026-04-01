@@ -23,6 +23,7 @@ const GoogleAnalytics = () => {
                         gtag('config', '${gtag.GA_TRACKING_ID}', {
                         page_path: window.location.pathname,
                         });
+                        gtag('config', 'AW-18056538801');
                         `,
                 }}
             />
