@@ -18,13 +18,14 @@ import FreePrReview from "@/components/free-pr-review";
 
 export const revalidate = 0;
 
-const currentDatetime = new Date();
-const oneHourAgo = new Date(currentDatetime.getTime() - 60 * 60 * 1000);
 type Props = {
   searchParams: Promise<{ page?: string }>;
 };
 
 export default async function Home({ searchParams }: Props) {
+  const currentDatetime = new Date();
+  const fourHoursAgo = new Date(currentDatetime.getTime() - 4 * 60 * 60 * 1000);
+
   const resolvedSearchParams = await searchParams;
   const page = Number(resolvedSearchParams.page) || 1;
   const itemsPerPage = 20;
@@ -32,9 +33,6 @@ export default async function Home({ searchParams }: Props) {
 
   const bands = await getCategorySections(sectionSlugs);
   const band_count = bands.length;
-
-
-  const fourHoursAgo = new Date(new Date().getTime() - 4 * 60 * 60 * 1000);
 
   // Get total count for pagination
   const [{ count: totalCount }] = await db.select({ count: count() }).from(releases).where(
@@ -44,7 +42,6 @@ export default async function Home({ searchParams }: Props) {
         and(
           lte(releases.releasedAt, currentDatetime),
           gt(releases.score, 3),
-          eq(releases.isFeatured, true),
         ),
         and(
           gt(releases.releasedAt, fourHoursAgo),
@@ -94,7 +91,6 @@ export default async function Home({ searchParams }: Props) {
         and(
           lte(releases.releasedAt, currentDatetime),
           gt(releases.score, 3),
-          eq(releases.isFeatured, true),
         ),
         and(
           gt(releases.releasedAt, fourHoursAgo),

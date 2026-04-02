@@ -31,7 +31,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { releaseId, queueId, action, notes, editorId, editorName, score, distribution, feature, adSpend } = body
+    const { releaseId, queueId, action, notes, score, distribution, feature, adSpend } = body
+
+    // Use session user for editor identity — never trust client-supplied values
+    const editorId = (session?.user as any)?.id
+    const editorName = (session?.user as any)?.name || 'Editor'
 
     const now = new Date()
 
@@ -46,13 +50,14 @@ export async function POST(request: NextRequest) {
         .where(eq(queue.id, queueId))
 
       // Update release status to approved with score, distribution, feature
+      const parsedScore = score ? Math.max(2, Math.min(5, parseInt(score, 10))) : 4
       await db.update(releases)
         .set({
           status: 'approved',
           approvedAt: now,
-          score: score ? Math.max(2, Math.min(5, parseInt(score, 10))) : 4,
+          score: parsedScore,
           distribution: distribution || 'standard',
-          isFeatured: feature || false,
+          isFeatured: parsedScore >= 4 ? true : (feature || false),
         })
         .where(eq(releases.id, releaseId))
 

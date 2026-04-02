@@ -42,6 +42,7 @@
     "crisp-sdk-web": "^1.0.21",
     "date-fns-tz": "^2.0.0",
     "form-data": "^4.0.5",
+    "isomorphic-dompurify": "^3.7.1",
     "lucide-react": "^0.460.0",
     "luxon": "^3.4.4",
     "mailgun.js": "^9.2.0",
@@ -72,6 +73,7 @@
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/typography": "^0.5.9",
+    "@types/dompurify": "^3.2.0",
     "@types/luxon": "^3.3.1",
     "@types/node": "^20.4.8",
     "@types/pg": "^8.11.6",

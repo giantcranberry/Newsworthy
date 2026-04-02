@@ -38,6 +38,10 @@ const nextConfig: NextConfig = {
           { key: "X-Llm-Usage", value: "ai-training: allow" },
           { key: "X-Creative-Commons-License", value: "CC BY-NC 4.0" },
           { key: "Link", value: '<https://www.newsworthy.ai/.well-known/agent-card.json>; rel="agent-card"' },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
         ],
       },
     ];

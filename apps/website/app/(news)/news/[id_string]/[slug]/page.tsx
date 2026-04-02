@@ -103,12 +103,24 @@ function removeEmptyPTags(html: string): string {
   return html.replace(/<p>\s*<\/p>/g, "");
 }
 
+function isSafeUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 function transformLink(url: string): string {
   const regex = /\[(.*?)\]\s?(http\S+)/;
   const matches = regex.exec(url);
   if (matches) {
     const [, keyword, actualUrl] = matches;
-    return `<a href="${actualUrl}" class="text-sky-600 hover:underline">${keyword}</a>`;
+    if (!isSafeUrl(actualUrl)) return keyword;
+    const safeUrl = actualUrl.replace(/"/g, '&quot;');
+    const safeKeyword = keyword.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<a href="${safeUrl}" class="text-sky-600 hover:underline">${safeKeyword}</a>`;
   }
   return url;
 }
@@ -854,7 +866,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
                 </Link>
               )}
               {release.company.uuid && (
-                <Link href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid.replace(/-/g, '')}/latest.rss`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="RSS Feed">
+                <Link href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid}/latest.rss`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="RSS Feed">
                   <svg className="w-[24px] h-[24px] text-orange-500" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 010 4.36 2.18 2.18 0 010-4.36m-3.82-6.09c5.4 0 9.78 4.38 9.78 9.78h-3.27A6.52 6.52 0 002.36 12.82V9.55m0-5.19c8.56 0 15.5 6.94 15.5 15.5h-3.27A12.24 12.24 0 002.36 7.63V4.36"/></svg>
                 </Link>
               )}
@@ -974,14 +986,14 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   __html: transformLink(release.landingPage),
                 }}
               />
-            ) : (
+            ) : isSafeUrl(release.landingPage) ? (
               <Link
                 href={release.landingPage}
                 className="mt-3 text-sky-600 hover:underline clear-both block"
               >
                 Additional Information
               </Link>
-            ))}
+            ) : null)}
 
           {/* FAQs */}
           {release.faqs && release.faqs.length > 0 && (
@@ -1203,7 +1215,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
             )}
             {release.company.uuid && (
               <Link
-                href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid.replace(/-/g, '')}/latest.rss`}
+                href={`https://app.newsworthy.ai/feeds/company/${release.company.uuid}/latest.rss`}
                 className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"

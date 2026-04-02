@@ -16,11 +16,22 @@ export async function GET(request: NextRequest) {
 
   if (!token || !ssoSecret) {
     console.log('[SSO Callback] Missing token or secret')
-    return NextResponse.redirect(next || fallbackUrl)
+    return NextResponse.redirect(fallbackUrl)
   }
 
-  // Validate next URL to prevent open redirect
-  const redirectUrl = next && dashboardUrl && next.startsWith(dashboardUrl) ? next : fallbackUrl
+  // Validate next URL to prevent open redirect — compare hostnames exactly
+  let redirectUrl = fallbackUrl
+  if (next && dashboardUrl) {
+    try {
+      const nextParsed = new URL(next)
+      const dashParsed = new URL(dashboardUrl)
+      if (nextParsed.hostname === dashParsed.hostname && (nextParsed.protocol === 'https:' || nextParsed.protocol === 'http:')) {
+        redirectUrl = next
+      }
+    } catch {
+      // Invalid URL, use fallback
+    }
+  }
 
   try {
     // Split token into payload and signature

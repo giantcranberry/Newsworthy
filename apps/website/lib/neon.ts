@@ -17,10 +17,10 @@ function getPool(): Pool {
 
 export { getPool };
 
-export async function runQuery<T>(query: string): Promise<T[]> {
+export async function runQuery<T>(query: string, params: any[] = []): Promise<T[]> {
   const client = await getPool().connect();
   try {
-    const res = await client.query(query);
+    const res = await client.query(query, params);
     return res.rows;
   } finally {
     client.release();

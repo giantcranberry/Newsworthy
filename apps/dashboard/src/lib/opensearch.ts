@@ -15,7 +15,7 @@ function getClient(): Client {
     client = new Client({
       node: host,
       auth: { username: user, password: pass },
-      ssl: { rejectUnauthorized: false },
+      ssl: { rejectUnauthorized: process.env.OPENSEARCH_SKIP_SSL_VERIFY !== 'true' },
     })
   }
   return client

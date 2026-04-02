@@ -39,8 +39,8 @@ export async function getSitemapArticleUrls(year: number, month: number) {
     INNER JOIN feeditem f ON f.id = a.feed_item_id
     INNER JOIN tldr t ON t.feed_item_id = a.feed_item_id
     WHERE f.deleted_at IS NULL
-    AND EXTRACT(YEAR FROM f.published) = ${year}
-    AND EXTRACT(MONTH FROM f.published) = ${month}
+    AND EXTRACT(YEAR FROM f.published) = $1
+    AND EXTRACT(MONTH FROM f.published) = $2
     AND a.target = 'newsworthy.ai'
     ORDER BY released_at DESC
     `;
@@ -48,7 +48,7 @@ export async function getSitemapArticleUrls(year: number, month: number) {
     id: number;
     released_at: Date;
     title: string;
-  }>(query);
+  }>(query, [year, month]);
   return result.map(({ title, id, released_at }) => ({
     title,
     id,
@@ -67,7 +67,7 @@ export async function getRecentArticles(hoursAgo: number = 48) {
     INNER JOIN tldr t ON t.feed_item_id = a.feed_item_id
     WHERE f.deleted_at IS NULL
       AND a.target = 'newsworthy.ai'
-      AND f.published >= NOW() - INTERVAL '${hoursAgo} hours'
+      AND f.published >= NOW() - make_interval(hours => $1)
       AND f.published <= NOW()
     ORDER BY f.published DESC
   `;
@@ -75,7 +75,7 @@ export async function getRecentArticles(hoursAgo: number = 48) {
     id: number;
     released_at: Date;
     title: string;
-  }>(query);
+  }>(query, [hoursAgo]);
   return result.map(({ title, id, released_at }) => ({
     title,
     id,
@@ -122,11 +122,11 @@ export async function getArticles(page: number = 1, limit: number = 30): Promise
     WHERE f.deleted_at IS NULL
       AND a.target = 'newsworthy.ai'
     ORDER BY a.created_at DESC
-    LIMIT ${limit}
-    OFFSET ${offset}
+    LIMIT $1
+    OFFSET $2
     `;
 
-  return await runQuery<Article>(query);
+  return await runQuery<Article>(query, [limit, offset]);
 }
 
 export async function getArticleById(

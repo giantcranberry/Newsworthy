@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { communityPosts, communityPostImages, communityBoards, users, userProfiles } from '@/db/schema'
-import { eq, sql, asc } from 'drizzle-orm'
+import { communityPosts, communityPostImages, communityBoards, users, userProfiles, company, companyMembers } from '@/db/schema'
+import { eq, and, or, sql, asc } from 'drizzle-orm'
 import { deleteCommunityImage } from '@/services/s3'
 
 
@@ -92,7 +92,27 @@ export async function PATCH(
   const updates: Record<string, any> = { updatedAt: new Date() }
   if (body.body !== undefined) updates.body = body.body
   if (body.visibility !== undefined) updates.visibility = body.visibility
-  if (body.visibilityCompanyId !== undefined) updates.visibilityCompanyId = body.visibilityCompanyId
+  if (body.visibilityCompanyId !== undefined) {
+    // Validate that the user has access to the target company
+    if (!isAdmin && body.visibilityCompanyId) {
+      const [ownedCompany] = await db
+        .select({ id: company.id })
+        .from(company)
+        .where(and(eq(company.id, body.visibilityCompanyId), eq(company.userId, userId)))
+        .limit(1)
+
+      const [memberCompany] = !ownedCompany ? await db
+        .select({ id: companyMembers.id })
+        .from(companyMembers)
+        .where(and(eq(companyMembers.companyId, body.visibilityCompanyId), eq(companyMembers.userId, userId)))
+        .limit(1) : [{ id: ownedCompany.id }]
+
+      if (!memberCompany) {
+        return NextResponse.json({ error: 'You do not have access to this company' }, { status: 403 })
+      }
+    }
+    updates.visibilityCompanyId = body.visibilityCompanyId
+  }
   if (body.boardId !== undefined && isAdmin) updates.boardId = body.boardId
 
   const [updated] = await db
