@@ -48,7 +48,7 @@ async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: 
     .select()
     .from(users)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(users.createdAt))
+    .orderBy(desc(users.id))
     .limit(100)
 }
 
