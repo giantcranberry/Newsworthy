@@ -26,7 +26,18 @@ import {
   RefreshCw,
   CheckCircle,
   Undo2,
+  ChevronDown,
+  Save,
+  Braces,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -71,8 +82,23 @@ interface ReviewContentProps {
     landingPage: string | null;
   };
   company: {
+    uuid: string | null;
     logoUrl: string | null;
     companyName: string | null;
+    website: string | null;
+    phone: string | null;
+    email: string | null;
+    city: string | null;
+    state: string | null;
+    postalCode: string | null;
+    countryCode: string | null;
+    addr1: string | null;
+    linkedinUrl: string | null;
+    xUrl: string | null;
+    youtubeUrl: string | null;
+    instagramUrl: string | null;
+    blogUrl: string | null;
+    seo: Record<string, any> | null;
   };
   contact: {
     name: string | null;
@@ -109,6 +135,261 @@ interface ChecklistItem {
   completed: boolean;
   icon: React.ComponentType<{ className?: string }>;
   editPath?: string;
+}
+
+interface SchemaField {
+  key: string;
+  label: string;
+  category: "critical" | "recommended" | "aio";
+  type: "text" | "url" | "textarea";
+  placeholder: string;
+}
+
+const SCHEMA_FIELDS: SchemaField[] = [
+  { key: "website", label: "Website URL", category: "critical", type: "url", placeholder: "https://yourcompany.com" },
+  { key: "logoUrl", label: "Logo URL", category: "critical", type: "url", placeholder: "https://cdn.example.com/logo.png" },
+  { key: "phone", label: "Phone", category: "recommended", type: "text", placeholder: "+1 (555) 123-4567" },
+  { key: "email", label: "Email", category: "recommended", type: "text", placeholder: "press@company.com" },
+  { key: "city", label: "City", category: "recommended", type: "text", placeholder: "San Francisco" },
+  { key: "state", label: "State", category: "recommended", type: "text", placeholder: "CA" },
+  { key: "linkedinUrl", label: "LinkedIn URL", category: "recommended", type: "url", placeholder: "https://linkedin.com/company/..." },
+  { key: "xUrl", label: "X (Twitter) URL", category: "recommended", type: "url", placeholder: "https://x.com/..." },
+  { key: "companySummary", label: "Company Summary (AIO)", category: "aio", type: "textarea", placeholder: "A factual summary of your company for AI consumption..." },
+];
+
+function SchemaSection({ company }: { company: ReviewContentProps["company"] }) {
+  const initialMissingCount = useMemo(() => {
+    return SCHEMA_FIELDS.filter((field) => {
+      if (field.key === "companySummary") return !(company.seo?.aio?.companySummary);
+      return !company[field.key as keyof typeof company];
+    }).length;
+  }, [company]);
+  const [isOpen, setIsOpen] = useState(initialMissingCount > 1);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, string>>({});
+
+  const companySummary = company.seo?.aio?.companySummary || "";
+
+  const missingFields = useMemo(() => {
+    return SCHEMA_FIELDS.filter((field) => {
+      if (field.key === "companySummary") return !companySummary;
+      const value = company[field.key as keyof typeof company];
+      return !value;
+    });
+  }, [company, companySummary]);
+
+  const hasSocial = !!(company.linkedinUrl || company.xUrl);
+  const totalFieldCount = SCHEMA_FIELDS.length;
+  const completedCount = totalFieldCount - missingFields.length;
+  const isComplete = missingFields.length === 0;
+
+  // Auto-expand if there are missing fields
+  const criticalMissing = missingFields.filter((f) => f.category === "critical");
+  const recommendedMissing = missingFields.filter((f) => f.category === "recommended");
+  const aioMissing = missingFields.filter((f) => f.category === "aio");
+
+  const handleFieldChange = (key: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+    setSaveSuccess(false);
+    setSaveError(null);
+  };
+
+  const handleSave = async () => {
+    if (!company.uuid) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    try {
+      const response = await fetch(`/api/company/${company.uuid}/schema-fields`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to save");
+      }
+
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const hasChanges = Object.keys(formData).length > 0;
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div
+        className={cn(
+          "rounded-lg border",
+          isComplete
+            ? "border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/20"
+            : criticalMissing.length > 0
+              ? "border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/30"
+              : "border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/20"
+        )}
+      >
+        <CollapsibleTrigger asChild>
+          <button className="flex items-center justify-between w-full p-4 text-left">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "p-2 rounded-full",
+                  isComplete
+                    ? "bg-teal-100 dark:bg-teal-900/30"
+                    : "bg-teal-100 dark:bg-teal-900/30"
+                )}
+              >
+                {isComplete ? (
+                  <CheckCircle className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                ) : (
+                  <Braces className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold text-teal-900 dark:text-teal-100">
+                  Schema &amp; Structured Data
+                </h3>
+                <p className="text-sm text-teal-700 dark:text-teal-400">
+                  {isComplete
+                    ? "All schema fields are complete"
+                    : `${completedCount}/${totalFieldCount} fields complete — ${missingFields.length} missing`}
+                </p>
+              </div>
+            </div>
+            <ChevronDown
+              className={cn(
+                "h-5 w-5 text-teal-600 dark:text-teal-400 transition-transform",
+                isOpen && "rotate-180"
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="px-4 pb-4 space-y-4">
+            {isComplete ? (
+              <p className="text-sm text-teal-700 dark:text-teal-400">
+                Your brand&apos;s structured data (JSON-LD) is complete. Search engines and AI systems can fully identify your organization.
+              </p>
+            ) : (
+              <>
+                <p className="text-sm text-teal-700 dark:text-teal-400">
+                  Fill in the missing fields below to improve your press release&apos;s structured data. These values will be saved to your brand settings.
+                </p>
+
+                {criticalMissing.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
+                      Critical — Required for schema
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {criticalMissing.map((field) => (
+                        <div key={field.key} className="space-y-1">
+                          <Label htmlFor={`schema-${field.key}`} className="text-sm text-teal-800 dark:text-teal-300">
+                            {field.label}
+                          </Label>
+                          <Input
+                            id={`schema-${field.key}`}
+                            type={field.type === "url" ? "url" : "text"}
+                            value={formData[field.key] || ""}
+                            onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                            placeholder={field.placeholder}
+                            className="bg-white dark:bg-gray-900"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {recommendedMissing.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
+                      Recommended
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {recommendedMissing.map((field) => (
+                        <div key={field.key} className="space-y-1">
+                          <Label htmlFor={`schema-${field.key}`} className="text-sm text-teal-800 dark:text-teal-300">
+                            {field.label}
+                          </Label>
+                          <Input
+                            id={`schema-${field.key}`}
+                            type={field.type === "url" ? "url" : "text"}
+                            value={formData[field.key] || ""}
+                            onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                            placeholder={field.placeholder}
+                            className="bg-white dark:bg-gray-900"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {aioMissing.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
+                      AI Optimization
+                    </h4>
+                    {aioMissing.map((field) => (
+                      <div key={field.key} className="space-y-1">
+                        <Label htmlFor={`schema-${field.key}`} className="text-sm text-teal-800 dark:text-teal-300">
+                          {field.label}
+                        </Label>
+                        <Textarea
+                          id={`schema-${field.key}`}
+                          value={formData[field.key] || ""}
+                          onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                          placeholder={field.placeholder}
+                          rows={3}
+                          className="bg-white dark:bg-gray-900"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {saveError && (
+                  <p className="text-sm text-red-600 dark:text-red-400">{saveError}</p>
+                )}
+                {saveSuccess && (
+                  <p className="text-sm text-teal-700 dark:text-teal-400 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" />
+                    Saved to brand settings
+                  </p>
+                )}
+
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={isSaving || !hasChanges}
+                  className="bg-teal-600 hover:bg-teal-700 text-white"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  {isSaving ? "Saving..." : "Save to Brand"}
+                </Button>
+              </>
+            )}
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
 }
 
 export function ReviewContent({
@@ -745,6 +1026,9 @@ export function ReviewContent({
           </CardContent>
         </Card>
       )}
+
+      {/* Schema & Structured Data */}
+      <SchemaSection company={company} />
 
       {/* Summary Stats */}
       <Card>

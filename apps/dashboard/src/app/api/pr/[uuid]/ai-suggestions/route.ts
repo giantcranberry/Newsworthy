@@ -159,6 +159,10 @@ Rate the press release on three dimensions, each scored 1-10:
 
 For each score, provide a 1-2 sentence justification.
 
+IMPORTANT: Use the full 1-10 range for scores. Do NOT default to middle scores.
+A score of 9-10 means exceptional quality. A score of 4-5 means average.
+A score of 1-3 means significant issues. Base scores entirely on the actual content quality.
+
 Format your response as JSON with this exact structure:
 {
   "suggestions": [
@@ -185,11 +189,11 @@ Format your response as JSON with this exact structure:
       "reason": "Brief explanation of why this change improves the copy"
     }
   ],
-  "seoScore": 7,
+  "seoScore": "<integer 1-10>",
   "seoScoreReason": "Brief justification for the SEO score",
-  "aiTrainingScore": 6,
+  "aiTrainingScore": "<integer 1-10>",
   "aiTrainingScoreReason": "Brief justification for the AI Training score",
-  "aiGroundingScore": 7,
+  "aiGroundingScore": "<integer 1-10>",
   "aiGroundingScoreReason": "Brief justification for the AI Grounding score"
 }`
 

@@ -5,7 +5,8 @@
  * 1. Downgrade headings: h1 → h2, h2 → h3 (body should use h3+ only)
  * 2. Ensure all href URLs start with https://
  * 3. Remove ### end-of-release markers
- * 4. Replace em-dash (—) and en-dash (–) with hyphen (-)
+ * 4. Remove horizontal rules (--- and <hr> tags)
+ * 5. Replace em-dash (—) and en-dash (–) with hyphen (-)
  */
 export function sanitizeReleaseBody(html: string): string {
   let result = html
@@ -27,7 +28,11 @@ export function sanitizeReleaseBody(html: string): string {
   result = result.replace(/\s*#{3}\s*/g, '')
   result = result.replace(/\s*#\s+#\s+#\s*/g, '')
 
-  // 4. Replace em-dash and en-dash with hyphen
+  // 4. Remove horizontal rules (<hr> tags and --- in <p> tags)
+  result = result.replace(/<hr\s*\/?>/gi, '')
+  result = result.replace(/<p[^>]*>\s*-{3,}\s*<\/p>/gi, '')
+
+  // 5. Replace em-dash and en-dash with hyphen
   result = result.replace(/[—–]/g, '-')
 
   return result

@@ -104,8 +104,23 @@ export default async function ReviewPage({
         landingPage: release.landingPage,
       }}
       company={{
+        uuid: release.company?.uuid || null,
         logoUrl: release.company?.logoUrl || null,
         companyName: release.company?.companyName || null,
+        website: release.company?.website || null,
+        phone: release.company?.phone || null,
+        email: release.company?.email || null,
+        city: release.company?.city || null,
+        state: release.company?.state || null,
+        postalCode: release.company?.postalCode || null,
+        countryCode: release.company?.countryCode || null,
+        addr1: release.company?.addr1 || null,
+        linkedinUrl: release.company?.linkedinUrl || null,
+        xUrl: release.company?.xUrl || null,
+        youtubeUrl: release.company?.youtubeUrl || null,
+        instagramUrl: release.company?.instagramUrl || null,
+        blogUrl: release.company?.blogUrl || null,
+        seo: (release.company?.seo as Record<string, any>) || null,
       }}
       contact={{
         name: release.primaryContact?.name || null,
