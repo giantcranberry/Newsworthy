@@ -1426,7 +1426,7 @@ export function ImagesContent({
                             type="button"
                             onClick={() => handleSelectFromImageLibrary(img)}
                             disabled={isUploadingImage}
-                            className="relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                            className="group relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
                           >
                             <Image
                               src={resizedUrl(img.url)}
@@ -1434,6 +1434,13 @@ export function ImagesContent({
                               fill
                               className="object-cover"
                             />
+                            {(img.caption || img.title) && (
+                              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                                <p className="text-[10px] leading-tight text-white line-clamp-2 text-left">
+                                  {img.caption || img.title}
+                                </p>
+                              </div>
+                            )}
                           </button>
                         ))}
                       </div>

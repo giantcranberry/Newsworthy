@@ -5,7 +5,7 @@ import { PublicPostCard } from '@/components/community/public-post-card'
 import { RegisterCTA } from '@/components/community/register-cta'
 import { RegisterBanner } from '@/components/community/register-banner'
 
-export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Community',
