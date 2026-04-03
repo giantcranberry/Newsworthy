@@ -43,7 +43,7 @@ interface ProductFormProps {
 const DISTRIBUTION_TAGS = [
   { value: 'yahoo', label: 'Yahoo Finance' },
   { value: 'enhanced', label: 'Enhanced' },
-  { value: 'standard', label: 'Standard' },
+  { value: 'pr', label: 'Press Release' },
   { value: 'addon', label: 'Add-on' },
   { value: 'service', label: 'Service' },
 ]
