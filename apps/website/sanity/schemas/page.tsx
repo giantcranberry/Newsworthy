@@ -1,4 +1,6 @@
+import React from "react";
 import { Rule } from "@sanity/types";
+import { Package, Users, CheckCircle, Star, Zap, Shield, LucideIcon } from "lucide-react";
 
 const page = {
 	name: "page",
@@ -144,6 +146,63 @@ const page = {
 					title: "Formatted Page Content",
 					type: "array",
 					of: [{ type: "block" }, { type: "image" }],
+				},
+			],
+		},
+		{
+			name: "feature_sections",
+			title: "Product Features",
+			type: "array",
+			of: [
+				{
+					type: "object",
+					fields: [
+						{
+							name: "heading",
+							title: "Section Heading",
+							type: "string",
+						},
+						{
+							name: "icon",
+							title: "Icon",
+							type: "string",
+							options: {
+								list: [
+									{ title: "Package", value: "package" },
+									{ title: "Users", value: "users" },
+									{ title: "Check Circle", value: "check-circle" },
+									{ title: "Star", value: "star" },
+									{ title: "Zap", value: "zap" },
+									{ title: "Shield", value: "shield" },
+									{ title: "None", value: "none" },
+								],
+							},
+						},
+						{
+							name: "features",
+							title: "Features",
+							type: "array",
+							of: [{ type: "reference", to: { type: "feature" } }],
+						},
+					],
+					preview: {
+						select: { title: "heading", icon: "icon" },
+						prepare({ title, icon }: { title: string; icon: string }) {
+							const icons: Record<string, LucideIcon> = {
+								"package": Package,
+								"users": Users,
+								"check-circle": CheckCircle,
+								"star": Star,
+								"zap": Zap,
+								"shield": Shield,
+							};
+							const Icon = icons[icon];
+							return {
+								title: title,
+								media: Icon ? () => <Icon size={24} /> : undefined,
+							};
+						},
+					},
 				},
 			],
 		},

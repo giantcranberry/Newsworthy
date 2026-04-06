@@ -110,9 +110,10 @@ export async function getPage(slug: string): Promise<Page> {
         _id,
         _createdAt,
         ...,
-        content_sections[]->,
-        card_sections[]->,
-        primary_testimonial[]->,
+        "feature_sections": feature_sections[]{ heading, icon, features[]-> },
+        "content_sections": content_sections[]->,
+        "card_sections": card_sections[]->,
+        "primary_testimonial": primary_testimonial[]->,
     }`,
 		{ slug: slug }
 	);
