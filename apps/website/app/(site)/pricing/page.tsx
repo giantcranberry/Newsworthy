@@ -1,13 +1,14 @@
 import Features from "@/components/features";
-import { getFeatures, getPage, urlFor } from "@/sanity/sanity-utils";
+import { getPage, urlFor } from "@/sanity/sanity-utils";
 import page from "@/sanity/schemas/page";
 import { PortableText } from "@portabletext/react";
+import { Package, Users, CheckCircle, Star, Zap, Shield, LucideIcon } from "lucide-react";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
 	// fetch data
@@ -43,10 +44,17 @@ export async function generateMetadata(): Promise<Metadata> {
 	};
 }
 
+const iconMap: Record<string, LucideIcon> = {
+	"package": Package,
+	"users": Users,
+	"check-circle": CheckCircle,
+	"star": Star,
+	"zap": Zap,
+	"shield": Shield,
+};
+
 export default async function ContactPage() {
 	const page = await getPage("pricing");
-	const base_features = await getFeatures("base");
-	const agency_features = await getFeatures("agency");
 
 	return (
 		<div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 py-5 pb-16 lg:pb-24">
@@ -88,18 +96,20 @@ export default async function ContactPage() {
 
 			<hr className="border-gray-200" />
 
-			<div className="my-7">
-				<h2 className="text-3xl font-bold">What is Included?</h2>
-				<div className="mt-5">
-					<Features features={base_features} />
-				</div>
-			</div>
-			<div className="my-7">
-				<h2 className="text-3xl font-bold">Agency Friendly</h2>
-				<div className="mt-5">
-					<Features features={agency_features} />
-				</div>
-			</div>
+			{page.feature_sections?.map((section, index) => {
+				const Icon = section.icon ? iconMap[section.icon] : null;
+				return (
+					<div key={index} className="mt-16 mb-7">
+						<h2 className="text-3xl font-bold flex items-center gap-3">
+							{Icon && <Icon className="h-8 w-8 text-cyan-700" />}
+							{section.heading}
+						</h2>
+						<div className="mt-5">
+							<Features features={section.features} />
+						</div>
+					</div>
+				);
+			})}
 		</div>
 	);
 }

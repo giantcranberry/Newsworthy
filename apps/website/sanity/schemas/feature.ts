@@ -2,6 +2,33 @@ const feature = {
   name: 'feature',
   title: 'Product Features',
   type: 'document',
+  orderings: [
+    {
+      title: 'Feature Type',
+      name: 'featureTypeAsc',
+      by: [
+        { field: 'featureType', direction: 'asc' },
+        { field: 'title', direction: 'asc' },
+      ],
+    },
+  ],
+  preview: {
+    select: {
+      title: 'title',
+      featureType: 'featureType',
+    },
+    prepare({ title, featureType }: { title: string; featureType: string }) {
+      const labels: Record<string, string> = {
+        base: 'Base Feature',
+        agency: 'Agency Feature',
+        addon: 'Add-on Feature',
+      }
+      return {
+        title: title,
+        subtitle: labels[featureType] || featureType,
+      }
+    },
+  },
   fields: [
     {
       name: 'title',

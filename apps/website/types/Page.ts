@@ -1,6 +1,7 @@
 import { PortableTextBlock } from "sanity";
 import { ContentSection } from "./ContentSection";
 import { CardSection } from "./CardSection";
+import { Feature } from "./Feature";
 
 export type Page = {
 	_id: string;
@@ -36,6 +37,11 @@ export type Page = {
 	textContent: string;
 	content: PortableTextBlock[];
 	sortOrder: number;
+	feature_sections: {
+		heading: string;
+		icon: string;
+		features: Feature[];
+	}[];
 	content_sections: ContentSection[];
 	card_sections: CardSection[];
 	primary_testimonial: {
