@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import { releases, releaseEnhanced, releaseOptions, releaseCategories } from '@/db/schema'
+import { releases, releaseEnhanced, releasePlacements, releaseOptions, releaseCategories } from '@/db/schema'
 import { clipReport, pdfDownloads } from '@/db/schema'
 import { circuits, circuitCategories } from '@/db/schema'
 import { users } from '@/db/schema'
@@ -471,23 +471,28 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
       yahooFinanceUrls = yahooUrls
     }
 
-    const publications: any[] = reportData.publication || []
-    for (const pub of publications) {
-      if (typeof pub !== 'object') continue
-      let logoUrl = pub.image_url || ''
-      if (logoUrl) {
-        if (logoUrl.startsWith('http')) {
-          // keep as-is
-        } else if (logoUrl.startsWith('/')) {
-          // Absolute path from root — fix legacy underscore variant
-          logoUrl = `https://cdn1.newsworthy.ai${logoUrl.replace('/images/clip_report/', '/images/clipreport/')}`
-        } else {
-          // Bare filename — prepend full CDN path
-          logoUrl = `https://cdn1.newsworthy.ai/images/clipreport/${logoUrl}`
-        }
+  }
+
+  const targetPlacements = await db
+    .select()
+    .from(releasePlacements)
+    .where(and(
+      eq(releasePlacements.prid, release.id),
+      eq(releasePlacements.isTarget, true),
+    ))
+
+  for (const p of targetPlacements) {
+    let logoUrl = p.imageUrl || ''
+    if (logoUrl) {
+      if (logoUrl.startsWith('http')) {
+        // keep as-is
+      } else if (logoUrl.startsWith('/')) {
+        logoUrl = `https://cdn1.newsworthy.ai${logoUrl.replace('/images/clip_report/', '/images/clipreport/')}`
+      } else {
+        logoUrl = `https://cdn1.newsworthy.ai/images/clipreport/${logoUrl}`
       }
-      enhancedPublications.push({ name: pub.name || '', link: pub.link || '', logo_url: logoUrl })
     }
+    enhancedPublications.push({ name: p.name || '', link: p.link || '', logo_url: logoUrl })
   }
 
   // Circuits

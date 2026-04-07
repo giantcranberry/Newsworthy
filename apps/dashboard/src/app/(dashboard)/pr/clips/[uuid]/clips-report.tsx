@@ -625,7 +625,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       {enhancedPublications.length > 0 && (
         <SectionCard borderColor="border-l-[#667eea]">
           <SectionTitle icon="fa-solid fa-bullhorn" iconColor="text-blue-600 dark:text-blue-400">Enhanced Distribution</SectionTitle>
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of 354 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release.</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of {enhancedPublications.length} endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
             {enhancedPublications.slice(0, 36).map((pub, i) => (
               <LogoCard key={i} logo={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} />
@@ -666,7 +666,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               <LogoCard logo="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />
             )}
             {nwrampReport.substack && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clipreport/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
+              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
             )}
           </div>
 

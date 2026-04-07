@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases } from '@/db/schema'
+import { releases, releasePlacements } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { getReportData, type ReportData, type ClipRecord } from '@/services/report'
@@ -17,13 +17,12 @@ function buildSummarySheet(data: ReportData) {
     ['Location', data.release.location || ''],
     [],
     ['Metrics'],
+    ['Report Generated', new Date(data.fetchedAt).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })],
     ['Effective CPC', `$${data.ecpc}`],
     ['Total Views', data.totalPv],
     ['Total Shares', data.totalSh],
     ['Total Engagement', data.totalPv + data.totalSh],
     ['PDF Downloads', data.pdfDownloadCount],
-    [],
-    ['Report Generated', new Date(data.fetchedAt).toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })],
   ]
   const ws = XLSX.utils.aoa_to_sheet(rows)
   // Widen columns
@@ -93,6 +92,14 @@ function buildEnhancedSheet(data: ReportData) {
   return ws
 }
 
+function toDomain(url: string): string {
+  try {
+    return new URL(url).hostname
+  } catch {
+    return url
+  }
+}
+
 function buildPlacementsSheet(data: ReportData) {
   const header = ['Platform', 'Link']
   const rows: (string | number)[][] = [header]
@@ -102,7 +109,8 @@ function buildPlacementsSheet(data: ReportData) {
     if (nwr.placements) {
       for (const p of nwr.placements) {
         if (p.url && p.placement !== 'https://newswriter.ai/news') {
-          rows.push([p.placement || '', p.url || ''])
+          const name = p.placement ? toDomain(p.placement) : ''
+          rows.push([name, p.url || ''])
         }
       }
     }
@@ -116,6 +124,22 @@ function buildPlacementsSheet(data: ReportData) {
 
   const ws = XLSX.utils.aoa_to_sheet(rows)
   ws['!cols'] = [{ wch: 30 }, { wch: 60 }]
+  return ws
+}
+
+function buildAllPlacementsSheet(placements: { name: string | null; link: string | null; imageUrl: string | null; reach: string | null; isTarget: boolean | null }[]) {
+  const header = ['Publication', 'Link', 'Reach', 'Target']
+  const rows: (string | number | boolean)[][] = [
+    header,
+    ...placements.map((p) => [
+      p.name || '',
+      p.link || '',
+      p.reach || '',
+      p.isTarget ? 'Yes' : 'No',
+    ]),
+  ]
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [{ wch: 35 }, { wch: 60 }, { wch: 15 }, { wch: 8 }]
   return ws
 }
 
@@ -164,6 +188,15 @@ export async function GET(
 
     if (data.nwrampReport) {
       XLSX.utils.book_append_sheet(wb, buildPlacementsSheet(data), 'Newsramp Placements')
+    }
+
+    const allPlacements = await db
+      .select()
+      .from(releasePlacements)
+      .where(eq(releasePlacements.prid, release.id))
+
+    if (allPlacements.length > 0) {
+      XLSX.utils.book_append_sheet(wb, buildAllPlacementsSheet(allPlacements), 'All Placements')
     }
 
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })

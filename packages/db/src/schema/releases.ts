@@ -68,6 +68,18 @@ export const releaseEnhanced = pgTable('releases_enhanced', {
   ingestedAt: timestamp('ingested_at'),
 })
 
+export const releasePlacements = pgTable('release_placements', {
+  id: serial('id').primaryKey(),
+  prid: integer('prid').notNull().references(() => releases.id),
+  enhancedId: integer('enhanced_id').references(() => releaseEnhanced.id),
+  name: varchar('name', { length: 255 }),
+  link: text('link'),
+  imageUrl: text('image_url'),
+  reach: varchar('reach', { length: 32 }),
+  isTarget: boolean('is_target').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 export const releaseAnalysis = pgTable('release_analysis', {
   id: serial('id').primaryKey(),
   prId: integer('pr_id').notNull().references(() => releases.id, { onDelete: 'cascade' }).unique(),
