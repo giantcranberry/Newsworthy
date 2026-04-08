@@ -997,13 +997,15 @@ export default async function PressRelease({ searchParams, params }: Props) {
 
           {/* FAQs */}
           {release.faqs && release.faqs.length > 0 && (
-            <div className="border-t border-gray-200 pt-5 mt-5 clear-both">
+            <div className="border-t border-gray-200 pt-5 mt-5 clear-both" itemScope itemType="https://schema.org/FAQPage">
               <h3 className="font-semibold text-lg mb-3">Frequently Asked Questions</h3>
               <dl className="space-y-3">
                 {[...release.faqs].sort((a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map((faq: any, i: number) => (
-                  <div key={i}>
-                    <dt className="font-medium text-sm">{faq.question}</dt>
-                    <dd className="text-gray-600 mt-1 text-sm">{faq.answer}</dd>
+                  <div key={i} itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
+                    <dt className="font-medium text-sm" itemProp="name">{faq.question}</dt>
+                    <dd className="text-gray-600 mt-1 text-sm" itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
+                      <span itemProp="text">{faq.answer}</span>
+                    </dd>
                   </div>
                 ))}
               </dl>
