@@ -45,7 +45,7 @@ interface AboutMenu {
   // Add other properties as needed
 }
 
-export function NavBar() {
+export function NavBar({ hideMenu = false }: { hideMenu?: boolean } = {}) {
   const [categories, setCategories] = useState<Category[] | null>(null);
   const [menu_ad, setMenuAd] = useState<SiteAd | null>(null);
   const [aboutMenu, setAboutMenu] = useState<AboutMenu | null>(null);
@@ -90,7 +90,20 @@ export function NavBar() {
     <nav className="bg-white/85 backdrop-blur-xl border-b border-gray-200/50">
       {/* Mobile nav */}
       <div className="px-5 py-4 xl:hidden">
-        <MobileSidebar />
+        {hideMenu ? (
+          <Link href="/" className="shrink-0">
+            <Image
+              src="/logo.svg"
+              className="w-56"
+              width={224}
+              height={36}
+              sizes="75vw"
+              alt="Newsworthy Logo"
+            />
+          </Link>
+        ) : (
+          <MobileSidebar />
+        )}
       </div>
 
       {/* Main nav — desktop */}
@@ -106,6 +119,7 @@ export function NavBar() {
               alt="Newsworthy Logo"
             />
           </Link>
+          {!hideMenu && (
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
@@ -240,8 +254,9 @@ export function NavBar() {
               </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
+          )}
         </NavigationMenu>
-        {isLoggedIn ? (
+        {!hideMenu && (isLoggedIn ? (
           <div className="flex items-center">
             <Link
               href="https://app.newsworthyai.com/dashboard"
@@ -265,7 +280,7 @@ export function NavBar() {
               Register Free
             </Link>
           </div>
-        )}
+        ))}
       </div>
     </nav>
   );

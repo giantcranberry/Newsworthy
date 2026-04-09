@@ -42,7 +42,7 @@ export default async function NewsroomLayout({ children }: { children: React.Rea
             <body suppressHydrationWarning className="flex h-screen flex-col justify-between font-sans text-gray-950">
                 <GoogleAnalytics />
                 <header className="mx-auto w-full">
-                    <NavBar />
+                    <NavBar hideMenu />
                 </header>
                 <main className="mx-auto mb-auto w-full">{children}</main>
                 <Footer />
