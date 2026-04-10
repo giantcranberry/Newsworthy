@@ -17,6 +17,7 @@ import { notFound, redirect } from "next/navigation";
 import { PRForm } from "../pr-form";
 import { WizardNav } from "@/components/pr-wizard/wizard-nav";
 import { RetractReleaseButton } from "../retract-release-button";
+import { ContactAdminButton } from "../contact-admin-button";
 import { SubmissionCompleteView } from "./submission-complete-view";
 import { getUserCompanyIds, hasMinRole } from "@/lib/team-auth";
 
@@ -152,7 +153,7 @@ export default async function PRDetailPage({
         : null,
     ]);
 
-  const isEditorial = release.status === "review" || release.status === "hold" || release.status === "approved";
+  const isEditorial = release.status === "review" || release.status === "hold";
   const canRetract = isEditorial;
 
   // Find topcat (first category that's a top-level category)
@@ -241,17 +242,27 @@ export default async function PRDetailPage({
             <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 flex items-center justify-between">
               <div>
                 <h3 className="font-medium text-amber-800 dark:text-amber-300">
-                  {release.status === "approved" ? "Approved" : release.status === "hold" ? "Editorial Hold" : "In Editorial Review"}
+                  {release.status === "hold" ? "Editorial Hold" : "In Editorial Review"}
                 </h3>
                 <p className="text-sm text-amber-700 dark:text-amber-400 mt-1">
-                  {release.status === "approved"
-                    ? "This release has been approved. You can retract it to make changes."
-                    : release.status === "hold"
+                  {release.status === "hold"
                     ? "This release has been placed on hold by an editor. You can retract it to make changes."
                     : "This release is awaiting editorial review. You can retract it to make changes."}
                 </p>
               </div>
               <RetractReleaseButton uuid={release.uuid!} title={release.title} />
+            </div>
+          )}
+
+          {release.status === "approved" && (
+            <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-green-800 dark:text-green-300">Approved</h3>
+                <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                  Your release has been approved. If you need immediate assistance, click here to send a message to admins.
+                </p>
+              </div>
+              <ContactAdminButton uuid={release.uuid!} title={release.title} />
             </div>
           )}
 

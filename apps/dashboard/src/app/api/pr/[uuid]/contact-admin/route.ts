@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue } from '@/db/schema'
+import { releases, releaseNotes } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { sendSmsNotification } from '@/lib/twilio'
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +16,13 @@ export async function POST(
   }
 
   const userId = parseInt(session.user.id)
+  const userName = session.user.name || 'User'
   const { uuid } = await params
+
+  const { message } = await request.json()
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return NextResponse.json({ error: 'Message is required' }, { status: 400 })
+  }
 
   try {
     const release = await db.query.releases.findFirst({
@@ -33,36 +40,27 @@ export async function POST(
       }
     }
 
-    if (release.status !== 'review' && release.status !== 'hold') {
+    if (release.status !== 'approved') {
       return NextResponse.json(
-        { error: 'Only releases in editorial review or on hold can be retracted' },
+        { error: 'This action is only available for approved releases' },
         { status: 400 }
       )
     }
 
-    // Move back to draft status and clear review-related fields
-    await db.update(releases)
-      .set({
-        status: 'draftnxt',
-        score: 0,
-        isFeatured: false,
-        approvedAt: null,
-      })
-      .where(eq(releases.id, release.id))
-
-    // Remove queue entry
-    const queueEntry = await db.query.queue.findFirst({
-      where: eq(queue.releaseId, release.id),
+    await db.insert(releaseNotes).values({
+      prId: release.id,
+      note: `[User Message] ${message.trim()}`,
+      fromId: userId,
+      fromName: userName,
     })
-    if (queueEntry) {
-      await db.delete(queue).where(eq(queue.id, queueEntry.id))
-    }
+
+    sendSmsNotification(`[Newsworthy] Message from ${userName} re: "${release.title}"\n\n${message.trim()}`)
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error retracting release:', error)
+    console.error('Error sending message to admin:', error)
     return NextResponse.json(
-      { error: 'Failed to retract release' },
+      { error: 'Failed to send message' },
       { status: 500 }
     )
   }

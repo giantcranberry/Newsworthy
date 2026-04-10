@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink } from "lucide-react";
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
+import { ContactAdminButton } from "./contact-admin-button";
 import { MoveReleaseButton } from "./move-release-button";
 import { CopyUrlButton } from "./copy-url-button";
 import { BrandFilter } from "./brand-filter";
@@ -391,8 +392,14 @@ export default async function PressReleasesPage({
                           </button>
                         </Link>
                       )}
-                      {release.canEdit && (release.status === "review" || release.status === "hold" || release.status === "approved") && (
+                      {release.canEdit && (release.status === "review" || release.status === "hold") && (
                         <RetractReleaseButton
+                          uuid={release.uuid!}
+                          title={release.title}
+                        />
+                      )}
+                      {release.canEdit && release.status === "approved" && (
+                        <ContactAdminButton
                           uuid={release.uuid!}
                           title={release.title}
                         />
