@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Editor } from "@tinymce/tinymce-react";
+import { setupSchemaPlugin } from "@/lib/tinymce-schema-plugin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1709,13 +1710,22 @@ export function PRForm({
                 "undo redo | blocks | " +
                 "bold italic | alignleft aligncenter " +
                 "alignright alignjustify | bullist numlist outdent indent | " +
-                "blockquote link | removeformat | wordcount",
+                "blockquote link schemaAttrs | removeformat | wordcount",
               block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
+              extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
+              link_rel_list: [
+                { title: 'None', value: '' },
+                { title: 'No Follow', value: 'nofollow' },
+                { title: 'Sponsored', value: 'sponsored' },
+                { title: 'UGC', value: 'ugc' },
+                { title: 'No Follow + Sponsored', value: 'nofollow sponsored' },
+              ],
               content_style:
                 isDark
                   ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #1a1a2e; color: #e0e0e0; }'
                   : 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
               setup: (editor: any) => {
+                setupSchemaPlugin(editor);
                 editor.on('init', () => {
                   const body = editor.getBody();
                   body.addEventListener('paste', (e: ClipboardEvent) => {

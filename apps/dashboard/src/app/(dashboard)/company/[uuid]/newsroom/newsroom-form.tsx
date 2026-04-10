@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Editor } from '@tinymce/tinymce-react'
+import { setupSchemaPlugin } from '@/lib/tinymce-schema-plugin'
 import {
   Info,
   Loader2,
@@ -258,7 +259,16 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
                 height: 400,
                 menubar: false,
                 plugins: ['lists', 'link'],
-                toolbar: 'undo redo | blocks | bold italic | bullist numlist | link',
+                toolbar: 'undo redo | blocks | bold italic | bullist numlist | link schemaAttrs',
+                setup: (editor: any) => { setupSchemaPlugin(editor); },
+                extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
+                link_rel_list: [
+                  { title: 'None', value: '' },
+                  { title: 'No Follow', value: 'nofollow' },
+                  { title: 'Sponsored', value: 'sponsored' },
+                  { title: 'UGC', value: 'ugc' },
+                  { title: 'No Follow + Sponsored', value: 'nofollow sponsored' },
+                ],
                 content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
                 branding: false,
               }}

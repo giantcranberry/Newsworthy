@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Editor } from '@tinymce/tinymce-react'
+import { setupSchemaPlugin } from '@/lib/tinymce-schema-plugin'
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -1122,7 +1123,16 @@ export function EditorialEditForm({
                       'undo redo | blocks | ' +
                       'bold italic | alignleft aligncenter ' +
                       'alignright alignjustify | bullist numlist outdent indent | ' +
-                      'blockquote link | removeformat | wordcount',
+                      'blockquote link schemaAttrs | removeformat | wordcount',
+                    setup: (editor: any) => { setupSchemaPlugin(editor); },
+                    extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
+                    link_rel_list: [
+                      { title: 'None', value: '' },
+                      { title: 'No Follow', value: 'nofollow' },
+                      { title: 'Sponsored', value: 'sponsored' },
+                      { title: 'UGC', value: 'ugc' },
+                      { title: 'No Follow + Sponsored', value: 'nofollow sponsored' },
+                    ],
                     branding: false,
                     content_style:
                       'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',

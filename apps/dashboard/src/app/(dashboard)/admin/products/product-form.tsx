@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Editor } from '@tinymce/tinymce-react'
+import { setupSchemaPlugin } from '@/lib/tinymce-schema-plugin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -381,7 +382,16 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
               ],
               toolbar: 'undo redo | blocks | ' +
                 'bold italic | bullist numlist | ' +
-                'link | removeformat',
+                'link schemaAttrs | removeformat',
+              setup: (editor: any) => { setupSchemaPlugin(editor); },
+              extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
+              link_rel_list: [
+                { title: 'None', value: '' },
+                { title: 'No Follow', value: 'nofollow' },
+                { title: 'Sponsored', value: 'sponsored' },
+                { title: 'UGC', value: 'ugc' },
+                { title: 'No Follow + Sponsored', value: 'nofollow sponsored' },
+              ],
               content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }',
               branding: false,
             }}

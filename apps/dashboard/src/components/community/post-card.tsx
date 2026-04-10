@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { useTheme } from 'next-themes'
+import { setupSchemaPlugin } from '@/lib/tinymce-schema-plugin'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { MoreHorizontal, Pin, Pencil, Trash2, MessageSquare, X, Check } from 'lucide-react'
@@ -275,8 +276,17 @@ export function PostCard({ post, currentUserId, isAdmin, showBoard = true, board
               skin: isDark ? 'oxide-dark' : 'oxide',
               content_css: isDark ? 'dark' : 'default',
               plugins: ['autolink', 'lists', 'link'],
-              toolbar: 'blocks | bold italic | bullist numlist | blockquote link | removeformat',
+              toolbar: 'blocks | bold italic | bullist numlist | blockquote link schemaAttrs | removeformat',
+              setup: (editor: any) => { setupSchemaPlugin(editor); },
               block_formats: 'Normal=p; Heading 2=h2; Heading 3=h3',
+              extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
+              link_rel_list: [
+                { title: 'None', value: '' },
+                { title: 'No Follow', value: 'nofollow' },
+                { title: 'Sponsored', value: 'sponsored' },
+                { title: 'UGC', value: 'ugc' },
+                { title: 'No Follow + Sponsored', value: 'nofollow sponsored' },
+              ],
               placeholder: 'Edit your post...',
               content_style: isDark
                 ? 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; background-color: #111827; color: #e5e7eb; }'
