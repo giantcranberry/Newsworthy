@@ -10,22 +10,6 @@ type ReleaseProps = {
   release: PressRelease;
 };
 
-function timeAgo(date: Date | null): string {
-  if (!date) return "";
-  const now = new Date();
-  const diffMs = now.getTime() - new Date(date).getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHours = Math.floor(diffMins / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return new Date(date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function HorizontalNews({ release }: ReleaseProps) {
   return (
@@ -35,11 +19,6 @@ export function HorizontalNews({ release }: ReleaseProps) {
         <div className="flex flex-col justify-center gap-2.5 order-2 sm:order-1">
           <div className="flex items-center gap-3">
             {release.selfHost && <TrustedDialog />}
-            {release.releasedAt && (
-              <span className="text-xs text-gray-400">
-                {timeAgo(release.releasedAt)}
-              </span>
-            )}
           </div>
           <h3 className="font-serif text-lg lg:text-xl font-semibold text-gray-900 leading-snug group-hover:text-cyan-700 transition-colors">
             {release.title}

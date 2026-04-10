@@ -13,24 +13,6 @@ type ReleaseProps = {
   release: PressRelease;
 };
 
-function timeAgo(date: Date): string {
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 7) {
-    return new Date(date).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-  }
-  if (days > 0) return `${days}d ago`;
-  if (hours > 0) return `${hours}h ago`;
-  if (minutes > 0) return `${minutes}m ago`;
-  return "Just now";
-}
 
 export function CardNews({ release }: ReleaseProps) {
   const originalWidth = release.banner?.width || 314;
@@ -90,8 +72,6 @@ export function CardNews({ release }: ReleaseProps) {
         {/* Meta */}
         <div className="flex items-center gap-1.5 mt-auto pt-2 text-xs text-gray-400">
           <span>{release.company?.companyName}</span>
-          <span>&middot;</span>
-          {release.releasedAt && <time>{timeAgo(release.releasedAt)}</time>}
         </div>
       </div>
     </Link>
