@@ -137,6 +137,7 @@ export async function PATCH(
       await db.insert(userSubscription).values({
         userId,
         newsdbCredits: parseInt(newsdbCredits) || 0,
+        startAt: new Date(),
       })
     }
 
