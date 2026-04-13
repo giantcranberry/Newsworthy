@@ -1,6 +1,6 @@
 import { db } from '@/db'
-import { approvals, releases } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { approvals, releases, releaseImages } from '@/db/schema'
+import { asc, eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { ApprovalResponse } from './approval-response'
 
@@ -18,6 +18,11 @@ async function getApprovalWithRelease(approvalUuid: string) {
     with: {
       company: true,
       banner: true,
+      primaryImage: true,
+      releaseImages: {
+        orderBy: [asc(releaseImages.sortOrder)],
+        with: { image: true },
+      },
     },
   })
 
@@ -80,12 +85,35 @@ export default async function ApprovalPage({
         abstract: release.abstract || '',
         body: release.body || '',
         location: release.location || '',
+        pullquote: release.pullquote || null,
       }}
       company={{
         name: release.company?.companyName || '',
         logoUrl: release.company?.logoUrl || null,
       }}
       banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
+      carouselImages={(() => {
+        const fromRelease = (release.releaseImages || [])
+          .filter((ri) => ri.image)
+          .map((ri) => ({
+            id: ri.image!.id,
+            url: ri.image!.url.replace('RESIZE/', ''),
+            title: ri.image!.title,
+            caption: ri.image!.caption,
+            imgCredits: ri.image!.imgCredits,
+          }))
+        if (fromRelease.length > 0) return fromRelease
+        if (release.primaryImage?.url) {
+          return [{
+            id: 0,
+            url: release.primaryImage.url.replace('RESIZE/', ''),
+            title: null,
+            caption: release.primaryImage.caption ?? null,
+            imgCredits: release.primaryImage.imgCredits ?? null,
+          }]
+        }
+        return []
+      })()}
       approverName={approval.emailTo || ''}
       notes={approval.notes || null}
     />
