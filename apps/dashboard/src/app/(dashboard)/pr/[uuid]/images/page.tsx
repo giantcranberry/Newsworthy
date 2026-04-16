@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, images, releaseImages, releaseOptions, banners } from '@/db/schema'
-import { eq, and, asc } from 'drizzle-orm'
+import { eq, and, or, asc, desc, isNull } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { ImagesContent } from './images-content'
@@ -24,15 +24,13 @@ async function getReleaseWithImages(uuid: string) {
   return release
 }
 
-async function getImageLibrary(companyId: number, userId: number) {
+async function getImageLibrary(companyId: number) {
   return await db.query.images.findMany({
     where: and(
       eq(images.companyId, companyId),
-      eq(images.userId, userId),
-      eq(images.isDeleted, false)
+      or(eq(images.isDeleted, false), isNull(images.isDeleted)),
     ),
-    orderBy: (images, { desc }) => [desc(images.id)],
-    limit: 20,
+    orderBy: [desc(images.id)],
   })
 }
 
@@ -40,11 +38,9 @@ async function getBannerLibrary(companyId: number) {
   return await db.query.banners.findMany({
     where: and(
       eq(banners.companyId, companyId),
-      eq(banners.isDeleted, false),
-      eq(banners.isArchived, false),
+      or(eq(banners.isDeleted, false), isNull(banners.isDeleted)),
     ),
-    orderBy: (banners, { desc }) => [desc(banners.id)],
-    limit: 50,
+    orderBy: [desc(banners.id)],
   })
 }
 
@@ -77,7 +73,7 @@ export default async function ImagesPage({
     }
   }
 
-  const imageLibrary = await getImageLibrary(release.companyId, userId)
+  const imageLibrary = await getImageLibrary(release.companyId)
   const bannerLibrary = await getBannerLibrary(release.companyId)
   const options = release.id ? await getReleaseOptions(release.id) : null
 

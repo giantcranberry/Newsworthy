@@ -541,6 +541,10 @@ export function ImagesContent({
   const [bannerUnsplashResults, setBannerUnsplashResults] = useState<UnsplashPhoto[]>([])
   const [bannerUnsplashLoading, setBannerUnsplashLoading] = useState(false)
 
+  // Brand asset library search
+  const [librarySearch, setLibrarySearch] = useState('')
+  const [bannerLibrarySearch, setBannerLibrarySearch] = useState('')
+
   // Dropzone state
   const [isDragOverImage, setIsDragOverImage] = useState(false)
   const [isDragOverBanner, setIsDragOverBanner] = useState(false)
@@ -607,12 +611,23 @@ export function ImagesContent({
   )
 
   const attachedImageIds = new Set(releaseImages.map((ri) => ri.imageId))
-  const availableLibraryImages = imageLibrary.filter((img) => !attachedImageIds.has(img.id))
+  const librarySearchLower = librarySearch.trim().toLowerCase()
+  const availableLibraryImages = imageLibrary
+    .filter((img) => !attachedImageIds.has(img.id))
+    .filter((img) => {
+      if (!librarySearchLower) return true
+      const haystack = `${img.title || ''} ${img.caption || ''}`.toLowerCase()
+      return haystack.includes(librarySearchLower)
+    })
   const displayBannerRaw = bannerPreview || currentBanner?.url
   const displayBanner = displayBannerRaw ? resizedUrl(displayBannerRaw) : null
-  const availableLibraryBanners = bannerLibrary.filter(
-    (b) => !currentBanner || b.id !== currentBanner.id
-  )
+  const bannerLibrarySearchLower = bannerLibrarySearch.trim().toLowerCase()
+  const availableLibraryBanners = bannerLibrary
+    .filter((b) => !currentBanner || b.id !== currentBanner.id)
+    .filter((b) => {
+      if (!bannerLibrarySearchLower) return true
+      return (b.title || '').toLowerCase().includes(bannerLibrarySearchLower)
+    })
 
   // News Images handlers
   const processImageFile = useCallback((file: File) => {
@@ -1415,39 +1430,50 @@ export function ImagesContent({
 
               {/* Brand asset library */}
               {newsSource === 'library' && !pendingFile && (
-                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">Select from your brand assets</h4>
+                    <div className="relative w-64">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        value={librarySearch}
+                        onChange={(e) => setLibrarySearch(e.target.value)}
+                        placeholder="Search by title or caption..."
+                        className="pl-8 h-8"
+                      />
+                    </div>
+                  </div>
                   {availableLibraryImages.length > 0 ? (
-                    <>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your brand assets</h4>
-                      <div className="grid grid-cols-4 gap-3">
-                        {availableLibraryImages.map((img) => (
-                          <button
-                            key={img.id}
-                            type="button"
-                            onClick={() => handleSelectFromImageLibrary(img)}
-                            disabled={isUploadingImage}
-                            className="group relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
-                          >
-                            <Image
-                              src={resizedUrl(img.url)}
-                              alt={img.title || 'Library image'}
-                              fill
-                              className="object-cover"
-                            />
-                            {(img.caption || img.title) && (
-                              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
-                                <p className="text-[10px] leading-tight text-white line-clamp-2 text-left">
-                                  {img.caption || img.title}
-                                </p>
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </>
+                    <div className="grid grid-cols-4 gap-3">
+                      {availableLibraryImages.map((img) => (
+                        <button
+                          key={img.id}
+                          type="button"
+                          onClick={() => handleSelectFromImageLibrary(img)}
+                          disabled={isUploadingImage}
+                          className="group relative aspect-video rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                        >
+                          <Image
+                            src={resizedUrl(img.url)}
+                            alt={img.title || 'Library image'}
+                            fill
+                            className="object-cover"
+                          />
+                          {(img.caption || img.title) && (
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
+                              <p className="text-[10px] leading-tight text-white line-clamp-2 text-left">
+                                {img.caption || img.title}
+                              </p>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-sm text-gray-400 text-center py-6">
-                      No unused images in your brand library.
+                      {librarySearchLower
+                        ? 'No brand assets match your search.'
+                        : 'No unused images in your brand library.'}
                     </p>
                   )}
                 </div>
@@ -1823,38 +1849,49 @@ export function ImagesContent({
 
               {/* Brand asset library */}
               {bannerSource === 'library' && (
-                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950">
+                <div className="border dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-950 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex-1">Select from your banner library</h4>
+                    <div className="relative w-64">
+                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        value={bannerLibrarySearch}
+                        onChange={(e) => setBannerLibrarySearch(e.target.value)}
+                        placeholder="Search by title..."
+                        className="pl-8 h-8"
+                      />
+                    </div>
+                  </div>
                   {availableLibraryBanners.length > 0 ? (
-                    <>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Select from your banner library</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        {availableLibraryBanners.map((b) => (
-                          <button
-                            key={b.id}
-                            type="button"
-                            onClick={() => handleSelectFromBannerLibrary(b)}
-                            disabled={isLoadingBanner}
-                            className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
-                            style={{ aspectRatio: '1200/630' }}
-                          >
-                            <Image
-                              src={resizedUrl(b.url)}
-                              alt={b.title || 'Banner image'}
-                              fill
-                              className="object-cover"
-                            />
-                            {b.title && (
-                              <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
-                                <p className="text-xs text-white truncate">{b.title}</p>
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </>
+                    <div className="grid grid-cols-3 gap-3">
+                      {availableLibraryBanners.map((b) => (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => handleSelectFromBannerLibrary(b)}
+                          disabled={isLoadingBanner}
+                          className="relative rounded-lg overflow-hidden border-2 border-transparent hover:border-cyan-400 transition-colors"
+                          style={{ aspectRatio: '1200/630' }}
+                        >
+                          <Image
+                            src={resizedUrl(b.url)}
+                            alt={b.title || 'Banner image'}
+                            fill
+                            className="object-cover"
+                          />
+                          {b.title && (
+                            <div className="absolute bottom-0 inset-x-0 bg-black/50 px-2 py-1">
+                              <p className="text-xs text-white truncate">{b.title}</p>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-sm text-gray-400 text-center py-6">
-                      No banners in your brand library.
+                      {bannerLibrarySearchLower
+                        ? 'No banners match your search.'
+                        : 'No banners in your brand library.'}
                     </p>
                   )}
                 </div>

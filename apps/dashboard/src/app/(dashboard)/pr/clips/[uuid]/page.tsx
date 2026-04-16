@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases } from '@/db/schema'
+import { releases, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { redirect } from 'next/navigation'
@@ -26,7 +26,21 @@ export default async function ClipsPage({
   const isAdminOrImpersonating = (session?.user as any)?.isAdmin || (session?.user as any)?.isImpersonating
   if (!isAdminOrImpersonating && release.userId !== userId) {
     const companyIds = await getUserCompanyIds(userId)
-    if (!companyIds.includes(release.companyId)) redirect('/pr/reports')
+    if (!companyIds.includes(release.companyId)) {
+      // Allow partner managers to view reports for users in their managed partnerships
+      const managedPartnerIds = ((session?.user as any)?.managedPartnerIds as number[] | undefined) || []
+      let allowed = false
+      if (managedPartnerIds.length > 0) {
+        const owner = await db.query.users.findFirst({
+          where: eq(users.id, release.userId),
+          columns: { partnerId: true },
+        })
+        if (owner?.partnerId && managedPartnerIds.includes(owner.partnerId)) {
+          allowed = true
+        }
+      }
+      if (!allowed) redirect('/pr/reports')
+    }
   }
 
   return <ClipsReport uuid={uuid} isPublic={false} />

@@ -17,6 +17,8 @@
 | 2026-03-19 | self | Drizzle `db.insert().values({}).catch()` — query may not execute reliably without `.execute()` | Always use `.execute()` before `.catch()` for fire-and-forget Drizzle inserts: `db.insert().values({}).execute().catch(...)` |
 | 2026-03-15 | self | `is_deleted` is `null` (not `false`) on many products rows — `eq(isDeleted, false)` misses them | Always use `or(eq(field, false), isNull(field))` for nullable boolean columns like `is_deleted`. Same pattern as `is_archived`. |
 | 2026-04-01 | self | Drizzle `jsonb()` columns return `unknown` type — passing them to typed component props causes TS error | Cast jsonb fields at the call site: `data.release.adScreening as MyType \| null`. Don't fight Drizzle's generic jsonb typing. |
+| 2026-04-16 | user | Brand assets library filtered by both `companyId` AND `userId` — only showed current user's uploads not all brand assets | Brand assets belong to the brand/company, not the user. Filter only by `companyId` (+ `is_deleted`). `userId` filter is appropriate for "my uploads" views, not brand-scoped views. |
+| 2026-04-16 | user | Report access in `/pr/clips/[uuid]` and related APIs only checked admin/owner/company-member — partner managers couldn't view releases under their managed partnership | Add 4th access tier: if `session.user.managedPartnerIds` is non-empty, look up the release owner's `partnerId` and allow if it's in the managed list. Applies to `/pr/clips/[uuid]/page.tsx`, `/api/pr/[uuid]/report`, `.../report/pdf`, `.../report/xls`. |
 
 ## User Preferences
 - Use bun, not npm/yarn/node

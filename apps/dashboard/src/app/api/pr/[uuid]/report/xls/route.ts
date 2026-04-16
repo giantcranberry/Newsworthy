@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, releasePlacements } from '@/db/schema'
+import { releases, releasePlacements, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { getReportData, type ReportData, type ClipRecord } from '@/services/report'
@@ -167,7 +167,21 @@ export async function GET(
   if (!isAdminOrImpersonating && release.userId !== userId) {
     const companyIds = await getUserCompanyIds(userId)
     if (!companyIds.includes(release.companyId)) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      // Allow partner managers to view reports for users in their managed partnerships
+      const managedPartnerIds = ((session?.user as any)?.managedPartnerIds as number[] | undefined) || []
+      let allowed = false
+      if (managedPartnerIds.length > 0) {
+        const owner = await db.query.users.findFirst({
+          where: eq(users.id, release.userId),
+          columns: { partnerId: true },
+        })
+        if (owner?.partnerId && managedPartnerIds.includes(owner.partnerId)) {
+          allowed = true
+        }
+      }
+      if (!allowed) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
   }
 
