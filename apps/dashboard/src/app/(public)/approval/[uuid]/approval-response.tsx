@@ -8,6 +8,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { ImageCarousel } from '@/components/pr-wizard/image-carousel'
+
+interface CarouselImage {
+  id: number
+  url: string
+  title?: string | null
+  caption?: string | null
+  imgCredits?: string | null
+}
 
 interface ApprovalResponseProps {
   approvalUuid: string
@@ -16,6 +25,7 @@ interface ApprovalResponseProps {
     abstract: string
     body: string
     location: string
+    pullquote: string | null
   }
   company: {
     name: string
@@ -25,6 +35,7 @@ interface ApprovalResponseProps {
     url: string
     caption: string | null
   } | null
+  carouselImages: CarouselImage[]
   approverName: string
   notes: string | null
 }
@@ -44,6 +55,7 @@ export function ApprovalResponse({
   release,
   company,
   banner,
+  carouselImages,
   approverName,
   notes,
 }: ApprovalResponseProps) {
@@ -119,7 +131,7 @@ export function ApprovalResponse({
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <Image
             src="/logo.svg"
             alt="Newsworthy"
@@ -130,7 +142,7 @@ export function ApprovalResponse({
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Approval Request Banner */}
         <Card className="mb-6 border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
@@ -190,7 +202,7 @@ export function ApprovalResponse({
               </h1>
 
               {/* Banner */}
-              {banner && (
+              {banner && carouselImages.length === 0 && (
                 <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={banner.url}
@@ -212,11 +224,28 @@ export function ApprovalResponse({
                 {release.location} (Newsworthy.ai) {formatDate()}
               </p>
 
-              {/* Body */}
-              <div
-                className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400"
-                dangerouslySetInnerHTML={{ __html: release.body }}
-              />
+              {/* Body wraps around carousel + pullquote */}
+              <div className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400">
+                {(carouselImages.length > 0 || release.pullquote) && (
+                  <aside className="float-none lg:float-right lg:ml-6 lg:mb-4 lg:w-[450px] not-prose mb-6">
+                    {carouselImages.length > 0 && (
+                      <ImageCarousel images={carouselImages} />
+                    )}
+                    {release.pullquote && (
+                      <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
+                        <p>{(() => {
+                          const text = release.pullquote.trim()
+                          if (/^["“\u201C]/.test(text)) return text
+                          const match = text.match(/^([\s\S]*?)\s*(--\s*|—\s*|-\s+)([\s\S]+)$/)
+                          if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>
+                          return `\u201C${text}\u201D`
+                        })()}</p>
+                      </blockquote>
+                    )}
+                  </aside>
+                )}
+                <div dangerouslySetInnerHTML={{ __html: release.body }} />
+              </div>
             </article>
           </CardContent>
         </Card>
@@ -297,7 +326,7 @@ export function ApprovalResponse({
 
       {/* Footer */}
       <footer className="bg-slate-800 text-white mt-12">
-        <div className="max-w-4xl mx-auto px-4 py-6 text-center text-sm">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm">
           <p>Newsworthy.ai - Press Release Distribution</p>
         </div>
       </footer>
