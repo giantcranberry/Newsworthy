@@ -475,7 +475,7 @@ export function TaskFormDialog({
                   ],
                   toolbar:
                     'undo redo | blocks | ' +
-                    'bold italic | alignleft aligncenter alignright | ' +
+                    'bold italic superscript | alignleft aligncenter alignright | ' +
                     'bullist numlist outdent indent | link schemaAttrs | removeformat',
                   setup: (editor: any) => { setupSchemaPlugin(editor); },
                   extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',

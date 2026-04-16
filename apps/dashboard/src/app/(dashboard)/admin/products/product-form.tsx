@@ -381,7 +381,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
                 'insertdatetime', 'help', 'wordcount'
               ],
               toolbar: 'undo redo | blocks | ' +
-                'bold italic | bullist numlist | ' +
+                'bold italic superscript | bullist numlist | ' +
                 'link schemaAttrs | removeformat',
               setup: (editor: any) => { setupSchemaPlugin(editor); },
               extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',

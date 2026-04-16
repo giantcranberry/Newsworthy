@@ -1121,7 +1121,7 @@ export function EditorialEditForm({
                     ],
                     toolbar:
                       'undo redo | blocks | ' +
-                      'bold italic | alignleft aligncenter ' +
+                      'bold italic superscript | alignleft aligncenter ' +
                       'alignright alignjustify | bullist numlist outdent indent | ' +
                       'blockquote link schemaAttrs | removeformat | wordcount',
                     setup: (editor: any) => { setupSchemaPlugin(editor); },

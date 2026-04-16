@@ -259,7 +259,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
                 height: 400,
                 menubar: false,
                 plugins: ['lists', 'link'],
-                toolbar: 'undo redo | blocks | bold italic | bullist numlist | link schemaAttrs',
+                toolbar: 'undo redo | blocks | bold italic superscript | bullist numlist | link schemaAttrs',
                 setup: (editor: any) => { setupSchemaPlugin(editor); },
                 extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
                 link_rel_list: [

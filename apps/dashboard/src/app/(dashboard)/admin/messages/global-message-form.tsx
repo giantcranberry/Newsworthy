@@ -110,7 +110,7 @@ export function GlobalMessageForm({ message, onSuccess, onCancel }: GlobalMessag
                 'searchreplace', 'visualblocks',
                 'insertdatetime', 'help', 'wordcount'
               ],
-              toolbar: 'undo redo | blocks | bold italic | bullist numlist | link schemaAttrs | removeformat',
+              toolbar: 'undo redo | blocks | bold italic superscript | bullist numlist | link schemaAttrs | removeformat',
               setup: (editor: any) => { setupSchemaPlugin(editor); },
               extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
               link_rel_list: [

@@ -1708,7 +1708,7 @@ export function PRForm({
               ],
               toolbar:
                 "undo redo | blocks | " +
-                "bold italic | alignleft aligncenter " +
+                "bold italic superscript | alignleft aligncenter " +
                 "alignright alignjustify | bullist numlist outdent indent | " +
                 "blockquote link schemaAttrs | removeformat | wordcount",
               block_formats: 'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',

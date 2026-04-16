@@ -141,7 +141,7 @@ export function PostForm({ boards, companies = [], defaultBoardId, isStaff, onPo
           skin: isDark ? 'oxide-dark' : 'oxide',
           content_css: isDark ? 'dark' : 'default',
           plugins: ['autolink', 'lists', 'link'],
-          toolbar: 'blocks | bold italic | bullist numlist | blockquote link schemaAttrs | removeformat',
+          toolbar: 'blocks | bold italic superscript | bullist numlist | blockquote link schemaAttrs | removeformat',
           setup: (editor: any) => { setupSchemaPlugin(editor); },
           block_formats: 'Normal=p; Heading 2=h2; Heading 3=h3',
           extended_valid_elements: '@[itemscope|itemtype|itemid|itemprop|content],a[href|target|rel|itemscope|itemtype|itemprop|class],div[*],span[*],time[datetime|*]',
