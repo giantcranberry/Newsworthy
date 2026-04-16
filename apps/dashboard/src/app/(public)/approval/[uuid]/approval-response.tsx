@@ -196,13 +196,8 @@ export function ApprovalResponse({
                 <span className="font-medium text-gray-900 dark:text-gray-100">{company.name}</span>
               </div>
 
-              {/* Title */}
-              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
-                {release.title}
-              </h1>
-
               {/* Banner */}
-              {banner && carouselImages.length === 0 && (
+              {banner && (
                 <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <Image
                     src={banner.url}
@@ -213,6 +208,11 @@ export function ApprovalResponse({
                   />
                 </div>
               )}
+
+              {/* Title */}
+              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
+                {release.title}
+              </h1>
 
               {/* Abstract */}
               <p className="text-lg font-light text-gray-700 dark:text-gray-300">
