@@ -154,6 +154,7 @@ export async function uploadPersonHeadshot(
     .resize(400, 400, {
       fit: 'cover',
     })
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .jpeg({ quality: 90 })
     .toBuffer()
 
@@ -256,6 +257,7 @@ export async function uploadPRImage(
 
     processedImage = await sharp(file)
       .resize(targetWidth, targetHeight, { fit: 'fill' })
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
       .jpeg({ quality: 85 })
       .toBuffer()
 
@@ -270,6 +272,7 @@ export async function uploadPRImage(
         fit: 'inside',
         withoutEnlargement: true,
       })
+      .flatten({ background: { r: 255, g: 255, b: 255 } })
       .jpeg({ quality: 85 })
       .toBuffer()
 
@@ -312,6 +315,7 @@ export async function uploadCompanyImage(
       fit: 'inside',
       withoutEnlargement: true,
     })
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .jpeg({ quality: 85 })
     .toBuffer()
 
@@ -416,6 +420,7 @@ export async function uploadCommunityImage(
       fit: 'inside',
       withoutEnlargement: true,
     })
+    .flatten({ background: { r: 255, g: 255, b: 255 } })
     .jpeg({ quality: 85 })
     .toBuffer()
 

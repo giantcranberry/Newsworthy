@@ -52,6 +52,10 @@ async function getCroppedImg(
   canvas.width = targetWidth
   canvas.height = targetHeight
 
+  // Fill with white background to prevent transparent areas from becoming black in JPEG
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, targetWidth, targetHeight)
+
   ctx.drawImage(
     image,
     pixelCrop.x,
@@ -103,6 +107,10 @@ async function getFittedImg(
 
   canvas.width = targetWidth
   canvas.height = targetHeight
+
+  // Fill with white background to prevent transparent areas from becoming black in JPEG
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, targetWidth, targetHeight)
 
   // Calculate scale to fit the entire image
   const scale = Math.min(
@@ -185,6 +193,10 @@ async function getCroppedImgNatural(
 
   canvas.width = outW
   canvas.height = outH
+
+  // Fill with white background to prevent transparent areas from becoming black in JPEG
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, outW, outH)
 
   ctx.drawImage(
     image,
