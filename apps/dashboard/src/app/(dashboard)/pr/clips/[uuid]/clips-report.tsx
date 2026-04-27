@@ -178,14 +178,30 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     if (refresh) qp.set('refresh', 'true')
     const qs = qp.toString()
     const url = `/api/pr/${uuid}/report${qs ? `?${qs}` : ''}`
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load report')
-        return res.json()
-      })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false))
+
+    let retries = 0
+    const maxRetries = 2
+
+    const doFetch = (): Promise<void> =>
+      fetch(url)
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Failed to load report')
+          const ct = res.headers.get('content-type') || ''
+          if (!ct.includes('application/json')) {
+            // CDN/proxy returned HTML (e.g. challenge page) — retry once
+            if (retries < maxRetries) {
+              retries++
+              await new Promise((r) => setTimeout(r, 1500))
+              return doFetch()
+            }
+            throw new Error('Unable to load report. Please refresh the page and try again.')
+          }
+          return res.json()
+        })
+        .then((d) => { if (d) setData(d) })
+        .catch((e) => setError(e.message))
+
+    doFetch().finally(() => setLoading(false))
   }, [uuid, isPublic])
 
   const [pdfGenerating, setPdfGenerating] = useState(false)
@@ -243,6 +259,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     return (
       <div className="py-16 text-center">
         <p className="text-red-600 dark:text-red-400">{error || 'Report not found'}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer transition-colors"
+        >
+          <i className="fa-solid fa-rotate-right" aria-hidden="true" />
+          Retry
+        </button>
       </div>
     )
   }
