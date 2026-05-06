@@ -236,6 +236,7 @@ export async function POST(
 
     const firstName = parts[1] || null
     const lastName = parts[2] || null
+    const publication = parts[3] || null
 
     const existing = await db.query.crmContacts.findFirst({
       where: and(
@@ -268,6 +269,7 @@ export async function POST(
       fullName: [firstName, lastName].filter(Boolean).join(' ') || null,
       email,
       md5: emailMd5,
+      publication,
       source: 'upload',
     })
 
