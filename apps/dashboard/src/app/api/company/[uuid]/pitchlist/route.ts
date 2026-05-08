@@ -11,6 +11,41 @@ function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
 }
 
+// Parse a CSV line handling quoted fields (commas inside quotes)
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    if (inQuotes) {
+      if (char === '"') {
+        if (i + 1 < line.length && line[i + 1] === '"') {
+          current += '"'
+          i++
+        } else {
+          inQuotes = false
+        }
+      } else {
+        current += char
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true
+      } else if (char === ',') {
+        fields.push(current.trim())
+        current = ''
+      } else {
+        current += char
+      }
+    }
+  }
+
+  fields.push(current.trim())
+  return fields
+}
+
 async function getOrCreateGroup(companyId: number, userId: number, companyName: string) {
   let group = await db.query.pitchGroups.findFirst({
     where: eq(pitchGroups.coId, companyId),
@@ -131,7 +166,7 @@ export async function POST(
 
   // Single contact add
   if (body.mode === 'single') {
-    const { firstName, lastName, email, tld, publication, phone, notes } = body
+    const { firstName, lastName, email, tld, publication, qurl, phone, notes } = body
 
     if (!firstName?.trim() || !lastName?.trim()) {
       return NextResponse.json({ error: 'First and last name are required' }, { status: 400 })
@@ -166,6 +201,7 @@ export async function POST(
             fullName: `${firstName.trim()} ${lastName.trim()}`,
             tld: tld.trim().toLowerCase(),
             publication: publication?.trim() || existing.publication,
+            qurl: qurl?.trim() || existing.qurl,
             phone: phone?.trim() || existing.phone,
             notes: notes?.trim() || existing.notes,
             updatedAt: new Date(),
@@ -189,6 +225,7 @@ export async function POST(
       md5: emailMd5,
       tld: tld.trim().toLowerCase(),
       publication: publication?.trim() || null,
+      qurl: qurl?.trim() || null,
       phone: phone?.trim() || null,
       notes: notes?.trim() || null,
       source: 'single',
@@ -217,7 +254,7 @@ export async function POST(
   const seenInBatch = new Set<string>()
 
   for (const line of lines) {
-    const parts = line.split(',').map((s: string) => s.trim())
+    const parts = parseCSVLine(line)
     const email = parts[0]?.toLowerCase()
 
     if (!email || !email.includes('@')) {
@@ -236,7 +273,10 @@ export async function POST(
 
     const firstName = parts[1] || null
     const lastName = parts[2] || null
-    const publication = parts[3] || null
+    // Skip empty optional fields so an empty column doesn't shift publication/url
+    const optionalParts = parts.slice(3).filter(s => s.length > 0)
+    const publication = optionalParts[0] || null
+    const qurl = optionalParts[1] || null
 
     const existing = await db.query.crmContacts.findFirst({
       where: and(
@@ -270,6 +310,7 @@ export async function POST(
       email,
       md5: emailMd5,
       publication,
+      qurl,
       source: 'upload',
     })
 
@@ -302,7 +343,7 @@ export async function PUT(
   const co = access.company
 
   const body = await request.json()
-  const { contactUuid, firstName, lastName, email, tld, publication, phone, notes, unsubscribed } = body
+  const { contactUuid, firstName, lastName, email, tld, publication, qurl, phone, notes, unsubscribed } = body
 
   if (!contactUuid) {
     return NextResponse.json({ error: 'contactUuid is required' }, { status: 400 })
@@ -358,6 +399,7 @@ export async function PUT(
       md5: newMd5,
       tld: tld.trim().toLowerCase(),
       publication: publication?.trim() || null,
+      qurl: qurl?.trim() || null,
       phone: phone?.trim() || null,
       notes: notes?.trim() || null,
       unsubscribeAt: unsubscribed ? (contact.unsubscribeAt || new Date()) : null,

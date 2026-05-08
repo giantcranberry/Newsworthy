@@ -40,6 +40,7 @@ const emptyContactForm = {
   email: '',
   tld: '',
   publication: '',
+  qurl: '',
   phone: '',
   notes: '',
 }
@@ -178,6 +179,7 @@ export function PitchListForm({
                   <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName</code></li>
                   <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName</code></li>
                   <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName,MediaOutlet</code></li>
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName,MediaOutlet,URL</code></li>
                 </ul>
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
@@ -211,10 +213,10 @@ export function PitchListForm({
               onChange={(e) => setEmails(e.target.value)}
               rows={6}
               className="mt-1 font-mono text-sm"
-              placeholder={"email@example.com,FirstName,LastName,MediaOutlet\nanother@example.com,John,Doe,TechCrunch"}
+              placeholder={"email@example.com,FirstName,LastName,MediaOutlet,URL\nanother@example.com,John,Doe,TechCrunch,https://techcrunch.com/author/john-doe"}
             />
             <p className="text-xs text-gray-400 mt-1">
-              One email per line. First name, last name, and media outlet are optional.
+              One email per line. First name, last name, media outlet, and URL are optional.
             </p>
           </div>
 
@@ -322,6 +324,17 @@ export function PitchListForm({
                   className="mt-1"
                 />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="add-qurl">Publication URL</Label>
+              <Input
+                id="add-qurl"
+                type="url"
+                value={contactForm.qurl}
+                onChange={(e) => setContactForm(f => ({ ...f, qurl: e.target.value }))}
+                placeholder="e.g. https://techcrunch.com/author/john-doe"
+                className="mt-1"
+              />
             </div>
             <div>
               <Label htmlFor="add-phone">Phone</Label>
