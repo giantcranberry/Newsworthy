@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { PortableText } from '@portabletext/react'
 
 import { ContentSection } from '@/types/ContentSection'
+import { portableTextComponents } from '@/components/portable_text_component'
 
 type BandProps = {
   band: ContentSection
@@ -17,7 +18,7 @@ export function CenteredContentBand({ band }: BandProps) {
           </h2>
         </div>
         <div className="prose leading-8 text-white text-lg px-10 prose:font-sans font-light mb-7 text-center">
-          <PortableText value={band.content} />
+          <PortableText value={band.content} components={portableTextComponents} />
         </div>
         <div>
           {band.sectionCta.ctaUrl && (

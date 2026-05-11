@@ -70,6 +70,7 @@ export default defineType({
           title: 'Alternative Text'
         }
       ]
-    } as ArrayOfType
+    } as ArrayOfType,
+    { type: 'bannerAdEmbed' } as ArrayOfType
   ]
 })
