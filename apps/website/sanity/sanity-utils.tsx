@@ -11,6 +11,7 @@ import { Category } from "@/types/Category";
 import { ContentSection } from "@/types/ContentSection";
 import { FlatPage } from "@/types/FlatPage";
 import { SiteAd } from "@/types/SiteAd";
+import { BannerAd } from "@/types/BannerAd";
 import { Navbar } from "@/types/Navbar";
 import { Feature } from "@/types/Feature";
 
@@ -19,6 +20,59 @@ const builder = imageUrlBuilder(clientConfig);
 export function urlFor(source: SanityImageSource): string {
 	return builder.image(source).url();
 }
+
+// Shared projection for `banner_ad` documents — resolves image assets and a
+// plain-text version of the rich-text body.
+const BANNER_AD_PROJECTION = groq`
+	_id,
+	_type,
+	_createdAt,
+	internalName,
+	"slug": slug.current,
+	enabled,
+	placements,
+	priority,
+	startDate,
+	endDate,
+	disclosureLabel,
+	layout,
+	stacked,
+	"logo": logo{ "url": asset->url, alt },
+	eyebrow,
+	headline,
+	body,
+	"plainText": pt::text(body),
+	"bannerImage": bannerImage{
+		"url": asset->url,
+		"width": asset->metadata.dimensions.width,
+		"height": asset->metadata.dimensions.height,
+		alt,
+		credit
+	},
+	"mobileImage": mobileImage{ "url": asset->url, alt },
+	imageSide,
+	href,
+	ctas[]{ label, url, style, bgColor, textColor, openInNewTab, sponsored },
+	theme,
+	backgroundColor,
+	useGradient,
+	gradientFrom,
+	gradientVia,
+	gradientTo,
+	gradientDirection,
+	textColor,
+	accentColor,
+	customCss
+`;
+
+// Builds a projection for a portable-text array field that expands any
+// embedded `bannerAdEmbed` references into full ad objects.
+const portableTextWithAds = (field: string) => groq`
+	"${field}": ${field}[]{
+		...,
+		_type == "bannerAdEmbed" => { "ad": ad->{ ${BANNER_AD_PROJECTION} } }
+	}
+`;
 
 export async function getAuthorBySlug(slug: string): Promise<Author> {
 	return createClient(clientConfig).fetch(
@@ -68,7 +122,7 @@ export async function getCategorySections(
         _id,
         _createdAt,
         ...,
-        content,
+        ${portableTextWithAds("content")},
     }`,
 		{ section_slugs }
 	);
@@ -110,9 +164,11 @@ export async function getPage(slug: string): Promise<Page> {
         _id,
         _createdAt,
         ...,
+        ${portableTextWithAds("content")},
+        ${portableTextWithAds("hero_text")},
         "feature_sections": feature_sections[]{ heading, icon, features[]-> },
-        "content_sections": content_sections[]->,
-        "card_sections": card_sections[]->,
+        "content_sections": content_sections[]->{ ..., ${portableTextWithAds("content")} },
+        "card_sections": card_sections[]->{ ..., ${portableTextWithAds("content")} },
         "primary_testimonial": primary_testimonial[]->,
     }`,
 		{ slug: slug }
@@ -134,7 +190,8 @@ export async function getFlatPage(slug: string): Promise<FlatPage> {
 		groq`*[_type == "flatpage" && slug.current == $slug][0] {
         _id,
         _createdAt,
-        ...,    
+        ...,
+        ${portableTextWithAds("content")},
         }`,
 		{ slug: slug }
 	);
@@ -177,7 +234,8 @@ export async function getSitemapSanityUrls(
 export async function getPostBySlug(slug: string): Promise<Post> {
 	return createClient(clientConfig).fetch(
 		groq`*[_type == "post" && slug.current == $slug][0] {
-        ..., 
+        ...,
+        ${portableTextWithAds("content")},
         author->,
         category->,
     }`,
@@ -193,5 +251,31 @@ export async function getSiteAdBySlug(slug: string): Promise<SiteAd> {
         ...,
     }`,
 		{ slug: slug }
+	);
+}
+
+export async function getBannerAdBySlug(slug: string): Promise<BannerAd | null> {
+	return createClient(clientConfig).fetch(
+		groq`*[_type == "banner_ad" && slug.current == $slug && enabled != false][0] {
+        ${BANNER_AD_PROJECTION}
+    }`,
+		{ slug: slug }
+	);
+}
+
+// Returns enabled, in-window banner ads for a given placement, highest priority first.
+export async function getBannerAds(placement?: string): Promise<BannerAd[]> {
+	const now = new Date().toISOString();
+	return createClient(clientConfig).fetch(
+		groq`*[
+        _type == "banner_ad"
+        && enabled != false
+        && (!defined($placement) || $placement in placements)
+        && (!defined(startDate) || startDate <= $now)
+        && (!defined(endDate) || endDate >= $now)
+    ] | order(coalesce(priority, 0) desc, _createdAt desc) {
+        ${BANNER_AD_PROJECTION}
+    }`,
+		{ placement: placement ?? null, now }
 	);
 }

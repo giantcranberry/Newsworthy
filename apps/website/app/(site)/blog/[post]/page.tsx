@@ -3,7 +3,7 @@ import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
-import { PortableTextImageComponent } from "@/components/portable_text_component";
+import { PortableTextImageComponent, BannerAdEmbedComponent } from "@/components/portable_text_component";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 import GetTheBook from "@/components/get-the-book";
@@ -118,6 +118,7 @@ export default async function Post({ params }: Props) {
                             components={{
                                 types: {
                                     image: PortableTextImageComponent,
+                                    bannerAdEmbed: BannerAdEmbedComponent,
                                 },
                             }}
                         />

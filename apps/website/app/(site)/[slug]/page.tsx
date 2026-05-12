@@ -1,4 +1,4 @@
-import { PortableTextImageComponent } from "@/components/portable_text_component";
+import { PortableTextImageComponent, BannerAdEmbedComponent } from "@/components/portable_text_component";
 import { getFlatPage, getPage, urlFor } from "@/sanity/sanity-utils";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
@@ -57,6 +57,7 @@ function sanityValue(field: string | string[] | undefined): string | undefined {
 const portableTextComponents = {
   types: {
     image: PortableTextImageComponent,
+    bannerAdEmbed: BannerAdEmbedComponent,
   },
   marks: {
     link: ({ value, children }: { value?: { href?: string }; children: React.ReactNode }) => {
@@ -99,7 +100,7 @@ export default async function Page({ params }: Props) {
         </div>
         <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 mt-8">
           <div className="max-w-3xl prose prose-gray prose-headings:font-serif prose-headings:font-semibold prose-p:text-gray-600 prose-p:leading-relaxed prose-a:text-cyan-700 prose-a:no-underline hover:prose-a:text-cyan-600 prose-strong:text-gray-900">
-            <PortableText value={flatPage.content} />
+            <PortableText value={flatPage.content} components={portableTextComponents} />
           </div>
         </div>
       </div>
@@ -187,7 +188,7 @@ export default async function Page({ params }: Props) {
                       )}
                       {section.content && (
                         <div className="mt-2 prose prose-gray prose-p:text-base prose-p:leading-relaxed prose-blockquote:border-cyan-600 prose-blockquote:text-gray-600 prose-blockquote:font-normal">
-                          <PortableText value={section.content} />
+                          <PortableText value={section.content} components={portableTextComponents} />
                         </div>
                       )}
                     </div>
@@ -202,7 +203,7 @@ export default async function Page({ params }: Props) {
                     )}
                     {section.content && (
                       <div className="mt-4 prose prose-gray prose-p:text-lg prose-p:leading-relaxed">
-                        <PortableText value={section.content} />
+                        <PortableText value={section.content} components={portableTextComponents} />
                       </div>
                     )}
                   </div>
@@ -241,7 +242,7 @@ export default async function Page({ params }: Props) {
                       )}
                       {section.content && (
                         <div className="max-w-none prose prose-gray prose-p:text-lg prose-p:leading-relaxed prose-li:text-lg prose-a:text-cyan-700 hover:prose-a:text-cyan-600">
-                          <PortableText value={section.content} />
+                          <PortableText value={section.content} components={portableTextComponents} />
                         </div>
                       )}
                       {section.sectionCta?.ctaLabel && (
@@ -359,7 +360,7 @@ export default async function Page({ params }: Props) {
                 )}
                 {card.content && (
                   <div className="mt-2 prose prose-sm prose-gray prose-p:leading-relaxed">
-                    <PortableText value={card.content} />
+                    <PortableText value={card.content} components={portableTextComponents} />
                   </div>
                 )}
                 {card.sectionCta?.ctaLabel && (
