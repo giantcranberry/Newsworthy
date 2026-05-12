@@ -180,8 +180,8 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
                   setCourtesySuccess(false)
                 }}
               >
-                <Gift className="h-4 w-4" />
-                <span className="hidden sm:inline">Redeem Code</span>
+                <Gift className="h-4 w-4 text-red-500" />
+                <span className="hidden sm:inline">Redeem Courtesy Code</span>
               </Button>
             )}
           </div>
