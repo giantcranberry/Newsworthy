@@ -1,5 +1,5 @@
 import { PortableTextImageComponent, BannerAdEmbedComponent } from "@/components/portable_text_component";
-import { getFlatPage, getPage, urlFor } from "@/sanity/sanity-utils";
+import { getFlatPage, getPage, getBannerAdBySlug, urlFor } from "@/sanity/sanity-utils";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -80,7 +80,10 @@ const portableTextComponents = {
 
 export default async function Page({ params }: Props) {
   const { slug } = await params;
-  const page = await getPage(slug);
+  const [page, bannerAd] = await Promise.all([
+    getPage(slug),
+    getBannerAdBySlug("news-marketing-book"),
+  ]);
 
   if (!page) {
     const flatPage = await getFlatPage(slug);
@@ -109,6 +112,76 @@ export default async function Page({ params }: Props) {
 
   return (
     <div className="pb-16">
+      {/* Banner Ad Hero */}
+      {bannerAd && (
+        <div
+          className="overflow-hidden text-white"
+          style={{
+            backgroundColor: bannerAd.backgroundColor ?? "#9D1D2B",
+            backgroundImage: bannerAd.useGradient && bannerAd.gradientFrom && bannerAd.gradientTo
+              ? `linear-gradient(${bannerAd.gradientDirection ?? "135deg"}, ${bannerAd.gradientFrom}, ${bannerAd.gradientVia ?? ""} ${bannerAd.gradientVia ? "," : ""} ${bannerAd.gradientTo})`
+              : undefined,
+          }}
+        >
+          <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 py-8 md:py-6">
+              {bannerAd.bannerImage?.url && (
+                <div className="shrink-0 flex justify-center md:order-1">
+                  <Image
+                    src={bannerAd.bannerImage.url}
+                    alt={bannerAd.bannerImage.alt || bannerAd.headline || ""}
+                    width={bannerAd.bannerImage.width ?? 715}
+                    height={bannerAd.bannerImage.height ?? 565}
+                    className="h-40 md:h-48 w-auto drop-shadow-lg"
+                    priority
+                  />
+                </div>
+              )}
+              <div className="flex flex-col gap-3 text-center md:text-left md:order-2 min-w-0">
+                {bannerAd.logo?.url && (
+                  <Image
+                    src={bannerAd.logo.url}
+                    alt={bannerAd.logo.alt || ""}
+                    width={bannerAd.logo.width ?? 200}
+                    height={bannerAd.logo.height ?? 60}
+                    className="h-8 w-auto object-contain self-center md:self-start"
+                  />
+                )}
+                {bannerAd.headline && (
+                  <h2 className="font-serif font-semibold text-xl md:text-2xl lg:text-3xl text-balance leading-tight">
+                    {bannerAd.headline}
+                  </h2>
+                )}
+                {bannerAd.body && (
+                  <div className="text-sm md:text-base leading-relaxed opacity-90 text-balance">
+                    <PortableText value={bannerAd.body} />
+                  </div>
+                )}
+                {bannerAd.ctas?.length ? (
+                  <div className="flex flex-col sm:flex-row gap-3 mt-1 items-center md:items-start">
+                    {bannerAd.ctas.map((cta, i) => (
+                      <a
+                        key={i}
+                        href={cta.url}
+                        target={cta.openInNewTab ? "_blank" : undefined}
+                        rel={cta.sponsored ? "sponsored nofollow noopener noreferrer" : cta.url.startsWith("http") ? "noopener noreferrer" : undefined}
+                        className="inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-semibold transition-all hover:opacity-90 shadow-sm"
+                        style={{
+                          backgroundColor: cta.bgColor || "#000000",
+                          color: cta.textColor || "#ffffff",
+                        }}
+                      >
+                        {cta.label}
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className={cn("relative overflow-hidden", page.hero_background_css)}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_60%)]" />
