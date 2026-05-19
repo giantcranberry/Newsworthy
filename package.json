@@ -23,6 +23,9 @@
   },
   "packageManager": "bun@1.2.4",
   "dependencies": {
-    "@dayflow/blossom-color-picker-react": "^1.1.0"
+    "@dayflow/blossom-color-picker-react": "^1.1.0",
+    "next": "16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   }
 }
