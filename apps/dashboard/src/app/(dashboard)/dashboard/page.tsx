@@ -1,6 +1,6 @@
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases, company, userSubscription, brandCredits, companyMembers, companyInvites } from "@/db/schema";
+import { releases, company, userSubscription, brandCredits, companyMembers, companyInvites, couponLog } from "@/db/schema";
 import { eq, desc, and, ne, or, isNull, sql, inArray, gt } from "drizzle-orm";
 import { getUserCompanyIds } from "@/lib/team-auth";
 import Link from "next/link";
@@ -29,6 +29,7 @@ import { faEye } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { faBullseye } from "@awesome.me/kit-adf47b9acf/icons/duotone/light";
 import { CreditsCard } from "./credits-card";
 import { PendingInvites } from "./pending-invites";
+import { RedeemCourtesyCode } from "./redeem-courtesy-code";
 import { getClipsTotalStats } from "@/services/report";
 import { EngagementChart } from "./engagement-chart";
 
@@ -245,12 +246,21 @@ async function getDashboardData(userId: number) {
     }
   }
 
+  // Check if user has already redeemed a courtesy code
+  const couponLogRows = await db
+    .select({ id: couponLog.id })
+    .from(couponLog)
+    .where(eq(couponLog.userId, userId))
+    .limit(1);
+  const hasRedeemedCoupon = couponLogRows.length > 0;
+
   return {
     releases: userReleases,
     companies: userCompanies,
     subscription,
     allCredits,
     stats,
+    hasRedeemedCoupon,
     engagement: {
       pageviews: totalPageviews,
       shares: totalShares,
@@ -264,7 +274,7 @@ export default async function DashboardPage() {
   const session = await getEffectiveSession();
   const userId = parseInt(session?.user?.id || "0");
 
-  const { releases, companies, subscription, allCredits, stats, engagement } =
+  const { releases, companies, subscription, allCredits, stats, engagement, hasRedeemedCoupon } =
     await getDashboardData(userId);
 
   const userEmail = session?.user?.email?.toLowerCase() || '';
@@ -340,7 +350,7 @@ export default async function DashboardPage() {
         </Link>
 
         <div data-tour="dashboard-stat-credits">
-          <CreditsCard allCredits={allCredits} canPurchase={canCreate} />
+          <CreditsCard allCredits={allCredits} canPurchase={canCreate} hasRedeemedCoupon={hasRedeemedCoupon} />
         </div>
 
         <Link href="/pr?filter=review" data-tour="dashboard-stat-review">
@@ -411,7 +421,7 @@ export default async function DashboardPage() {
             <CardDescription>Common tasks and actions</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className={`grid grid-cols-2 gap-3 ${hasRedeemedCoupon ? 'sm:grid-cols-4' : 'sm:grid-cols-5'}`}>
               <Link
                 href="/pr/create"
                 data-tour="dashboard-action-new-release"
@@ -444,6 +454,7 @@ export default async function DashboardPage() {
                 <FaIcon icon={faCoins} className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500" />
                 <span className="text-sm font-semibold text-amber-500">Buy Credits</span>
               </Link>
+              {!hasRedeemedCoupon && <RedeemCourtesyCode />}
             </div>
           </CardContent>
         </Card>

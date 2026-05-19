@@ -45,6 +45,21 @@ async function getListCount(companyId: number) {
   return Number(countRow?.count || 0)
 }
 
+async function getMediaListCount(companyId: number) {
+  const [countRow] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(crmContacts)
+    .where(and(
+      eq(crmContacts.companyId, companyId),
+      inArray(crmContacts.contactType, ['media', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`,
+      sql`${crmContacts.unsubscribeAt} IS NULL`,
+      sql`${crmContacts.bouncedAt} IS NULL`
+    ))
+
+  return Number(countRow?.count || 0)
+}
+
 export default async function SharePage({
   params,
 }: {
@@ -70,14 +85,17 @@ export default async function SharePage({
 
   const options = release.id ? await getReleaseOptions(release.id) : null
   const listCount = await getListCount(release.companyId)
+  const mediaListCount = await getMediaListCount(release.companyId)
 
   return (
     <ShareForm
       releaseUuid={uuid}
       companyUuid={release.company?.uuid || ''}
       shareWithList={options?.advocacy ?? listCount > 0}
+      sendToPitchList={options?.pitchlist ?? mediaListCount > 0}
       companyName={release.company?.companyName || ''}
       listCount={listCount}
+      mediaListCount={mediaListCount}
     >
       <WizardNav
         releaseUuid={uuid}

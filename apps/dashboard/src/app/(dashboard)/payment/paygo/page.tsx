@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { products, brandCredits } from '@/db/schema'
-import { eq, and, or, isNull, ne, asc, desc, sql, SQL } from 'drizzle-orm'
+import { products, brandCredits, couponLog } from '@/db/schema'
+import { eq, and, or, isNull, ne, asc, desc, sql } from 'drizzle-orm'
 import { ProductGrid } from './product-grid'
 
 async function getProducts(partnerId: number) {
@@ -50,10 +50,12 @@ export default async function PaygoPage() {
   const userId = parseInt(session?.user?.id || '0')
   const userPartnerId = (session?.user as any)?.partnerId || 1
 
-  const [allProducts, credits] = await Promise.all([
+  const [allProducts, credits, couponLogRows] = await Promise.all([
     getProducts(userPartnerId),
     getUserCredits(userId),
+    db.select({ id: couponLog.id }).from(couponLog).where(eq(couponLog.userId, userId)).limit(1),
   ])
+  const hasRedeemedCoupon = couponLogRows.length > 0
 
   return (
     <ProductGrid
@@ -72,6 +74,7 @@ export default async function PaygoPage() {
         label: p.label,
       }))}
       credits={credits}
+      hasRedeemedCoupon={hasRedeemedCoupon}
     />
   )
 }

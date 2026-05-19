@@ -4,6 +4,7 @@ import { PortableText } from '@portabletext/react'
 import { ContentSection } from '@/types/ContentSection'
 import Image from 'next/image'
 import { urlFor } from '@/sanity/sanity-utils'
+import { portableTextComponents } from '@/components/portable_text_component'
 
 type BandProps = {
   band: ContentSection
@@ -18,7 +19,7 @@ export function ImageContentBand({ band }: BandProps) {
             {band.headline}
           </h2>
           <div className="prose leading-8 text-white text-2xl prose:font-sans font-light">
-            <PortableText value={band.content} />
+            <PortableText value={band.content} components={portableTextComponents} />
             {band.sectionCta.ctaUrl && (
               <Link
                 href={band.sectionCta.ctaUrl}

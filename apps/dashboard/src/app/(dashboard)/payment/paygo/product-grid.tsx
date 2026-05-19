@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ShoppingCart, Loader2, Zap, Sparkles, Star, Crown, Rocket, Target } from 'lucide-react'
+import { RedeemCourtesyCode } from '../../dashboard/redeem-courtesy-code'
 
 type Product = {
   id: number
@@ -79,9 +80,11 @@ function truncateHtml(html: string, maxLen = 250): { preview: string; rest: stri
 export function ProductGrid({
   products,
   credits,
+  hasRedeemedCoupon = true,
 }: {
   products: Product[]
   credits: Credits | null
+  hasRedeemedCoupon?: boolean
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState<Set<number>>(new Set())
@@ -152,7 +155,15 @@ export function ProductGrid({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Buy Credits</h1>
-          <p className="text-gray-500 dark:text-gray-400">Select products to add to your cart</p>
+          <div className="flex items-center gap-3">
+            <p className="text-gray-500 dark:text-gray-400">Select products to add to your cart</p>
+            {!hasRedeemedCoupon && (
+              <>
+                <span className="text-gray-300 dark:text-gray-600">|</span>
+                <RedeemCourtesyCode variant="link" />
+              </>
+            )}
+          </div>
         </div>
         {selected.size > 0 && (
           <button

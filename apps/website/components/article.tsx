@@ -54,7 +54,7 @@ export default function Article({ htmlContent, insertAfterParagraph, insertConte
           />
           {insertContent}
           <div
-            className={proseClasses}
+            className={`${proseClasses} [&>:first-child]:mt-[1.25em]`}
             dangerouslySetInnerHTML={{ __html: parts[1] }}
           />
         </>

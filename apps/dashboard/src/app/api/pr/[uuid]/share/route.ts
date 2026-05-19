@@ -34,17 +34,21 @@ export async function PUT(
       }
     }
 
-    const { advocacy } = await request.json()
+    const { advocacy, pitchlist } = await request.json()
 
     // Check if release options exist
     const existingOptions = await db.query.releaseOptions.findFirst({
       where: eq(releaseOptions.prId, release.id),
     })
 
+    const updates: Record<string, any> = {}
+    if (advocacy !== undefined) updates.advocacy = !!advocacy
+    if (pitchlist !== undefined) updates.pitchlist = !!pitchlist
+
     if (existingOptions) {
       // Update existing
       await db.update(releaseOptions)
-        .set({ advocacy: !!advocacy })
+        .set(updates)
         .where(eq(releaseOptions.prId, release.id))
     } else {
       // Create new
@@ -52,10 +56,11 @@ export async function PUT(
         prId: release.id,
         userId,
         advocacy: !!advocacy,
+        pitchlist: !!pitchlist,
       })
     }
 
-    return NextResponse.json({ success: true, advocacy: !!advocacy })
+    return NextResponse.json({ success: true, advocacy: !!advocacy, pitchlist: !!pitchlist })
   } catch (error) {
     console.error('[API] Error updating advocacy:', error)
     return NextResponse.json({ error: 'Failed to update advocacy setting' }, { status: 500 })
@@ -97,6 +102,7 @@ export async function GET(
 
     return NextResponse.json({
       advocacy: options?.advocacy || false,
+      pitchlist: options?.pitchlist || false,
     })
   } catch (error) {
     console.error('[API] Error fetching advocacy:', error)

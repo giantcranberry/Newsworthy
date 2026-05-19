@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { db, and, or, eq, gt, gte, lte, desc, count, releases } from '@/lib/db';
+import { db, and, or, eq, gt, gte, lte, desc, count, releases } from "@/lib/db";
 import { PressRelease } from "@/types/Release";
 import { newsUrl } from "@/lib/utils";
 import Image from "next/image";
@@ -8,7 +8,8 @@ import { getCategorySections, getSiteAdBySlug } from "@/sanity/sanity-utils";
 import TrustedDialog from "@/components/trusted";
 import { CardNews } from "@/components/home_news_card";
 import { MobileNewsCard } from "@/components/mobile_news_card";
-import SeeYourNews from "@/components/see_your_news";
+import BannerAdBand from "@/components/banner-ad/banner-ad-band";
+import SeeYourNewsGutter from "@/components/see_your_news_gutter";
 import { headers } from "next/headers";
 import { FeedStatsType } from "@/types/Stats";
 import { postESGeneric } from "@/lib/elastic";
@@ -35,32 +36,32 @@ export default async function Home({ searchParams }: Props) {
   const band_count = bands.length;
 
   // Get total count for pagination
-  const [{ count: totalCount }] = await db.select({ count: count() }).from(releases).where(
-    and(
-      eq(releases.isDeleted, false),
-      or(
-        and(
-          lte(releases.releasedAt, currentDatetime),
-          gt(releases.score, 3),
-        ),
-        and(
-          gt(releases.releasedAt, fourHoursAgo),
-          lte(releases.releasedAt, currentDatetime),
-          eq(releases.score, 3),
-          eq(releases.isFeatured, true),
-        ),
-        and(
-          eq(releases.isFeatured, false),
-          gte(releases.releasedAt, fourHoursAgo),
+  const [{ count: totalCount }] = await db
+    .select({ count: count() })
+    .from(releases)
+    .where(
+      and(
+        eq(releases.isDeleted, false),
+        or(
+          and(lte(releases.releasedAt, currentDatetime), gt(releases.score, 3)),
+          and(
+            gt(releases.releasedAt, fourHoursAgo),
+            lte(releases.releasedAt, currentDatetime),
+            eq(releases.score, 3),
+            eq(releases.isFeatured, true),
+          ),
+          and(
+            eq(releases.isFeatured, false),
+            gte(releases.releasedAt, fourHoursAgo),
+          ),
         ),
       ),
-    ),
-  );
+    );
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
   const skip = (page - 1) * itemsPerPage;
 
-  const current_releases = await db.query.releases.findMany({
+  const current_releases = (await db.query.releases.findMany({
     limit: itemsPerPage + 4, // +2 for featured posts, +2 extra for layout
     offset: skip,
     columns: {
@@ -88,10 +89,7 @@ export default async function Home({ searchParams }: Props) {
     where: and(
       eq(releases.isDeleted, false),
       or(
-        and(
-          lte(releases.releasedAt, currentDatetime),
-          gt(releases.score, 3),
-        ),
+        and(lte(releases.releasedAt, currentDatetime), gt(releases.score, 3)),
         and(
           gt(releases.releasedAt, fourHoursAgo),
           lte(releases.releasedAt, currentDatetime),
@@ -105,7 +103,7 @@ export default async function Home({ searchParams }: Props) {
       ),
     ),
     orderBy: desc(releases.releasedAt),
-  }) as PressRelease[];
+  })) as PressRelease[];
 
   const [featured, secondFeatured, ...releasesList] = current_releases;
   const releaseIds = current_releases.map((release) => release.id);
@@ -154,7 +152,7 @@ export default async function Home({ searchParams }: Props) {
                         className="hover:translate-8 transition duration-500 ease-in-out group-hover:scale-105"
                         src={featured.banner.cdnUrl.replace(
                           "resize=width:328",
-                          "resize=width:1200"
+                          "resize=width:1200",
                         )}
                         width={1200}
                         height={630}
@@ -199,7 +197,7 @@ export default async function Home({ searchParams }: Props) {
                         className="hover:translate-8 transition duration-500 ease-in-out group-hover:scale-105"
                         src={secondFeatured.banner.cdnUrl.replace(
                           "resize=width:328",
-                          "resize=width:1200"
+                          "resize=width:1200",
                         )}
                         width={1200}
                         height={630}
@@ -233,24 +231,25 @@ export default async function Home({ searchParams }: Props) {
               </div>
             )}
           </section>
-          <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl xl:my-5 px-5 pt-5">
-            <SeeYourNews />
+          <section className="mx-auto grid w-full max-w-screen-xl grid-cols-1 items-start gap-5 px-5 pt-5 md:grid-cols-2 xl:my-5 xl:max-w-screen-2xl">
+            <BannerAdBand slug="news-marketing-book" />
+            <BannerAdBand slug="see-your-news-here" />
           </section>
 
           <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-3 lg:px-5 pt-8 relative">
             <div className="flex items-center gap-4 mb-6">
-              <h2 className="text-lg font-extrabold uppercase text-cyan-800">Latest News</h2>
+              <h2 className="text-lg font-extrabold uppercase text-cyan-800">
+                Latest News
+              </h2>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
             {/* Mobile layout */}
             <div className="lg:hidden">
               <div className="flex flex-col">
-                {releasesList.map(
-                  (release, index) => (
-                    <MobileNewsCard key={release.id} release={release} />
-                  )
-                )}
+                {releasesList.map((release, index) => (
+                  <MobileNewsCard key={release.id} release={release} />
+                ))}
               </div>
               <aside className="my-5 px-5">
                 <FreePrReview />
@@ -269,7 +268,10 @@ export default async function Home({ searchParams }: Props) {
                         <div className="overflow-hidden rounded-lg mb-4">
                           <Image
                             className="w-full aspect-[16/9] object-cover transition duration-300 ease-in-out group-hover:scale-105"
-                            src={releasesList[0].banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:1200")}
+                            src={releasesList[0].banner.cdnUrl.replace(
+                              /resize=width:\d+/,
+                              "resize=width:1200",
+                            )}
                             width={800}
                             height={450}
                             alt={releasesList[0].title || "Press release image"}
@@ -303,17 +305,25 @@ export default async function Home({ searchParams }: Props) {
                           <div className="overflow-hidden rounded-lg mb-4">
                             <Image
                               className="w-full aspect-[16/9] object-cover transition duration-300 ease-in-out group-hover:scale-105"
-                              src={releasesList[1].banner.cdnUrl.replace(/resize=width:\d+/, "resize=width:800")}
+                              src={releasesList[1].banner.cdnUrl.replace(
+                                /resize=width:\d+/,
+                                "resize=width:800",
+                              )}
                               width={600}
                               height={338}
-                              alt={releasesList[1].title || "Press release image"}
+                              alt={
+                                releasesList[1].title || "Press release image"
+                              }
                             />
                           </div>
                         )}
                         <div className="flex flex-col gap-2">
                           {releasesList[1].releaseCategories?.[0]?.category && (
                             <span className="text-xs font-medium text-sky-700">
-                              {releasesList[1].releaseCategories[0].category.name}
+                              {
+                                releasesList[1].releaseCategories[0].category
+                                  .name
+                              }
                             </span>
                           )}
                           <h3 className="font-serif text-2xl xl:text-3xl leading-tight group-hover:text-sky-700 transition-colors">
@@ -333,24 +343,25 @@ export default async function Home({ searchParams }: Props) {
               )}
 
               {/* Bottom grid: remaining stories as cards */}
-              {releasesList.length > 2 && (() => {
-                const remaining = releasesList.slice(2);
-                // +1 for the FreePrReview card, round down to nearest multiple of 4
-                const totalSlots = Math.floor((remaining.length + 1) / 4) * 4;
-                const cardCount = totalSlots - 1;
-                const cards = remaining.slice(0, cardCount);
-                return (
-                  <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 mt-8">
-                    {cards.slice(0, 2).map((release) => (
-                      <CardNews key={release.id} release={release} />
-                    ))}
-                    <FreePrReview />
-                    {cards.slice(2).map((release) => (
-                      <CardNews key={release.id} release={release} />
-                    ))}
-                  </div>
-                );
-              })()}
+              {releasesList.length > 2 &&
+                (() => {
+                  const remaining = releasesList.slice(2);
+                  // +1 for the FreePrReview card, round down to nearest multiple of 4
+                  const totalSlots = Math.floor((remaining.length + 1) / 4) * 4;
+                  const cardCount = totalSlots - 1;
+                  const cards = remaining.slice(0, cardCount);
+                  return (
+                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 mt-8">
+                      {cards.slice(0, 2).map((release) => (
+                        <CardNews key={release.id} release={release} />
+                      ))}
+                      <FreePrReview />
+                      {cards.slice(2).map((release) => (
+                        <CardNews key={release.id} release={release} />
+                      ))}
+                    </div>
+                  );
+                })()}
             </div>
           </section>
           {/* <CenteredContentBand band={bands[1]} /> */}
@@ -370,33 +381,42 @@ export default async function Home({ searchParams }: Props) {
                   )}
 
                   <div className="flex gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => {
-                      if (
-                        pageNum === 1 ||
-                        pageNum === totalPages ||
-                        (pageNum >= page - 2 && pageNum <= page + 2)
-                      ) {
-                        return (
-                          <Link
-                            key={pageNum}
-                            href={pageNum === 1 ? '/' : `/?page=${pageNum}`}
-                            className={`h-9 w-9 flex items-center justify-center text-sm font-medium rounded-full transition-colors ${
-                              pageNum === page
-                                ? 'bg-cyan-700 text-white'
-                                : 'text-gray-600 hover:bg-cyan-50 hover:text-cyan-700'
-                            }`}
-                          >
-                            {pageNum}
-                          </Link>
-                        );
-                      } else if (
-                        pageNum === page - 3 ||
-                        pageNum === page + 3
-                      ) {
-                        return <span key={pageNum} className="h-9 w-9 flex items-center justify-center text-gray-400">...</span>;
-                      }
-                      return null;
-                    })}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (pageNum) => {
+                        if (
+                          pageNum === 1 ||
+                          pageNum === totalPages ||
+                          (pageNum >= page - 2 && pageNum <= page + 2)
+                        ) {
+                          return (
+                            <Link
+                              key={pageNum}
+                              href={pageNum === 1 ? "/" : `/?page=${pageNum}`}
+                              className={`h-9 w-9 flex items-center justify-center text-sm font-medium rounded-full transition-colors ${
+                                pageNum === page
+                                  ? "bg-cyan-700 text-white"
+                                  : "text-gray-600 hover:bg-cyan-50 hover:text-cyan-700"
+                              }`}
+                            >
+                              {pageNum}
+                            </Link>
+                          );
+                        } else if (
+                          pageNum === page - 3 ||
+                          pageNum === page + 3
+                        ) {
+                          return (
+                            <span
+                              key={pageNum}
+                              className="h-9 w-9 flex items-center justify-center text-gray-400"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+                        return null;
+                      },
+                    )}
                   </div>
 
                   {page < totalPages && (
@@ -411,7 +431,8 @@ export default async function Home({ searchParams }: Props) {
               </div>
 
               <div className="mt-4 text-center text-sm text-gray-500">
-                Showing {skip + 1}-{Math.min(skip + itemsPerPage, totalCount)} of {totalCount} press releases
+                Showing {skip + 1}-{Math.min(skip + itemsPerPage, totalCount)}{" "}
+                of {totalCount} press releases
               </div>
             </section>
           )}

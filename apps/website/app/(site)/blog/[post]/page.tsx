@@ -1,12 +1,12 @@
-import { getPostBySlug, urlFor } from "@/sanity/sanity-utils";
+import { getPostBySlug, getBannerAdBySlug, urlFor } from "@/sanity/sanity-utils";
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
-import { PortableTextImageComponent } from "@/components/portable_text_component";
+import { PortableTextImageComponent, BannerAdEmbedComponent } from "@/components/portable_text_component";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
-import GetTheBook from "@/components/get-the-book";
+import BannerAdBlock from "@/components/banner-ad/banner-ad-block";
 
 export const revalidate = 300;
 
@@ -61,8 +61,10 @@ export async function generateMetadata({ params }: Props): Promise<CustomMetadat
 
 export default async function Post({ params }: Props) {
     const { post: slug } = await params;
-    const post = await getPostBySlug(slug);
-    // https://www.npmjs.com/package/@sanity/image-url
+    const [post, sidebarAd] = await Promise.all([
+        getPostBySlug(slug),
+        getBannerAdBySlug("news-marketing-book"),
+    ]);
     return (
         <article className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 py-5">
             {/* Hero */}
@@ -118,6 +120,7 @@ export default async function Post({ params }: Props) {
                             components={{
                                 types: {
                                     image: PortableTextImageComponent,
+                                    bannerAdEmbed: BannerAdEmbedComponent,
                                 },
                             }}
                         />
@@ -125,7 +128,9 @@ export default async function Post({ params }: Props) {
                 </div>
                 <aside className="lg:col-span-3">
                     <div className="sticky top-10">
-                        <GetTheBook />
+                        {sidebarAd ? (
+                            <BannerAdBlock ad={sidebarAd} stacked />
+                        ) : null}
                     </div>
                 </aside>
             </div>

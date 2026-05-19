@@ -11,7 +11,7 @@ const config = defineConfig({
   basePath: '/admin',
   plugins: [deskTool(), unsplashImageAsset()],
   schema: { types: schemas },
-  useCdn: true, 
+  useCdn: true,
 })
 
 export default config

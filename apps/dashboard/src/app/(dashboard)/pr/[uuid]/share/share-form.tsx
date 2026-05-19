@@ -7,15 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
-import { Share2, X, Check, Users, Plus, Loader2 } from 'lucide-react'
+import { Share2, X, Check, Users, Plus, Loader2, Newspaper } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ShareFormProps {
   releaseUuid: string
   companyUuid: string
   shareWithList: boolean
+  sendToPitchList: boolean
   companyName: string
   listCount: number
+  mediaListCount: number
   children?: React.ReactNode
 }
 
@@ -23,8 +25,10 @@ export function ShareForm({
   releaseUuid,
   companyUuid,
   shareWithList: initialShareWithList,
+  sendToPitchList: initialSendToPitchList,
   companyName,
   listCount: initialListCount,
+  mediaListCount,
   children,
 }: ShareFormProps) {
   const router = useRouter()
@@ -38,6 +42,7 @@ export function ShareForm({
   }, [releaseUuid, router])
 
   const [shareWithList, setShareWithList] = useState(initialShareWithList)
+  const [sendToPitchList, setSendToPitchList] = useState(initialSendToPitchList)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -56,7 +61,7 @@ export function ShareForm({
       const response = await fetch(`/api/pr/${releaseUuid}/share`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ advocacy: shareWithList }),
+        body: JSON.stringify({ advocacy: shareWithList, pitchlist: sendToPitchList }),
       })
 
       if (!response.ok) {
@@ -305,6 +310,104 @@ export function ShareForm({
                 <li>• Your {listCount} subscriber{listCount === 1 ? '' : 's'} will receive an email when the release is published</li>
                 <li>• They can easily share the news on their social networks</li>
                 <li>• Track engagement from your dashboard</li>
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Media Pitch List Options Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Email to Media Pitch List</CardTitle>
+          <CardDescription>
+            Choose whether to send this press release to your media contacts
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Enable Option */}
+            <button
+              type="button"
+              onClick={() => setSendToPitchList(true)}
+              disabled={mediaListCount === 0}
+              className={cn(
+                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left cursor-pointer',
+                sendToPitchList
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700',
+                mediaListCount === 0 && 'opacity-50 !cursor-not-allowed'
+              )}
+            >
+              {sendToPitchList && (
+                <div className="absolute top-3 right-3">
+                  <div className="bg-emerald-600 text-white p-1 rounded-full">
+                    <Check className="h-3 w-3" />
+                  </div>
+                </div>
+              )}
+              <div className={cn(
+                'p-2 rounded-lg mb-3',
+                sendToPitchList ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800'
+              )}>
+                <Newspaper className={cn(
+                  'h-6 w-6',
+                  sendToPitchList ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'
+                )} />
+              </div>
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                Email to Media Pitch List
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {mediaListCount === 0
+                  ? 'Add media contacts to your pitch list to enable this'
+                  : `Send this release to ${mediaListCount} media contact${mediaListCount === 1 ? '' : 's'} when published`
+                }
+              </p>
+            </button>
+
+            {/* Skip Option */}
+            <button
+              type="button"
+              onClick={() => setSendToPitchList(false)}
+              className={cn(
+                'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left cursor-pointer',
+                !sendToPitchList
+                  ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+                  : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+              )}
+            >
+              {!sendToPitchList && (
+                <div className="absolute top-3 right-3">
+                  <div className="bg-emerald-600 text-white p-1 rounded-full">
+                    <Check className="h-3 w-3" />
+                  </div>
+                </div>
+              )}
+              <div className={cn(
+                'p-2 rounded-lg mb-3',
+                !sendToPitchList ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-800'
+              )}>
+                <X className={cn(
+                  'h-6 w-6',
+                  !sendToPitchList ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-500 dark:text-gray-400'
+                )} />
+              </div>
+              <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+                Skip Media Pitch List
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Continue without emailing your media contacts
+              </p>
+            </button>
+          </div>
+
+          {sendToPitchList && mediaListCount > 0 && (
+            <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">What happens next?</h4>
+              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                <li>• Your {mediaListCount} media contact{mediaListCount === 1 ? '' : 's'} will receive the press release when published</li>
+                <li>• Track email opens, bounces, and engagement from your dashboard</li>
               </ul>
             </div>
           )}

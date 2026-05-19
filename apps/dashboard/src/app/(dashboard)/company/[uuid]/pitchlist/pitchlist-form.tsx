@@ -40,6 +40,7 @@ const emptyContactForm = {
   email: '',
   tld: '',
   publication: '',
+  qurl: '',
   phone: '',
   notes: '',
 }
@@ -171,23 +172,23 @@ export function PitchListForm({
               <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
                 Add multiple contacts at once by entering one email per line. You can optionally include first and last names.
               </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Format Options:</h4>
-                  <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
-                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com</code></li>
-                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName</code></li>
-                    <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName</code></li>
-                  </ul>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                  <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold">Limits:</p>
-                  <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside">
-                    <li>Maximum 50 contacts at a time</li>
-                    <li>One email address per line</li>
-                    <li>Duplicates are automatically skipped</li>
-                  </ul>
-                </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Format Options:</h4>
+                <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com</code></li>
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName</code></li>
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName</code></li>
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName,MediaOutlet</code></li>
+                  <li><code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">email@example.com,FirstName,LastName,MediaOutlet,URL</code></li>
+                </ul>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold">Limits:</p>
+                <ul className="text-xs text-amber-700 dark:text-amber-400 list-disc list-inside">
+                  <li>Maximum 50 contacts at a time</li>
+                  <li>One email address per line</li>
+                  <li>Duplicates are automatically skipped</li>
+                </ul>
               </div>
             </div>
             <Button
@@ -212,10 +213,10 @@ export function PitchListForm({
               onChange={(e) => setEmails(e.target.value)}
               rows={6}
               className="mt-1 font-mono text-sm"
-              placeholder={"email@example.com,FirstName,LastName\nanother@example.com,John,Doe"}
+              placeholder={"email@example.com,FirstName,LastName,MediaOutlet,URL\nanother@example.com,John,Doe,TechCrunch,https://techcrunch.com/author/john-doe"}
             />
             <p className="text-xs text-gray-400 mt-1">
-              One email per line. First and last names are optional.
+              One email per line. First name, last name, media outlet, and URL are optional.
             </p>
           </div>
 
@@ -323,6 +324,17 @@ export function PitchListForm({
                   className="mt-1"
                 />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="add-qurl">Publication URL</Label>
+              <Input
+                id="add-qurl"
+                type="url"
+                value={contactForm.qurl}
+                onChange={(e) => setContactForm(f => ({ ...f, qurl: e.target.value }))}
+                placeholder="e.g. https://techcrunch.com/author/john-doe"
+                className="mt-1"
+              />
             </div>
             <div>
               <Label htmlFor="add-phone">Phone</Label>

@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { FaIcon } from '@/components/ui/fa-icon'
 import { faCoins } from '@awesome.me/kit-adf47b9acf/icons/duotone/light'
 import { Building2, User } from 'lucide-react'
+import { RedeemCourtesyCode } from './redeem-courtesy-code'
 
 interface CreditsByType {
   pr: number
@@ -53,7 +54,7 @@ function CreditRows({ credits }: { credits: CreditsByType }) {
   )
 }
 
-export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: AllCredits; canPurchase?: boolean }) {
+export function CreditsCard({ allCredits, canPurchase = true, hasRedeemedCoupon = true }: { allCredits: AllCredits; canPurchase?: boolean; hasRedeemedCoupon?: boolean }) {
   const [open, setOpen] = useState(false)
   const hasPersonal = hasAnyCredits(allCredits.personal)
   const hasBrands = allCredits.brands.length > 0
@@ -121,7 +122,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
         </div>
 
         {canPurchase && (
-          <div className="p-3 border-t">
+          <div className="p-3 border-t flex items-center justify-between">
             <Link
               href="/credits/manage"
               className="text-xs text-cyan-700 hover:text-cyan-900 dark:hover:text-cyan-300 font-medium"
@@ -129,6 +130,7 @@ export function CreditsCard({ allCredits, canPurchase = true }: { allCredits: Al
             >
               Manage/Purchase Credits
             </Link>
+            {!hasRedeemedCoupon && <RedeemCourtesyCode variant="link" />}
           </div>
         )}
       </PopoverContent>

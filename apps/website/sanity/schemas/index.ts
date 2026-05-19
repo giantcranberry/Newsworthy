@@ -9,6 +9,8 @@ import lander from "./lander";
 import page from "./page";
 import testimonial from "./testimonial";
 import site_ad from "./site_ad";
+import banner_ad from "./banner_ad";
+import banner_ad_embed from "./banner_ad_embed";
 import navbar from "./navbar";
 import faq_section from "./faq";
 import card_section from "./card_section";
@@ -26,6 +28,8 @@ const schemas = [
 	navbar,
 	page,
 	site_ad,
+	banner_ad,
+	banner_ad_embed,
 	testimonial,
 	faq_section,
 ];

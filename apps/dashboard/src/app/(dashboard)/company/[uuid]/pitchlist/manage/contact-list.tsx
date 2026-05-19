@@ -43,6 +43,7 @@ interface Contact {
   email: string | null
   tld: string | null
   publication: string | null
+  qurl: string | null
   phone: string | null
   notes: string | null
   source: string | null
@@ -131,6 +132,7 @@ export function ContactList({
   const [editLastName, setEditLastName] = useState('')
   const [editTld, setEditTld] = useState('')
   const [editPublication, setEditPublication] = useState('')
+  const [editQurl, setEditQurl] = useState('')
   const [editPhone, setEditPhone] = useState('')
   const [editNotes, setEditNotes] = useState('')
   const [editUnsubscribed, setEditUnsubscribed] = useState(false)
@@ -250,6 +252,7 @@ export function ContactList({
     setEditLastName(c.lastName || '')
     setEditTld(c.tld || '')
     setEditPublication(c.publication || '')
+    setEditQurl(c.qurl || '')
     setEditPhone(c.phone || '')
     setEditNotes(c.notes || '')
     setEditUnsubscribed(!!c.unsubscribeAt)
@@ -272,6 +275,7 @@ export function ContactList({
           email: editEmail,
           tld: editTld,
           publication: editPublication,
+          qurl: editQurl,
           phone: editPhone,
           notes: editNotes,
           unsubscribed: editUnsubscribed,
@@ -667,6 +671,16 @@ export function ContactList({
                 </div>
               )}
 
+              {/* Publication URL */}
+              {viewContact.qurl && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Publication URL</p>
+                  <a href={viewContact.qurl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline break-all">
+                    {viewContact.qurl}
+                  </a>
+                </div>
+              )}
+
               {/* Phone */}
               {viewContact.phone && (
                 <div>
@@ -876,6 +890,17 @@ export function ContactList({
                   className="mt-1"
                 />
               </div>
+            </div>
+            <div>
+              <Label htmlFor="edit-qurl">Publication URL</Label>
+              <Input
+                id="edit-qurl"
+                type="url"
+                value={editQurl}
+                onChange={(e) => setEditQurl(e.target.value)}
+                placeholder="e.g. https://techcrunch.com/author/john-doe"
+                className="mt-1"
+              />
             </div>
             <div>
               <Label htmlFor="edit-phone">Phone</Label>
