@@ -38,6 +38,7 @@ interface CreditsByType {
   yahoo: number
   enhanced: number
   concierge: number
+  podcast: number
 }
 
 interface BrandCreditsBreakdown {
@@ -63,6 +64,7 @@ function sumCredits(rows: { productType: string | null; balance: number }[]): Cr
     yahoo: totals['yahoo'] || 0,
     enhanced: totals['enhanced'] || 0,
     concierge: totals['concierge'] || 0,
+    podcast: totals['podcast_pr'] || 0,
   };
 }
 
@@ -121,7 +123,7 @@ async function getAllCredits(
     const rows = byCompany.get(co.id);
     if (!rows) continue;
     const credits = sumCredits(rows);
-    if (credits.pr > 0 || credits.yahoo > 0 || credits.enhanced > 0 || credits.concierge > 0) {
+    if (credits.pr > 0 || credits.yahoo > 0 || credits.enhanced > 0 || credits.concierge > 0 || credits.podcast > 0) {
       brands.push({ companyId: co.id, companyName: co.companyName, credits });
     }
   }

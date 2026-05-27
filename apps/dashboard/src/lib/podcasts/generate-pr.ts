@@ -180,7 +180,7 @@ const RELEASE_SCHEMA = {
     abstract: { type: 'string', description: '2-3 sentence summary, max 350 chars' },
     pullquote: { type: 'string', description: 'A verbatim line from the transcript that is genuinely quotable, max 350 chars' },
     location: { type: ['string', 'null'], description: 'Dateline-style "City, State" or null if not inferable' },
-    body: { type: 'string', description: 'Full press release in HTML, 450-550 words, 5 paragraphs' },
+    body: { type: 'string', description: 'Full press release in HTML, 450-550 words, 5 paragraphs. Allowed tags: <p>, <strong>, <em>, <a>, <h3>, <ul>, <li>, <blockquote>. No em dashes (—) or en dashes (–). Last paragraph must begin with an <h3>About {show name}</h3> heading on its own line.' },
     primaryCategoryId: { type: ['integer', 'null'], description: 'The single most appropriate category id from the AVAILABLE CATEGORIES list' },
     regionIds: {
       type: 'array',
@@ -251,17 +251,23 @@ Required fields and length budgets — hit them. Under-writing is a failure.
 
 4. **location** — Dateline-style "City, State" or "City, Country". Use the brand's location if known; otherwise the city the show is recorded in if mentioned. Return null if you genuinely can't infer.
 
-5. **body** — Full press release in HTML. **TARGET: 450-550 words. MINIMUM: 400 words.** Five paragraphs, each a full ~80-110 words. Use only <p>, <strong>, <em>. No <h1>/<h2>/<h3>. No "FOR IMMEDIATE RELEASE" header. No contact info.
+5. **body** — Full press release in HTML. **TARGET: 450-550 words. MINIMUM: 400 words.** Five paragraphs, each a full ~80-110 words. Allowed tags: <p>, <strong>, <em>, <a href="...">, <h3>, <ul>, <li>, <blockquote>. No <h1>/<h2>. No "FOR IMMEDIATE RELEASE" header. No contact info.
+
+   **PUNCTUATION:** Do NOT use em dashes (—) or en dashes (–) anywhere in the body. Use commas, periods, semicolons, colons, or parentheses instead. Replace any em dash you would have written with the most natural alternative for the sentence.
+
+   **EPISODE LINK:** If an "Episode page:" URL is provided in the EPISODE context above, hyperlink the FIRST mention of the episode (the "Episode N" reference or episode title) in paragraph 1 using <a href="{episode page URL}">…</a>. Only hyperlink once; do not link every mention. If no episode page URL is provided, skip the link.
+
+   **OPTIONAL FORMATTING:** You may use a <ul>/<li> bullet list to summarize 3-5 distinct topic threads in paragraph 2 if it improves scannability. You may use a <blockquote> for a particularly strong verbatim quote in paragraph 3 (in place of, not in addition to, an inline <em> quote). Use these sparingly; default to flowing prose.
 
    PARAGRAPH 1 (Lede, ~80-100 words): Open with the episode reference (e.g., "Episode 1871 of {show}, titled '{episode title}', hosted by {hosts}, brings listeners..."). State the central topic and why it is newsworthy NOW. Include the published date if known.
 
-   PARAGRAPH 2 (Topic preview, ~90-110 words): What listeners can expect — name 2-3 specific topic threads, debates, frameworks, or angles covered in the episode. Pull them by name from the transcript. Reference specific named entities (people, organizations, events) where possible.
+   PARAGRAPH 2 (Topic preview, ~90-110 words): What listeners can expect. Name 2-3 specific topic threads, debates, frameworks, or angles covered in the episode. Pull them by name from the transcript. Reference specific named entities (people, organizations, events) where possible.
 
-   PARAGRAPH 3 (Voice + verbatim quote, ~90-110 words): Demonstrate the hosts'/guests' approach. Embed one or two real quotes pulled VERBATIM from the transcript with proper attribution. Set quotes off with <em> tags or quotation marks. Each quote must come from the transcript — do not paraphrase, do not invent.
+   PARAGRAPH 3 (Voice + verbatim quote, ~90-110 words): Demonstrate the hosts'/guests' approach. Embed one or two real quotes pulled VERBATIM from the transcript with proper attribution. Set quotes off with <em> tags, quotation marks, or a <blockquote>. Each quote must come from the transcript. Do not paraphrase, do not invent.
 
-   PARAGRAPH 4 (Depth/context, ~90-110 words): Go deeper on one or two of the most substantive ideas. Name people, organizations, places, theories, books, events, or data points specifically mentioned by the hosts or guests. This paragraph is what separates a real press release from a generic stub — be specific.
+   PARAGRAPH 4 (Depth/context, ~90-110 words): Go deeper on one or two of the most substantive ideas. Name people, organizations, places, theories, books, events, or data points specifically mentioned by the hosts or guests. This paragraph is what separates a real press release from a generic stub. Be specific.
 
-   PARAGRAPH 5 (Closing + boilerplate, ~80-90 words): Lead with "About {brand name}:" and write a brief description of the brand/show — its premise, voice, audience, and what makes it distinctive. Use the brand description above if provided. End with a call to listen (e.g., "Episode {N} is available now wherever podcasts are heard.").
+   PARAGRAPH 5 (Closing + boilerplate, ~80-90 words): Start with a standalone heading line: <h3>About {show name}</h3> (use the podcast/show name, not the brand legal name). Follow it with a <p> containing a brief description of the show. Its premise, voice, audience, and what makes it distinctive. Use the brand description above if provided. End with a call to listen (e.g., "Episode {N} is available now wherever podcasts are heard.").
 
 6. **primaryCategoryId** — Single most appropriate category id from AVAILABLE CATEGORIES. Pick the BEST match.
 
@@ -708,6 +714,7 @@ export async function generatePressReleaseFromEpisode(
   try {
     await dispatchNewDraftNotifications({
       feed: {
+        uuid: feed.uuid,
         title: feed.title,
         notifyEmail: feed.notifyEmail,
         notifyEmailTo: feed.notifyEmailTo,

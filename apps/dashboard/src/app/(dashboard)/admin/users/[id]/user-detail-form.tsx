@@ -50,6 +50,7 @@ interface UserDetailFormProps {
   accountCredits: number
   creditHistory: CreditTransaction[]
   companies: Record<number, string>
+  userBrands: { id: number; name: string }[]
   canResetPassword?: boolean
 }
 
@@ -60,6 +61,7 @@ export function UserDetailForm({
   accountCredits,
   creditHistory,
   companies,
+  userBrands,
   canResetPassword,
 }: UserDetailFormProps) {
   const router = useRouter()
@@ -88,6 +90,7 @@ export function UserDetailForm({
     prCredits: '',
     creditType: 'pr',
     creditNotes: '',
+    creditCompanyId: '',
     prPartner: user.partnerId?.toString() || '',
     imPartner: user.imPartnerId?.toString() || '',
   })
@@ -134,6 +137,11 @@ export function UserDetailForm({
       setIsSubmitting(false)
       return
     }
+    if (prCreditsNum !== 0 && formData.creditType === 'podcast_pr' && !formData.creditCompanyId) {
+      setError('Select a brand to apply Podcast PR credits to')
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const response = await fetch(`/api/admin/users/${user.id}`, {
@@ -152,6 +160,7 @@ export function UserDetailForm({
         ...prev,
         prCredits: '',
         creditNotes: '',
+        creditCompanyId: '',
       }))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -344,8 +353,36 @@ export function UserDetailForm({
                 <option value="pr">PR Credits</option>
                 <option value="yahoo">Yahoo News</option>
                 <option value="enhanced">Enhanced Distribution</option>
+                <option value="podcast_pr">Podcast PR Credits</option>
               </Select>
             </div>
+
+            {formData.creditType === 'podcast_pr' && (
+              <div>
+                <Label htmlFor="creditCompanyId">Apply to Brand</Label>
+                <Select
+                  id="creditCompanyId"
+                  value={formData.creditCompanyId}
+                  onChange={(e) => setFormData({ ...formData, creditCompanyId: e.target.value })}
+                  className="mt-1"
+                >
+                  <option value="">Select a brand…</option>
+                  {userBrands.map((b) => (
+                    <option key={b.id} value={b.id.toString()}>
+                      {b.name}
+                    </option>
+                  ))}
+                </Select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Podcast PR credits are brand-scoped and expire 2 years after issue.
+                </p>
+                {userBrands.length === 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                    This user has no brands — they can't receive podcast PR credits.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
               <Label htmlFor="creditNotes">Credit Notes</Label>

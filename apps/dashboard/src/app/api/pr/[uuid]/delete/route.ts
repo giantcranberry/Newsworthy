@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, brandCredits } from '@/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, or, ne, isNull } from 'drizzle-orm'
 import { getPostHog } from '@/lib/posthog'
 import { getUserCompanyIds } from '@/lib/team-auth'
 
@@ -43,11 +43,19 @@ export async function POST(
       )
     }
 
-    // Reallocate credits: remove the negative credit entries linked to this release
+    // Reallocate credits: remove the negative credit entries linked to this release.
+    // Exclude product_type='podcast_pr' — podcast credits are consumed at editorial
+    // submit, not at draft creation, so deleting a podcast draft must NOT return a
+    // credit. Any podcast_pr row linked to this release reflects a real prior
+    // editorial submit and must remain on the ledger.
     await db.delete(brandCredits).where(
       and(
         eq(brandCredits.prId, release.id),
-        eq(brandCredits.userId, userId)
+        eq(brandCredits.userId, userId),
+        or(
+          ne(brandCredits.productType, 'podcast_pr'),
+          isNull(brandCredits.productType),
+        ),
       )
     )
 

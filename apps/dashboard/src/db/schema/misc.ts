@@ -363,6 +363,7 @@ export const brandCredits = pgTable('brand_credits', {
   credits: integer('credits').notNull().default(0),
   productType: varchar('product_type', { length: 36 }),
   notes: varchar('notes', { length: 48 }),
+  expiresAt: timestamp('expires_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

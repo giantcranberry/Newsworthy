@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { releases, queue, company, podcastEpisodes, brandCredits } from '@/db/schema'
+import { eq, and, or, isNull, gt, sql } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { getPodcastCreditsForCompany } from '@/lib/podcasts/access'
 
 export async function POST(
   request: NextRequest,
@@ -68,6 +69,24 @@ export async function POST(
       )
     }
 
+    // Podcast-sourced PRs consume a podcast_pr credit at editorial submit.
+    // Detected by an episode pointing at this release.
+    const sourcingEpisode = await db.query.podcastEpisodes.findFirst({
+      where: eq(podcastEpisodes.releaseId, release.id),
+      columns: { id: true },
+    })
+    const isPodcastSourced = !!sourcingEpisode
+
+    if (isPodcastSourced) {
+      const { totalCredits } = await getPodcastCreditsForCompany(release.companyId)
+      if (totalCredits <= 0) {
+        return NextResponse.json(
+          { error: 'No podcast PR credits available. Add credits before submitting.' },
+          { status: 402 }
+        )
+      }
+    }
+
     // Update release date if provided
     const body = await request.json().catch(() => ({}))
     const updateData: Record<string, any> = { status: 'review' }
@@ -83,9 +102,62 @@ export async function POST(
       updateData.timezone = body.timezone
     }
 
-    await db.update(releases)
-      .set(updateData)
-      .where(eq(releases.id, release.id))
+    // Flip status and (for podcast-sourced PRs) record the credit deduction
+    // atomically. Without the transaction a partial failure could leave the
+    // release in 'review' without a corresponding -1 row, granting a free
+    // editorial submit.
+    //
+    // We also re-check the balance inside the transaction with row locks on
+    // the existing credit rows for this (company, podcast_pr). That serializes
+    // concurrent finalize calls against the same brand and prevents a race
+    // where two simultaneous submits both see balance=1 and both deduct,
+    // resulting in balance=-1. The DB-side trigger
+    // (drizzle/manual/2026-05-27-brand-credits-nonnegative.sql) is a backstop.
+    try {
+      await db.transaction(async (tx) => {
+        if (isPodcastSourced) {
+          const now = new Date()
+          const lockedRows = await tx
+            .select({ credits: brandCredits.credits })
+            .from(brandCredits)
+            .where(
+              and(
+                eq(brandCredits.companyId, release.companyId),
+                eq(brandCredits.productType, 'podcast_pr'),
+                or(isNull(brandCredits.expiresAt), gt(brandCredits.expiresAt, now)),
+              ),
+            )
+            .for('update')
+          const liveBalance = lockedRows.reduce((sum, r) => sum + (r.credits || 0), 0)
+          if (liveBalance <= 0) {
+            throw new InsufficientCreditsError()
+          }
+        }
+
+        await tx.update(releases)
+          .set(updateData)
+          .where(eq(releases.id, release.id))
+
+        if (isPodcastSourced) {
+          await tx.insert(brandCredits).values({
+            userId,
+            companyId: release.companyId,
+            prId: release.id,
+            credits: -1,
+            productType: 'podcast_pr',
+            notes: 'editorial submit',
+          })
+        }
+      })
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError || isInsufficientCreditsDbError(err)) {
+        return NextResponse.json(
+          { error: 'No podcast PR credits available. Add credits before submitting.' },
+          { status: 402 }
+        )
+      }
+      throw err
+    }
 
     // Create or update queue entry
     const existingQueue = await db.query.queue.findFirst({
@@ -127,4 +199,19 @@ export async function POST(
       { status: 500 }
     )
   }
+}
+
+class InsufficientCreditsError extends Error {
+  constructor() {
+    super('INSUFFICIENT_CREDITS')
+  }
+}
+
+// Detect the Postgres trigger raising 23514 (check_violation) with the
+// INSUFFICIENT_BRAND_CREDITS message, which is the DB-side guard against any
+// deduction that would push the brand balance below zero.
+function isInsufficientCreditsDbError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as { code?: string; message?: string }
+  return e.code === '23514' && typeof e.message === 'string' && e.message.includes('INSUFFICIENT_BRAND_CREDITS')
 }

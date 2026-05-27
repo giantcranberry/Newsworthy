@@ -1,7 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
 import { releases, releaseOptions, releaseImages, brandCredits } from '@/db/schema'
-import { eq, and, sql, asc } from 'drizzle-orm'
+import { eq, and, sql, asc, or, isNull } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { UpgradesForm } from './upgrades-form'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
@@ -31,6 +31,8 @@ async function getReleaseOptions(prId: number) {
 }
 
 async function getCreditBalance(userId: number, companyId: number) {
+  // Credits are usable if they're allocated to the brand OR sitting at the
+  // user/account level (companyId IS NULL).
   const credits = await db
     .select({
       productType: brandCredits.productType,
@@ -40,8 +42,8 @@ async function getCreditBalance(userId: number, companyId: number) {
     .where(
       and(
         eq(brandCredits.userId, userId),
-        eq(brandCredits.companyId, companyId)
-      )
+        or(eq(brandCredits.companyId, companyId), isNull(brandCredits.companyId)),
+      ),
     )
     .groupBy(brandCredits.productType)
 

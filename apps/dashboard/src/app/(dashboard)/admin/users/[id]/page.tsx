@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, userProfiles, userSubscription, releases, staffNotes, brandCredits, company, partners, partnerManagers } from '@/db/schema'
-import { eq, desc, and, sql } from 'drizzle-orm'
+import { users, userProfiles, userSubscription, releases, staffNotes, brandCredits, company, partners, partnerManagers, companyMembers } from '@/db/schema'
+import { eq, desc, and, sql, or, inArray } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -91,6 +91,29 @@ async function getUserData(userId: number) {
     .where(eq(partnerManagers.userId, userId))
   const managedPartnerIds = managedRows.map(r => r.partnerId)
 
+  // Brands this user has access to (owned + team membership). Used to assign
+  // podcast_pr credits to a specific brand.
+  const memberRows = await db
+    .select({ companyId: companyMembers.companyId })
+    .from(companyMembers)
+    .where(eq(companyMembers.userId, userId))
+  const memberCompanyIds = memberRows.map(r => r.companyId)
+
+  const userBrandRows = await db
+    .select({ id: company.id, name: company.companyName, isDeleted: company.isDeleted, isArchived: company.isArchived })
+    .from(company)
+    .where(
+      memberCompanyIds.length > 0
+        ? or(eq(company.userId, userId), inArray(company.id, memberCompanyIds))
+        : eq(company.userId, userId),
+    )
+    .orderBy(company.companyName)
+  // Drop deleted / archived brands. Done in JS to handle null defaults
+  // safely — pre-existing rows may have NULL rather than false.
+  const userBrands = userBrandRows
+    .filter((b) => b.isDeleted !== true && b.isArchived !== true)
+    .map((b) => ({ id: b.id, name: b.name }))
+
   return {
     user,
     recentReleases,
@@ -101,6 +124,7 @@ async function getUserData(userId: number) {
     companies,
     allPartners,
     managedPartnerIds,
+    userBrands,
   }
 }
 
@@ -131,7 +155,7 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, companies, allPartners, managedPartnerIds } = data
+  const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, companies, allPartners, managedPartnerIds, userBrands } = data
 
   return (
     <div className="space-y-6">
@@ -239,6 +263,7 @@ export default async function UserDetailPage({
           accountCredits={accountCredits}
           creditHistory={creditHistory}
           companies={companies}
+          userBrands={userBrands}
           canResetPassword={isAdmin || isEditor}
         />
 

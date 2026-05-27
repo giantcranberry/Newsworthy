@@ -19,6 +19,7 @@ interface Product {
   icon: string | null
   price: number
   productType: string | null
+  productCredits: number | null
   isActive: boolean | null
   isUpgrade: boolean | null
   isSoloUpgrade: boolean | null
@@ -47,6 +48,7 @@ const DISTRIBUTION_TAGS = [
   { value: 'pr', label: 'Press Release' },
   { value: 'addon', label: 'Add-on' },
   { value: 'service', label: 'Service' },
+  { value: 'podcast_pr', label: 'Podcast PR' },
 ]
 
 export function ProductForm({ product, partners, onSuccess, onCancel }: ProductFormProps) {
@@ -64,6 +66,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
     icon: product?.icon || 'Zap',
     price: product ? (product.price / 100).toString() : '',
     productType: product?.productType || '',
+    productCredits: product?.productCredits?.toString() || '1',
     isActive: product?.isActive ?? true,
     isUpgrade: product?.isUpgrade ?? true,
     isSoloUpgrade: product?.isSoloUpgrade ?? false,
@@ -152,6 +155,7 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
         icon: formData.icon,
         price: priceInCents,
         productType: formData.productType,
+        productCredits: parseInt(formData.productCredits) || 1,
         isActive: formData.isActive,
         isUpgrade: formData.isUpgrade,
         isSoloUpgrade: formData.isSoloUpgrade,
@@ -279,6 +283,24 @@ export function ProductForm({ product, partners, onSuccess, onCancel }: ProductF
               </option>
             ))}
           </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="productCredits">Credits per purchase</Label>
+          <Input
+            id="productCredits"
+            type="number"
+            min="1"
+            step="1"
+            value={formData.productCredits}
+            onChange={(e) => handleChange('productCredits', e.target.value)}
+            placeholder="1"
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Number of credits the customer receives per purchase (e.g. 12 for a 12-pack).
+          </p>
         </div>
       </div>
 

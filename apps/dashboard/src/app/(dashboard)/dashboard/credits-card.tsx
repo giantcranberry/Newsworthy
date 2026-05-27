@@ -14,6 +14,7 @@ interface CreditsByType {
   yahoo: number
   enhanced: number
   concierge: number
+  podcast: number
 }
 
 interface BrandCreditsBreakdown {
@@ -33,10 +34,11 @@ const CREDIT_LABELS: { key: keyof CreditsByType; label: string }[] = [
   { key: 'yahoo', label: 'Yahoo News Credits' },
   { key: 'enhanced', label: 'Enhanced Distribution Credits' },
   { key: 'concierge', label: 'Concierge DFY Credits' },
+  { key: 'podcast', label: 'Podcast PR Credits' },
 ]
 
 function hasAnyCredits(credits: CreditsByType) {
-  return credits.pr > 0 || credits.yahoo > 0 || credits.enhanced > 0 || credits.concierge > 0
+  return credits.pr > 0 || credits.yahoo > 0 || credits.enhanced > 0 || credits.concierge > 0 || credits.podcast > 0
 }
 
 function CreditRows({ credits }: { credits: CreditsByType }) {

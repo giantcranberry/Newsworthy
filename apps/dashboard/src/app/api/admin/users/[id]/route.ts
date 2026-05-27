@@ -35,6 +35,7 @@ export async function PATCH(
       prCredits,
       creditType,
       creditNotes,
+      creditCompanyId,
       newsdbCredits,
       managedPartnerIds,
       prPartner,
@@ -143,18 +144,40 @@ export async function PATCH(
 
     const prCreditsNum = parseInt(prCredits) || 0
     if (prCreditsNum !== 0) {
+      const type = creditType || 'pr'
+      const companyIdNum = creditCompanyId ? parseInt(creditCompanyId, 10) : null
+
+      if (type === 'podcast_pr' && (!companyIdNum || Number.isNaN(companyIdNum))) {
+        return NextResponse.json(
+          { error: 'A brand must be selected to apply Podcast PR credits' },
+          { status: 400 }
+        )
+      }
+
+      // Podcast PR credits expire 2 years from issue. Other types are perpetual.
+      const expiresAt =
+        type === 'podcast_pr'
+          ? new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000)
+          : null
+
       await db.insert(brandCredits).values({
         userId,
-        companyId: null,
+        companyId: companyIdNum,
         prId: null,
         credits: prCreditsNum,
-        productType: creditType || 'pr',
+        productType: type,
         notes: creditNotes?.substring(0, 48) || null,
+        expiresAt,
       })
 
       // Send system message notification
       try {
-        const typeLabel = creditType === 'pr' ? 'PR' : creditType || 'PR'
+        const typeLabel =
+          type === 'pr'
+            ? 'PR'
+            : type === 'podcast_pr'
+            ? 'Podcast PR'
+            : type
         await createSystemMessage(
           userId,
           'Credits added to your account',

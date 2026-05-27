@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { WizardActions } from '@/components/pr-wizard/wizard-actions'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { PaymentForm } from '@/components/stripe/payment-form'
-import { CreditCard, Zap, Check, Loader2, Sparkles, AlertCircle, Star, Crown, Rocket, Target, Plus, X, ShoppingCart, Info } from 'lucide-react'
+import { CreditCard, Zap, Check, Loader2, Sparkles, AlertCircle, Star, Crown, Rocket, Target, Plus, X, ShoppingCart, Info, Coins } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getStripePublishableKey } from '@/lib/stripe-client'
 
@@ -81,6 +81,13 @@ function formatPrice(cents: number): string {
   return `$${(cents / 100).toFixed(0)}`
 }
 
+// Distribution upgrades that are mutually exclusive — picking one (via cart or
+// credit) locks the other out. Yahoo + Enhanced are the canonical pair.
+const EXCLUSIVE_UPGRADES: Record<string, string> = {
+  yahoo: 'enhanced',
+  enhanced: 'yahoo',
+}
+
 export function UpgradesForm({
   releaseUuid,
   distribution: initialDistribution,
@@ -128,6 +135,10 @@ export function UpgradesForm({
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe> | null>(null)
+
+  // Track which product type is in the middle of a "use credit" request so we
+  // can disable other buttons + show a spinner on the one being claimed.
+  const [usingCreditFor, setUsingCreditFor] = useState<string | null>(null)
 
   // Initialize Stripe
   useEffect(() => {
@@ -195,6 +206,12 @@ export function UpgradesForm({
     // Don't allow adding a solo upgrade if non-solo upgrades are already purchased
     if (hasPurchasedNonSoloUpgrade && product.isSoloUpgrade && !selectedProducts.has(productType)) return
 
+    // Yahoo ↔ Enhanced mutual exclusion (across both cart + already-purchased).
+    const partner = EXCLUSIVE_UPGRADES[productType]
+    if (partner && !selectedProducts.has(productType)) {
+      if (purchasedProducts.has(partner)) return
+    }
+
     setSelectedProducts(prev => {
       const next = new Set(prev)
       if (next.has(productType)) {
@@ -214,11 +231,52 @@ export function UpgradesForm({
           }
           next.add(productType)
         } else {
+          // Yahoo ↔ Enhanced: drop the partner from the cart if present.
+          if (partner) next.delete(partner)
           next.add(productType)
         }
       }
       return next
     })
+  }
+
+  const useCreditForProduct = async (productType: string) => {
+    if (usingCreditFor) return
+    setUsingCreditFor(productType)
+    setError(null)
+    try {
+      const res = await fetch(`/api/pr/${releaseUuid}/distribution`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'use_credit', productType }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to apply credit')
+
+      // Mark as purchased (server already appended to distribution + decremented).
+      setPurchasedProducts(prev => {
+        const next = new Set(prev)
+        next.add(productType)
+        // Drop the mutually exclusive partner if it was in the cart.
+        const partner = EXCLUSIVE_UPGRADES[productType]
+        if (partner) {
+          setSelectedProducts(s => {
+            const ns = new Set(s)
+            ns.delete(partner)
+            return ns
+          })
+        }
+        return next
+      })
+      setCreditBalance(prev => ({
+        ...prev,
+        [productType]: Math.max(0, (prev[productType] || 1) - 1),
+      }))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to apply credit')
+    } finally {
+      setUsingCreditFor(null)
+    }
   }
 
   const handleCheckout = async () => {
@@ -432,14 +490,21 @@ export function UpgradesForm({
             const isPurchased = purchasedProducts.has(product.type)
             const isSelected = selectedProducts.has(product.type)
 
+            // Yahoo ↔ Enhanced: if the mutually-exclusive partner is already
+            // claimed (via credit or purchase), block this card.
+            const exclusivePartner = EXCLUSIVE_UPGRADES[product.type]
+            const partnerLocked = !!exclusivePartner && purchasedProducts.has(exclusivePartner)
+
             // Disable if:
             // 1. Solo upgrade is purchased - can't add anything else
             // 2. Non-solo is purchased and this is a solo - can't combine
             // 3. Solo is in cart and this is not a solo
+            // 4. Mutually-exclusive partner already locked in
             const isDisabled = !isSelected && !isPurchased && (
               hasPurchasedSoloUpgrade ||
               (hasPurchasedNonSoloUpgrade && product.isSoloUpgrade) ||
-              (hasSelectedSoloUpgrade && !product.isSoloUpgrade)
+              (hasSelectedSoloUpgrade && !product.isSoloUpgrade) ||
+              partnerLocked
             )
 
             const isYahoo = product.type === 'yahoo'
@@ -502,7 +567,7 @@ export function UpgradesForm({
                       ) : (
                         <>
                           <span className="text-3xl font-bold text-gray-900 dark:text-gray-100">{product.priceDisplay}</span>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">one-time</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">per release</p>
                         </>
                       )}
                     </div>
@@ -538,7 +603,30 @@ export function UpgradesForm({
                       disabled
                     >
                       <Check className="h-4 w-4" />
-                      Purchased
+                      Applied
+                    </Button>
+                  ) : hasCredits ? (
+                    <Button
+                      className={cn(
+                        'w-full',
+                        isYahoo
+                          ? 'bg-[#7d2eff] hover:bg-[#6a27d6] dark:bg-purple-600 dark:hover:bg-purple-700'
+                          : 'bg-cyan-800 dark:bg-cyan-600 hover:bg-cyan-900 dark:hover:bg-cyan-700',
+                      )}
+                      onClick={() => useCreditForProduct(product.type)}
+                      disabled={isLoading || isDisabled || usingCreditFor !== null}
+                    >
+                      {usingCreditFor === product.type ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Applying…
+                        </>
+                      ) : (
+                        <>
+                          <Coins className="h-4 w-4" />
+                          Use a credit for {product.name}
+                        </>
+                      )}
                     </Button>
                   ) : (
                     <Button
@@ -560,7 +648,7 @@ export function UpgradesForm({
                       ) : (
                         <>
                           <Plus className="h-4 w-4" />
-                          Add to Cart
+                          Add to Cart for {product.name}
                         </>
                       )}
                     </Button>

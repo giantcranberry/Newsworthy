@@ -79,6 +79,7 @@ const navSections: NavSection[] = [
           { title: 'All Releases', href: '/pr', icon: 'fa-light fa-file-lines' },
           { title: 'Create New', href: '/pr/create', icon: 'fa-light fa-file-circle-plus', requiresCreate: true },
           { title: 'Drafts', href: '/pr/drafts', icon: 'fa-light fa-file-pen', requiresCreate: true },
+          { title: 'Podcast PR', href: '/pr/podcast', icon: 'fa-light fa-podcast', requiresCreate: true },
           { title: 'Get Add-ons', href: '/addons', icon: 'fa-light fa-star', iconClassName: 'text-amber-500', dividerBefore: true, dividerAfter: true },
           { title: 'Reports', href: '/pr/reports', icon: 'fa-light fa-chart-bar', matchPaths: ['/pr/clips'] },
         ],

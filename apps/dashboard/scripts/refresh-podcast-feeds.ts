@@ -15,6 +15,22 @@
  *   doppler run -- bun scripts/refresh-podcast-feeds.ts --test=<id> --force-transcribe
  *   doppler run -- bun scripts/refresh-podcast-feeds.ts --list      # show recent episode IDs/UUIDs
  *   doppler run -- bun scripts/refresh-podcast-feeds.ts --no-pr     # skip press release generation
+ *   doppler run -- bun scripts/refresh-podcast-feeds.ts --test=<id> --ignore-gates  # dev: bypass age/credit gate
+ *
+ * Eligibility gates (applied to RSS refresh, transcription, and PR backfill):
+ *   - Feed must be >= 60 minutes old (createdAt). Gives users time to
+ *     configure brand parameters and fund podcast_pr credits before anything
+ *     runs against their feed.
+ *   - Feed's company must have *effective* podcast_pr credits > 0, where
+ *     effective = SUM(active credits) - count of podcast-sourced drafts
+ *     awaiting finalize (status in start/draft/draftnxt). Each pending draft
+ *     is an unrealized obligation; generating more drafts on top would
+ *     oversubscribe the balance. Example: 3 credits + 3 pending drafts = 0
+ *     effective; need 4+ credits before draft #4 will generate.
+ *   When the effective-credit gate fails, the feed owner is notified via
+ *   email/SMS/Slack (per feed preferences) that the account needs funding,
+ *   with a 24h cooldown tracked by podcast_feeds.funding_warning_sent_at.
+ *   In --test mode the gates also apply unless --ignore-gates is set.
  *
  * --test mode: process exactly one episode. If a transcript already exists
  * and no release has been generated yet, only the PR generation runs —
@@ -33,12 +49,13 @@
 
 import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { eq, and, or, asc, sql, isNull } from 'drizzle-orm'
+import { eq, and, or, asc, sql, isNull, gt, lte, inArray } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import * as schema from '../src/db/schema'
 import { parsePodcastFeed } from '../src/lib/podcasts/parse-feed'
 import { uploadPodcastAudio } from '../src/services/s3'
 import { generatePressReleaseFromEpisode } from '../src/lib/podcasts/generate-pr'
+import { dispatchFundingNeededNotification } from '../src/lib/podcasts/notify'
 
 const DATABASE_URL = process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL
 if (!DATABASE_URL) {
@@ -73,6 +90,7 @@ const testTarget = flag('test') // episode id (numeric) or uuid
 const listMode = flagPresent('list')
 const skipPrGeneration = flagPresent('no-pr')
 const forceTranscribe = flagPresent('force-transcribe')
+const ignoreGates = flagPresent('ignore-gates')
 
 // ----- DB client ---------------------------------------------------------
 const usesPgBouncer = DATABASE_URL.includes('pgbouncer=true')
@@ -82,7 +100,165 @@ const client = postgres(DATABASE_URL, {
 })
 const db = drizzle(client, { schema })
 
-const { podcastFeeds, podcastEpisodes, podcastEpisodeTranscripts } = schema
+const { podcastFeeds, podcastEpisodes, podcastEpisodeTranscripts, brandCredits, releases } = schema
+
+const PODCAST_CREDIT_PRODUCT_TYPE = 'podcast_pr'
+const FEED_AGE_GRACE_MINUTES = 60
+const FEED_AGE_GRACE_MS = FEED_AGE_GRACE_MINUTES * 60 * 1000
+const FUNDING_WARNING_COOLDOWN_HOURS = 24
+const FUNDING_WARNING_COOLDOWN_MS = FUNDING_WARNING_COOLDOWN_HOURS * 60 * 60 * 1000
+const PENDING_DRAFT_STATUSES = ['start', 'draft', 'draftnxt']
+
+/**
+ * Decide which feeds the cron may process this tick, and notify owners whose
+ * brand needs funding.
+ *
+ * Two gates determine eligibility:
+ *   1. Age — feed was added to the system at least 60 minutes ago. Gives the
+ *      user time to configure parameters and fund the brand before anything
+ *      runs.
+ *   2. Effective credits > 0 — totalCredits (active podcast_pr SUM) minus the
+ *      count of podcast-sourced drafts already awaiting finalize for that
+ *      brand. Each pending draft is an unrealized credit obligation: if all
+ *      pending drafts were submitted today, the user would burn that many
+ *      credits. Generating MORE drafts on top would oversubscribe the
+ *      balance. Example: 3 credits + 3 pending drafts = 0 effective; need
+ *      4+ credits before generating draft #4.
+ *
+ * When age-eligible feeds fail the effective-credits gate, the owner is
+ * notified via dispatchFundingNeededNotification (email/SMS/Slack per feed
+ * preferences). A 24-hour cooldown column (funding_warning_sent_at) prevents
+ * the notification from firing on every cron tick. Once effective credits
+ * recover, the column is cleared so a future depletion fires a fresh warning.
+ */
+async function evaluateFeedEligibility(): Promise<{
+  eligibleIds: Set<number>
+  warnedCount: number
+}> {
+  const now = new Date()
+  const ageCutoff = new Date(now.getTime() - FEED_AGE_GRACE_MS)
+  const cooldownCutoff = new Date(now.getTime() - FUNDING_WARNING_COOLDOWN_MS)
+
+  // Age-eligible, active, undeleted feeds. We always start from here; even
+  // unfunded feeds need to be considered so we can fire the funding warning.
+  const feeds = await db
+    .select()
+    .from(podcastFeeds)
+    .where(
+      and(
+        eq(podcastFeeds.isDeleted, false),
+        eq(podcastFeeds.isActive, true),
+        lte(podcastFeeds.createdAt, ageCutoff),
+      ),
+    )
+
+  if (feeds.length === 0) return { eligibleIds: new Set(), warnedCount: 0 }
+
+  const companyIds = Array.from(new Set(feeds.map((f) => f.companyId)))
+
+  // Active podcast_pr credit totals per company.
+  const creditRows = await db
+    .select({
+      companyId: brandCredits.companyId,
+      total: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)::int`,
+    })
+    .from(brandCredits)
+    .where(
+      and(
+        inArray(brandCredits.companyId, companyIds),
+        eq(brandCredits.productType, PODCAST_CREDIT_PRODUCT_TYPE),
+        or(isNull(brandCredits.expiresAt), gt(brandCredits.expiresAt, now)),
+      ),
+    )
+    .groupBy(brandCredits.companyId)
+  const creditMap = new Map(
+    creditRows
+      .filter((r): r is { companyId: number; total: number } => r.companyId != null)
+      .map((r) => [r.companyId, r.total]),
+  )
+
+  // Podcast-sourced drafts awaiting finalize per company. Each one is an
+  // unrealized obligation against the credit balance.
+  const draftRows = await db
+    .select({
+      companyId: releases.companyId,
+      count: sql<number>`COUNT(*)::int`,
+    })
+    .from(releases)
+    .innerJoin(podcastEpisodes, eq(podcastEpisodes.releaseId, releases.id))
+    .where(
+      and(
+        inArray(releases.companyId, companyIds),
+        inArray(releases.status, PENDING_DRAFT_STATUSES),
+        or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
+      ),
+    )
+    .groupBy(releases.companyId)
+  const draftMap = new Map(draftRows.map((r) => [r.companyId, r.count]))
+
+  const eligibleIds = new Set<number>()
+  let warnedCount = 0
+
+  for (const feed of feeds) {
+    const credits = creditMap.get(feed.companyId) ?? 0
+    const pending = draftMap.get(feed.companyId) ?? 0
+    const effective = credits - pending
+
+    if (effective > 0) {
+      eligibleIds.add(feed.id)
+      // Recovery: clear any prior funding warning so a future depletion can
+      // fire a fresh notification.
+      if (feed.fundingWarningSentAt) {
+        await db
+          .update(podcastFeeds)
+          .set({ fundingWarningSentAt: null, updatedAt: new Date() })
+          .where(eq(podcastFeeds.id, feed.id))
+      }
+      continue
+    }
+
+    // Effective balance is zero or negative. Fire a funding warning if we
+    // haven't done so within the cooldown window.
+    const alreadyWarnedRecently =
+      feed.fundingWarningSentAt != null && feed.fundingWarningSentAt > cooldownCutoff
+    if (alreadyWarnedRecently) continue
+
+    try {
+      await dispatchFundingNeededNotification({
+        feed: {
+          uuid: feed.uuid,
+          title: feed.title,
+          notifyEmail: feed.notifyEmail,
+          notifyEmailTo: feed.notifyEmailTo,
+          notifySms: feed.notifySms,
+          notifySmsPhone: feed.notifySmsPhone,
+          notifySlack: feed.notifySlack,
+          notifySlackWebhookUrl: feed.notifySlackWebhookUrl,
+        },
+        credits,
+        pendingDrafts: pending,
+      })
+      await db
+        .update(podcastFeeds)
+        .set({ fundingWarningSentAt: new Date(), updatedAt: new Date() })
+        .where(eq(podcastFeeds.id, feed.id))
+      warnedCount++
+      log(
+        'gate',
+        `funding warning sent for feed ${feed.id} "${feed.title || feed.feedUrl}" ` +
+          `(credits=${credits}, pendingDrafts=${pending})`,
+      )
+    } catch (err) {
+      log(
+        'gate',
+        `funding warning dispatch failed for feed ${feed.id}: ` +
+          `${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+  }
+
+  return { eligibleIds, warnedCount }
+}
 
 // ----- helpers -----------------------------------------------------------
 function log(scope: string, msg: string) {
@@ -187,7 +363,7 @@ async function refreshFeed(feed: typeof podcastFeeds.$inferSelect) {
   }
 }
 
-async function refreshAllFeeds() {
+async function refreshAllFeeds(eligibleFeedIds: Set<number>) {
   const conditions = [eq(podcastFeeds.isDeleted, false), eq(podcastFeeds.isActive, true)]
   if (onlyFeedId) conditions.push(eq(podcastFeeds.id, onlyFeedId))
 
@@ -196,8 +372,14 @@ async function refreshAllFeeds() {
     orderBy: asc(podcastFeeds.lastFetchedAt),
   })
 
-  log('refresh', `${feeds.length} feed(s) to refresh`)
-  for (const feed of feeds) await refreshFeed(feed)
+  const eligible = feeds.filter((f) => eligibleFeedIds.has(f.id))
+  const skipped = feeds.length - eligible.length
+  log(
+    'refresh',
+    `${eligible.length} feed(s) to refresh` +
+      (skipped > 0 ? ` (${skipped} skipped: <${FEED_AGE_GRACE_MINUTES}m old or no podcast_pr credits)` : ''),
+  )
+  for (const feed of eligible) await refreshFeed(feed)
 }
 
 // ----- transcription via AssemblyAI -------------------------------------
@@ -464,15 +646,21 @@ async function processEpisode(
   }
 }
 
-async function transcribePending() {
+async function transcribePending(eligibleFeedIds: Set<number>) {
   if (!ASSEMBLYAI_API_KEY) {
     log('transcribe', 'ASSEMBLYAI_API_KEY not set — skipping transcription step')
+    return
+  }
+
+  if (eligibleFeedIds.size === 0) {
+    log('transcribe', 'no eligible feeds (all <60m old or unfunded) — skipping')
     return
   }
 
   const conditions = [
     eq(podcastEpisodes.skip, false),
     eq(podcastEpisodes.transcriptionStatus, 'pending'),
+    inArray(podcastEpisodes.feedId, Array.from(eligibleFeedIds)),
   ]
 
   // Restrict to one feed if requested
@@ -517,9 +705,14 @@ async function transcribePending() {
   }
 }
 
-async function backfillMissingReleases() {
+async function backfillMissingReleases(eligibleFeedIds: Set<number>) {
   if (skipPrGeneration) {
     log('pr-backfill', 'skipped (--no-pr)')
+    return
+  }
+
+  if (eligibleFeedIds.size === 0) {
+    log('pr-backfill', 'no eligible feeds (all <60m old or unfunded) — skipping')
     return
   }
 
@@ -529,6 +722,7 @@ async function backfillMissingReleases() {
     eq(podcastEpisodes.skip, false),
     eq(podcastEpisodes.transcriptionStatus, 'completed'),
     isNull(podcastEpisodes.releaseId),
+    inArray(podcastEpisodes.feedId, Array.from(eligibleFeedIds)),
   ]
   if (onlyFeedId) conditions.push(eq(podcastEpisodes.feedId, onlyFeedId))
 
@@ -622,6 +816,23 @@ async function runTestMode(target: string) {
   log('test', `target episode ${episode.id} (uuid=${episode.uuid})`)
   log('test', `current status: ${episode.transcriptionStatus}, skip=${episode.skip}, releaseId=${episode.releaseId ?? 'none'}`)
 
+  // Enforce the same gates as the cron flow unless explicitly overridden.
+  // Without --ignore-gates we refuse to process episodes belonging to a feed
+  // that is too new or whose company has no podcast_pr credits.
+  if (!ignoreGates) {
+    const { eligibleIds: eligibleFeedIds } = await evaluateFeedEligibility()
+    if (!eligibleFeedIds.has(episode.feedId)) {
+      log(
+        'test',
+        `  refusing: feed ${episode.feedId} is <${FEED_AGE_GRACE_MINUTES}m old or has insufficient effective podcast_pr credits ` +
+          `(credits must exceed pending drafts). Pass --ignore-gates to override.`,
+      )
+      return
+    }
+  } else {
+    log('test', `  --ignore-gates set: skipping age+effective-credit gate (dev override)`)
+  }
+
   // If a transcript already exists and no release has been created yet, just
   // regenerate the press release — don't burn a new AssemblyAI run. Override
   // with --force-transcribe to redo the transcript anyway.
@@ -684,15 +895,23 @@ async function main() {
     return
   }
 
+  const { eligibleIds: eligibleFeedIds, warnedCount } = await evaluateFeedEligibility()
+  log(
+    'gate',
+    `${eligibleFeedIds.size} feed(s) pass age+effective-credit gate ` +
+      `(age >= ${FEED_AGE_GRACE_MINUTES}m, credits > pending drafts), ` +
+      `${warnedCount} funding warning(s) sent`,
+  )
+
   if (!transcribeOnly) {
-    await refreshAllFeeds()
+    await refreshAllFeeds(eligibleFeedIds)
   } else {
     log('refresh', 'skipped (--transcribe-only)')
   }
 
   if (!refreshOnly) {
-    await transcribePending()
-    await backfillMissingReleases()
+    await transcribePending(eligibleFeedIds)
+    await backfillMissingReleases(eligibleFeedIds)
   } else {
     log('transcribe', 'skipped (--refresh-only)')
   }

@@ -20,6 +20,7 @@ export async function POST(request: Request) {
       icon,
       price,
       productType,
+      productCredits,
       isActive,
       isUpgrade,
       isSoloUpgrade,
@@ -44,6 +45,9 @@ export async function POST(request: Request) {
         icon: icon || null,
         price,
         productType,
+        productCredits: Number.isFinite(productCredits) && productCredits > 0
+          ? Math.floor(productCredits)
+          : 1,
         isActive: isActive ?? true,
         isUpgrade: isUpgrade ?? true,
         isSoloUpgrade: isSoloUpgrade ?? false,

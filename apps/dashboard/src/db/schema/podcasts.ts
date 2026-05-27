@@ -45,6 +45,11 @@ export const podcastFeeds = pgTable(
     notifySlack: boolean('notify_slack').default(false).notNull(),
     notifySlackWebhookUrl: text('notify_slack_webhook_url'),
     notificationsSavedAt: timestamp('notifications_saved_at'),
+    // Last time the cron sent a "podcast PR credits needed" warning to this
+    // feed's owner. Used as a 24h cooldown so the user isn't spammed on every
+    // tick when their effective balance is depleted. Cleared back to NULL as
+    // soon as the effective balance recovers.
+    fundingWarningSentAt: timestamp('funding_warning_sent_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },

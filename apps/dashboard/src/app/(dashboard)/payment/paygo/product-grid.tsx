@@ -248,7 +248,7 @@ export function ProductGrid({
       {/* Other Products */}
       {otherProducts.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-4">Other Services</h2>
+          <h2 className="text-lg font-semibold mb-4">Enhanced Distribution</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {otherProducts.map((product) => (
               <ProductCard

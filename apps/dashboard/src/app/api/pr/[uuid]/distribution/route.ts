@@ -73,7 +73,8 @@ export async function GET(
       }
     }
 
-    // Get credit balance for all product types
+    // Get credit balance for all product types. Brand-level credits AND
+    // account-level (companyId IS NULL) both count toward the available pool.
     const credits = await db
       .select({
         productType: brandCredits.productType,
@@ -83,8 +84,8 @@ export async function GET(
       .where(
         and(
           eq(brandCredits.userId, userId),
-          eq(brandCredits.companyId, release.companyId)
-        )
+          or(eq(brandCredits.companyId, release.companyId), isNull(brandCredits.companyId)),
+        ),
       )
       .groupBy(brandCredits.productType)
 
@@ -205,7 +206,7 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid product type' }, { status: 400 })
       }
 
-      // Check if user has credits
+      // Check if user has credits — brand-scope OR account-level.
       const credits = await db
         .select({
           totalCredits: sql<number>`sum(${brandCredits.credits})`.mapWith(Number),
@@ -214,9 +215,9 @@ export async function POST(
         .where(
           and(
             eq(brandCredits.userId, userId),
-            eq(brandCredits.companyId, release.companyId),
-            eq(brandCredits.productType, productType)
-          )
+            or(eq(brandCredits.companyId, release.companyId), isNull(brandCredits.companyId)),
+            eq(brandCredits.productType, productType),
+          ),
         )
 
       const availableCredits = credits[0]?.totalCredits || 0

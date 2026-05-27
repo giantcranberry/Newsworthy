@@ -26,8 +26,11 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
       return
     }
 
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setLogoError('Only PNG, JPG, and WebP files are supported')
+    // Some browsers report empty type for .svg — fall back to filename check.
+    const isSvg = file.type === 'image/svg+xml' || /\.svg$/i.test(file.name)
+    const isRaster = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
+    if (!isSvg && !isRaster) {
+      setLogoError('Only SVG, PNG, JPG, and WebP files are supported')
       return
     }
 
@@ -148,7 +151,7 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
             <input
               ref={logoInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/svg+xml,.svg"
               className="hidden"
               onChange={handleLogoSelect}
               disabled={isUploadingLogo}
@@ -199,7 +202,7 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
                     <Upload className="h-5 w-5 text-gray-400 group-hover:text-cyan-700 transition-colors" />
                   </div>
                   <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Upload logo</p>
-                  <p className="text-xs text-gray-400 mt-0.5">PNG, JPG, WebP</p>
+                  <p className="text-xs text-gray-400 mt-0.5">SVG, PNG, JPG, WebP</p>
                 </div>
               )}
             </div>

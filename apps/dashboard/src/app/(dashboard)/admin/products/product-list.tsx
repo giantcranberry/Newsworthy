@@ -35,6 +35,7 @@ interface Product {
   icon: string | null;
   price: number;
   productType: string | null;
+  productCredits: number | null;
   isActive: boolean | null;
   isUpgrade: boolean | null;
   isSoloUpgrade: boolean | null;

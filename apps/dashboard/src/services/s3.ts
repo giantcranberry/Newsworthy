@@ -31,14 +31,55 @@ function extractKey(urlOrFilename: string): string {
 }
 
 /**
- * Upload a company logo
+ * Upload a company logo.
+ *
+ * Raster types (PNG/JPG/WebP) are normalized to a 400x400-bounded PNG via sharp.
+ * SVG is preserved as-is so it stays vector — sanitized to remove `<script>`
+ * blocks and inline event handlers before storage. SVGs are rendered through
+ * `<img src>` everywhere in the app, which prevents script execution; this
+ * sanitization is defense-in-depth in case someone navigates directly to the
+ * CDN URL.
  */
+function sanitizeSvg(svg: string): string {
+  let s = svg
+  s = s.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  s = s.replace(/<script\b[^>]*\/?>/gi, '')
+  s = s.replace(/\s+on[a-z]+\s*=\s*"[^"]*"/gi, '')
+  s = s.replace(/\s+on[a-z]+\s*=\s*'[^']*'/gi, '')
+  s = s.replace(/\s+on[a-z]+\s*=\s*[^\s/>]+/gi, '')
+  s = s.replace(/(xlink:href|href)\s*=\s*(["'])\s*javascript:[^"']*\2/gi, '$1=$2#$2')
+  return s
+}
+
+function looksLikeSvg(buf: Buffer): boolean {
+  const head = buf.toString('utf8', 0, 1024).trim()
+  return /^(<\?xml[^>]*\?>\s*)?(<!--[\s\S]*?-->\s*)?<svg\b/i.test(head)
+}
+
 export async function uploadLogo(
   file: Buffer,
   companyId: number,
   mimeType: string
 ): Promise<string> {
-  // Resize logo to max 400x400, maintain aspect ratio
+  const isSvg = mimeType === 'image/svg+xml' || looksLikeSvg(file)
+
+  if (isSvg) {
+    const sanitized = sanitizeSvg(file.toString('utf8'))
+    const filename = `logos/${companyId}-${Date.now()}.svg`
+
+    await s3Client.send(
+      new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: filename,
+        Body: sanitized,
+        ContentType: 'image/svg+xml',
+        ACL: 'public-read',
+      })
+    )
+
+    return `${CDN_BASE_URL}/${filename}`
+  }
+
   const processedImage = await sharp(file)
     .resize(400, 400, {
       fit: 'inside',
@@ -57,6 +98,94 @@ export async function uploadLogo(
       ContentType: 'image/png',
       ACL: 'public-read',
     })
+  )
+
+  return `${CDN_BASE_URL}/${filename}`
+}
+
+/**
+ * Upload a 1200x630 social banner for a podcast-sourced release. Mirrors the
+ * client-side "fit with background" pattern from `image-cropper.tsx`:
+ * blurred zoomed-in copy of the source as background, slight dark overlay
+ * for contrast, sharp centered foreground on top. This keeps square podcast
+ * artwork from showing flat gray bars on either side.
+ */
+export async function uploadPodcastBanner(
+  file: Buffer,
+  releaseId: number,
+): Promise<{ url: string; width: number; height: number; filesize: number }> {
+  const targetWidth = 1200
+  const targetHeight = 630
+
+  const background = await sharp(file)
+    .rotate()
+    .resize(targetWidth, targetHeight, { fit: 'cover' })
+    .blur(30)
+    .toBuffer()
+
+  const foreground = await sharp(file)
+    .rotate()
+    .resize(targetWidth, targetHeight, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    .png()
+    .toBuffer()
+
+  const darkOverlay = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${targetWidth}" height="${targetHeight}"><rect width="100%" height="100%" fill="black" fill-opacity="0.2"/></svg>`,
+  )
+
+  const processedImage = await sharp(background)
+    .composite([
+      { input: darkOverlay, blend: 'over' },
+      { input: foreground, blend: 'over' },
+    ])
+    .jpeg({ quality: 88 })
+    .toBuffer()
+
+  const filename = `banners/${releaseId}-${Date.now()}.jpg`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: processedImage,
+      ContentType: 'image/jpeg',
+      ACL: 'public-read',
+    }),
+  )
+
+  return {
+    url: `${CDN_BASE_URL}/${filename}`,
+    width: targetWidth,
+    height: targetHeight,
+    filesize: processedImage.length,
+  }
+}
+
+/**
+ * Upload a podcast episode's downloaded audio file to the CDN bucket.
+ * Stored under podcast-audio/{feedId}/{episodeId}-{ts}.{ext}.
+ */
+export async function uploadPodcastAudio(
+  file: Buffer,
+  feedId: number,
+  episodeId: number,
+  contentType: string,
+  extension: string,
+): Promise<string> {
+  const safeExt = (extension || 'mp3').replace(/[^a-z0-9]/gi, '').slice(0, 6) || 'mp3'
+  const filename = `podcast-audio/${feedId}/${episodeId}-${Date.now()}.${safeExt}`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: filename,
+      Body: file,
+      ContentType: contentType || 'audio/mpeg',
+      ACL: 'public-read',
+    }),
   )
 
   return `${CDN_BASE_URL}/${filename}`
