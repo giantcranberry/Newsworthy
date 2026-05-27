@@ -440,6 +440,7 @@ async function processEpisode(
               `(faqs=${prResult.faqsCreated}, ` +
               `banner=${prResult.bannerCreated}, ` +
               `newsImage=${prResult.newsImageCreated}, ` +
+              `chapterImages=${prResult.chapterImagesCreated}, ` +
               `categories=${prResult.categoriesAttached}, ` +
               `regions=${prResult.regionsAttached})`,
           )
@@ -549,7 +550,8 @@ async function backfillMissingReleases() {
           'pr-backfill',
           `  draft created: ${prResult.releaseUuid} ` +
             `(faqs=${prResult.faqsCreated}, banner=${prResult.bannerCreated}, ` +
-            `newsImage=${prResult.newsImageCreated})`,
+            `newsImage=${prResult.newsImageCreated}, ` +
+            `chapterImages=${prResult.chapterImagesCreated})`,
         )
         for (const w of prResult.warnings) log('pr-backfill', `    warning: ${w}`)
       } else {
@@ -642,6 +644,7 @@ async function runTestMode(target: string) {
               `(faqs=${prResult.faqsCreated}, ` +
               `banner=${prResult.bannerCreated}, ` +
               `newsImage=${prResult.newsImageCreated}, ` +
+              `chapterImages=${prResult.chapterImagesCreated}, ` +
               `categories=${prResult.categoriesAttached}, ` +
               `regions=${prResult.regionsAttached})`,
           )
