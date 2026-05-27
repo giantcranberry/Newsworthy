@@ -1,12 +1,8 @@
 import { db } from '@/db'
 import { company } from '@/db/schema'
 import { v4 as uuidv4 } from 'uuid'
-import slugify from 'slugify'
+import { generateUniqueNrUri } from '@/lib/newsroom-slug'
 import type { Message, SkillResult, AuthContext } from '../types'
-
-function createNrUri(name: string): string {
-  return slugify(name, { lower: true, strict: true, trim: true }).slice(0, 32)
-}
 
 interface CreateBrandInput {
   companyName: string
@@ -52,7 +48,7 @@ export async function createBrand(message: Message, auth: AuthContext): Promise<
   }
 
   const uuid = uuidv4()
-  const nrUri = createNrUri(input.companyName)
+  const nrUri = await generateUniqueNrUri(input.companyName)
 
   const [newCompany] = await db.insert(company).values({
     uuid,

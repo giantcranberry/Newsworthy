@@ -4,18 +4,9 @@ import { db } from '@/db'
 import { company } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
-import slugify from 'slugify'
 import { getPostHog } from '@/lib/posthog'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
-
-// Create a slug for newsroom URL
-function createNrUri(name: string): string {
-  return slugify(name, {
-    lower: true,
-    strict: true,
-    trim: true,
-  }).slice(0, 32)
-}
+import { generateUniqueNrUri } from '@/lib/newsroom-slug'
 
 export async function POST(request: NextRequest) {
   const session = await getEffectiveSession()
@@ -50,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const uuid = uuidv4()
-    const nrUri = createNrUri(companyName)
+    const nrUri = await generateUniqueNrUri(companyName)
 
     // Create company
     const [newCompany] = await db.insert(company).values({
