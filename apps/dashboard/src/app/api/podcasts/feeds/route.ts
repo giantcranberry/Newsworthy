@@ -98,6 +98,8 @@ export async function POST(request: NextRequest) {
       link: e.link,
       publishedAt: e.publishedAt ?? null,
       explicit: e.explicit ?? false,
+      // Skip the entire back catalog on import; the user opts episodes in.
+      skip: true,
     }))
     await db
       .insert(podcastEpisodes)

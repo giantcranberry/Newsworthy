@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Check, Mail, MessageSquareText, Bell, Slack } from 'lucide-react'
+import { Loader2, Check, Mail, MessageSquareText, Bell, Slack, ArrowRight } from 'lucide-react'
 
 interface NotificationsTabProps {
   feedUuid: string
@@ -62,6 +62,8 @@ export function NotificationsTab({ feedUuid, accountEmail, initial }: Notificati
         setError(data.error || 'Failed to save notifications')
       } else {
         setSavedAt(new Date().toISOString())
+        // Saved — continue to the funding step.
+        router.push(`/pr/podcast/${feedUuid}?tab=funding`)
         router.refresh()
       }
     } catch (err) {
@@ -226,7 +228,10 @@ export function NotificationsTab({ feedUuid, accountEmail, initial }: Notificati
                   Saving…
                 </>
               ) : (
-                'Save preferences'
+                <>
+                  Save &amp; Continue
+                  <ArrowRight className="h-4 w-4" />
+                </>
               )}
             </Button>
           </div>

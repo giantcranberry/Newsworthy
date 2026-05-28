@@ -93,6 +93,18 @@ export function AddFeedForm({ brands }: { brands: Brand[] }) {
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Paste the public RSS URL for the show. We'll fetch it and import all episodes.
             </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Need to find your podcast feed?{' '}
+              <a
+                href="https://rss.com/tools/find-my-feed/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-cyan-800 underline hover:text-cyan-900 dark:text-cyan-300 dark:hover:text-cyan-200"
+              >
+                Look it up here
+              </a>
+              .
+            </p>
           </div>
 
           {error && (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
@@ -9,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { PaymentForm } from '@/components/stripe/payment-form'
 import { getStripePublishableKey } from '@/lib/stripe-client'
-import { Loader2, Check, AlertCircle, Coins } from 'lucide-react'
+import { Loader2, Check, AlertCircle, Coins, ArrowRight } from 'lucide-react'
 
 interface CreditSummary {
   totalCredits: number
@@ -130,6 +131,8 @@ export function FundingTab({ feedUuid, credits: initialCredits }: FundingTabProp
     setSuccessCredits(purchased)
     setCredits((c) => ({ ...c, totalCredits: c.totalCredits + purchased }))
     setPendingProduct(null)
+    // Setup complete — return to the episode list.
+    router.push(`/pr/podcast/${feedUuid}`)
     router.refresh()
   }
 
@@ -179,12 +182,14 @@ export function FundingTab({ feedUuid, credits: initialCredits }: FundingTabProp
       {/* Packages */}
       <div>
         <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-          Buy credits
+          Buy Podcast PR Credits
         </h2>
-        <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          Credits are brand-specific and valid for 2 years. Used only when you approve a podcast PR
-          for distribution.
-        </p>
+        <ul className="mb-4 list-disc space-y-1 pl-5 text-sm text-gray-600 dark:text-gray-400">
+          <li>Credits valid for 2 years.</li>
+          <li>Credits are brand/podcast specific.</li>
+          <li>Credits can only be used for this podcast.</li>
+          <li>Credits cannot be used for non-podcast press releases.</li>
+        </ul>
 
         {isFetching ? (
           <Card>
@@ -239,11 +244,6 @@ export function FundingTab({ feedUuid, credits: initialCredits }: FundingTabProp
                     <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                       {p.productCredits} credit{p.productCredits === 1 ? '' : 's'}
                     </p>
-                    {p.description && (
-                      <p className="mt-2 line-clamp-3 text-xs text-gray-500 dark:text-gray-400">
-                        {p.description}
-                      </p>
-                    )}
                     <div className="mt-auto pt-4">
                       <Button
                         onClick={() => handleBuy(p)}
@@ -306,6 +306,16 @@ export function FundingTab({ feedUuid, credits: initialCredits }: FundingTabProp
           </div>
         </div>
       )}
+
+      <div className="flex justify-end border-t border-gray-200 pt-6 dark:border-gray-800">
+        <Link
+          href={`/pr/podcast/${feedUuid}`}
+          className="inline-flex items-center gap-2 rounded-md bg-cyan-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+        >
+          Finish Setup
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
 
       {/* Stripe Elements modal */}
       <Dialog open={showPayment} onOpenChange={(open) => !open && handleCancel()}>

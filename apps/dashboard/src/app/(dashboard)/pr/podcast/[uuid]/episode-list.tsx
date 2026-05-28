@@ -59,9 +59,11 @@ function statusBadge(status: string, skip: boolean) {
 export function EpisodeList({
   feedUuid,
   episodes,
+  hasCredits,
 }: {
   feedUuid: string
   episodes: EpisodeRow[]
+  hasCredits: boolean
 }) {
   const [rows, setRows] = useState(episodes)
   const [pending, startTransition] = useTransition()
@@ -181,6 +183,17 @@ export function EpisodeList({
           <span className="font-medium">{skippedCount}</span> skipped
           {bulkError && (
             <span className="ml-3 text-red-600 dark:text-red-400">{bulkError}</span>
+          )}
+          {hasCredits ? (
+            <p className="mt-1 text-xs font-normal text-gray-600 dark:text-gray-400">
+              Press releases will be generated within 1 hour of adding your feed. You&apos;ll be
+              notified based on your notification preferences. Once a release is ready, you&apos;ll
+              return here to review and approve it for distribution.
+            </p>
+          ) : (
+            <p className="mt-1 text-xs font-normal text-amber-700 dark:text-amber-500">
+              You need to purchase Podcast PR Credits before we can start producing press releases.
+            </p>
           )}
         </div>
         {showBulkButton && (

@@ -15,7 +15,7 @@ interface TabsNavProps {
 const TABS = [
   { id: 'episodes' as const, label: '1. Episodes', href: '' },
   { id: 'notifications' as const, label: '2. Notifications', href: '?tab=notifications' },
-  { id: 'funding' as const, label: '3. Funding', href: '?tab=funding' },
+  { id: 'funding' as const, label: '3. Buy Podcast PR Credits', href: '?tab=funding' },
 ]
 
 export function TabsNav({ feedUuid, active, stepsDone }: TabsNavProps) {

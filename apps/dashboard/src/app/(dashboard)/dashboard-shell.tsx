@@ -27,8 +27,19 @@ export function DashboardShell({ children, canCreateContent = true }: { children
     ? (manualOverride ? collapsed : true)
     : collapsed
 
-  // Restore collapsed preference from localStorage
+  // Restore collapsed preference from localStorage. A fresh login drops a
+  // one-shot cookie that forces the sidebar expanded and clears any stale
+  // collapsed preference.
   useEffect(() => {
+    const justLoggedIn = document.cookie
+      .split('; ')
+      .some((c) => c === 'nw-expand-nav=1')
+    if (justLoggedIn) {
+      setCollapsed(false)
+      localStorage.setItem(COLLAPSE_KEY, 'false')
+      document.cookie = 'nw-expand-nav=; path=/; max-age=0'
+      return
+    }
     const stored = localStorage.getItem(COLLAPSE_KEY)
     if (stored === 'true') setCollapsed(true)
   }, [])

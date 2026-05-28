@@ -2,8 +2,9 @@ import Link from 'next/link'
 import { getEffectiveSession } from '@/lib/auth'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Podcast, Coins } from 'lucide-react'
+import { Plus, Podcast, Coins, Search } from 'lucide-react'
 import { getUserFeeds } from '@/lib/podcasts/access'
+import { stripHtml } from '@/lib/utils'
 
 export default async function PodcastPRPage() {
   const session = await getEffectiveSession()
@@ -25,6 +26,53 @@ export default async function PodcastPRPage() {
             Add Podcast Feed
           </Button>
         </Link>
+      </div>
+
+      <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900 sm:grid-cols-3">
+        <div className="flex gap-3">
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 text-sm font-semibold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">1</span>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Connect a feed</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Add your show&apos;s RSS feed and assign it to a brand. We import the back catalog and start watching for new episodes.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 text-sm font-semibold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">2</span>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">We draft the release</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              When a new episode publishes, we transcribe it and automatically generate a press release draft from the conversation.
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-cyan-100 text-sm font-semibold text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">3</span>
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Review &amp; publish</h3>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              Edit the draft and submit it for editorial review. Each release you publish uses one podcast PR credit from the brand&apos;s balance.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-cyan-200 bg-cyan-50 p-4 dark:border-cyan-900/50 dark:bg-cyan-950/30">
+        <div className="flex items-center gap-3">
+          <Search className="h-5 w-5 flex-shrink-0 text-cyan-700 dark:text-cyan-300" />
+          <p className="text-sm font-medium text-cyan-900 dark:text-cyan-100">
+            Not sure where your podcast feed lives? RSS.com can help you track down the RSS URL.
+          </p>
+        </div>
+        <a
+          href="https://rss.com/tools/find-my-feed/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-md bg-cyan-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+        >
+          Find my feed
+        </a>
       </div>
 
       {feeds.length === 0 ? (
@@ -89,7 +137,7 @@ export default async function PodcastPRPage() {
                       </div>
                       {feed.description && (
                         <p className="mt-1 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">
-                          {feed.description}
+                          {stripHtml(feed.description)}
                         </p>
                       )}
                       <div className="mt-2 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -105,6 +153,15 @@ export default async function PodcastPRPage() {
                     </div>
                   </CardContent>
                 </Link>
+                <div className="flex justify-end border-t border-slate-200 dark:border-gray-800 px-4 py-3">
+                  <Link
+                    href={`/pr/podcast/${feed.uuid}`}
+                    className="inline-flex items-center gap-2 rounded-md bg-cyan-800 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+                  >
+                    <i className="fa-light fa-gear" aria-hidden="true" />
+                    Manage this Feed
+                  </Link>
+                </div>
               </Card>
             )
           })}

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { getEffectiveSession } from '@/lib/auth'
 import { Card, CardContent } from '@/components/ui/card'
-import { Podcast, ExternalLink } from 'lucide-react'
+import { Podcast, ExternalLink, ArrowRight, Coins } from 'lucide-react'
 import {
   getUserFeedByUuid,
   getFeedEpisodes,
@@ -11,10 +11,12 @@ import {
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { stripHtml } from '@/lib/utils'
 import { EpisodeList } from './episode-list'
 import { TabsNav } from './tabs-nav'
 import { NotificationsTab } from './notifications-tab'
 import { FundingTab } from './funding-tab'
+import { DeleteFeedButton } from './delete-feed-button'
 
 const VALID_TABS = ['episodes', 'notifications', 'funding'] as const
 type Tab = (typeof VALID_TABS)[number]
@@ -49,10 +51,11 @@ export default async function PodcastFeedPage({
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="flex items-center justify-between gap-3">
         <Link href="/pr/podcast" className="text-sm text-cyan-700 dark:text-cyan-400 hover:underline">
           ← All podcast feeds
         </Link>
+        {credits.totalCredits <= 0 && <DeleteFeedButton feedUuid={feed.uuid} />}
       </div>
 
       <Card>
@@ -79,7 +82,7 @@ export default async function PodcastFeedPage({
             )}
             {feed.description && (
               <p className="mt-3 line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
-                {feed.description}
+                {stripHtml(feed.description)}
               </p>
             )}
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
@@ -114,25 +117,57 @@ export default async function PodcastFeedPage({
 
       <TabsNav feedUuid={feed.uuid} active={tab} stepsDone={stepsDone} />
 
-      {tab === 'episodes' && (await renderEpisodesTab(feed.id, feed.uuid))}
+      {tab === 'episodes' &&
+        (await renderEpisodesTab(feed.id, feed.uuid, stepsDone.notifications, credits.totalCredits))}
       {tab === 'notifications' && (await renderNotificationsTab(feed, userId))}
       {tab === 'funding' && <FundingTab feedUuid={feed.uuid} credits={serializeCredits(credits)} />}
     </div>
   )
 }
 
-async function renderEpisodesTab(feedId: number, feedUuid: string) {
+async function renderEpisodesTab(
+  feedId: number,
+  feedUuid: string,
+  notificationsDone: boolean,
+  availableCredits: number,
+) {
   const episodes = await getFeedEpisodes(feedId)
   return (
     <div>
-      <h2 className="mb-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-        Episodes ({episodes.length})
-      </h2>
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Episodes ({episodes.length})
+        </h2>
+        {notificationsDone ? (
+          <div className="flex flex-shrink-0 items-center gap-3">
+            <span className="inline-flex items-center gap-1 rounded-full bg-cyan-100 px-2.5 py-1 text-xs font-medium text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-300">
+              <Coins className="h-3 w-3" />
+              {availableCredits} credit{availableCredits === 1 ? '' : 's'} available
+            </span>
+            <Link
+              href={`/pr/podcast/${feedUuid}?tab=funding`}
+              className="inline-flex items-center gap-2 rounded-md bg-cyan-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+            >
+              <Coins className="h-4 w-4" />
+              Buy Podcast PR Credits
+            </Link>
+          </div>
+        ) : (
+          <Link
+            href={`/pr/podcast/${feedUuid}?tab=notifications`}
+            className="inline-flex flex-shrink-0 items-center gap-2 rounded-md bg-cyan-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-cyan-900 dark:bg-cyan-600 dark:hover:bg-cyan-700"
+          >
+            Continue Setup
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        )}
+      </div>
       <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
         Toggle <strong>Skip</strong> on any episode you don't want turned into a press release.
       </p>
       <EpisodeList
         feedUuid={feedUuid}
+        hasCredits={availableCredits > 0}
         episodes={episodes.map((e) => ({
           uuid: e.uuid,
           title: e.title,

@@ -2,6 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Bell, CreditCard, Gift, Globe, Menu, MessageCircle, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -24,6 +25,8 @@ interface PreviewMessage {
 
 export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const { data: session } = useSession()
+  const pathname = usePathname()
+  const inPodcastFlow = pathname.startsWith('/pr/podcast')
   const [unreadCount, setUnreadCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
@@ -160,12 +163,14 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
             </Link>
 
             {/* Credits */}
-            <Link href="/payment/paygo">
-              <Button variant="outline" size="sm" className="gap-2 text-gray-700 dark:text-gray-300">
-                <CreditCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Buy Credits</span>
-              </Button>
-            </Link>
+            {!inPodcastFlow && (
+              <Link href="/payment/paygo">
+                <Button variant="outline" size="sm" className="gap-2 text-gray-700 dark:text-gray-300">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="hidden sm:inline">Buy Credits</span>
+                </Button>
+              </Link>
+            )}
 
             {/* Redeem Code */}
             {!hasRedeemedCourtesy && (
