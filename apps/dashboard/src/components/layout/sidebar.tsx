@@ -157,6 +157,7 @@ const navSections: NavSection[] = [
         children: [
           { title: 'Queue', href: '/editorial/queue', icon: 'fa-light fa-clipboard-list' },
           { title: 'Enhanced Queue', href: '/editorial/queue-enhanced', icon: 'fa-light fa-clipboard-list-check' },
+          { title: 'Podcast Drafts', href: '/editorial/podcast-drafts', icon: 'fa-light fa-podcast' },
           { title: 'Approved Pending', href: '/editorial/pending', icon: 'fa-light fa-clock' },
           { title: 'Edit Released', href: '/editorial/released-edit', icon: 'fa-light fa-pen-to-square' },
         ],
