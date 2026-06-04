@@ -10,7 +10,12 @@ export async function GET(request: NextRequest) {
   const websiteUrl = process.env.WEBSITE_URL
   const ssoSecret = process.env.SSO_SECRET
 
-  console.log('[SSO Redirect]', { action, next, websiteUrl: !!websiteUrl, ssoSecret: !!ssoSecret })
+  // In local dev the SSO bounce would send us to the production website
+  // (WEBSITE_URL comes from Doppler), which can't validate a localhost "next"
+  // and falls back to the production dashboard/login. Stay local instead.
+  const isLocalhost = ['localhost', '127.0.0.1'].includes(request.nextUrl.hostname)
+
+  console.log('[SSO Redirect]', { action, next, isLocalhost, websiteUrl: !!websiteUrl, ssoSecret: !!ssoSecret })
 
   // On login, drop a one-shot hint so the dashboard shell starts with the
   // sidebar expanded regardless of a stale collapsed preference. Consumed and
@@ -27,9 +32,9 @@ export async function GET(request: NextRequest) {
     return res
   }
 
-  // Graceful fallback: if no WEBSITE_URL or SSO_SECRET, skip SSO bounce
-  if (!websiteUrl || !ssoSecret) {
-    console.log('[SSO Redirect] Missing env vars, skipping SSO bounce')
+  // Graceful fallback: on localhost, or if no WEBSITE_URL / SSO_SECRET, skip SSO bounce
+  if (isLocalhost || !websiteUrl || !ssoSecret) {
+    console.log('[SSO Redirect] Skipping SSO bounce', { isLocalhost })
     return withExpandHint(NextResponse.redirect(new URL(next, request.url)))
   }
 

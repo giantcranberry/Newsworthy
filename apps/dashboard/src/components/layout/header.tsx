@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell, CreditCard, Gift, Globe, Menu, MessageCircle, Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -27,6 +28,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const { data: session } = useSession()
   const pathname = usePathname()
   const inPodcastFlow = pathname.startsWith('/pr/podcast')
+  const isAdminSpace = pathname.startsWith('/admin') || pathname.startsWith('/editorial')
   const [unreadCount, setUnreadCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [previewMessages, setPreviewMessages] = useState<PreviewMessage[]>([])
@@ -139,7 +141,12 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const badgeText = unreadCount > 99 ? '99+' : unreadCount.toString()
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-gray-200 bg-white px-6 dark:border-gray-800 dark:bg-gray-950">
+    <header className={cn(
+      'sticky top-0 z-40 flex h-16 items-center gap-4 border-b px-6',
+      isAdminSpace
+        ? 'border-purple-300 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/40'
+        : 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950'
+    )}>
       {/* Mobile menu button */}
       <Button
         variant="ghost"
@@ -149,6 +156,14 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
       >
         <Menu className="h-5 w-5" />
       </Button>
+
+      {/* Admin space indicator */}
+      {isAdminSpace && (
+        <div className="flex items-center gap-2 rounded-md bg-purple-900 px-3 py-1.5 text-white antialiased dark:bg-purple-600">
+          <i className="fa-light fa-shield text-sm" aria-hidden="true" />
+          <span className="text-sm font-semibold uppercase tracking-wide">Admin</span>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="ml-auto flex items-center gap-2">

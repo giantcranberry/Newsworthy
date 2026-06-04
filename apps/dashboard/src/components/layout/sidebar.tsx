@@ -62,7 +62,7 @@ const navSections: NavSection[] = [
       {
         title: 'Admin Dashboard',
         href: '/admin',
-        icon: 'fa-light fa-shield-halved',
+        icon: 'fa-light fa-shield',
         roles: ['admin', 'editor', 'staff'],
       },
     ],
@@ -343,8 +343,8 @@ export function Sidebar({
           active: 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400',
           activeBold: 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400 font-semibold',
           header: 'text-purple-900 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/20',
-          idle: 'text-purple-800 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
-          childIdle: 'text-purple-700 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
+          idle: 'text-purple-900 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
+          childIdle: 'text-purple-900 hover:bg-purple-50 hover:text-purple-900 dark:text-purple-400 dark:hover:bg-purple-900/20 dark:hover:text-purple-300',
         }
       : {
           active: 'bg-cyan-800/10 text-cyan-800 dark:bg-cyan-400/10 dark:text-cyan-400',
@@ -435,6 +435,15 @@ export function Sidebar({
                       const isActiveMode = mode === targetMode
                       const active = isActive(item.href)
                       const colors = accentColor(item.roles, section.mode)
+                      // The Admin Dashboard switcher uses the purple admin accent
+                      // for its active state, matching the admin-mode sidebar.
+                      const isAdminSwitcher = item.href === '/admin'
+                      const activeClass = isAdminSwitcher
+                        ? 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400'
+                        : colors.active
+                      const activeBoldClass = isAdminSwitcher
+                        ? 'bg-purple-900/10 text-purple-900 dark:bg-purple-400/10 dark:text-purple-400 font-semibold'
+                        : colors.activeBold
 
                       const handleClick = () => {
                         setMode(targetMode)
@@ -450,7 +459,7 @@ export function Sidebar({
                                 className={cn(
                                   'flex items-center justify-center h-10 w-full rounded-md transition-colors cursor-pointer',
                                   active || isActiveMode
-                                    ? colors.active
+                                    ? activeClass
                                     : colors.idle
                                 )}
                               >
@@ -469,7 +478,7 @@ export function Sidebar({
                             className={cn(
                               'flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer w-full text-left',
                               active || isActiveMode
-                                ? colors.activeBold
+                                ? activeBoldClass
                                 : colors.idle
                             )}
                           >
@@ -557,7 +566,7 @@ export function Sidebar({
                       <div key={groupKey}>
                         <div
                           className={cn(
-                            'flex items-center justify-between w-full px-3 py-3 rounded-md text-sm font-medium transition-colors cursor-pointer',
+                            'flex items-center w-full rounded-md text-sm font-medium transition-colors cursor-pointer',
                             activeChild
                               ? colors.header
                               : colors.idle
@@ -567,14 +576,15 @@ export function Sidebar({
                         >
                           <button
                             onClick={() => toggleGroup(groupKey, item)}
-                            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                            className="flex items-center gap-3 flex-1 min-w-0 px-3 py-3 cursor-pointer"
                           >
                             <FaIcon icon={item.icon} className="w-5 text-center text-base" />
                             <span>{item.title}</span>
                           </button>
                           <button
                             onClick={() => toggleGroup(groupKey, item)}
-                            className="p-1 -mr-1 cursor-pointer"
+                            className="px-3 py-3 cursor-pointer"
+                            aria-label={isExpanded ? 'Collapse section' : 'Expand section'}
                           >
                             <i
                               className={cn(

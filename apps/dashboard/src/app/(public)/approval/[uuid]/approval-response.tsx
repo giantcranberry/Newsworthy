@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 import { ImageCarousel } from '@/components/pr-wizard/image-carousel'
+import { getEmbedInfo } from '@/components/pr-wizard/preview-panel'
+import { InstagramEmbed } from '@/components/pr-wizard/instagram-embed'
 
 interface CarouselImage {
   id: number
@@ -26,6 +28,7 @@ interface ApprovalResponseProps {
     body: string
     location: string
     pullquote: string | null
+    videoUrl: string | null
   }
   company: {
     name: string
@@ -64,6 +67,9 @@ export function ApprovalResponse({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState<'approved' | 'declined' | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  const embedInfo = release.videoUrl ? getEmbedInfo(release.videoUrl) : null
+  const isVideoFile = !!release.videoUrl && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(release.videoUrl)
 
   const handleSubmit = async (approved: boolean) => {
     if (!signature.trim()) {
@@ -132,13 +138,24 @@ export function ApprovalResponse({
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <Image
-            src="/logo.svg"
-            alt="Newsworthy"
-            width={180}
-            height={40}
-            className="h-8 w-auto"
-          />
+          {company.logoUrl ? (
+            <Image
+              src={company.logoUrl}
+              alt={company.name}
+              width={180}
+              height={40}
+              className="h-10 w-auto max-w-[220px] object-contain"
+              unoptimized
+            />
+          ) : (
+            <Image
+              src="/logo.svg"
+              alt="Newsworthy"
+              width={180}
+              height={40}
+              className="h-8 w-auto"
+            />
+          )}
         </div>
       </header>
 
@@ -170,88 +187,8 @@ export function ApprovalResponse({
           </CardContent>
         </Card>
 
-        {/* Press Release Preview */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-sm text-gray-500 dark:text-gray-400 font-normal">Press Release Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <article className="space-y-6">
-              {/* Company */}
-              <div className="flex items-center gap-3">
-                {company.logoUrl ? (
-                  <Image
-                    src={company.logoUrl}
-                    alt={company.name}
-                    width={48}
-                    height={48}
-                    className="rounded"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded flex items-center justify-center">
-                    <span className="text-gray-400 text-xs">Logo</span>
-                  </div>
-                )}
-                <span className="font-medium text-gray-900 dark:text-gray-100">{company.name}</span>
-              </div>
-
-              {/* Banner */}
-              {banner && (
-                <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                  <Image
-                    src={banner.url}
-                    alt={banner.caption || 'Press release banner'}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-
-              {/* Title */}
-              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
-                {release.title}
-              </h1>
-
-              {/* Abstract */}
-              <p className="text-lg font-light text-gray-700 dark:text-gray-300">
-                {release.abstract}
-              </p>
-
-              {/* Dateline */}
-              <p className="text-gray-600 dark:text-gray-400">
-                {release.location} (Newsworthy.ai) {formatDate()}
-              </p>
-
-              {/* Body wraps around carousel + pullquote */}
-              <div className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400">
-                {(carouselImages.length > 0 || release.pullquote) && (
-                  <aside className="float-none lg:float-right lg:ml-6 lg:mb-4 lg:w-[450px] not-prose mb-6">
-                    {carouselImages.length > 0 && (
-                      <ImageCarousel images={carouselImages} />
-                    )}
-                    {release.pullquote && (
-                      <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
-                        <p>{(() => {
-                          const text = release.pullquote.trim()
-                          if (/^["“\u201C]/.test(text)) return text
-                          const match = text.match(/^([\s\S]*?)\s*(--\s*|—\s*|-\s+)([\s\S]+)$/)
-                          if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>
-                          return `\u201C${text}\u201D`
-                        })()}</p>
-                      </blockquote>
-                    )}
-                  </aside>
-                )}
-                <div dangerouslySetInnerHTML={{ __html: release.body }} />
-              </div>
-            </article>
-          </CardContent>
-        </Card>
-
         {/* Approval Form */}
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle>Your Response</CardTitle>
           </CardHeader>
@@ -322,6 +259,93 @@ export function ApprovalResponse({
             </p>
           </CardContent>
         </Card>
+
+        {/* Press Release Preview */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-sm text-gray-500 dark:text-gray-400 font-normal">Press Release Preview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <article className="space-y-6">
+              {/* Banner */}
+              {banner && (
+                <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <Image
+                    src={banner.url}
+                    alt={banner.caption || 'Press release banner'}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                </div>
+              )}
+
+              {/* Title */}
+              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
+                {release.title}
+              </h1>
+
+              {/* Abstract */}
+              <p className="text-lg font-light text-gray-700 dark:text-gray-300">
+                {release.abstract}
+              </p>
+
+              {/* Video */}
+              {embedInfo?.type === 'youtube' && (
+                <div className="flex justify-center">
+                  <iframe
+                    title="Embedded video"
+                    src={embedInfo.embedUrl}
+                    className="aspect-video w-full rounded h-[200px] md:h-[400px] lg:w-[600px] lg:h-[350px]"
+                    loading="lazy"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+              {embedInfo?.type === 'instagram' && (
+                <InstagramEmbed url={embedInfo.url} />
+              )}
+              {!embedInfo && isVideoFile && (
+                <div className="flex justify-center">
+                  <video
+                    src={release.videoUrl!}
+                    controls
+                    className="w-full rounded lg:w-[600px]"
+                  />
+                </div>
+              )}
+
+              {/* Dateline */}
+              <p className="text-gray-600 dark:text-gray-400">
+                {release.location} (Newsworthy.ai) {formatDate()}
+              </p>
+
+              {/* Body wraps around carousel + pullquote */}
+              <div className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400">
+                {(carouselImages.length > 0 || release.pullquote) && (
+                  <aside className="float-none lg:float-right lg:ml-6 lg:mb-4 lg:w-[450px] not-prose mb-6">
+                    {carouselImages.length > 0 && (
+                      <ImageCarousel images={carouselImages} />
+                    )}
+                    {release.pullquote && (
+                      <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
+                        <p>{(() => {
+                          const text = release.pullquote.trim()
+                          if (/^["“\u201C]/.test(text)) return text
+                          const match = text.match(/^([\s\S]*?)\s*(--\s*|—\s*|-\s+)([\s\S]+)$/)
+                          if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>
+                          return `\u201C${text}\u201D`
+                        })()}</p>
+                      </blockquote>
+                    )}
+                  </aside>
+                )}
+                <div dangerouslySetInnerHTML={{ __html: release.body }} />
+              </div>
+            </article>
+          </CardContent>
+        </Card>
+
       </main>
 
       {/* Footer */}

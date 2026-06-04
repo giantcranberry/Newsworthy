@@ -86,6 +86,7 @@ export default async function ApprovalPage({
         body: release.body || '',
         location: release.location || '',
         pullquote: release.pullquote || null,
+        videoUrl: release.videoUrl || null,
       }}
       company={{
         name: release.company?.companyName || '',
