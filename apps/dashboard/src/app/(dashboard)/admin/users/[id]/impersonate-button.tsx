@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { UserCog, Loader2 } from 'lucide-react'
+import { IMPERSONATION_CHANGED_EVENT } from '@/components/layout/impersonation-banner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,7 +40,8 @@ export function ImpersonateButton({ userId, userEmail }: ImpersonateButtonProps)
         throw new Error(data.error || 'Failed to impersonate user')
       }
 
-      // Redirect to dashboard as the impersonated user
+      // Update the impersonation banner immediately, then redirect
+      window.dispatchEvent(new Event(IMPERSONATION_CHANGED_EVENT))
       router.push('/dashboard')
       router.refresh()
     } catch (error) {

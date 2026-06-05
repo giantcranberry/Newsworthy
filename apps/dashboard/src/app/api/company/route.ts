@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { company, releases } from '@/db/schema'
+import { eq, and, or, isNull, count } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
@@ -150,6 +150,81 @@ export async function PUT(request: NextRequest) {
     console.error('Error updating company:', error)
     return NextResponse.json(
       { error: 'Failed to update company' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await getEffectiveSession()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const userId = parseInt(session.user.id)
+
+  try {
+    const { searchParams } = new URL(request.url)
+    const uuid = searchParams.get('uuid') || ''
+
+    if (!uuid) {
+      return NextResponse.json({ error: 'Company uuid is required' }, { status: 400 })
+    }
+
+    // Only the brand owner (or a platform admin/staff) may delete a brand
+    const isAdmin = !!(session?.user as any)?.isAdmin || !!(session?.user as any)?.isStaff
+    const access = await getCompanyAccess(uuid, userId, isAdmin)
+
+    if (!access) {
+      return NextResponse.json({ error: 'Company not found' }, { status: 404 })
+    }
+
+    if (!hasMinRole(access.role, 'owner')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const existingCompany = access.company
+
+    // Block deletion if any (non-deleted) press releases exist for this brand
+    const [{ value: releaseCount }] = await db
+      .select({ value: count() })
+      .from(releases)
+      .where(and(
+        eq(releases.companyId, existingCompany.id),
+        or(eq(releases.isDeleted, false), isNull(releases.isDeleted)),
+      ))
+
+    if (releaseCount > 0) {
+      return NextResponse.json(
+        {
+          error: 'This brand has press releases and cannot be deleted. Remove its press releases first.',
+          releaseCount,
+        },
+        { status: 409 }
+      )
+    }
+
+    // Soft delete (consistent with how brands are filtered everywhere else)
+    await db.update(company)
+      .set({ isDeleted: true })
+      .where(eq(company.id, existingCompany.id))
+
+    getPostHog().capture({
+      distinctId: String(userId),
+      event: 'company_deleted',
+      properties: {
+        company_id: existingCompany.id,
+        company_uuid: existingCompany.uuid,
+        company_name: existingCompany.companyName,
+      },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting company:', error)
+    getPostHog().captureException(error, String(userId))
+    return NextResponse.json(
+      { error: 'Failed to delete company' },
       { status: 500 }
     )
   }

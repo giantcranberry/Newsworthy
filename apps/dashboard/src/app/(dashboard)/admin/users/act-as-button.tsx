@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import { IMPERSONATION_CHANGED_EVENT } from '@/components/layout/impersonation-banner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ export function ActAsButton({ userId, userEmail }: ActAsButtonProps) {
         throw new Error(data.error || 'Failed to act as user')
       }
 
+      window.dispatchEvent(new Event(IMPERSONATION_CHANGED_EVENT))
       router.push('/dashboard')
       router.refresh()
     } catch (error) {

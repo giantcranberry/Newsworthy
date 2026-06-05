@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { usePathname } from 'next/navigation'
 import { AlertTriangle, X, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -13,24 +13,51 @@ interface ImpersonationState {
   adminId?: string
 }
 
+// Custom event other components dispatch to force an immediate re-check
+// (e.g. right after starting/stopping impersonation).
+export const IMPERSONATION_CHANGED_EVENT = 'impersonation-changed'
+
+// Fallback poll so the banner self-heals if the cookie expires (4h) or
+// impersonation is changed in another tab.
+const POLL_INTERVAL_MS = 60_000
+
 export function ImpersonationBanner() {
-  const router = useRouter()
+  const pathname = usePathname()
   const [state, setState] = useState<ImpersonationState | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  useEffect(() => {
-    const checkImpersonation = async () => {
-      try {
-        const response = await fetch('/api/admin/impersonate', { cache: 'no-store' })
-        const data = await response.json()
-        setState(data)
-      } catch (error) {
-        console.error('Error checking impersonation:', error)
-      }
+  const checkImpersonation = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/impersonate', { cache: 'no-store' })
+      const data = await response.json()
+      setState(data)
+    } catch (error) {
+      console.error('Error checking impersonation:', error)
     }
-
-    checkImpersonation()
   }, [])
+
+  // Re-check on mount and on every client-side navigation.
+  useEffect(() => {
+    checkImpersonation()
+  }, [checkImpersonation, pathname])
+
+  // Poll on an interval, re-check when the tab regains focus, and respond
+  // immediately when impersonation is explicitly started/stopped.
+  useEffect(() => {
+    const interval = setInterval(checkImpersonation, POLL_INTERVAL_MS)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') checkImpersonation()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', checkImpersonation)
+    window.addEventListener(IMPERSONATION_CHANGED_EVENT, checkImpersonation)
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', checkImpersonation)
+      window.removeEventListener(IMPERSONATION_CHANGED_EVENT, checkImpersonation)
+    }
+  }, [checkImpersonation])
 
   const handleStopImpersonation = async () => {
     setIsLoading(true)

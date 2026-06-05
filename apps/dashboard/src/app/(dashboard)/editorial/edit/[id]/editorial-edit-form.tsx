@@ -15,6 +15,7 @@ import { Select } from '@/components/ui/select'
 import { MultiSelect } from '@/components/ui/multi-select'
 import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
 import { AdCampaignCard } from '@/components/ads/ad-campaign-card'
+import { IMPERSONATION_CHANGED_EVENT } from '@/components/layout/impersonation-banner'
 import Cropper, { Area } from 'react-easy-crop'
 import {
   Dialog,
@@ -889,6 +890,7 @@ export function EditorialEditForm({
         const data = await response.json()
         throw new Error(data.error || 'Failed to impersonate user')
       }
+      window.dispatchEvent(new Event(IMPERSONATION_CHANGED_EVENT))
       router.push('/dashboard')
       router.refresh()
     } catch (error) {

@@ -2,8 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Building2,
   Plus,
@@ -14,8 +27,72 @@ import {
   List,
   Users,
   Eye,
+  Trash2,
 } from "lucide-react";
 import { TeamSection } from "@/components/company/team-section";
+
+function DeleteBrandButton({ company }: { company: Company }) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/company?uuid=${encodeURIComponent(company.uuid)}`,
+        { method: "DELETE" }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || "Failed to delete brand");
+        setDeleting(false);
+        return;
+      }
+      toast.success(`${company.companyName} deleted`);
+      setOpen(false);
+      router.refresh();
+    } catch {
+      toast.error("Failed to delete brand");
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <AlertDialog open={open} onOpenChange={(v) => !deleting && setOpen(v)}>
+      <AlertDialogTrigger asChild>
+        <button
+          title="Delete brand"
+          className="inline-flex items-center justify-center gap-1.5 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 cursor-pointer transition-colors hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete {company.companyName}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This removes the brand from your account. A brand can only be deleted
+            if it has no press releases. This cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              handleDelete();
+            }}
+            disabled={deleting}
+            className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 interface Company {
   id: number;
@@ -112,6 +189,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany, agenc
           {companies.map((co, index) => {
             const role = rolesByCompany[co.id];
             const canManageTeam = agencyByCompany[co.id] && (role === "owner" || role === "brand_admin");
+            const canDelete = role === "owner";
             const isTeamExpanded = expandedTeam === co.uuid;
 
             return (
@@ -212,6 +290,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany, agenc
                             New Release
                           </button>
                         </Link>
+                        {canDelete && <DeleteBrandButton company={co} />}
                       </div>
                     </div>
                   </CardContent>
@@ -230,6 +309,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany, agenc
           {companies.map((co, index) => {
             const role = rolesByCompany[co.id];
             const canManageTeam = agencyByCompany[co.id] && (role === "owner" || role === "brand_admin");
+            const canDelete = role === "owner";
             const isTeamExpanded = expandedTeam === co.uuid;
 
             return (
@@ -333,6 +413,7 @@ export function CompanyList({ companies, creditsByCompany, rolesByCompany, agenc
                               New Release
                             </button>
                           </Link>
+                          {canDelete && <DeleteBrandButton company={co} />}
                         </div>
                       </div>
                     </div>
