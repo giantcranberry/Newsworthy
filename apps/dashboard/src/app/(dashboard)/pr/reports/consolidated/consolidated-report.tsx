@@ -170,28 +170,43 @@ export function ConsolidatedReport({
   // (Mixing them on one chart with two y-axes makes a single release appear to
   // sit "above" the total because each axis has a different scale.)
   const ONE_DAY = 86_400_000
-  const { releaseData, totalData } = useMemo(() => {
+  const { releaseData, totalData, noLineTitles, legendItems } = useMemo(() => {
+    const now = Date.now()
     const perRelease = reports.map((r) => {
-      const year = r.data.release.releasedAt ? new Date(r.data.release.releasedAt).getFullYear() : new Date().getFullYear()
-      const raw = r.data.constGrowthStats
+      const releaseStart = r.data.release.releasedAt ? new Date(r.data.release.releasedAt).getTime() : NaN
+      const year = Number.isNaN(releaseStart) ? new Date().getFullYear() : new Date(releaseStart).getFullYear()
+      const stats = r.data.constGrowthStats
+
+      const raw = stats
         .map((s) => {
           const x = parseStatKey(s.key_as_string, year)
           return x === null ? null : { x, y: s.views }
         })
         .filter((p): p is { x: number; y: number } => p !== null)
 
-      // Anchor each line at 0 on (or just before) its first data point so the
-      // curve rises from zero instead of starting mid-air at the first bucket.
-      let points = raw
+      let points: { x: number; y: number }[] = []
       if (raw.length > 0) {
-        const releaseStart = r.data.release.releasedAt ? new Date(r.data.release.releasedAt).getTime() : NaN
+        // Accurate dates: anchor the line at 0 on (or just before) its first
+        // point so it rises from zero instead of starting mid-air.
         const anchorX = !Number.isNaN(releaseStart) && releaseStart < raw[0].x ? releaseStart : raw[0].x - ONE_DAY
         points = [{ x: anchorX, y: 0 }, ...raw]
+      } else if (stats.length > 0) {
+        // Fallback: keys didn't parse, but the release has a cumulative series —
+        // spread its points evenly across releaseStart→now so it still draws a line.
+        const start = Number.isNaN(releaseStart) ? now - stats.length * ONE_DAY : releaseStart
+        const span = Math.max(now - start, ONE_DAY)
+        const n = stats.length
+        const seq = stats.map((s, i) => ({ x: start + (span * i) / Math.max(1, n - 1), y: s.views }))
+        points = [{ x: start, y: 0 }, ...seq]
       }
       return { color: r.color, title: r.data.release.title || 'Untitled', points }
     })
 
-    const releaseDatasets = perRelease.map((p) => ({
+    // Only chart releases that actually have a line; flag the rest explicitly.
+    const plottable = perRelease.filter((p) => p.points.length > 0)
+    const noLineTitles = perRelease.filter((p) => p.points.length === 0).map((p) => p.title)
+
+    const releaseDatasets = plottable.map((p) => ({
       label: p.title,
       data: p.points,
       borderColor: p.color,
@@ -201,6 +216,7 @@ export function ConsolidatedReport({
       pointRadius: 0,
       pointHoverRadius: 4,
       borderWidth: 2,
+      pointStyle: 'rectRounded' as const,
     }))
 
     // Aggregate total views over time: at each timestamp, sum every release's
@@ -220,6 +236,8 @@ export function ConsolidatedReport({
     })
 
     return {
+      noLineTitles,
+      legendItems: plottable.map((p) => ({ color: p.color, title: p.title })),
       releaseData: { datasets: releaseDatasets },
       totalData: {
         datasets: [
@@ -233,6 +251,7 @@ export function ConsolidatedReport({
             pointRadius: 0,
             pointHoverRadius: 4,
             borderWidth: 2.5,
+            pointStyle: 'rectRounded' as const,
           },
         ],
       },
@@ -258,7 +277,9 @@ export function ConsolidatedReport({
         y: { beginAtZero: true },
       },
       plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        // Built-in legend is disabled; we render a custom one-per-line HTML
+        // legend below the per-release chart for readability with long titles.
+        legend: { display: false },
         tooltip: {
           callbacks: {
             title: (items) => {
@@ -403,6 +424,23 @@ export function ConsolidatedReport({
             <div className="h-[420px]">
               <Line data={releaseData} options={timeAxisOptions} />
             </div>
+            {/* Custom legend: one release per line, left-justified */}
+            <ul className="mt-4 space-y-1.5">
+              {legendItems.map((item, i) => (
+                <li key={i} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <span
+                    className="inline-block h-3.5 w-3.5 flex-shrink-0 rounded-[3px]"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="truncate">{item.title}</span>
+                </li>
+              ))}
+            </ul>
+            {noLineTitles.length > 0 && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-3">
+                No time-series data yet for: {noLineTitles.join('; ')}
+              </p>
+            )}
           </div>
         </div>
       )}
