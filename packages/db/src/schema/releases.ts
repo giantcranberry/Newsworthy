@@ -47,6 +47,20 @@ export const releases = pgTable('releases', {
   adScreening: jsonb('ad_screening'),
 })
 
+// A saved selection of releases rendered together as one consolidated clipping
+// report, shared via a public short-uuid URL. Report data is always fetched
+// live, so a shared link reflects current numbers on every visit.
+export const consolidatedReports = pgTable('consolidated_reports', {
+  id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).unique().notNull(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  companyId: integer('company_id').references(() => company.id),
+  title: varchar('title', { length: 200 }),
+  releaseUuids: jsonb('release_uuids').notNull(),
+  isDeleted: boolean('is_deleted').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 export const queue = pgTable('queue', {
   id: serial('id').primaryKey(),
   uuid: varchar('uuid', { length: 36 }).unique().notNull(),
