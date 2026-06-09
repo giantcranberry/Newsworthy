@@ -425,7 +425,7 @@ export function ConsolidatedReport({
               <Line data={releaseData} options={timeAxisOptions} />
             </div>
             {/* Custom legend: one release per line, left-justified */}
-            <ul className="mt-4 space-y-1.5">
+            <ul className="mt-4 space-y-1.5" style={{ paddingLeft: 75 }}>
               {legendItems.map((item, i) => (
                 <li key={i} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
                   <span
