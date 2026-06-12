@@ -12,7 +12,8 @@ node_modules
 
 # testing
 /coverage
-
+.venv
+.venv/
 # next.js
 .next/
 /out/

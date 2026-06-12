@@ -8,7 +8,7 @@ import { cookies } from 'next/headers'
 import { db } from '@/db'
 import { users, userProfiles, partners, partnerManagers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { addPersonToFolk } from '@/lib/folk'
+import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { sendSmsNotification } from '@/lib/twilio'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
@@ -199,6 +199,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!existingUser) {
           // Check for co-registration partner cookie
           let oauthPartnerId = 1
+          let partnerName: string | undefined
           try {
             const cookieStore = await cookies()
             const partnerCookie = cookieStore.get('coregister_partner_id')?.value
@@ -213,6 +214,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 })
                 if (partner) {
                   oauthPartnerId = partner.id
+                  partnerName = partner.company || partner.brandName || partner.handle || undefined
                 }
               }
             }
@@ -238,11 +240,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               lastName,
             })
 
-            // Add to Folk CRM (non-blocking)
-            addPersonToFolk({
+            // Add to SalesNexus CRM (non-blocking)
+            addContactToSalesNexus({
               email,
               firstName: firstName || undefined,
               lastName: lastName || undefined,
+              partner: partnerName,
             })
 
             // SMS notification (non-blocking)

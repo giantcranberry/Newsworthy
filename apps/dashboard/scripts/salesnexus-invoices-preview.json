@@ -1,0 +1,1442 @@
+{
+  "summary": {
+    "mode": "dry-run",
+    "invoicedCustomers": 68,
+    "totalSpendDollars": 140444,
+    "alreadyOurUsers": 39
+  },
+  "records": [
+    {
+      "email": "kelli@monkeesoffairoaks.com",
+      "name": "Monkee's of Fair Oaks",
+      "firstName": "Monkee's",
+      "lastName": "of Fair Oaks",
+      "company": "Monkee's of Fair Oaks",
+      "firstInvoiceDate": "2026-06-11",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1548,
+      "lineItems": [
+        {
+          "description": "DFY - 6 PRESS RELEASES",
+          "qty": 1,
+          "amount": 154800
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,548.00 total.\nLine items purchased:\n• 1× DFY - 6 PRESS RELEASES — $1,548.00"
+    },
+    {
+      "email": "we@wellnesseternal.com",
+      "name": "Lindsay O’Neill",
+      "firstName": "Lindsay",
+      "lastName": "O’Neill",
+      "company": "Lindsay O’Neill",
+      "firstInvoiceDate": "2025-11-10",
+      "invoiceCount": 17,
+      "totalSpendDollars": 3984,
+      "lineItems": [
+        {
+          "description": "ENHANCED PR DIST",
+          "qty": 17,
+          "amount": 423300
+        }
+      ],
+      "note": "Stripe invoices: 17 paid, $3,984.00 total.\nLine items purchased:\n• 17× ENHANCED PR DIST — $4,233.00"
+    },
+    {
+      "email": "tom@reportablenews.com",
+      "name": "Reportable News",
+      "firstName": "Reportable",
+      "lastName": "News",
+      "company": "Reportable News",
+      "firstInvoiceDate": "2025-01-10",
+      "invoiceCount": 11,
+      "totalSpendDollars": 1729,
+      "lineItems": [
+        {
+          "description": "Newsramp Curation and Amplification",
+          "qty": 347,
+          "amount": 121450
+        },
+        {
+          "description": "Newsramp Curation",
+          "qty": 147,
+          "amount": 51450
+        }
+      ],
+      "note": "Stripe invoices: 11 paid, $1,729.00 total.\nLine items purchased:\n• 347× Newsramp Curation and Amplification — $1,214.50\n• 147× Newsramp Curation — $514.50"
+    },
+    {
+      "email": "mgould@nutricompanyinc.com",
+      "name": "SHERRY C GOULD",
+      "firstName": "SHERRY",
+      "lastName": "C GOULD",
+      "company": "SHERRY C GOULD",
+      "firstInvoiceDate": "2025-08-11",
+      "invoiceCount": 32,
+      "totalSpendDollars": 31722,
+      "lineItems": [
+        {
+          "description": "WRITE 1 PRESS RELEASE",
+          "qty": 120,
+          "amount": 1622500
+        },
+        {
+          "description": "Press Releases: Discounted Block of Ten",
+          "qty": 120,
+          "amount": 900000
+        },
+        {
+          "description": "New Client Onboarding",
+          "qty": 6,
+          "amount": 150000
+        },
+        {
+          "description": "Press Release Enhancements and Writing",
+          "qty": 1,
+          "amount": 109900
+        },
+        {
+          "description": "NEWSWORTHY WRITING",
+          "qty": 10,
+          "amount": 97200
+        },
+        {
+          "description": "Yahoo Distribution",
+          "qty": 5,
+          "amount": 87500
+        },
+        {
+          "description": "Expanded Press Release Distribution",
+          "qty": 3,
+          "amount": 75000
+        },
+        {
+          "description": "Promotion 12 Press Releases",
+          "qty": 10,
+          "amount": 75000
+        },
+        {
+          "description": "Special Project",
+          "qty": 1,
+          "amount": 12500
+        }
+      ],
+      "note": "Stripe invoices: 32 paid, $31,722.00 total.\nLine items purchased:\n• 120× WRITE 1 PRESS RELEASE — $16,225.00\n• 120× Press Releases: Discounted Block of Ten — $9,000.00\n• 6× New Client Onboarding — $1,500.00\n• 1× Press Release Enhancements and Writing — $1,099.00\n• 10× NEWSWORTHY WRITING — $972.00\n• 5× Yahoo Distribution — $875.00\n• 3× Expanded Press Release Distribution — $750.00\n• 10× Promotion 12 Press Releases — $750.00\n• 1× Special Project — $125.00"
+    },
+    {
+      "email": "allan@nallacomm.com",
+      "name": "allan@nallacomm.com",
+      "firstName": "allan@nallacomm.com",
+      "company": "allan@nallacomm.com",
+      "firstInvoiceDate": "2024-02-21",
+      "invoiceCount": 7,
+      "totalSpendDollars": 2584,
+      "lineItems": [
+        {
+          "description": "Campaign Set Up and Distribution to Bloggers and Podcasters - Real Estate",
+          "qty": 1,
+          "amount": 40000
+        },
+        {
+          "description": "Newsworthy.ai Press Release",
+          "qty": 2,
+          "amount": 25800
+        },
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 2,
+          "amount": 25800
+        },
+        {
+          "description": "YAHOO! NEWS",
+          "qty": 1,
+          "amount": 16900
+        },
+        {
+          "description": "1 PRESS RELEASE CREDIT",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 7 paid, $2,584.00 total.\nLine items purchased:\n• 1× Campaign Set Up and Distribution to Bloggers and Podcasters - Real Estate — $400.00\n• 2× Newsworthy.ai Press Release — $258.00\n• 2× NEWSWORTHY PAYGO PR — $258.00\n• 1× YAHOO! NEWS — $169.00\n• 1× 1 PRESS RELEASE CREDIT — $129.00"
+    },
+    {
+      "email": "nadim.adi@txstate.edu",
+      "name": "Nadim Adi",
+      "firstName": "Nadim",
+      "lastName": "Adi",
+      "company": "Nadim Adi",
+      "firstInvoiceDate": "2026-05-08",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1548,
+      "lineItems": [
+        {
+          "description": "DFY - 6 PRESS RELEASES",
+          "qty": 1,
+          "amount": 154800
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,548.00 total.\nLine items purchased:\n• 1× DFY - 6 PRESS RELEASES — $1,548.00"
+    },
+    {
+      "email": "javier@igniteit.com",
+      "name": "Javier Hasse",
+      "firstName": "Javier",
+      "lastName": "Hasse",
+      "company": "Javier Hasse",
+      "firstInvoiceDate": "2025-09-02",
+      "invoiceCount": 5,
+      "totalSpendDollars": 1416,
+      "lineItems": [
+        {
+          "description": "Premium Distribution",
+          "qty": 2,
+          "amount": 55800
+        },
+        {
+          "description": "Enhanced PR Distribution",
+          "qty": 2,
+          "amount": 35000
+        },
+        {
+          "description": "1 PRESS RELEASE CREDIT",
+          "qty": 2,
+          "amount": 25800
+        },
+        {
+          "description": "Expanded Press Release Distribution",
+          "qty": 1,
+          "amount": 25000
+        }
+      ],
+      "note": "Stripe invoices: 5 paid, $1,416.00 total.\nLine items purchased:\n• 2× Premium Distribution — $558.00\n• 2× Enhanced PR Distribution — $350.00\n• 2× 1 PRESS RELEASE CREDIT — $258.00\n• 1× Expanded Press Release Distribution — $250.00"
+    },
+    {
+      "email": "angela@benchmarkwd.com",
+      "name": "",
+      "firstName": "angela",
+      "firstInvoiceDate": "2026-04-08",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1145,
+      "lineItems": [
+        {
+          "description": "Upgrade to 5 Releases",
+          "qty": 1,
+          "amount": 11300
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,145.00 total.\nLine items purchased:\n• 1× Upgrade to 5 Releases — $113.00"
+    },
+    {
+      "email": "joemuscaglione@gmail.com",
+      "name": "Joe Muscaglione",
+      "firstName": "Joe",
+      "lastName": "Muscaglione",
+      "company": "Joe Muscaglione",
+      "firstInvoiceDate": "2026-04-07",
+      "invoiceCount": 1,
+      "totalSpendDollars": 500,
+      "lineItems": [
+        {
+          "description": "Bundle of 5 Press Releases",
+          "qty": 1,
+          "amount": 50000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $500.00 total.\nLine items purchased:\n• 1× Bundle of 5 Press Releases — $500.00"
+    },
+    {
+      "email": "justin.mckenzie@sbiradvisors.com",
+      "name": "SBIR Advisors",
+      "firstName": "SBIR",
+      "lastName": "Advisors",
+      "company": "SBIR Advisors",
+      "firstInvoiceDate": "2026-03-31",
+      "invoiceCount": 2,
+      "totalSpendDollars": 6000,
+      "lineItems": [
+        {
+          "description": "DFY 12 PRESS RELEASES",
+          "qty": 2,
+          "amount": 600000
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $6,000.00 total.\nLine items purchased:\n• 2× DFY 12 PRESS RELEASES — $6,000.00"
+    },
+    {
+      "email": "danielw@wizardofads.com",
+      "name": "Daniel Whittington",
+      "firstName": "Daniel",
+      "lastName": "Whittington",
+      "company": "Daniel Whittington",
+      "firstInvoiceDate": "2026-03-24",
+      "invoiceCount": 1,
+      "totalSpendDollars": 400,
+      "lineItems": [
+        {
+          "description": "Newsworthy Press Releases",
+          "qty": 5,
+          "amount": 40000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $400.00 total.\nLine items purchased:\n• 5× Newsworthy Press Releases — $400.00"
+    },
+    {
+      "email": "pedro.noriega@detecmx.com",
+      "name": "DETEC",
+      "firstName": "DETEC",
+      "company": "DETEC",
+      "firstInvoiceDate": "2026-03-31",
+      "invoiceCount": 1,
+      "totalSpendDollars": 250,
+      "lineItems": [
+        {
+          "description": "Agentic TV Interviews",
+          "qty": 1,
+          "amount": 25000
+        },
+        {
+          "description": "Newsworthy Press Release",
+          "qty": 1,
+          "amount": 12900
+        },
+        {
+          "description": "Press Release One-Time Courtesy Credit",
+          "qty": 1,
+          "amount": -12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $250.00 total.\nLine items purchased:\n• 1× Agentic TV Interviews — $250.00\n• 1× Newsworthy Press Release — $129.00\n• 1× Press Release One-Time Courtesy Credit — $-129.00"
+    },
+    {
+      "email": "dmcgrath@hr.com",
+      "name": "HR.com",
+      "firstName": "HR.com",
+      "company": "HR.com",
+      "firstInvoiceDate": "2022-03-10",
+      "invoiceCount": 3,
+      "totalSpendDollars": 7500,
+      "lineItems": [
+        {
+          "description": "Founder's Circle Subscription - 72 Press Releases",
+          "qty": 3,
+          "amount": 750000
+        }
+      ],
+      "note": "Stripe invoices: 3 paid, $7,500.00 total.\nLine items purchased:\n• 3× Founder's Circle Subscription - 72 Press Releases — $7,500.00"
+    },
+    {
+      "email": "rsena@gvtc.com",
+      "name": "Rich Sena",
+      "firstName": "Rich",
+      "lastName": "Sena",
+      "company": "Rich Sena",
+      "firstInvoiceDate": "2026-03-15",
+      "invoiceCount": 1,
+      "totalSpendDollars": 0,
+      "lineItems": [
+        {
+          "description": "DFY - 6 PRESS RELEASES",
+          "qty": 1,
+          "amount": 154800
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $0.00 total.\nLine items purchased:\n• 1× DFY - 6 PRESS RELEASES — $1,548.00"
+    },
+    {
+      "email": "katie@katiemiltonjordan.com",
+      "name": "Katie Milton Jordan",
+      "firstName": "Katie",
+      "lastName": "Milton Jordan",
+      "company": "Katie Milton Jordan",
+      "firstInvoiceDate": "2026-02-16",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1299,
+      "lineItems": [
+        {
+          "description": "12 PRESS RELEASES DIY",
+          "qty": 1,
+          "amount": 129900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,299.00 total.\nLine items purchased:\n• 1× 12 PRESS RELEASES DIY — $1,299.00"
+    },
+    {
+      "email": "aj3phd@gmail.com",
+      "name": "Dr. Andrew Johnson",
+      "firstName": "Dr.",
+      "lastName": "Andrew Johnson",
+      "company": "Dr. Andrew Johnson",
+      "firstInvoiceDate": "2026-02-06",
+      "invoiceCount": 1,
+      "totalSpendDollars": 450,
+      "lineItems": [
+        {
+          "description": "6 DFY Press Releases - Building Texas Quarterly Payments",
+          "qty": 1,
+          "amount": 45000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $450.00 total.\nLine items purchased:\n• 1× 6 DFY Press Releases - Building Texas Quarterly Payments — $450.00"
+    },
+    {
+      "email": "mwood@meetfruition.com",
+      "name": "Fruition",
+      "firstName": "Fruition",
+      "company": "Fruition",
+      "firstInvoiceDate": "2026-02-03",
+      "invoiceCount": 1,
+      "totalSpendDollars": 2875,
+      "lineItems": [
+        {
+          "description": "DFY 12 PRESS RELEASES",
+          "qty": 1,
+          "amount": 287500
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $2,875.00 total.\nLine items purchased:\n• 1× DFY 12 PRESS RELEASES — $2,875.00"
+    },
+    {
+      "email": "info@cssfg.com",
+      "name": "CSS Consulting & Marketing, LLC",
+      "firstName": "CSS",
+      "lastName": "Consulting & Marketing, LLC",
+      "company": "CSS Consulting & Marketing, LLC",
+      "firstInvoiceDate": "2026-01-15",
+      "invoiceCount": 1,
+      "totalSpendDollars": 277,
+      "lineItems": [
+        {
+          "description": "Done For You Press Release",
+          "qty": 1,
+          "amount": 27700
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $277.00 total.\nLine items purchased:\n• 1× Done For You Press Release — $277.00"
+    },
+    {
+      "email": "will@chisos.com",
+      "name": "Will Roman (Chisos)",
+      "firstName": "Will",
+      "lastName": "Roman (Chisos)",
+      "company": "Will Roman (Chisos)",
+      "firstInvoiceDate": "2026-01-02",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1548,
+      "lineItems": [
+        {
+          "description": "DFY - 6 PRESS RELEASES",
+          "qty": 1,
+          "amount": 154800
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,548.00 total.\nLine items purchased:\n• 1× DFY - 6 PRESS RELEASES — $1,548.00"
+    },
+    {
+      "email": "gleason4judge@gmail.com",
+      "name": "Rickley Gleason for Judge",
+      "firstName": "Rickley",
+      "lastName": "Gleason for Judge",
+      "company": "Rickley Gleason for Judge",
+      "firstInvoiceDate": "2026-01-08",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1548,
+      "lineItems": [
+        {
+          "description": "DFY - 6 PRESS RELEASES",
+          "qty": 1,
+          "amount": 154800
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,548.00 total.\nLine items purchased:\n• 1× DFY - 6 PRESS RELEASES — $1,548.00"
+    },
+    {
+      "email": "mark@newsworthy.ai",
+      "name": "",
+      "firstName": "mark",
+      "firstInvoiceDate": "2025-09-17",
+      "invoiceCount": 4,
+      "totalSpendDollars": 24,
+      "lineItems": [
+        {
+          "description": "1 × NEWSCRAFTERS PRO CURATOR (at $12.00 / month)",
+          "qty": 3,
+          "amount": 3600
+        },
+        {
+          "description": "1 × NEWSRAMP PRO BLOGGER (at $12.00 / month)",
+          "qty": 1,
+          "amount": 1200
+        }
+      ],
+      "note": "Stripe invoices: 4 paid, $24.00 total.\nLine items purchased:\n• 3× 1 × NEWSCRAFTERS PRO CURATOR (at $12.00 / month) — $36.00\n• 1× 1 × NEWSRAMP PRO BLOGGER (at $12.00 / month) — $12.00"
+    },
+    {
+      "email": "david@liveoaks.us",
+      "name": "",
+      "firstName": "david",
+      "firstInvoiceDate": "2025-09-17",
+      "invoiceCount": 4,
+      "totalSpendDollars": 24,
+      "lineItems": [
+        {
+          "description": "1 × NEWSCRAFTERS PRO CURATOR (at $12.00 / month)",
+          "qty": 3,
+          "amount": 3600
+        },
+        {
+          "description": "1 × NEWSRAMP PRO BLOGGER (at $12.00 / month)",
+          "qty": 1,
+          "amount": 1200
+        }
+      ],
+      "note": "Stripe invoices: 4 paid, $24.00 total.\nLine items purchased:\n• 3× 1 × NEWSCRAFTERS PRO CURATOR (at $12.00 / month) — $36.00\n• 1× 1 × NEWSRAMP PRO BLOGGER (at $12.00 / month) — $12.00"
+    },
+    {
+      "email": "sb@blazysusan.com",
+      "name": "",
+      "firstName": "sb",
+      "firstInvoiceDate": "2025-12-18",
+      "invoiceCount": 1,
+      "totalSpendDollars": 175,
+      "lineItems": [
+        {
+          "description": "Enhanced PR Distribution",
+          "qty": 1,
+          "amount": 17500
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $175.00 total.\nLine items purchased:\n• 1× Enhanced PR Distribution — $175.00"
+    },
+    {
+      "email": "joseph.kopser@gmail.com",
+      "name": "Kopser for Texas",
+      "firstName": "Kopser",
+      "lastName": "for Texas",
+      "company": "Kopser for Texas",
+      "firstInvoiceDate": "2026-01-08",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1000,
+      "lineItems": [
+        {
+          "description": "6 Press Release - Done for You (JM)",
+          "qty": 1,
+          "amount": 100000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,000.00 total.\nLine items purchased:\n• 1× 6 Press Release - Done for You (JM) — $1,000.00"
+    },
+    {
+      "email": "callie@manifestivedesign.com",
+      "name": "Manifestive Design",
+      "firstName": "Manifestive",
+      "lastName": "Design",
+      "company": "Manifestive Design",
+      "firstInvoiceDate": "2025-12-17",
+      "invoiceCount": 2,
+      "totalSpendDollars": 1750,
+      "lineItems": [
+        {
+          "description": "6 Pack Press Release (Justin*)",
+          "qty": 1,
+          "amount": 100000
+        },
+        {
+          "description": "Burstable.News One-time Setup",
+          "qty": 1,
+          "amount": 50000
+        },
+        {
+          "description": "Burstable.News Monthly News Feed",
+          "qty": 1,
+          "amount": 25000
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $1,750.00 total.\nLine items purchased:\n• 1× 6 Pack Press Release (Justin*) — $1,000.00\n• 1× Burstable.News One-time Setup — $500.00\n• 1× Burstable.News Monthly News Feed — $250.00"
+    },
+    {
+      "email": "info@resona.health",
+      "name": "Mark L. Fox",
+      "firstName": "Mark",
+      "lastName": "L. Fox",
+      "company": "Mark L. Fox",
+      "firstInvoiceDate": "2025-11-23",
+      "invoiceCount": 1,
+      "totalSpendDollars": 970,
+      "lineItems": [
+        {
+          "description": "ENHANCED PR DIST",
+          "qty": 1,
+          "amount": 27900
+        },
+        {
+          "description": "YAHOO! NEWS",
+          "qty": 1,
+          "amount": 17500
+        },
+        {
+          "description": "Discounts",
+          "qty": 1,
+          "amount": -12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $970.00 total.\nLine items purchased:\n• 1× ENHANCED PR DIST — $279.00\n• 1× YAHOO! NEWS — $175.00\n• 1× Discounts — $-129.00"
+    },
+    {
+      "email": "steve@stevedeangelo.com",
+      "name": "Steve Deangelo",
+      "firstName": "Steve",
+      "lastName": "Deangelo",
+      "company": "Steve Deangelo",
+      "firstInvoiceDate": "2025-11-14",
+      "invoiceCount": 1,
+      "totalSpendDollars": 200,
+      "lineItems": [
+        {
+          "description": "Enhanced PR Distribution",
+          "qty": 1,
+          "amount": 20000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $200.00 total.\nLine items purchased:\n• 1× Enhanced PR Distribution — $200.00"
+    },
+    {
+      "email": "chris@charityace.com",
+      "name": "Charity Ace",
+      "firstName": "Charity",
+      "lastName": "Ace",
+      "company": "Charity Ace",
+      "firstInvoiceDate": "2025-09-05",
+      "invoiceCount": 3,
+      "totalSpendDollars": 0,
+      "lineItems": [
+        {
+          "description": "Charity Ace Press Release Packages",
+          "qty": 2,
+          "amount": 298237
+        },
+        {
+          "description": "Glen Rose",
+          "qty": 1,
+          "amount": 249750
+        },
+        {
+          "description": "Avita",
+          "qty": 1,
+          "amount": 135940
+        },
+        {
+          "description": "Grayline (Kopser)",
+          "qty": 1,
+          "amount": 48502
+        },
+        {
+          "description": "Birddog",
+          "qty": 1,
+          "amount": 48502
+        }
+      ],
+      "note": "Stripe invoices: 3 paid, $0.00 total.\nLine items purchased:\n• 2× Charity Ace Press Release Packages — $2,982.37\n• 1× Glen Rose — $2,497.50\n• 1× Avita — $1,359.40\n• 1× Grayline (Kopser) — $485.02\n• 1× Birddog — $485.02"
+    },
+    {
+      "email": "d@altss.com",
+      "name": "Dawid Siekiera",
+      "firstName": "Dawid",
+      "lastName": "Siekiera",
+      "company": "Dawid Siekiera",
+      "firstInvoiceDate": "2025-09-23",
+      "invoiceCount": 1,
+      "totalSpendDollars": 200,
+      "lineItems": [
+        {
+          "description": "Enhanced PR Distribution",
+          "qty": 1,
+          "amount": 20000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $200.00 total.\nLine items purchased:\n• 1× Enhanced PR Distribution — $200.00"
+    },
+    {
+      "email": "bill@noticiasnewswire.com",
+      "name": "Noticias Newswire",
+      "firstName": "Noticias",
+      "lastName": "Newswire",
+      "company": "Noticias Newswire",
+      "firstInvoiceDate": "2025-03-19",
+      "invoiceCount": 4,
+      "totalSpendDollars": 495.5,
+      "lineItems": [
+        {
+          "description": "Newsramp Curation and Amplification",
+          "qty": 113,
+          "amount": 39550
+        },
+        {
+          "description": "One Time Custom Programming / Implementation",
+          "qty": 1,
+          "amount": 10000
+        }
+      ],
+      "note": "Stripe invoices: 4 paid, $495.50 total.\nLine items purchased:\n• 113× Newsramp Curation and Amplification — $395.50\n• 1× One Time Custom Programming / Implementation — $100.00"
+    },
+    {
+      "email": "jeffrey@zooby.com",
+      "name": "Jeffrey Eisenberg",
+      "firstName": "Jeffrey",
+      "lastName": "Eisenberg",
+      "company": "Jeffrey Eisenberg",
+      "firstInvoiceDate": "2025-09-03",
+      "invoiceCount": 1,
+      "totalSpendDollars": 300,
+      "lineItems": [
+        {
+          "description": "Friends of David - 6 Press Release Credits",
+          "qty": 1,
+          "amount": 30000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $300.00 total.\nLine items purchased:\n• 1× Friends of David - 6 Press Release Credits — $300.00"
+    },
+    {
+      "email": "ron@medcognetics.com",
+      "name": "Ron Nag",
+      "firstName": "Ron",
+      "lastName": "Nag",
+      "company": "Ron Nag",
+      "firstInvoiceDate": "2025-07-30",
+      "invoiceCount": 1,
+      "totalSpendDollars": 129,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $129.00 total.\nLine items purchased:\n• 1× NEWSWORTHY PAYGO PR — $129.00"
+    },
+    {
+      "email": "marketing@intellum.com",
+      "name": "David Pitta",
+      "firstName": "David",
+      "lastName": "Pitta",
+      "company": "David Pitta",
+      "firstInvoiceDate": "2025-07-31",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1000,
+      "lineItems": [
+        {
+          "description": "Newsworthy.ai Press Release",
+          "qty": 5,
+          "amount": 50000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,000.00 total.\nLine items purchased:\n• 5× Newsworthy.ai Press Release — $500.00"
+    },
+    {
+      "email": "cynthia@ashamediagroup.com",
+      "name": "Cynthia Salarizadeh",
+      "firstName": "Cynthia",
+      "lastName": "Salarizadeh",
+      "company": "Cynthia Salarizadeh",
+      "firstInvoiceDate": "2025-05-15",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1000,
+      "lineItems": [
+        {
+          "description": "Press Release Package",
+          "qty": 1,
+          "amount": 100000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,000.00 total.\nLine items purchased:\n• 1× Press Release Package — $1,000.00"
+    },
+    {
+      "email": "andrew.g@getnugg.com",
+      "name": "Andrew Graham",
+      "firstName": "Andrew",
+      "lastName": "Graham",
+      "company": "Andrew Graham",
+      "firstInvoiceDate": "2025-04-10",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1622,
+      "lineItems": [
+        {
+          "description": "Newsworthy.ai and Weedweek Distribution",
+          "qty": 5,
+          "amount": 74500
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,622.00 total.\nLine items purchased:\n• 5× Newsworthy.ai and Weedweek Distribution — $745.00"
+    },
+    {
+      "email": "jprose@employerchoice.com",
+      "name": "Joni Prose",
+      "firstName": "Joni",
+      "lastName": "Prose",
+      "company": "Joni Prose",
+      "firstInvoiceDate": "2025-03-27",
+      "invoiceCount": 1,
+      "totalSpendDollars": 129,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $129.00 total.\nLine items purchased:\n• 1× NEWSWORTHY PAYGO PR — $129.00"
+    },
+    {
+      "email": "michael@24-7pressrelease.com",
+      "name": "24-7 Press Release",
+      "firstName": "24-7",
+      "lastName": "Press Release",
+      "company": "24-7 Press Release",
+      "firstInvoiceDate": "2025-01-10",
+      "invoiceCount": 1,
+      "totalSpendDollars": 0,
+      "lineItems": [
+        {
+          "description": "Newsramp Curation and Amplification",
+          "qty": 273,
+          "amount": 95550
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $0.00 total.\nLine items purchased:\n• 273× Newsramp Curation and Amplification — $955.50"
+    },
+    {
+      "email": "gregg.castano@newsdirect.com",
+      "name": "News Direct",
+      "firstName": "News",
+      "lastName": "Direct",
+      "company": "News Direct",
+      "firstInvoiceDate": "2025-01-10",
+      "invoiceCount": 1,
+      "totalSpendDollars": 0,
+      "lineItems": [
+        {
+          "description": "Newsramp Curation and Amplification",
+          "qty": 143,
+          "amount": 50050
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $0.00 total.\nLine items purchased:\n• 143× Newsramp Curation and Amplification — $500.50"
+    },
+    {
+      "email": "paramdeep@rchilli.com",
+      "name": "RChilli",
+      "firstName": "RChilli",
+      "company": "RChilli",
+      "firstInvoiceDate": "2022-11-01",
+      "invoiceCount": 16,
+      "totalSpendDollars": 8851,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 36,
+          "amount": 356400
+        },
+        {
+          "description": "RChilli Website Writing Project",
+          "qty": 1,
+          "amount": 218700
+        },
+        {
+          "description": "Annual PR Subscription",
+          "qty": 10,
+          "amount": 200000
+        },
+        {
+          "description": "Special 2025 Promotion. Twelve (12) Press Releases for $900",
+          "qty": 1,
+          "amount": 90000
+        },
+        {
+          "description": "1 × NWAI Advos (at $200.00 / month)",
+          "qty": 1,
+          "amount": 20000
+        }
+      ],
+      "note": "Stripe invoices: 16 paid, $8,851.00 total.\nLine items purchased:\n• 36× NEWSWORTHY PAYGO PR — $3,564.00\n• 1× RChilli Website Writing Project — $2,187.00\n• 10× Annual PR Subscription — $2,000.00\n• 1× Special 2025 Promotion. Twelve (12) Press Releases for $900 — $900.00\n• 1× 1 × NWAI Advos (at $200.00 / month) — $200.00"
+    },
+    {
+      "email": "michael@profluent.com",
+      "name": "Michael Drew",
+      "firstName": "Michael",
+      "lastName": "Drew",
+      "company": "Michael Drew",
+      "firstInvoiceDate": "2022-05-05",
+      "invoiceCount": 2,
+      "totalSpendDollars": 3127,
+      "lineItems": [
+        {
+          "description": "Founder's Club 100 Releases",
+          "qty": 1,
+          "amount": 300000
+        },
+        {
+          "description": "Podcast VoiceStudio ",
+          "qty": 1,
+          "amount": 11900
+        },
+        {
+          "description": "Podcast Hosting",
+          "qty": 1,
+          "amount": 800
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $3,127.00 total.\nLine items purchased:\n• 1× Founder's Club 100 Releases — $3,000.00\n• 1× Podcast VoiceStudio  — $119.00\n• 1× Podcast Hosting — $8.00"
+    },
+    {
+      "email": "garrett@solarelectricsupply.com",
+      "name": "Garrett Gettleman (Solar Electric Supply, Inc.)",
+      "firstName": "Garrett",
+      "lastName": "Gettleman (Solar Electric Supply, Inc.)",
+      "company": "Garrett Gettleman (Solar Electric Supply, Inc.)",
+      "firstInvoiceDate": "2024-10-22",
+      "invoiceCount": 2,
+      "totalSpendDollars": 1187,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 5,
+          "amount": 64500
+        },
+        {
+          "description": "Done For You No Write",
+          "qty": 5,
+          "amount": 29500
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $1,187.00 total.\nLine items purchased:\n• 5× NEWSWORTHY PAYGO PR — $645.00\n• 5× Done For You No Write — $295.00"
+    },
+    {
+      "email": "apflieger@curbio.com",
+      "name": "Curbio",
+      "firstName": "Curbio",
+      "company": "Curbio",
+      "firstInvoiceDate": "2024-10-04",
+      "invoiceCount": 1,
+      "totalSpendDollars": 800,
+      "lineItems": [
+        {
+          "description": "Ten Package - Newsworthy.ai",
+          "qty": 1,
+          "amount": 80000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $800.00 total.\nLine items purchased:\n• 1× Ten Package - Newsworthy.ai — $800.00"
+    },
+    {
+      "email": "info@boundlessmediausa.com",
+      "name": "Michael Levine",
+      "firstName": "Michael",
+      "lastName": "Levine",
+      "company": "Michael Levine",
+      "firstInvoiceDate": "2024-08-08",
+      "invoiceCount": 2,
+      "totalSpendDollars": 766,
+      "lineItems": [
+        {
+          "description": "Package of 5 for $250",
+          "qty": 1,
+          "amount": 25000
+        },
+        {
+          "description": "Newsworthy.ai Press Release",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $766.00 total.\nLine items purchased:\n• 1× Package of 5 for $250 — $250.00\n• 1× Newsworthy.ai Press Release — $129.00"
+    },
+    {
+      "email": "abriante@ecsbusinesses.com",
+      "name": "Angela Briante - EcS+",
+      "firstName": "Angela",
+      "lastName": "Briante - EcS+",
+      "company": "Angela Briante - EcS+",
+      "firstInvoiceDate": "2024-03-29",
+      "invoiceCount": 4,
+      "totalSpendDollars": 516,
+      "lineItems": [
+        {
+          "description": "Newsworthy.ai Press Release",
+          "qty": 4,
+          "amount": 51600
+        }
+      ],
+      "note": "Stripe invoices: 4 paid, $516.00 total.\nLine items purchased:\n• 4× Newsworthy.ai Press Release — $516.00"
+    },
+    {
+      "email": "richchristiansen@gmail.com",
+      "name": "Rich Christiansen",
+      "firstName": "Rich",
+      "lastName": "Christiansen",
+      "company": "Rich Christiansen",
+      "firstInvoiceDate": "2024-07-24",
+      "invoiceCount": 1,
+      "totalSpendDollars": 900,
+      "lineItems": [
+        {
+          "description": "Ten Package - Newsworthy.ai",
+          "qty": 1,
+          "amount": 90000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $900.00 total.\nLine items purchased:\n• 1× Ten Package - Newsworthy.ai — $900.00"
+    },
+    {
+      "email": "ckoukol@talentplus.com",
+      "name": "Cydney Koukol",
+      "firstName": "Cydney",
+      "lastName": "Koukol",
+      "company": "Cydney Koukol",
+      "firstInvoiceDate": "2023-04-25",
+      "invoiceCount": 2,
+      "totalSpendDollars": 950,
+      "lineItems": [
+        {
+          "description": "Bundle of 5 Press Releases",
+          "qty": 2,
+          "amount": 95000
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $950.00 total.\nLine items purchased:\n• 2× Bundle of 5 Press Releases — $950.00"
+    },
+    {
+      "email": "amanda@thejobhelpers.com",
+      "name": "Amanda Dissanayake",
+      "firstName": "Amanda",
+      "lastName": "Dissanayake",
+      "company": "Amanda Dissanayake",
+      "firstInvoiceDate": "2024-08-21",
+      "invoiceCount": 1,
+      "totalSpendDollars": 129,
+      "lineItems": [
+        {
+          "description": "HR Tech Alliances | NewsworthyAI Press Release",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $129.00 total.\nLine items purchased:\n• 1× HR Tech Alliances | NewsworthyAI Press Release — $129.00"
+    },
+    {
+      "email": "content@apotheca.org",
+      "name": "apotheca.org",
+      "firstName": "apotheca.org",
+      "company": "apotheca.org",
+      "firstInvoiceDate": "2024-05-13",
+      "invoiceCount": 1,
+      "totalSpendDollars": 149,
+      "lineItems": [
+        {
+          "description": "Partner Press Release",
+          "qty": 1,
+          "amount": 14900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $149.00 total.\nLine items purchased:\n• 1× Partner Press Release — $149.00"
+    },
+    {
+      "email": "lissakiernan@gmail.com",
+      "name": "Lissa Kiernan",
+      "firstName": "Lissa",
+      "lastName": "Kiernan",
+      "company": "Lissa Kiernan",
+      "firstInvoiceDate": "2024-04-03",
+      "invoiceCount": 1,
+      "totalSpendDollars": 375,
+      "lineItems": [
+        {
+          "description": "One Press Release: Not For Profit Discount",
+          "qty": 5,
+          "amount": 37500
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $375.00 total.\nLine items purchased:\n• 5× One Press Release: Not For Profit Discount — $375.00"
+    },
+    {
+      "email": "laurie@bytefederal.com",
+      "name": "Laurie Argall | Byte Federal, Inc.",
+      "firstName": "Laurie",
+      "lastName": "Argall | Byte Federal, Inc.",
+      "company": "Laurie Argall | Byte Federal, Inc.",
+      "firstInvoiceDate": "2024-04-02",
+      "invoiceCount": 1,
+      "totalSpendDollars": 129,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 1,
+          "amount": 12900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $129.00 total.\nLine items purchased:\n• 1× NEWSWORTHY PAYGO PR — $129.00"
+    },
+    {
+      "email": "sean@beyondmarketing.net",
+      "name": "Sean Harris",
+      "firstName": "Sean",
+      "lastName": "Harris",
+      "company": "Sean Harris",
+      "firstInvoiceDate": "2023-03-28",
+      "invoiceCount": 9,
+      "totalSpendDollars": 24990,
+      "lineItems": [
+        {
+          "description": "Discounted Press Release — $90 per release",
+          "qty": 77,
+          "amount": 693000
+        },
+        {
+          "description": "15 Press Releases @ $100 each",
+          "qty": 4,
+          "amount": 600000
+        },
+        {
+          "description": "53 Press Releases",
+          "qty": 1,
+          "amount": 477000
+        },
+        {
+          "description": "50 Press Releases ",
+          "qty": 1,
+          "amount": 450000
+        },
+        {
+          "description": "40 Press Releases",
+          "qty": 1,
+          "amount": 360000
+        }
+      ],
+      "note": "Stripe invoices: 9 paid, $24,990.00 total.\nLine items purchased:\n• 77× Discounted Press Release — $90 per release — $6,930.00\n• 4× 15 Press Releases @ $100 each — $6,000.00\n• 1× 53 Press Releases — $4,770.00\n• 1× 50 Press Releases  — $4,500.00\n• 1× 40 Press Releases — $3,600.00"
+    },
+    {
+      "email": "sinan@dispenza.com",
+      "name": "Sinan Murat",
+      "firstName": "Sinan",
+      "lastName": "Murat",
+      "company": "Sinan Murat",
+      "firstInvoiceDate": "2023-10-04",
+      "invoiceCount": 3,
+      "totalSpendDollars": 2187,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 23,
+          "amount": 218700
+        }
+      ],
+      "note": "Stripe invoices: 3 paid, $2,187.00 total.\nLine items purchased:\n• 23× NEWSWORTHY PAYGO PR — $2,187.00"
+    },
+    {
+      "email": "julies@bektel.coop",
+      "name": "Julie Skaret",
+      "firstName": "Julie",
+      "lastName": "Skaret",
+      "company": "Julie Skaret",
+      "firstInvoiceDate": "2024-01-30",
+      "invoiceCount": 1,
+      "totalSpendDollars": 900,
+      "lineItems": [
+        {
+          "description": "Discounted Press Release - BEK",
+          "qty": 12,
+          "amount": 90000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $900.00 total.\nLine items purchased:\n• 12× Discounted Press Release - BEK — $900.00"
+    },
+    {
+      "email": "dev@stackbnb.com",
+      "name": "STACKS Dev",
+      "firstName": "STACKS",
+      "lastName": "Dev",
+      "company": "STACKS Dev",
+      "firstInvoiceDate": "2023-10-13",
+      "invoiceCount": 1,
+      "totalSpendDollars": 0,
+      "lineItems": [
+        {
+          "description": "Package of 10 Press Releases",
+          "qty": 1,
+          "amount": 77100
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $0.00 total.\nLine items purchased:\n• 1× Package of 10 Press Releases — $771.00"
+    },
+    {
+      "email": "brett@featured.com",
+      "name": "Brett Farmiloe",
+      "firstName": "Brett",
+      "lastName": "Farmiloe",
+      "company": "Brett Farmiloe",
+      "firstInvoiceDate": "2023-10-16",
+      "invoiceCount": 1,
+      "totalSpendDollars": 5000,
+      "lineItems": [
+        {
+          "description": "Package of 125 Releases ",
+          "qty": 1,
+          "amount": 500000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $5,000.00 total.\nLine items purchased:\n• 1× Package of 125 Releases  — $5,000.00"
+    },
+    {
+      "email": "dmims@marketdone.com",
+      "name": "MarketDone / Bek",
+      "firstName": "MarketDone",
+      "lastName": "/ Bek",
+      "company": "MarketDone / Bek",
+      "firstInvoiceDate": "2023-08-04",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1500,
+      "lineItems": [
+        {
+          "description": "Discounted Package of 20 Press Releases",
+          "qty": 1,
+          "amount": 150000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,500.00 total.\nLine items purchased:\n• 1× Discounted Package of 20 Press Releases — $1,500.00"
+    },
+    {
+      "email": "lisa@periodlaw.org",
+      "name": "Lisa G White",
+      "firstName": "Lisa",
+      "lastName": "G White",
+      "company": "Lisa G White",
+      "firstInvoiceDate": "2023-03-30",
+      "invoiceCount": 2,
+      "totalSpendDollars": 564,
+      "lineItems": [
+        {
+          "description": "NEWSWORTHY PAYGO PR",
+          "qty": 2,
+          "amount": 25800
+        },
+        {
+          "description": "Done For You No Write",
+          "qty": 2,
+          "amount": 11800
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $564.00 total.\nLine items purchased:\n• 2× NEWSWORTHY PAYGO PR — $258.00\n• 2× Done For You No Write — $118.00"
+    },
+    {
+      "email": "olivia@npaws.org",
+      "name": "Olivia Wakeman",
+      "firstName": "Olivia",
+      "lastName": "Wakeman",
+      "company": "Olivia Wakeman",
+      "firstInvoiceDate": "2023-03-29",
+      "invoiceCount": 2,
+      "totalSpendDollars": 104,
+      "lineItems": [
+        {
+          "description": "Single Press Release. Not for profit discount.",
+          "qty": 1,
+          "amount": 7900
+        },
+        {
+          "description": "Discounted list of 125 Veterinarians",
+          "qty": 1,
+          "amount": 2500
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $104.00 total.\nLine items purchased:\n• 1× Single Press Release. Not for profit discount. — $79.00\n• 1× Discounted list of 125 Veterinarians — $25.00"
+    },
+    {
+      "email": "nick.difrancesco@purwell.com",
+      "name": "Nick DiFrancesco",
+      "firstName": "Nick",
+      "lastName": "DiFrancesco",
+      "company": "Nick DiFrancesco",
+      "firstInvoiceDate": "2023-04-06",
+      "invoiceCount": 1,
+      "totalSpendDollars": 220,
+      "lineItems": [
+        {
+          "description": "Discounted Press Release Distribution",
+          "qty": 2,
+          "amount": 22000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $220.00 total.\nLine items purchased:\n• 2× Discounted Press Release Distribution — $220.00"
+    },
+    {
+      "email": "elliebelle23@icloud.com",
+      "name": "Daily Clout",
+      "firstName": "Daily",
+      "lastName": "Clout",
+      "company": "Daily Clout",
+      "firstInvoiceDate": "2022-11-29",
+      "invoiceCount": 2,
+      "totalSpendDollars": 1348.5,
+      "lineItems": [
+        {
+          "description": "Bundled Package of 5 Press Releases",
+          "qty": 1,
+          "amount": 50000
+        },
+        {
+          "description": "Three Press Releases w/ Special DailyClout Pricing",
+          "qty": 1,
+          "amount": 22350
+        },
+        {
+          "description": "NEWSDB500",
+          "qty": 1,
+          "amount": 12500
+        }
+      ],
+      "note": "Stripe invoices: 2 paid, $1,348.50 total.\nLine items purchased:\n• 1× Bundled Package of 5 Press Releases — $500.00\n• 1× Three Press Releases w/ Special DailyClout Pricing — $223.50\n• 1× NEWSDB500 — $125.00"
+    },
+    {
+      "email": "mwillaman@hrmarketer.com",
+      "name": "Mark Willaman",
+      "firstName": "Mark",
+      "lastName": "Willaman",
+      "company": "Mark Willaman",
+      "firstInvoiceDate": "2022-12-08",
+      "invoiceCount": 1,
+      "totalSpendDollars": 5,
+      "lineItems": [
+        {
+          "description": "Payment test",
+          "qty": 1,
+          "amount": 500
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $5.00 total.\nLine items purchased:\n• 1× Payment test — $5.00"
+    },
+    {
+      "email": "kim@ringrelations.com",
+      "name": "Kimberly R Ring",
+      "firstName": "Kimberly",
+      "lastName": "R Ring",
+      "company": "Kimberly R Ring",
+      "firstInvoiceDate": "2022-11-23",
+      "invoiceCount": 1,
+      "totalSpendDollars": 248,
+      "lineItems": [
+        {
+          "description": "WEEDWEEK PRESS RELEASE",
+          "qty": 1,
+          "amount": 14900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $248.00 total.\nLine items purchased:\n• 1× WEEDWEEK PRESS RELEASE — $149.00"
+    },
+    {
+      "email": "erin@performica.com",
+      "name": "Erin McCune",
+      "firstName": "Erin",
+      "lastName": "McCune",
+      "company": "Erin McCune",
+      "firstInvoiceDate": "2022-11-21",
+      "invoiceCount": 1,
+      "totalSpendDollars": 299,
+      "lineItems": [
+        {
+          "description": "TalentCulture / Newsworthy.ai Press Release",
+          "qty": 1,
+          "amount": 29900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $299.00 total.\nLine items purchased:\n• 1× TalentCulture / Newsworthy.ai Press Release — $299.00"
+    },
+    {
+      "email": "shawna@themaverickpr.com",
+      "name": "Shawna Seldon McGregor",
+      "firstName": "Shawna",
+      "lastName": "Seldon McGregor",
+      "company": "Shawna Seldon McGregor",
+      "firstInvoiceDate": "2022-09-22",
+      "invoiceCount": 1,
+      "totalSpendDollars": 343,
+      "lineItems": [
+        {
+          "description": "[special] Weedweek Package of 5 Press Releases",
+          "qty": 1,
+          "amount": 34300
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $343.00 total.\nLine items purchased:\n• 1× [special] Weedweek Package of 5 Press Releases — $343.00"
+    },
+    {
+      "email": "availlant@3storysoftware.com",
+      "name": "Amaury Vaillant-Baez",
+      "firstName": "Amaury",
+      "lastName": "Vaillant-Baez",
+      "company": "Amaury Vaillant-Baez",
+      "firstInvoiceDate": "2022-09-09",
+      "invoiceCount": 1,
+      "totalSpendDollars": 615,
+      "lineItems": [
+        {
+          "description": "Discounted Press Release Credit",
+          "qty": 1,
+          "amount": 9900
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $615.00 total.\nLine items purchased:\n• 1× Discounted Press Release Credit — $99.00"
+    },
+    {
+      "email": "stewart@imperialpublishing.com",
+      "name": "Stewart Klein",
+      "firstName": "Stewart",
+      "lastName": "Klein",
+      "company": "Stewart Klein",
+      "firstInvoiceDate": "2022-09-07",
+      "invoiceCount": 1,
+      "totalSpendDollars": 900,
+      "lineItems": [
+        {
+          "description": "BUNDLE PAYGO 10 PR",
+          "qty": 1,
+          "amount": 90000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $900.00 total.\nLine items purchased:\n• 1× BUNDLE PAYGO 10 PR — $900.00"
+    },
+    {
+      "email": "sunil@prosperix.com",
+      "name": "Prosperix",
+      "firstName": "Prosperix",
+      "company": "Prosperix",
+      "firstInvoiceDate": "2022-08-09",
+      "invoiceCount": 1,
+      "totalSpendDollars": 1000,
+      "lineItems": [
+        {
+          "description": "12 Press Releases",
+          "qty": 1,
+          "amount": 100000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $1,000.00 total.\nLine items purchased:\n• 1× 12 Press Releases — $1,000.00"
+    },
+    {
+      "email": "tammer@bioptimizers.com",
+      "name": "Bioptimizers.com",
+      "firstName": "Bioptimizers.com",
+      "company": "Bioptimizers.com",
+      "firstInvoiceDate": "2022-03-10",
+      "invoiceCount": 1,
+      "totalSpendDollars": 5000,
+      "lineItems": [
+        {
+          "description": "Founder's Circle Subsciption 200 Press Releases",
+          "qty": 1,
+          "amount": 500000
+        }
+      ],
+      "note": "Stripe invoices: 1 paid, $5,000.00 total.\nLine items purchased:\n• 1× Founder's Circle Subsciption 200 Press Releases — $5,000.00"
+    }
+  ]
+}

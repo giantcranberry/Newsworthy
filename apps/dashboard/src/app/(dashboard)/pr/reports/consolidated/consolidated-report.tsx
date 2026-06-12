@@ -364,16 +364,16 @@ export function ConsolidatedReport({
 
       {/* Hero: consolidated eCPC + summary */}
       <div className="rounded-2xl bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white overflow-hidden">
-        <div className="p-6 flex flex-row items-center">
-          <div className="w-1/4 text-center border-r border-white/20 py-3">
+        <div className="p-6 flex flex-col sm:flex-row items-center">
+          <div className="w-full sm:w-1/4 text-center sm:border-r border-white/20 py-3 shrink-0">
             <i className="fa-solid fa-trophy text-4xl mb-3 opacity-90 block" aria-hidden="true" />
-            <h1 className="text-6xl font-bold mb-2 text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+            <h1 className="text-5xl sm:text-6xl font-bold mb-2 text-white break-words" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               ${agg.ecpc}
             </h1>
             <h5 className="text-white opacity-95 font-medium mb-2">Effective CPC</h5>
             <small className="block opacity-85">Across {agg.count} releases</small>
           </div>
-          <div className="w-3/4 pl-6">
+          <div className="w-full sm:w-3/4 mt-4 sm:mt-0 sm:pl-6">
             <h3 className="text-xl font-semibold text-white mb-3">Combined Campaign Performance</h3>
             <p className="mb-0 opacity-90 text-[1.05rem] leading-relaxed">
               These {agg.count} press releases generated a combined{' '}

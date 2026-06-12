@@ -5,7 +5,7 @@ import { hash } from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
 import { sendVerificationEmail, sendEmail } from '@/lib/email'
-import { addPersonToFolk } from '@/lib/folk'
+import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
 
@@ -47,6 +47,7 @@ export async function POST(request: Request) {
 
     // Validate partnerId if provided
     let validPartnerId = 1
+    let partnerName: string | undefined
     if (partnerId) {
       const partner = await db.query.partners.findFirst({
         where: and(
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       })
       if (partner) {
         validPartnerId = partner.id
+        partnerName = partner.company || partner.brandName || partner.handle || undefined
       }
     }
 
@@ -128,11 +130,12 @@ export async function POST(request: Request) {
       text: `Hello,\n\nThank you for creating your account.\n\nI'd like to personally walk you through your account setup. This is a free one-on-one session directly with me, the founder of Newsworthy.ai. I'll help you optimize your account for our AI features so that your brand is discoverable in both AI and SEO.\n\nBook a 30-minute session: https://tidycal.com/newsmarketer/30-minute-meeting\n\nDavid McInnis, Founder`,
     }).catch(err => console.error('Failed to send welcome email:', err))
 
-    // Add to Folk CRM (non-blocking)
-    addPersonToFolk({
+    // Add to SalesNexus CRM (non-blocking)
+    addContactToSalesNexus({
       email: normalizedEmail,
       firstName: firstName.trim(),
       lastName: (lastName || '').trim() || undefined,
+      partner: partnerName,
     })
 
     // SMS notification (non-blocking)
