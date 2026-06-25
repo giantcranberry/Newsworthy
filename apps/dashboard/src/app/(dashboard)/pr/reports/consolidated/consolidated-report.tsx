@@ -62,6 +62,23 @@ function formatReleaseDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+// On load error (404, broken URL, blocked), the <img> is removed and `fallback` is rendered instead.
+function ReportImage({
+  src,
+  alt,
+  className,
+  fallback = null,
+}: {
+  src: string
+  alt: string
+  className?: string
+  fallback?: React.ReactNode
+}) {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) return <>{fallback}</>
+  return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} />
+}
+
 function buildNewsUrl(release: ReportData['release']) {
   if (!release.releaseAt) return '#'
   const d = new Date(release.releaseAt)
@@ -628,7 +645,7 @@ function ReleaseCard({ loaded, isPublic }: { loaded: Loaded; isPublic: boolean }
       <div className="p-4 flex-1 flex flex-col">
         <div className="flex items-center gap-2 mb-1">
           {company.logoUrl && (
-            <img src={company.logoUrl} alt={company.companyName} className="h-5 max-w-[80px] object-contain" />
+            <ReportImage src={company.logoUrl} alt={company.companyName} className="h-5 max-w-[80px] object-contain" />
           )}
           <span className="text-xs text-gray-500 dark:text-gray-400">{formatReleaseDate(release.releasedAt)}</span>
         </div>

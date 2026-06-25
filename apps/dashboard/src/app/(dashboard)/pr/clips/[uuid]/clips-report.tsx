@@ -70,15 +70,35 @@ function buildNewsUrl(release: ReportData['release']) {
   return `https://www.newsworthy.ai/news/${y}${m}${day}${release.id}/${release.slug}`
 }
 
+// --- Image with 404/load-error fallback ---
+// If the image fails to load (404, broken URL, blocked), the <img> is removed
+// from the DOM and `fallback` is rendered in its place instead of a broken icon.
+function ReportImage({
+  src,
+  alt,
+  className,
+  fallback = null,
+}: {
+  src: string
+  alt: string
+  className?: string
+  fallback?: React.ReactNode
+}) {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) return <>{fallback}</>
+  return <img src={src} alt={alt} className={className} onError={() => setFailed(true)} />
+}
+
 // --- Logo Card (190x150, centered logo, shadow, no text label) ---
 function LogoCard({ logo, name, link }: { logo: string; name: string; link?: string }) {
   const inner = (
     <div className="h-[150px] rounded-lg shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center justify-center p-4 bg-white dark:bg-gray-900 cursor-pointer">
-      {logo ? (
-        <img src={logo} alt={name} className="max-w-full max-h-full w-auto h-auto object-contain min-w-[50px] min-h-[30px]" />
-      ) : (
-        <span className="text-sm text-center block">{name}</span>
-      )}
+      <ReportImage
+        src={logo}
+        alt={name}
+        className="max-w-full max-h-full w-auto h-auto object-contain min-w-[50px] min-h-[30px]"
+        fallback={<span className="text-sm text-center block">{name}</span>}
+      />
     </div>
   )
   if (link) {
@@ -99,13 +119,16 @@ function ClipCard({ clip }: { clip: ClipRecord }) {
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 hover:border-[#667eea] transition-all overflow-hidden">
       <a href={clip.link || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center p-3 gap-3 no-underline text-inherit">
         <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-gray-50 dark:bg-gray-950 rounded-md overflow-hidden">
-          {clip.logo ? (
-            <img src={clip.logo} alt={clip.name || ''} className="w-full h-full object-contain" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white font-bold text-lg">
-              {(clip.name || '??').slice(0, 2).toUpperCase()}
-            </div>
-          )}
+          <ReportImage
+            src={clip.logo || ''}
+            alt={clip.name || ''}
+            className="w-full h-full object-contain"
+            fallback={
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#667eea] to-[#764ba2] text-white font-bold text-lg">
+                {(clip.name || '?').trim().charAt(0).toUpperCase()}
+              </div>
+            }
+          />
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-gray-700 dark:text-gray-300 text-[0.95rem] truncate">{clip.name}</div>
@@ -147,11 +170,12 @@ function CircuitClipCard({ thumbnail, name, link, city, state }: { thumbnail: st
   return (
     <div className="flex flex-col rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 overflow-hidden">
       <div className="p-4 flex items-center justify-center bg-gray-50 dark:bg-gray-950 min-h-[80px]">
-        {thumbnail ? (
-          <img src={thumbnail} alt={name} className="max-w-[200px] w-full h-auto object-contain" />
-        ) : (
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{name}</span>
-        )}
+        <ReportImage
+          src={thumbnail}
+          alt={name}
+          className="max-w-[200px] w-full h-auto object-contain"
+          fallback={<span className="text-sm font-medium text-gray-600 dark:text-gray-400">{name}</span>}
+        />
       </div>
       <div className="p-3">
         <a href={link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">{name}</a>
@@ -326,7 +350,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           {company.logoUrl && (
-            <img
+            <ReportImage
               src={company.logoUrl.includes('cdn.filestac') ? company.logoUrl.replace(/RESIZE/i, 'resize=width:300/output=format:png') : company.logoUrl}
               alt={company.companyName}
               className="max-h-[60px] max-w-[150px] object-contain mr-6"
@@ -620,7 +644,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <SectionTitle icon="fa-solid fa-link" iconColor="text-[#764ba2]">Blockchain Verification</SectionTitle>
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Immutable proof of publication secured on the blockchain</p>
           <div className="text-center">
-            <img src={nwrampReport.blockchain_qrcode} alt="Blockchain QR Code" className="max-w-[250px] inline-block" />
+            <ReportImage src={nwrampReport.blockchain_qrcode} alt="Blockchain QR Code" className="max-w-[250px] inline-block" />
           </div>
         </SectionCard>
       )}
@@ -704,7 +728,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                     <a href={`https://newsramp.com/podcasts/${podcast.podcast}`} target="_blank" rel="noopener noreferrer" className="block h-[150px] no-underline text-inherit">
                       <div className="h-[150px] rounded-lg shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all flex items-center justify-center p-2.5 bg-white dark:bg-gray-900 cursor-pointer">
                         {podcast.artwork && (
-                          <img src={podcast.artwork} alt={podcast.title || 'Podcast'} className="max-w-[120px] max-h-[120px] w-auto h-auto object-contain rounded-lg" />
+                          <ReportImage src={podcast.artwork} alt={podcast.title || 'Podcast'} className="max-w-[120px] max-h-[120px] w-auto h-auto object-contain rounded-lg" fallback={<span className="text-xs text-center text-gray-600 dark:text-gray-400 px-2">{podcast.title || 'Podcast'}</span>} />
                         )}
                       </div>
                     </a>
