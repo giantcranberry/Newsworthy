@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company, podcastEpisodes, brandCredits } from '@/db/schema'
+import { releases, queue, company, brandCredits } from '@/db/schema'
 import { eq, and, or, isNull, gt, sql } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
@@ -70,12 +70,7 @@ export async function POST(
     }
 
     // Podcast-sourced PRs consume a podcast_pr credit at editorial submit.
-    // Detected by an episode pointing at this release.
-    const sourcingEpisode = await db.query.podcastEpisodes.findFirst({
-      where: eq(podcastEpisodes.releaseId, release.id),
-      columns: { id: true },
-    })
-    const isPodcastSourced = !!sourcingEpisode
+    const isPodcastSourced = release.source === 'podcast'
 
     if (isPodcastSourced) {
       const { totalCredits } = await getPodcastCreditsForCompany(release.companyId)

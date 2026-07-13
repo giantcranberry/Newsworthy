@@ -42,6 +42,7 @@ export const releases = pgTable('releases', {
   readTime: doublePrecision('read_time'),
   standardEase: doublePrecision('standard_ease'),
   status: varchar('status', { length: 10 }).default('start').notNull(),
+  source: varchar('source', { length: 16 }).default('manual').notNull(),
   distribution: varchar('distribution', { length: 20 }),
   prhashId: varchar('prhash_id', { length: 42 }),
   adScreening: jsonb('ad_screening'),

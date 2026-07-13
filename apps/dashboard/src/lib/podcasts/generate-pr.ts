@@ -7,7 +7,7 @@
  * Inputs: an episode row that already has a completed transcript.
  * Outputs:
  *   - A `releases` row (status='draftnxt') with title/abstract/body/pullquote/
- *     location, slug, landingPage = episode link.
+ *     location, slug, landingPage = "[Listen to Episode] <episode link>".
  *   - Primary category inserted into `release_categories`.
  *   - Target regions inserted into `release_regions`.
  *   - 4-6 FAQs inserted into `release_faqs`.
@@ -465,14 +465,17 @@ export async function generatePressReleaseFromEpisode(
       uuid: releaseUuid,
       userId: feed.userId,
       companyId: feed.companyId,
-      title: fields.title.slice(0, 80),
+      // Prompt targets <= 80 chars but never chop an overrun headline mid-word;
+      // 180 is the varchar limit on releases.title.
+      title: fields.title.slice(0, 180),
       abstract: fields.abstract,
       body: fields.body,
       pullquote: fields.pullquote || null,
       location: fields.location?.slice(0, 120) || null,
       slug,
-      landingPage: episode.link || null,
+      landingPage: episode.link ? `[Listen to Episode] ${episode.link}` : null,
       status: 'draftnxt',
+      source: 'podcast',
       editorialHold: false,
       createdAt: new Date(),
     })
@@ -724,7 +727,7 @@ export async function generatePressReleaseFromEpisode(
         notifySlack: feed.notifySlack,
         notifySlackWebhookUrl: feed.notifySlackWebhookUrl,
       },
-      release: { uuid: newRelease.uuid!, title: fields.title.slice(0, 80) },
+      release: { uuid: newRelease.uuid!, title: newRelease.title || fields.title },
       episode: { title: episode.title },
     })
   } catch (err) {

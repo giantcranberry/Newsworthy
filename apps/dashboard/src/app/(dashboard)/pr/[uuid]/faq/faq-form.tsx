@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
-import { Loader2, Sparkles, RefreshCw, HelpCircle, Check, Trash2 } from 'lucide-react'
+import { Loader2, Sparkles, RefreshCw, HelpCircle, Check, Trash2, Plus, X } from 'lucide-react'
 
 interface Faq {
   question: string
@@ -60,7 +60,20 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
     ))
   }
 
+  const addFaq = () => {
+    setFaqs(prev => [...prev, { question: '', answer: '' }])
+  }
+
+  const removeFaq = (index: number) => {
+    setFaqs(prev => prev.filter((_, i) => i !== index))
+  }
+
   const saveFaqs = async () => {
+    if (faqs.some(faq => !faq.question.trim() || !faq.answer.trim())) {
+      setError('Please fill in both the question and answer for every FAQ before saving.')
+      return false
+    }
+
     setIsSaving(true)
     setError(null)
     setSaved(false)
@@ -181,9 +194,21 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
           {faqs.map((faq, index) => (
             <Card key={index}>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Question {index + 1}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Question {index + 1}
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeFaq(index)}
+                    disabled={isSaving || isDeleting}
+                    className="h-7 w-7 text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                    aria-label={`Remove question ${index + 1}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div>
@@ -207,6 +232,16 @@ export function FaqForm({ releaseUuid, existingFaqs, releaseTitle, children }: F
               </CardContent>
             </Card>
           ))}
+
+          <Button
+            variant="outline"
+            onClick={addFaq}
+            disabled={isSaving || isDeleting}
+            className="w-full border-dashed text-gray-600 dark:text-gray-400"
+          >
+            <Plus className="h-4 w-4" />
+            Add Question
+          </Button>
 
           <div className="flex justify-center gap-3">
             <Button

@@ -1,7 +1,20 @@
 import twilio from 'twilio'
 import { sendEmail } from '@/lib/email'
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+// This module runs inside the standalone `doppler run -- bun scripts/refresh-podcast-feeds.ts`
+// cron, NOT the Next.js app — so NEXT_PUBLIC_APP_URL is read live from process.env and is
+// NOT build-time inlined the way it is in the dashboard's route handlers. If the cron's env
+// resolves it to a localhost value (or it's absent), real user emails/SMS/Slack would link to
+// localhost. Guard against that: a localhost/empty value falls back to the production domain.
+function resolveAppUrl(): string {
+  const candidate = (process.env.NEXT_PUBLIC_APP_URL || process.env.DASHBOARD_URL || '').trim()
+  if (!candidate || /localhost|127\.0\.0\.1|0\.0\.0\.0/.test(candidate)) {
+    return 'https://app.newsworthyai.com'
+  }
+  return candidate.replace(/\/+$/, '')
+}
+
+const APP_URL = resolveAppUrl()
 
 interface NotifyInput {
   feed: {

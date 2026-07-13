@@ -933,7 +933,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <div key={i} itemScope itemProp="mainEntity" itemType="https://schema.org/Question">
                     <dt className="font-medium text-sm" itemProp="name">{faq.question}</dt>
                     <dd className="text-gray-600 mt-1 text-sm" itemScope itemProp="acceptedAnswer" itemType="https://schema.org/Answer">
-                      <span itemProp="text">{faq.answer}</span>
+                      <span itemProp="text" className="whitespace-pre-line">{faq.answer}</span>
                     </dd>
                   </div>
                 ))}

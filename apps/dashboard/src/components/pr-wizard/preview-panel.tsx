@@ -282,7 +282,7 @@ export function PreviewPanel({
                     {faq.question}
                   </dt>
                   <dd className={cn(
-                    'text-gray-600 dark:text-gray-400 mt-1',
+                    'text-gray-600 dark:text-gray-400 mt-1 whitespace-pre-line',
                     compact ? 'text-xs' : 'text-sm'
                   )}>
                     {faq.answer}
