@@ -7,51 +7,23 @@ import {
   releaseRegions,
   brandCredits,
 } from "@/db/schema";
-import { eq, and, isNull, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import {
+  creditBalance,
+  isInsufficientCreditsDbError,
+} from "@/lib/brand-credits";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
 import { getPostHog } from "@/lib/posthog";
 import { getUserCompanyIds } from "@/lib/team-auth";
 import { sanitizeReleaseBody } from "@/lib/sanitize-body";
 
-// Check if user has credits (either for specific company or user-level)
-// Uses net balance (sum of all credits including deductions) rather than filtering by prId
+// Check if user has 'pr' credits (either for specific company or user-level)
 async function hasCredits(userId: number, companyId: number): Promise<boolean> {
-  // Check brand-level credits for this company
-  const brandCreditResult = await db
-    .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
-        "balance",
-      ),
-    })
-    .from(brandCredits)
-    .where(
-      and(
-        eq(brandCredits.companyId, companyId),
-        eq(brandCredits.userId, userId),
-      ),
-    );
-
-  if (Number(brandCreditResult[0]?.balance || 0) > 0) {
+  if ((await creditBalance(userId, companyId, "pr")) > 0) {
     return true;
   }
-
-  // Check user-level credits
-  const userCreditResult = await db
-    .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
-        "balance",
-      ),
-    })
-    .from(brandCredits)
-    .where(
-      and(
-        eq(brandCredits.userId, userId),
-        isNull(brandCredits.companyId), // User-level credits
-      ),
-    );
-
-  return Number(userCreditResult[0]?.balance || 0) > 0;
+  return (await creditBalance(userId, null, "pr")) > 0;
 }
 
 // Create a slug from title
@@ -119,68 +91,49 @@ export async function POST(request: NextRequest) {
     // Sanitize body content
     const sanitizedContent = content ? sanitizeReleaseBody(content) : content;
 
-    // Create release
-    const [newRelease] = await db
-      .insert(releases)
-      .values({
-        uuid,
-        userId,
-        companyId,
-        primaryContactId: primaryContactId || null,
-        title,
-        abstract,
-        body: sanitizedContent,
-        pullquote: pullquote || null,
-        slug,
-        location,
-        releaseAt: releaseAt ? new Date(releaseAt) : null,
-        timezone: timezone || null,
-        videoUrl: videoUrl || null,
-        landingPage: landingPage || null,
-        publicDrive: publicDrive || null,
-        status,
-        createdAt: new Date(),
-        editorialHold: false,
-      })
-      .returning();
+    // Create the release and deduct the credit atomically, so a rejected
+    // deduction (nonnegative-balance trigger firing in a race) rolls the
+    // release back instead of leaving an uncharged draft.
+    const newRelease = await db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(releases)
+        .values({
+          uuid,
+          userId,
+          companyId,
+          primaryContactId: primaryContactId || null,
+          title,
+          abstract,
+          body: sanitizedContent,
+          pullquote: pullquote || null,
+          slug,
+          location,
+          releaseAt: releaseAt ? new Date(releaseAt) : null,
+          timezone: timezone || null,
+          videoUrl: videoUrl || null,
+          landingPage: landingPage || null,
+          publicDrive: publicDrive || null,
+          status,
+          createdAt: new Date(),
+          editorialHold: false,
+        })
+        .returning();
 
-    // Deduct one credit for this PR creation
-    // First try brand-level credits, then fall back to user-level
-    const brandBalance = await db
-      .select({
-        balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as(
-          "balance",
-        ),
-      })
-      .from(brandCredits)
-      .where(
-        and(
-          eq(brandCredits.companyId, companyId),
-          eq(brandCredits.userId, userId),
-        ),
-      );
+      // Deduct one credit for this PR creation
+      // First try brand-level credits, then fall back to user-level
+      const brandBalance = await creditBalance(userId, companyId, "pr");
 
-    if (Number(brandBalance[0]?.balance || 0) > 0) {
-      // Deduct from brand-level credits
-      await db.insert(brandCredits).values({
+      await tx.insert(brandCredits).values({
         userId,
-        companyId,
-        prId: newRelease.id,
+        companyId: brandBalance > 0 ? companyId : null,
+        prId: created.id,
         credits: -1,
         productType: "pr",
-        notes: `PR: ${title?.substring(0, 40) || newRelease.uuid}`,
+        notes: `PR: ${title?.substring(0, 40) || created.uuid}`,
       });
-    } else {
-      // Deduct from user-level credits
-      await db.insert(brandCredits).values({
-        userId,
-        companyId: null,
-        prId: newRelease.id,
-        credits: -1,
-        productType: "pr",
-        notes: `PR: ${title?.substring(0, 40) || newRelease.uuid}`,
-      });
-    }
+
+      return created;
+    });
 
     // Save categories - topcat first, then other selected categories
     const allCategories: number[] = [];
@@ -233,6 +186,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ uuid: newRelease.uuid, id: newRelease.id });
   } catch (error) {
+    if (isInsufficientCreditsDbError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "No press release credits available. Please purchase credits to create a release.",
+        },
+        { status: 402 },
+      );
+    }
     console.error("Error creating release:", error);
     getPostHog().captureException(error, String(userId))
     return NextResponse.json(

@@ -1,8 +1,8 @@
 import { db } from '@/db'
 import { releases, releaseCategories, releaseRegions, brandCredits } from '@/db/schema'
-import { eq, and, isNull, sql } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import slugify from 'slugify'
+import { creditBalance } from '@/lib/brand-credits'
 import type { Message, SkillResult, AuthContext } from '../types'
 
 function createSlug(title: string): string {
@@ -10,23 +10,8 @@ function createSlug(title: string): string {
 }
 
 async function hasCredits(userId: number, companyId: number): Promise<boolean> {
-  const brandCreditResult = await db
-    .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as('balance'),
-    })
-    .from(brandCredits)
-    .where(and(eq(brandCredits.companyId, companyId), eq(brandCredits.userId, userId)))
-
-  if (Number(brandCreditResult[0]?.balance || 0) > 0) return true
-
-  const userCreditResult = await db
-    .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as('balance'),
-    })
-    .from(brandCredits)
-    .where(and(eq(brandCredits.userId, userId), isNull(brandCredits.companyId)))
-
-  return Number(userCreditResult[0]?.balance || 0) > 0
+  if ((await creditBalance(userId, companyId, 'pr')) > 0) return true
+  return (await creditBalance(userId, null, 'pr')) > 0
 }
 
 interface CreateReleaseInput {
@@ -74,48 +59,39 @@ export async function createRelease(message: Message, auth: AuthContext): Promis
   const slug = input.title ? createSlug(input.title) : null
   const status = 'draftnxt'
 
-  const [newRelease] = await db.insert(releases).values({
-    uuid,
-    userId: auth.userId,
-    companyId: auth.companyId,
-    title: input.title,
-    abstract: input.abstract,
-    body: input.body,
-    pullquote: input.pullquote || null,
-    slug,
-    location: input.location,
-    status,
-    createdAt: new Date(),
-    editorialHold: false,
-  }).returning()
-
-  // Deduct credit
-  const brandBalance = await db
-    .select({
-      balance: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`.as('balance'),
-    })
-    .from(brandCredits)
-    .where(and(eq(brandCredits.companyId, auth.companyId), eq(brandCredits.userId, auth.userId)))
-
-  if (Number(brandBalance[0]?.balance || 0) > 0) {
-    await db.insert(brandCredits).values({
+  // Create the release and deduct the credit atomically, so a rejected
+  // deduction (nonnegative-balance trigger firing in a race) rolls the
+  // release back instead of leaving an uncharged draft.
+  const newRelease = await db.transaction(async (tx) => {
+    const [created] = await tx.insert(releases).values({
+      uuid,
       userId: auth.userId,
       companyId: auth.companyId,
-      prId: newRelease.id,
-      credits: -1,
-      productType: 'pr',
-      notes: `PR: ${input.title?.substring(0, 40) || newRelease.uuid}`,
-    })
-  } else {
-    await db.insert(brandCredits).values({
+      title: input.title,
+      abstract: input.abstract,
+      body: input.body,
+      pullquote: input.pullquote || null,
+      slug,
+      location: input.location,
+      status,
+      createdAt: new Date(),
+      editorialHold: false,
+    }).returning()
+
+    // Deduct brand-level 'pr' credit if available, else fall back to user-level
+    const brandBalance = await creditBalance(auth.userId, auth.companyId, 'pr')
+
+    await tx.insert(brandCredits).values({
       userId: auth.userId,
-      companyId: null,
-      prId: newRelease.id,
+      companyId: brandBalance > 0 ? auth.companyId : null,
+      prId: created.id,
       credits: -1,
       productType: 'pr',
-      notes: `PR: ${input.title?.substring(0, 40) || newRelease.uuid}`,
+      notes: `PR: ${input.title?.substring(0, 40) || created.uuid}`,
     })
-  }
+
+    return created
+  })
 
   // Save categories
   if (input.categoryIds && input.categoryIds.length > 0) {

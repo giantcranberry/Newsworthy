@@ -344,7 +344,9 @@ export function PRForm({
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [googleDocsUrl, setGoogleDocsUrl] = useState("");
+  const [markdownText, setMarkdownText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const markdownFileInputRef = useRef<HTMLInputElement>(null);
 
   // AI Draft state
   const [showAIDraftDialog, setShowAIDraftDialog] = useState(false);
@@ -420,6 +422,35 @@ export function PRForm({
     }
   }
 
+  // Apply an import-document API result to the form and close the dialog
+  const applyImportedData = (data: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      title: data.title || prev.title,
+      abstract: data.abstract || prev.abstract,
+      body: data.body || prev.body,
+      pullquote: data.pullquote || prev.pullquote,
+      location: data.location || prev.location,
+      topcat: data.suggestedCategoryId?.toString() || prev.topcat,
+      selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
+    }));
+
+    // Update TinyMCE editor if it exists
+    if (editorRef.current && data.body) {
+      editorRef.current.setContent(data.body);
+      setPreviewBody(data.body);
+    }
+
+    applyEventData(data);
+
+    setShowImportDialog(false);
+    setGoogleDocsUrl("");
+    setMarkdownText("");
+    toast.success(
+      "Document imported successfully! Review and adjust the content as needed.",
+    );
+  };
+
   const handleImportFromFile = async (file: File) => {
     setIsImporting(true);
     setImportError(null);
@@ -451,31 +482,49 @@ export function PRForm({
         throw new Error(data.error || "Failed to import document");
       }
 
-      // Apply imported data to form
-      setFormData((prev) => ({
-        ...prev,
-        title: data.title || prev.title,
-        abstract: data.abstract || prev.abstract,
-        body: data.body || prev.body,
-        pullquote: data.pullquote || prev.pullquote,
-        location: data.location || prev.location,
-        topcat: data.suggestedCategoryId?.toString() || prev.topcat,
-        selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
-      }));
+      applyImportedData(data);
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "An error occurred");
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
-      // Update TinyMCE editor if it exists
-      if (editorRef.current && data.body) {
-        editorRef.current.setContent(data.body);
-        setPreviewBody(data.body);
+  const handleImportFromMarkdown = async () => {
+    if (!markdownText.trim()) {
+      setImportError("Please paste some Markdown content");
+      return;
+    }
+
+    setIsImporting(true);
+    setImportError(null);
+
+    try {
+      const response = await fetch("/api/pr/import-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          markdown: markdownText,
+          categories: topCategories.map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+          })),
+          regions: regions.map((r) => ({
+            id: r.id,
+            name: r.name,
+            state: r.state,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to import document");
       }
 
-      applyEventData(data);
-
-      setShowImportDialog(false);
-      setGoogleDocsUrl("");
-      toast.success(
-        "Document imported successfully! Review and adjust the content as needed.",
-      );
+      applyImportedData(data);
     } catch (err) {
       setImportError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -517,31 +566,7 @@ export function PRForm({
         throw new Error(data.error || "Failed to import document");
       }
 
-      // Apply imported data to form
-      setFormData((prev) => ({
-        ...prev,
-        title: data.title || prev.title,
-        abstract: data.abstract || prev.abstract,
-        body: data.body || prev.body,
-        pullquote: data.pullquote || prev.pullquote,
-        location: data.location || prev.location,
-        topcat: data.suggestedCategoryId?.toString() || prev.topcat,
-        selectedRegions: data.suggestedRegionIds || prev.selectedRegions,
-      }));
-
-      // Update TinyMCE editor if it exists
-      if (editorRef.current && data.body) {
-        editorRef.current.setContent(data.body);
-        setPreviewBody(data.body);
-      }
-
-      applyEventData(data);
-
-      setShowImportDialog(false);
-      setGoogleDocsUrl("");
-      toast.success(
-        "Document imported successfully! Review and adjust the content as needed.",
-      );
+      applyImportedData(data);
     } catch (err) {
       setImportError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -1090,7 +1115,7 @@ export function PRForm({
                 </p>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Upload a Word doc or Google Docs URL.
+                Upload a Word doc or Markdown, paste Markdown, or use a Google Docs URL.
                 <span className="block text-xs text-gray-500 dark:text-gray-500 mt-0.5">If you use this option AI will complete most of this form for you.</span>
               </p>
               <button
@@ -1143,17 +1168,33 @@ export function PRForm({
         }}
       />
 
+      {/* Hidden file input for Markdown upload */}
+      <input
+        ref={markdownFileInputRef}
+        type="file"
+        accept=".md,.markdown,text/markdown"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            handleImportFromFile(file);
+          }
+          e.target.value = "";
+        }}
+      />
+
       {/* Import Document Dialog */}
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               Import from Document
             </DialogTitle>
             <DialogDescription>
-              Upload a Word document or provide a Google Docs URL. We will
-              analyze the content and auto-fill the form.
+              Upload a Word or Markdown document, paste Markdown, or provide a
+              Google Docs URL. We will analyze the content and auto-fill the
+              form.
             </DialogDescription>
           </DialogHeader>
 
@@ -1165,20 +1206,71 @@ export function PRForm({
               </div>
             )}
 
-            {/* Word Document Upload */}
+            {/* Document Upload */}
             <div className="space-y-2">
-              <Label>Upload Word Document</Label>
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-2 cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
+              <Label>Upload Document</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2 cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isImporting}
+                >
+                  <Upload className="h-4 w-4" />
+                  Word (.docx)...
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2 cursor-pointer"
+                  onClick={() => markdownFileInputRef.current?.click()}
+                  disabled={isImporting}
+                >
+                  <Upload className="h-4 w-4" />
+                  Markdown (.md)...
+                </Button>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Supports .doc, .docx, .md, and .markdown files
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200 dark:border-gray-800" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-gray-900 px-2 text-gray-600 dark:text-gray-400">or</span>
+              </div>
+            </div>
+
+            {/* Paste Markdown */}
+            <div className="space-y-2">
+              <Label htmlFor="markdownText">Paste Markdown</Label>
+              <Textarea
+                id="markdownText"
+                placeholder={"# Headline\n\nYour press release content in Markdown..."}
+                value={markdownText}
+                onChange={(e) => setMarkdownText(e.target.value)}
                 disabled={isImporting}
+                rows={5}
+                className="font-mono text-xs"
+              />
+              <Button
+                className="w-full gap-2 cursor-pointer"
+                onClick={handleImportFromMarkdown}
+                disabled={isImporting || !markdownText.trim()}
               >
-                <Upload className="h-4 w-4" />
-                Choose .docx file...
+                {isImporting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="h-4 w-4" />
+                )}
+                Import Markdown
               </Button>
               <p className="text-xs text-gray-600 dark:text-gray-400">
-                Supports .doc and .docx files
+                Markdown is the text format AI assistants like ChatGPT,
+                Claude, and Grok use in their responses - ask one to draft
+                your release, then copy and paste the result here.
               </p>
             </div>
 

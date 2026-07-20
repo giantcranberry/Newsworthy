@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { creditBalance } from '@/lib/brand-credits'
 import { randomUUID } from 'crypto'
 import { screenAdContent, type AdScreeningResult } from '@/services/ad-content-screener'
 // Get the correct Stripe secret key based on environment
@@ -206,30 +207,23 @@ export async function POST(
         return NextResponse.json({ error: 'Invalid product type' }, { status: 400 })
       }
 
-      // Check if user has credits — brand-scope OR account-level.
-      const credits = await db
-        .select({
-          totalCredits: sql<number>`sum(${brandCredits.credits})`.mapWith(Number),
-        })
-        .from(brandCredits)
-        .where(
-          and(
-            eq(brandCredits.userId, userId),
-            or(eq(brandCredits.companyId, release.companyId), isNull(brandCredits.companyId)),
-            eq(brandCredits.productType, productType),
-          ),
-        )
+      // Check if user has credits — brand-scope first, else account-level.
+      // The deduction must be scoped where the balance actually is: the
+      // nonnegative-balance trigger checks per (company_id, product_type), so
+      // a brand-scoped deduction backed only by account-level credits is
+      // rejected.
+      const brandScopeBalance = await creditBalance(userId, release.companyId, productType)
+      const accountBalance =
+        brandScopeBalance > 0 ? 0 : await creditBalance(userId, null, productType)
 
-      const availableCredits = credits[0]?.totalCredits || 0
-
-      if (availableCredits < 1) {
+      if (brandScopeBalance < 1 && accountBalance < 1) {
         return NextResponse.json({ error: 'Insufficient credits' }, { status: 400 })
       }
 
       // Deduct one credit
       await db.insert(brandCredits).values({
         userId,
-        companyId: release.companyId,
+        companyId: brandScopeBalance > 0 ? release.companyId : null,
         prId: release.id,
         credits: -1,
         productType,

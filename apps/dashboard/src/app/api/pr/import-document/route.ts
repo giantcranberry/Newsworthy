@@ -117,9 +117,9 @@ async function analyzeWithAI(
   const categoryList = categories.map(c => `${c.id}: ${c.name}`).join('\n')
   const regionList = regions.map(r => `${r.id}: ${r.name}, ${r.state}`).join('\n')
 
-  const prompt = `You are an expert press release editor. Analyze the following document (which may contain HTML formatting) and extract information to create a professional press release.
+  const prompt = `You are an expert press release editor. Analyze the following document (which may contain HTML or Markdown formatting) and extract information to create a professional press release.
 
-DOCUMENT CONTENT (may include HTML):
+DOCUMENT CONTENT (may include HTML or Markdown):
 ${content.substring(0, 15000)}
 
 AVAILABLE CATEGORIES:
@@ -140,6 +140,7 @@ Please extract and generate the following:
 
 5. **Body Content**: This is the main press release body. IMPORTANT:
    - Preserve ALL formatting from the original document including: <strong>/<b> for bold, <em>/<i> for italics, <u> for underline, <a href="..."> for hyperlinks, <h3>/<h4> for section headings
+   - If the document is in Markdown, convert ALL Markdown formatting to the equivalent HTML: **bold** to <strong>, *italics* to <em>, [text](url) to <a href="url">, # headings to <h3> or lower, bullet/numbered lists to <ul>/<ol> with <li> items, and > blockquotes to <blockquote>
    - NEVER use <h1> or <h2> tags in the body. Use <h3> or lower for section headings. The release title is already the h1.
    - Wrap paragraphs in <p> tags
    - Keep all hyperlinks intact with their original URLs. All URLs in href attributes must start with https://
@@ -218,28 +219,34 @@ export async function POST(request: Request) {
       }
 
       const fileName = file.name.toLowerCase()
-      if (!fileName.endsWith('.docx') && !fileName.endsWith('.doc')) {
+      if (fileName.endsWith('.docx') || fileName.endsWith('.doc')) {
+        const buffer = Buffer.from(await file.arrayBuffer())
+        documentContent = await parseWordDocument(buffer)
+      } else if (fileName.endsWith('.md') || fileName.endsWith('.markdown')) {
+        // Markdown is passed through as-is; the AI converts it to HTML
+        documentContent = await file.text()
+      } else {
         return NextResponse.json(
-          { error: 'Only Word documents (.docx, .doc) are supported' },
+          { error: 'Only Word (.docx, .doc) and Markdown (.md, .markdown) documents are supported' },
           { status: 400 }
         )
       }
 
-      const buffer = Buffer.from(await file.arrayBuffer())
-      documentContent = await parseWordDocument(buffer)
-
       if (categoriesJson) categories = JSON.parse(categoriesJson)
       if (regionsJson) regions = JSON.parse(regionsJson)
     } else {
-      // JSON body with Google Docs URL
+      // JSON body with pasted Markdown or a Google Docs URL
       const body = await request.json()
-      const { url, categories: cats, regions: regs } = body
+      const { url, markdown, categories: cats, regions: regs } = body
 
-      if (!url) {
-        return NextResponse.json({ error: 'No URL provided' }, { status: 400 })
+      if (typeof markdown === 'string' && markdown.trim()) {
+        documentContent = markdown
+      } else if (url) {
+        documentContent = await fetchGoogleDoc(url)
+      } else {
+        return NextResponse.json({ error: 'No URL or Markdown provided' }, { status: 400 })
       }
 
-      documentContent = await fetchGoogleDoc(url)
       categories = cats || []
       regions = regs || []
     }
