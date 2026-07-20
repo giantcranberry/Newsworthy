@@ -7,8 +7,14 @@ function getPool(): Pool {
     if (!process.env.NEON_DIRECT_URL) {
       throw new Error("NEON_DATABASE_URL is not set.");
     }
+    // Tolerate stray whitespace/quotes around the secret value (seen in the
+    // Doppler copy of NEON_DIRECT_URL, where it breaks every Neon query)
+    const connectionString = process.env.NEON_DIRECT_URL.trim().replace(
+      /^["']|["']$/g,
+      "",
+    );
     pool = new Pool({
-      connectionString: process.env.NEON_DIRECT_URL,
+      connectionString,
       max: 3,
     });
   }
