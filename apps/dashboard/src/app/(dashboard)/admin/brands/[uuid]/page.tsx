@@ -19,6 +19,7 @@ import {
   Phone,
   MapPin,
 } from 'lucide-react'
+import { TransferBrandDialog } from '../transfer-brand-dialog'
 
 async function getBrand(uuid: string) {
   return db.query.company.findFirst({
@@ -285,11 +286,21 @@ export default async function AdminBrandDetailPage({
                       </p>
                     </div>
                   </div>
-                  <Link href={`/admin/users/${owner.id}`}>
-                    <Button size="sm" className="bg-gray-600 hover:bg-gray-700 text-white">
-                      View User Profile
-                    </Button>
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    {isAdmin && !brand.isDeleted && (
+                      <TransferBrandDialog
+                        brandUuid={brand.uuid}
+                        brandName={brand.companyName}
+                        currentOwnerId={owner.id}
+                        currentOwnerEmail={owner.email}
+                      />
+                    )}
+                    <Link href={`/admin/users/${owner.id}`}>
+                      <Button size="sm" className="bg-gray-600 hover:bg-gray-700 text-white">
+                        View User Profile
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <p className="text-sm text-gray-500 dark:text-gray-400">Owner not found</p>

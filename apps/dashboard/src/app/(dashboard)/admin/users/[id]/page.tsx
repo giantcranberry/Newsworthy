@@ -66,16 +66,31 @@ async function getUserData(userId: number) {
     .orderBy(desc(brandCredits.createdAt))
     .limit(50)
 
-  const companyIds = creditHistory
-    .filter(c => c.companyId !== null)
-    .map(c => c.companyId as number)
+  // Podcast PR credits are always assigned to a specific brand, so show the
+  // per-brand balance rather than just the account-wide sum.
+  const podcastCreditsByBrand = await db
+    .select({
+      companyId: brandCredits.companyId,
+      total: sql<number>`COALESCE(SUM(${brandCredits.credits}), 0)`,
+    })
+    .from(brandCredits)
+    .where(and(
+      eq(brandCredits.userId, userId),
+      eq(brandCredits.productType, 'podcast_pr')
+    ))
+    .groupBy(brandCredits.companyId)
+
+  const companyIds = [
+    ...creditHistory.filter(c => c.companyId !== null).map(c => c.companyId as number),
+    ...podcastCreditsByBrand.filter(c => c.companyId !== null).map(c => c.companyId as number),
+  ]
 
   let companies: Record<number, string> = {}
   if (companyIds.length > 0) {
     const companyList = await db
       .select({ id: company.id, name: company.companyName })
       .from(company)
-      .where(sql`${company.id} IN ${companyIds}`)
+      .where(inArray(company.id, companyIds))
     companies = Object.fromEntries(companyList.map(c => [c.id, c.name]))
   }
 
@@ -121,6 +136,7 @@ async function getUserData(userId: number) {
     accountCredits,
     creditTotals,
     creditHistory,
+    podcastCreditsByBrand,
     companies,
     allPartners,
     managedPartnerIds,
@@ -155,7 +171,7 @@ export default async function UserDetailPage({
     notFound()
   }
 
-  const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, companies, allPartners, managedPartnerIds, userBrands } = data
+  const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, podcastCreditsByBrand, companies, allPartners, managedPartnerIds, userBrands } = data
 
   return (
     <div className="space-y-6">
@@ -227,6 +243,17 @@ export default async function UserDetailPage({
             <p><span className="text-gray-500 dark:text-gray-400">PR Credits:</span> <strong>{(creditTotals['pr'] || 0).toLocaleString()}</strong></p>
             <p><span className="text-gray-500 dark:text-gray-400">Yahoo:</span> <strong>{(creditTotals['yahoo'] || 0).toLocaleString()}</strong></p>
             <p><span className="text-gray-500 dark:text-gray-400">Enhanced:</span> <strong>{(creditTotals['enhanced'] || 0).toLocaleString()}</strong></p>
+            <p><span className="text-gray-500 dark:text-gray-400">Podcast PR:</span> <strong>{(creditTotals['podcast_pr'] || 0).toLocaleString()}</strong></p>
+            {podcastCreditsByBrand.length > 0 && (
+              <div className="pt-1 space-y-1">
+                {podcastCreditsByBrand.map((row) => (
+                  <p key={row.companyId ?? 'account'} className="text-xs text-gray-500 dark:text-gray-400 pl-3">
+                    {row.companyId ? (companies[row.companyId] || `Brand #${row.companyId}`) : 'Unassigned'}:{' '}
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{Number(row.total).toLocaleString()}</span>
+                  </p>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

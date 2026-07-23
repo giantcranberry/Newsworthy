@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowLeft, Building2, ExternalLink, Archive } from 'lucide-react'
 import { BrandSearchForm } from './search-form'
+import { TransferBrandDialog } from './transfer-brand-dialog'
 
 async function getBrands(searchQuery?: string) {
   const query = db
@@ -92,7 +93,7 @@ export default async function AdminBrandsPage({
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Location</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Owner</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-24">Status</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-40">Actions</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 w-56">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,6 +177,15 @@ export default async function AdminBrandsPage({
                               Edit
                             </button>
                           </Link>
+                        )}
+                        {isAdmin && !brand.isDeleted && (
+                          <TransferBrandDialog
+                            brandUuid={brand.uuid}
+                            brandName={brand.companyName}
+                            currentOwnerId={brand.userId}
+                            currentOwnerEmail={brand.ownerEmail}
+                            compact
+                          />
                         )}
                       </div>
                     </td>
