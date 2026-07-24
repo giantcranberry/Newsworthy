@@ -27,7 +27,7 @@ export function TrendingFeeds() {
   };
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
       {/* Trending feeds — left */}
       <div>
         <div className="flex items-center gap-2 mb-4">
@@ -54,10 +54,10 @@ export function TrendingFeeds() {
       </div>
 
       {/* Search + Badges — right, inline */}
-      <div className="flex items-center gap-4 shrink-0">
+      <div className="flex flex-wrap items-center gap-4 xl:flex-nowrap xl:shrink-0">
         <form
           onSubmit={handleSubmit}
-          className="relative w-full md:w-72 lg:w-96 xl:w-[28rem]"
+          className="relative w-full sm:w-72 xl:w-96"
         >
           <Input
             type="text"
@@ -73,7 +73,7 @@ export function TrendingFeeds() {
             <Search size={15} />
           </Button>
         </form>
-        <Link href="https://newsramp.com/podcasts" target="_blank" className="hidden md:block shrink-0">
+        <Link href="https://newsramp.com/podcasts" target="_blank" className="hidden sm:block shrink-0">
           <Image
             src="https://cdn.newsramp.app/badges/news-featured-podcast.svg"
             className="h-10 w-auto rounded"
@@ -82,7 +82,7 @@ export function TrendingFeeds() {
             height={44}
           />
         </Link>
-        <Link href="https://newscrafters.com/" target="_blank" className="hidden md:block shrink-0">
+        <Link href="https://newscrafters.com/" target="_blank" className="hidden sm:block shrink-0">
           <Image
             src="https://cdn1.newsworthy.ai/images/icons/follow-newscrafters.svg"
             className="h-10 w-auto rounded"
