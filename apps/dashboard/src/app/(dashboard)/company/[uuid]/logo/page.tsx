@@ -1,6 +1,7 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
+import { getBrandSetupStatus } from '@/lib/brand-setup'
 import { LogoForm } from './logo-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -27,7 +28,7 @@ export default async function LogoPage({
         <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
 
       <LogoForm
         readOnly={isReadOnly}

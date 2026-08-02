@@ -441,3 +441,13 @@ export const aiVideos = pgTable('ai_videos', {
   aprVoice: varchar('apr_voice', { length: 25 }),
   tiktokPublished: boolean('tiktok_published'),
 })
+
+// Admin-controlled application settings (feature toggles, offers). One row
+// per key; read through src/lib/app-settings.ts, edited at /admin/settings.
+export const appSettings = pgTable('app_settings', {
+  id: serial('id').primaryKey(),
+  key: varchar('key', { length: 64 }).unique().notNull(),
+  value: varchar('value', { length: 255 }).notNull(),
+  updatedBy: integer('updated_by'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})

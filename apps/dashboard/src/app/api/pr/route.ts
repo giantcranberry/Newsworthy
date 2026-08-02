@@ -5,26 +5,13 @@ import {
   releases,
   releaseCategories,
   releaseRegions,
-  brandCredits,
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import {
-  creditBalance,
-  isInsufficientCreditsDbError,
-} from "@/lib/brand-credits";
 import { v4 as uuidv4 } from "uuid";
 import slugify from "slugify";
 import { getPostHog } from "@/lib/posthog";
 import { getUserCompanyIds } from "@/lib/team-auth";
 import { sanitizeReleaseBody } from "@/lib/sanitize-body";
-
-// Check if user has 'pr' credits (either for specific company or user-level)
-async function hasCredits(userId: number, companyId: number): Promise<boolean> {
-  if ((await creditBalance(userId, companyId, "pr")) > 0) {
-    return true;
-  }
-  return (await creditBalance(userId, null, "pr")) > 0;
-}
 
 // Create a slug from title
 function createSlug(title: string): string {
@@ -64,22 +51,10 @@ export async function POST(request: NextRequest) {
       action,
     } = body;
 
-    // Check if user has credits for this company
     if (!companyId) {
       return NextResponse.json(
         { error: "Company is required" },
         { status: 400 },
-      );
-    }
-
-    const userHasCredits = await hasCredits(userId, companyId);
-    if (!userHasCredits) {
-      return NextResponse.json(
-        {
-          error:
-            "No press release credits available. Please purchase credits to create a release.",
-        },
-        { status: 402 }, // 402 Payment Required
       );
     }
 
@@ -91,49 +66,31 @@ export async function POST(request: NextRequest) {
     // Sanitize body content
     const sanitizedContent = content ? sanitizeReleaseBody(content) : content;
 
-    // Create the release and deduct the credit atomically, so a rejected
-    // deduction (nonnegative-balance trigger firing in a race) rolls the
-    // release back instead of leaving an uncharged draft.
-    const newRelease = await db.transaction(async (tx) => {
-      const [created] = await tx
-        .insert(releases)
-        .values({
-          uuid,
-          userId,
-          companyId,
-          primaryContactId: primaryContactId || null,
-          title,
-          abstract,
-          body: sanitizedContent,
-          pullquote: pullquote || null,
-          slug,
-          location,
-          releaseAt: releaseAt ? new Date(releaseAt) : null,
-          timezone: timezone || null,
-          videoUrl: videoUrl || null,
-          landingPage: landingPage || null,
-          publicDrive: publicDrive || null,
-          status,
-          createdAt: new Date(),
-          editorialHold: false,
-        })
-        .returning();
-
-      // Deduct one credit for this PR creation
-      // First try brand-level credits, then fall back to user-level
-      const brandBalance = await creditBalance(userId, companyId, "pr");
-
-      await tx.insert(brandCredits).values({
+    // Drafting is free — the PR credit is consumed at editorial submit
+    // (finalize route), not here.
+    const [newRelease] = await db
+      .insert(releases)
+      .values({
+        uuid,
         userId,
-        companyId: brandBalance > 0 ? companyId : null,
-        prId: created.id,
-        credits: -1,
-        productType: "pr",
-        notes: `PR: ${title?.substring(0, 40) || created.uuid}`,
-      });
-
-      return created;
-    });
+        companyId,
+        primaryContactId: primaryContactId || null,
+        title,
+        abstract,
+        body: sanitizedContent,
+        pullquote: pullquote || null,
+        slug,
+        location,
+        releaseAt: releaseAt ? new Date(releaseAt) : null,
+        timezone: timezone || null,
+        videoUrl: videoUrl || null,
+        landingPage: landingPage || null,
+        publicDrive: publicDrive || null,
+        status,
+        createdAt: new Date(),
+        editorialHold: false,
+      })
+      .returning();
 
     // Save categories - topcat first, then other selected categories
     const allCategories: number[] = [];
@@ -186,15 +143,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ uuid: newRelease.uuid, id: newRelease.id });
   } catch (error) {
-    if (isInsufficientCreditsDbError(error)) {
-      return NextResponse.json(
-        {
-          error:
-            "No press release credits available. Please purchase credits to create a release.",
-        },
-        { status: 402 },
-      );
-    }
     console.error("Error creating release:", error);
     getPostHog().captureException(error, String(userId))
     return NextResponse.json(

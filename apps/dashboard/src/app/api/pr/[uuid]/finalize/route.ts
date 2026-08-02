@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, queue, company, brandCredits } from '@/db/schema'
-import { eq, and, or, isNull, gt, sql } from 'drizzle-orm'
+import { releases, queue, company, brandCredits, users, verify } from '@/db/schema'
+import { eq, and, or, isNull, gt, inArray, sql } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { getPodcastCreditsForCompany } from '@/lib/podcasts/access'
+import { sendVerificationEmail } from '@/lib/email'
+import { isInsufficientCreditsDbError } from '@/lib/brand-credits'
+import { prCreditScopes, qualifiesForFreeFirstPr } from '@/lib/pr-checkout'
 
 export async function POST(
   request: NextRequest,
@@ -82,6 +85,18 @@ export async function POST(
       }
     }
 
+    // Upgrades selected at the wizard but not yet paid must be settled (or
+    // removed) in the finalize checkout before the release can be submitted.
+    if (!isPodcastSourced && release.pendingUpgrades) {
+      return NextResponse.json(
+        {
+          error: 'Selected upgrades have not been paid for yet. Complete the checkout or remove the upgrades before submitting.',
+          code: 'payment_required',
+        },
+        { status: 402 }
+      )
+    }
+
     // Update release date if provided
     const body = await request.json().catch(() => ({}))
     const updateData: Record<string, any> = { status: 'review' }
@@ -97,14 +112,13 @@ export async function POST(
       updateData.timezone = body.timezone
     }
 
-    // Flip status and (for podcast-sourced PRs) record the credit deduction
-    // atomically. Without the transaction a partial failure could leave the
-    // release in 'review' without a corresponding -1 row, granting a free
-    // editorial submit.
+    // Flip status and record the credit deduction atomically. Without the
+    // transaction a partial failure could leave the release in 'review'
+    // without a corresponding -1 row, granting a free editorial submit.
     //
     // We also re-check the balance inside the transaction with row locks on
-    // the existing credit rows for this (company, podcast_pr). That serializes
-    // concurrent finalize calls against the same brand and prevents a race
+    // the existing credit rows for the scope being charged. That serializes
+    // concurrent finalize calls against the same balance and prevents a race
     // where two simultaneous submits both see balance=1 and both deduct,
     // resulting in balance=-1. The DB-side trigger
     // (drizzle/manual/2026-05-27-brand-credits-nonnegative.sql) is a backstop.
@@ -127,6 +141,94 @@ export async function POST(
           if (liveBalance <= 0) {
             throw new InsufficientCreditsError()
           }
+        } else {
+          // Manual releases consume a 'pr' credit at editorial submit. Skip
+          // the charge when this release already carries a deduction — that
+          // covers resubmissions after an editorial return and drafts created
+          // under the old charge-at-creation model.
+          const alreadyCharged = await tx
+            .select({ id: brandCredits.id })
+            .from(brandCredits)
+            .where(
+              and(
+                eq(brandCredits.prId, release.id),
+                sql`${brandCredits.credits} < 0`,
+                inArray(brandCredits.productType, ['pr', 'credits']),
+              ),
+            )
+            .limit(1)
+
+          if (alreadyCharged.length === 0) {
+            // Charge the first scope holding a positive balance: brand-level
+            // before account-level, 'pr' before the legacy 'credits' type.
+            // The deduction row must land in the scope that actually holds
+            // the balance or the nonnegative trigger rejects it.
+            const scopes = prCreditScopes(release.companyId).map(
+              ([companyId, productType]) => ({ companyId, productType }),
+            )
+
+            const now = new Date()
+            let charged = false
+            for (const scope of scopes) {
+              const lockedRows = await tx
+                .select({ credits: brandCredits.credits })
+                .from(brandCredits)
+                .where(
+                  and(
+                    eq(brandCredits.userId, userId),
+                    scope.companyId === null
+                      ? isNull(brandCredits.companyId)
+                      : eq(brandCredits.companyId, scope.companyId),
+                    eq(brandCredits.productType, scope.productType),
+                    or(isNull(brandCredits.expiresAt), gt(brandCredits.expiresAt, now)),
+                  ),
+                )
+                .for('update')
+              const balance = lockedRows.reduce((sum, r) => sum + (r.credits || 0), 0)
+              if (balance > 0) {
+                await tx.insert(brandCredits).values({
+                  userId,
+                  companyId: scope.companyId,
+                  prId: release.id,
+                  credits: -1,
+                  productType: scope.productType,
+                  notes: 'editorial submit',
+                })
+                charged = true
+                break
+              }
+            }
+
+            if (!charged) {
+              // First-press-release-free offer: while the admin toggle is on,
+              // a user with zero credits and no press releases gets this
+              // submit free — grant the credit and consume it in one step so
+              // the ledger shows both the offer and the charge.
+              if (await qualifiesForFreeFirstPr(userId)) {
+                await tx.insert(brandCredits).values({
+                  userId,
+                  companyId: null,
+                  prId: null,
+                  credits: 1,
+                  productType: 'pr',
+                  notes: 'first release free',
+                })
+                await tx.insert(brandCredits).values({
+                  userId,
+                  companyId: null,
+                  prId: release.id,
+                  credits: -1,
+                  productType: 'pr',
+                  notes: 'editorial submit',
+                })
+                charged = true
+              }
+            }
+
+            if (!charged) {
+              throw new InsufficientCreditsError()
+            }
+          }
         }
 
         await tx.update(releases)
@@ -147,7 +249,12 @@ export async function POST(
     } catch (err) {
       if (err instanceof InsufficientCreditsError || isInsufficientCreditsDbError(err)) {
         return NextResponse.json(
-          { error: 'No podcast PR credits available. Add credits before submitting.' },
+          isPodcastSourced
+            ? { error: 'No podcast PR credits available. Add credits before submitting.' }
+            : {
+                error: 'No press release credits available. Purchase a credit to submit this release.',
+                code: 'no_pr_credit',
+              },
           { status: 402 }
         )
       }
@@ -173,6 +280,28 @@ export async function POST(
 
     // SMS notification (non-blocking)
     sendSmsNotification(`PR submitted for review: "${release.title}"`)
+
+    // Verification is advisory, not a submission gate: if the submitter's
+    // email is still unverified, re-send a fresh verification link so it's
+    // at the top of their inbox. Never blocks or fails the submit.
+    try {
+      const submitter = await db.query.users.findFirst({
+        where: eq(users.id, userId),
+        columns: { email: true, emailVerified: true, },
+      })
+      if (submitter && !submitter.emailVerified) {
+        const token = uuidv4().replace(/-/g, '')
+        await db.insert(verify).values({
+          userId,
+          uuid: token,
+          verified: false,
+          createdAt: new Date(),
+        })
+        await sendVerificationEmail(submitter.email, token, submitter.email)
+      }
+    } catch (verifyErr) {
+      console.error('Failed to re-send verification email at submit:', verifyErr)
+    }
 
     getPostHog().capture({
       distinctId: String(userId),
@@ -200,13 +329,4 @@ class InsufficientCreditsError extends Error {
   constructor() {
     super('INSUFFICIENT_CREDITS')
   }
-}
-
-// Detect the Postgres trigger raising 23514 (check_violation) with the
-// INSUFFICIENT_BRAND_CREDITS message, which is the DB-side guard against any
-// deduction that would push the brand balance below zero.
-function isInsufficientCreditsDbError(err: unknown): boolean {
-  if (!err || typeof err !== 'object') return false
-  const e = err as { code?: string; message?: string }
-  return e.code === '23514' && typeof e.message === 'string' && e.message.includes('INSUFFICIENT_BRAND_CREDITS')
 }

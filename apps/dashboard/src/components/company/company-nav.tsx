@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   Code,
   Contact,
+  FilePlus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +19,10 @@ interface CompanyNavProps {
   companyUuid: string
   companyName: string
   disabled?: boolean
+  // Brand-setup mode (profile not yet complete): the final step becomes
+  // "Create PR" instead of "Brand Assets" — assets stay available in the
+  // manage flow once setup is done.
+  setupMode?: boolean
 }
 
 const NAV_ITEMS = [
@@ -30,12 +35,22 @@ const NAV_ITEMS = [
   { label: 'Brand Assets', href: '/assets', icon: Images },
 ]
 
-export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavProps) {
+const CREATE_PR_ITEM = { label: 'Create PR', href: '/pr/create', icon: FilePlus, absolute: true }
+
+export function CompanyNav({ companyUuid, companyName, disabled, setupMode }: CompanyNavProps) {
   const pathname = usePathname()
   const basePath = disabled ? '/company/add' : `/company/${companyUuid}`
 
-  const activeIndex = NAV_ITEMS.findIndex((item) => {
-    const fullHref = `${basePath}${item.href}`
+  // Setup mode trims the wizard to the required steps: Lists and Brand
+  // Assets are omitted (both remain in the manage flow) and the final step
+  // becomes Create PR.
+  const navItems: { label: string; href: string; icon: typeof Building2; absolute?: boolean }[] =
+    setupMode
+      ? [...NAV_ITEMS.filter((i) => i.href !== '/pitchlist').slice(0, -1), CREATE_PR_ITEM]
+      : NAV_ITEMS
+
+  const activeIndex = navItems.findIndex((item) => {
+    const fullHref = item.absolute ? item.href : `${basePath}${item.href}`
     return item.href === ''
       ? pathname === basePath
       : pathname === fullHref || pathname.startsWith(fullHref + '/')
@@ -55,8 +70,8 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
         </div>
       )}
       <ol className="flex items-center">
-        {NAV_ITEMS.map((item, idx) => {
-          const fullHref = `${basePath}${item.href}`
+        {navItems.map((item, idx) => {
+          const fullHref = item.absolute ? item.href : `${basePath}${item.href}`
           const isCurrent = idx === activeIndex
           const isVisited = activeIndex >= 0 && idx < activeIndex
           const Icon = item.icon
@@ -71,7 +86,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
           return (
             <li
               key={item.label}
-              className={cn('relative', idx !== NAV_ITEMS.length - 1 && 'flex-1')}
+              className={cn('relative', idx !== navItems.length - 1 && 'flex-1')}
             >
               <div className="flex items-center">
                 {isDisabledTab ? (
@@ -96,7 +111,7 @@ export function CompanyNav({ companyUuid, companyName, disabled }: CompanyNavPro
                   </Link>
                 )}
 
-                {idx !== NAV_ITEMS.length - 1 && (
+                {idx !== navItems.length - 1 && (
                   <div
                     className={cn(
                       'h-0.5 w-full',

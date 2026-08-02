@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { creditBalance } from '@/lib/brand-credits'
+import { releaseNeedsPrCredit } from '@/lib/pr-checkout'
 import { randomUUID } from 'crypto'
 import { screenAdContent, type AdScreeningResult } from '@/services/ad-content-screener'
 // Get the correct Stripe secret key based on environment
@@ -146,6 +147,12 @@ export async function GET(
       distribution: release.distribution || null,
       creditBalance,
       products: productList,
+      // When the user still owes a PR credit, card payments for upgrades are
+      // deferred to the combined checkout on the finalize page.
+      deferCardPayment: await releaseNeedsPrCredit(userId, release),
+      pendingUpgrades: release.pendingUpgrades
+        ? release.pendingUpgrades.split(',').filter(Boolean)
+        : [],
     })
   } catch (error) {
     console.error('[API] Error fetching distribution:', error)
@@ -242,6 +249,22 @@ export async function POST(
         .where(eq(releases.id, release.id))
 
       return NextResponse.json({ success: true, distribution: newDistribution })
+    }
+
+    if (action === 'set_pending') {
+      // Store the selection for the combined checkout on the finalize page
+      // (used when the user has no PR credit yet — nothing is charged here).
+      // An empty selection clears any previously stored one.
+      const pending = selectedTypes.length > 0 ? selectedTypes.join(',') : null
+      if (pending && pending.length > 120) {
+        return NextResponse.json({ error: 'Too many upgrades selected' }, { status: 400 })
+      }
+
+      await db.update(releases)
+        .set({ pendingUpgrades: pending })
+        .where(eq(releases.id, release.id))
+
+      return NextResponse.json({ success: true, pendingUpgrades: selectedTypes })
     }
 
     if (action === 'create_payment_intent') {
@@ -393,9 +416,10 @@ export async function POST(
     }
 
     if (action === 'skip') {
-      // User chose not to use premium distribution - set to standard
+      // User chose not to use premium distribution - set to standard and
+      // drop any selection deferred to the finalize checkout
       await db.update(releases)
-        .set({ distribution: 'standard' })
+        .set({ distribution: 'standard', pendingUpgrades: null })
         .where(eq(releases.id, release.id))
 
       return NextResponse.json({ success: true, distribution: 'standard' })

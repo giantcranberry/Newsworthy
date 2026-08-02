@@ -4,6 +4,7 @@ import { crmContacts } from '@/db/schema'
 import { eq, and, desc, sql, isNotNull, isNull, ilike, or, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
+import { getBrandSetupStatus } from '@/lib/brand-setup'
 import { ContactList } from './contact-list'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -112,7 +113,7 @@ export default async function ManageContactsPage({
         <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
 
       <ContactList
         readOnly={isReadOnly}

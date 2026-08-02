@@ -140,6 +140,11 @@ export function UpgradesForm({
   // can disable other buttons + show a spinner on the one being claimed.
   const [usingCreditFor, setUsingCreditFor] = useState<string | null>(null)
 
+  // When the user has no PR credit yet, card payments are deferred: the
+  // selection is stored on the release and settled together with the PR
+  // credit in the combined checkout on the finalize page.
+  const [deferCardPayment, setDeferCardPayment] = useState(false)
+
   // Initialize Stripe
   useEffect(() => {
     const key = getStripePublishableKey()
@@ -179,6 +184,11 @@ export function UpgradesForm({
           const data = await response.json()
           setProducts(data.products || [])
           setCreditBalance(data.creditBalance || {})
+          setDeferCardPayment(!!data.deferCardPayment)
+          // Restore a selection that was deferred to the finalize checkout
+          if (Array.isArray(data.pendingUpgrades) && data.pendingUpgrades.length > 0) {
+            setSelectedProducts(new Set(data.pendingUpgrades))
+          }
           // Update purchased products from API response
           if (data.distribution && data.distribution !== 'standard') {
             setPurchasedProducts(new Set(data.distribution.split(',').filter((t: string) => t && t !== 'standard')))
@@ -337,6 +347,28 @@ export function UpgradesForm({
 
   const handleContinue = async (): Promise<boolean> => {
     if (selectedProducts.size > 0) {
+      if (deferCardPayment) {
+        // No PR credit yet — store the selection and settle it together with
+        // the PR credit in the combined checkout at the Submit step.
+        setIsLoading(true)
+        try {
+          const res = await fetch(`/api/pr/${releaseUuid}/distribution`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'set_pending', productTypes: Array.from(selectedProducts) }),
+          })
+          if (!res.ok) {
+            const data = await res.json()
+            throw new Error(data.error || 'Failed to save upgrade selection')
+          }
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to save upgrade selection')
+          return false
+        } finally {
+          setIsLoading(false)
+        }
+        return true
+      }
       await handleCheckout()
       // Return false to prevent WizardActions from navigating - payment form will be shown
       return false
@@ -433,7 +465,9 @@ export function UpgradesForm({
         onSubmit={handleContinue}
         submitLabel={
           selectedProducts.size > 0
-            ? `Pay ${formatPrice(cartTotal)}`
+            ? deferCardPayment
+              ? 'Continue — pay at submit'
+              : `Pay ${formatPrice(cartTotal)}`
             : purchasedProducts.size > 0
               ? "Continue"
               : "Skip Upgrades"
@@ -715,6 +749,12 @@ export function UpgradesForm({
                 <p className="text-xs text-blue-600 dark:text-blue-400">total</p>
               </div>
             </div>
+            {deferCardPayment && (
+              <p className="text-sm text-blue-700 dark:text-blue-400 mt-3">
+                Nothing is charged yet — you&apos;ll pay for these upgrades together with
+                your press release credit when you submit for review.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

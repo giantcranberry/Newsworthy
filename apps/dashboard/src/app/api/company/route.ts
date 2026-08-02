@@ -40,6 +40,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Company name is required' }, { status: 400 })
     }
 
+    if (!website?.trim()) {
+      return NextResponse.json({ error: 'Website is required' }, { status: 400 })
+    }
+
     const uuid = uuidv4()
     const nrUri = await generateUniqueNrUri(companyName)
 
@@ -124,6 +128,14 @@ export async function PUT(request: NextRequest) {
 
     if (!hasMinRole(access.role, 'brand_admin')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    if (!companyName?.trim()) {
+      return NextResponse.json({ error: 'Company name is required' }, { status: 400 })
+    }
+
+    if (!website?.trim()) {
+      return NextResponse.json({ error: 'Website is required' }, { status: 400 })
     }
 
     const existingCompany = access.company

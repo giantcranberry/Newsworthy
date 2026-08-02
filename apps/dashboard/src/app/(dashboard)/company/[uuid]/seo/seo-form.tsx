@@ -11,9 +11,10 @@ import { Select } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { HelpTip } from '@/components/ui/help-tip'
 import {
-  Copy, Check, Info, Save, Loader2,
+  Copy, Check, Info, Save, Loader2, ChevronDown,
   Globe, Bot, Braces, Plus, Trash2, Camera, Sparkles, BarChart3,
 } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { buildJsonLd, type JsonLdCompanyData } from '@/lib/build-json-ld'
 
 interface CompanyData extends JsonLdCompanyData {
@@ -517,8 +518,22 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const saveButton = !readOnly && (
+    <Button onClick={handleSave} disabled={isSaving} size="lg">
+      {isSaving ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Save className="h-4 w-4" />
+      )}
+      Save All Settings
+    </Button>
+  )
+
   return (
     <fieldset disabled={readOnly} className="space-y-6">
+      {/* Top save button — visible without scrolling */}
+      {!readOnly && <div className="flex justify-end">{saveButton}</div>}
+
       {error && (
         <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 border border-red-200 p-3 rounded-lg">{error}</div>
       )}
@@ -526,15 +541,24 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
         <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 border border-green-200 p-3 rounded-lg">{success}</div>
       )}
 
-      {/* NewsArticle JSON-LD Preview Card */}
+      {/* NewsArticle JSON-LD Preview Card (collapsed by default) */}
       <Card>
-        <CardHeader>
-          <CardTitle>NewsArticle JSON-LD Preview</CardTitle>
-          <CardDescription>
-            This is how the structured data will appear on your live press release pages. Your organization data is embedded as the <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">author</code> inside a <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">NewsArticle</code> schema. Placeholder values are filled in with actual article data when published.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <Collapsible>
+          <CollapsibleTrigger className="group w-full text-left">
+            <CardHeader>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <CardTitle>NewsArticle JSON-LD Preview</CardTitle>
+                  <CardDescription>
+                    This is how the structured data will appear on your live press release pages. Your organization data is embedded as the <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">author</code> inside a <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">NewsArticle</code> schema. Placeholder values are filled in with actual article data when published.
+                  </CardDescription>
+                </div>
+                <ChevronDown className="h-5 w-5 flex-shrink-0 text-gray-400 transition-transform group-data-[state=open]:rotate-180" />
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="space-y-4">
           <pre className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 p-4 font-mono text-sm leading-relaxed overflow-x-auto whitespace-pre-wrap">
             {articlePreviewText}
           </pre>
@@ -561,7 +585,9 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
               a <code className="text-sm bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">NewsArticle</code> schema on each press release page. To update your organization data, edit your <a href={`/company/${companyUuid}/newsroom`} className="text-blue-600 dark:text-blue-400 underline hover:text-blue-800">Newsroom settings</a>.
             </p>
           </div>
-        </CardContent>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
 
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
@@ -1341,18 +1367,7 @@ This is recommended for all newsrooms and has no downside."
       </Card>
 
       {/* Save Button */}
-      {!readOnly && (
-        <div className="flex items-center gap-3">
-          <Button onClick={handleSave} disabled={isSaving} size="lg">
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Save All Settings
-          </Button>
-        </div>
-      )}
+      {!readOnly && <div className="flex items-center gap-3">{saveButton}</div>}
     </fieldset>
   )
 }

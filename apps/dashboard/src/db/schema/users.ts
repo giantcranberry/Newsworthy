@@ -63,7 +63,7 @@ export const userProfiles = pgTable('user_profiles', {
   mobile: varchar('mobile', { length: 20 }),
   twitter: varchar('twitter', { length: 64 }),
   linkedinUrl: varchar('linkedin_url', { length: 256 }),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   nrdirect: boolean('nrdirect').default(false),
   newsrampApi: varchar('newsramp_api', { length: 64 }),
 })
@@ -71,7 +71,7 @@ export const userProfiles = pgTable('user_profiles', {
 export const userSubscription = pgTable('user_subscription', {
   id: serial('id').primaryKey(),
   planId: integer('plan_id').default(0),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   name: varchar('name', { length: 48 }),
   includedPr: integer('included_pr').default(0),
   remainingPr: integer('remaining_pr').default(0),
@@ -93,7 +93,7 @@ export const userSubscription = pgTable('user_subscription', {
 
 export const verify = pgTable('verify', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   uuid: varchar('uuid', { length: 32 }).notNull(),
   verified: boolean('verified').default(false),
   smsVerifyCode: varchar('sms_verify_code', { length: 6 }),
