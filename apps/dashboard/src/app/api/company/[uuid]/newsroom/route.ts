@@ -93,6 +93,16 @@ export async function PUT(
     return NextResponse.json({ error: 'Newsroom address must be at least 3 characters' }, { status: 400 })
   }
 
+  // Title and description are required — the newsroom is a public page and
+  // brand-setup completeness depends on both being present.
+  if (!nrTitle?.trim()) {
+    return NextResponse.json({ error: 'Newsroom title is required' }, { status: 400 })
+  }
+  const descText = typeof nrDesc === 'string' ? nrDesc.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() : ''
+  if (!descText) {
+    return NextResponse.json({ error: 'Newsroom description is required' }, { status: 400 })
+  }
+
   // Check uniqueness
   const existing = await db.query.company.findFirst({
     where: and(
@@ -118,8 +128,8 @@ export async function PUT(
   await db.update(company)
     .set({
       nrUri: slug,
-      nrTitle: nrTitle?.trim().slice(0, 128) || null,
-      nrDesc: nrDesc || null,
+      nrTitle: nrTitle.trim().slice(0, 128),
+      nrDesc,
       website: website?.trim() || null,
       linkedinUrl: linkedinUrl?.trim() || null,
       xUrl: xUrl?.trim() || null,

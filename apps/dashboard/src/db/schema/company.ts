@@ -101,7 +101,7 @@ export const files = pgTable('files', {
 export const banners = pgTable('banners', {
   id: serial('id').primaryKey(),
   uuid: varchar('uuid', { length: 36 }).unique().notNull(),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   companyId: integer('company_id').notNull().references(() => company.id),
   caption: text('caption'),
   title: varchar('title', { length: 255 }),

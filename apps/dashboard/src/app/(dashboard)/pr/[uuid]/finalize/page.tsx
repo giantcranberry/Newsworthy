@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, releaseOptions, releaseImages, approvals } from '@/db/schema'
+import { releases, releaseOptions, releaseImages, approvals, users } from '@/db/schema'
 import { eq, and, asc, ne } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
@@ -8,6 +8,12 @@ import { FinalizeContent } from './finalize-content'
 import { processReleaseEmails } from '@/lib/release-emails'
 import { normalizeTimezone } from '@/lib/timezones'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import {
+  releaseNeedsPrCredit,
+  getPrCreditProduct,
+  getPendingUpgradeProducts,
+} from '@/lib/pr-checkout'
+import { VerifyEmailBanner } from '@/components/layout/verify-email-banner'
 
 async function getReleaseWithDetails(uuid: string) {
   const release = await db.query.releases.findFirst({
@@ -97,6 +103,46 @@ export default async function FinalizePage({
   const releaseApprovals = await getApprovals(release.id)
   const priorApprovers = await getPriorApprovers(release.companyId, release.id)
 
+  // Verification is deliberately surfaced here — at the submission step —
+  // rather than nagging across the whole dashboard. The finalize API enforces
+  // it server-side regardless.
+  const submitter = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { email: true, emailVerified: true },
+  })
+  const needsVerification = !!submitter && !submitter.emailVerified
+
+  // Combined checkout: manual releases that still owe a PR credit and/or have
+  // upgrades deferred at the Upgrades step settle everything in one payment
+  // here, before the release can be submitted for review.
+  const partnerId = (session?.user as any)?.partnerId || null
+  const alreadySubmitted = ['review', 'approved', 'published', 'sent'].includes(release.status)
+  let checkout = null
+  if (release.source !== 'podcast' && !alreadySubmitted) {
+    const needsPrCredit = await releaseNeedsPrCredit(userId, release)
+    const pendingProducts = await getPendingUpgradeProducts(release, partnerId)
+    if (needsPrCredit || pendingProducts.length > 0) {
+      const prProduct = needsPrCredit ? await getPrCreditProduct(partnerId) : null
+      checkout = {
+        needsPrCredit,
+        prProduct: prProduct
+          ? {
+              name: prProduct.displayName || prProduct.shortName || 'Press Release Credit',
+              price: prProduct.price,
+            }
+          : null,
+        pendingUpgrades: pendingProducts.map((p) => ({
+          type: p.productType!,
+          name: p.displayName || p.shortName || 'Upgrade',
+          price: p.price,
+        })),
+        total:
+          (needsPrCredit ? prProduct?.price || 0 : 0) +
+          pendingProducts.reduce((sum, p) => sum + p.price, 0),
+      }
+    }
+  }
+
   // Serialize dates for client component
   const serializedApprovals = releaseApprovals.map((a) => ({
     ...a,
@@ -106,6 +152,7 @@ export default async function FinalizePage({
 
   return (
     <div className="space-y-6">
+      {needsVerification && <VerifyEmailBanner email={submitter!.email} />}
       <FinalizeContent
         releaseUuid={uuid}
         releaseTitle={release.title || 'Untitled Release'}
@@ -115,6 +162,7 @@ export default async function FinalizePage({
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
         missingItems={missingItems}
+        checkout={checkout}
         wizardNav={
           <WizardNav
             releaseUuid={uuid}

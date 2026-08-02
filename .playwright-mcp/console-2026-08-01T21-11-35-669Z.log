@@ -1,0 +1,210 @@
+[     143ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/register:0
+[     175ms] [LOG] [Client Instrumentation Hook] Slow execution detected: 21ms (Note: Code download overhead is not included in this measurement) @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:1702
+[     194ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[     276ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=C9mh4Fmsu47Ea91ymlpu1' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    1278ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=C9mh4Fmsu47Ea91ymlpu1' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    1498ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login:0
+[    1527ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[    1541ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=S7hid3Y-zZog2WpXK9W25' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    2305ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[    2333ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[    2347ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    3349ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    4356ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    5361ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    6376ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[    7397ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   12458ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=fOVk4NqLuOwT5mP522Ujr' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   15581ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   15608ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   15725ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   17033ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   18471ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   19894ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   22901ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   25033ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   34807ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   43802ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=dxUk7B-41d4jzTYRHUhmk' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   47493ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   47523ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   51564ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=BgrCHyYjEyxDzJQ8DrYGS' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   53659ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=BgrCHyYjEyxDzJQ8DrYGS' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   59564ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=BgrCHyYjEyxDzJQ8DrYGS' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   62494ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   62533ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   64245ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=Qmd6Cr94hRo6assOKL664' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   67203ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login:0
+[   67224ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   68899ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=A9pQ3RtHwezmOyWSJphq6' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   69500ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   69524ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   71544ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=B7d3vROjRLx_mjhCjke5U' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   75101ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=B7d3vROjRLx_mjhCjke5U' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   77146ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=B7d3vROjRLx_mjhCjke5U' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   80421ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   80449ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[   84161ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=K1St7XOb9z9ey7-jdJqn2' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   86352ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=K1St7XOb9z9ey7-jdJqn2' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   90316ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=K1St7XOb9z9ey7-jdJqn2' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   92535ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=K1St7XOb9z9ey7-jdJqn2' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   97874ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=K1St7XOb9z9ey7-jdJqn2' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[   98709ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://127.0.0.1:3001/login?:0
+[   98749ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  101124ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=7E1i5y-OD4wbSiFZsCf9c' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[  106414ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=7E1i5y-OD4wbSiFZsCf9c' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[  111887ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=7E1i5y-OD4wbSiFZsCf9c' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[  114812ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=7E1i5y-OD4wbSiFZsCf9c' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[  117772ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:3001/_next/webpack-hmr?id=7E1i5y-OD4wbSiFZsCf9c' failed: Error during WebSocket handshake: net::ERR_INVALID_HTTP_RESPONSE @ http://127.0.0.1:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[  120695ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3001/login:0
+[  120729ms] [LOG] [Client Instrumentation Hook] Slow execution detected: 20ms (Note: Code download overhead is not included in this measurement) @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:1702
+[  120747ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  120803ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  120864ms] [WARNING] Image with src "http://localhost:3001/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  120947ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  120989ms] [LOG] [Fast Refresh] done in 142ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  123792ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  123817ms] [LOG] [Fast Refresh] done in 126ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  124852ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  124900ms] [LOG] [Fast Refresh] done in 149ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  126376ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  126400ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  126590ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  126618ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147346ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147390ms] [LOG] [Fast Refresh] done in 144ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147676ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147692ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147860ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  147884ms] [LOG] [Fast Refresh] done in 124ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  163150ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3001/login:0
+[  163172ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  163186ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  163213ms] [WARNING] Image with src "http://localhost:3001/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  163298ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  163351ms] [LOG] [Fast Refresh] done in 152ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  165590ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  165626ms] [LOG] [Fast Refresh] done in 136ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  168895ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  168912ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  169142ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  169159ms] [LOG] [Fast Refresh] done in 116ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  173413ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  173428ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  173593ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  173605ms] [LOG] [Fast Refresh] done in 112ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  236639ms] [LOG] [Client Instrumentation Hook] Slow execution detected: 16ms (Note: Code download overhead is not included in this measurement) @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:1702
+[  236642ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  236655ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  236774ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  236853ms] [LOG] [Fast Refresh] done in 180ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  278423ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  278442ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  278604ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  278633ms] [LOG] [Fast Refresh] done in 129ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  283641ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  283661ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  283741ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+      <RedirectBoundary>
+        <RedirectErrorBoundary router={{...}}>
+          <InnerLayoutRouter url="/pr/create" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} segmentPath={[...]} ...>
+            <SegmentViewNode type="page" pagePath="(dashboard...">
+              <SegmentTrieNode>
+              <CreatePRPage>
+                <div className="space-y-6">
+                  <div>
+                  <PRForm companies={[...]} categories={[...]} topCategories={[...]} regions={[...]} ...>
+                    <div className="flex gap-6">
+                      <div className="flex-1 min...">
+                        <div>
+                        <div className="space-y-8 ...">
+                          <div>
+                          <input>
+                          <input>
+                          <Dialog>
+                          <Dialog>
+                          <div className="rounded-xl...">
+                            <div>
+                            <div>
+                            <div>
+                            <div data-tour="pr-create-..." className="p-6 space-y-4">
+                              <div>
+                              <p>
+                              <Editor apiKey="80aswx9g49..." onInit={function onInit} initialValue="" ...>
+                                <textarea
+                                  ref={{current:null}}
+                                  style={{visibility:"hidden"}}
+                                  name={undefined}
++                                 id="tiny-react_17913859821785618979400"
+-                                 id="tiny-react_73192677611785618979241"
+                                  tabIndex={undefined}
+                                >
+                            ...
+                          ...
+                      ...
+            ...
+          ...
+ @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:3335
+[  283789ms] [WARNING] Image with src "http://127.0.0.1:3001/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  297191ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3001/login:0
+[  297203ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  297214ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  297241ms] [WARNING] Image with src "http://localhost:3001/logo.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  297327ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  297367ms] [LOG] [Fast Refresh] done in 140ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  299568ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  299604ms] [LOG] [Fast Refresh] done in 137ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  301702ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  301722ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  301886ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[  301911ms] [LOG] [Fast Refresh] done in 126ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12722964ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12723005ms] [LOG] [Fast Refresh] done in 59ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12727461ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12727504ms] [LOG] [Fast Refresh] done in 143ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12736411ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=Chjvs5COGLGzXY-YNtqM5' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12737412ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=Chjvs5COGLGzXY-YNtqM5' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12738414ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=Chjvs5COGLGzXY-YNtqM5' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12739416ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=Chjvs5COGLGzXY-YNtqM5' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12740431ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12743898ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12743917ms] [LOG] [HMR] connected @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12744266ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12744299ms] [LOG] [Fast Refresh] done in 133ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12770601ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12771348ms] [LOG] [Fast Refresh] done in 847ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12773541ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12773547ms] [LOG] [Fast Refresh] done in 106ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12794735ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12794746ms] [LOG] [Fast Refresh] done in 111ms @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2494
+[12902191ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12903193ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12904194ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12905195ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12906196ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12911198ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12916199ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12921200ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12924040ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/api/admin/impersonate:0
+[12924041ms] [ERROR] Error checking impersonation: TypeError: Failed to fetch
+    at ImpersonationBanner.useCallback[checkImpersonation] (http://localhost:3001/_next/static/chunks/apps_dashboard_src_0fwdtlp._.js:5581:40) @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:3335
+[12924048ms] [ERROR] WebSocket is already in CLOSING or CLOSED state. @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_1ybzpk2._.js:2853
+[12924051ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/__nextjs_original-stack-frames:0
+[12924221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/api/messages/unread-count:0
+[12924221ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/api/chat/unread-count:0
+[12926202ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12931204ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12936205ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422
+[12941206ms] [ERROR] WebSocket connection to 'ws://localhost:3001/_next/webpack-hmr?id=OWPko-0NjiiA5V8LN_WUP' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3001/_next/static/chunks/node_modules_next_dist_client_0r5nbpw._.js:13422

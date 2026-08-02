@@ -43,7 +43,11 @@ function RegisterForm() {
         throw new Error(data.error || 'Registration failed')
       }
 
-      setEmailSent(true)
+      // The register API sets the session cookie — land straight on the
+      // dashboard. Email verification is required later, at press-release
+      // submission.
+      window.location.href = '/dashboard'
+      return
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred. Please try again.')
     } finally {

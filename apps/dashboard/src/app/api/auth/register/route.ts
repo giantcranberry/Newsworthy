@@ -4,6 +4,8 @@ import { eq, and } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
+import { encode } from 'next-auth/jwt'
 import { sendVerificationEmail, sendEmail } from '@/lib/email'
 import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { getPostHog } from '@/lib/posthog'
@@ -140,6 +142,39 @@ export async function POST(request: Request) {
 
     // SMS notification (non-blocking)
     sendSmsNotification(`New account registered: ${firstName.trim()} ${(lastName || '').trim()} (${normalizedEmail})`)
+
+    // Log the new user in immediately (same pattern as verify-email): set the
+    // NextAuth session cookie server-side so the client can go straight to
+    // /dashboard. Email verification is enforced later, at release submission.
+    try {
+      const isSecure = process.env.NODE_ENV === 'production'
+      const cookieName = isSecure ? '__Secure-authjs.session-token' : 'authjs.session-token'
+
+      const sessionToken = await encode({
+        token: {
+          id: newUser.id.toString(),
+          email: newUser.email,
+          isAdmin: false,
+          isEditor: false,
+          isStaff: false,
+          partnerId: newUser.partnerId,
+        },
+        secret: process.env.NEXTAUTH_SECRET!,
+        salt: cookieName,
+      })
+
+      const cookieStore = await cookies()
+      cookieStore.set(cookieName, sessionToken, {
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60,
+        path: '/',
+      })
+    } catch (sessionError) {
+      // Non-fatal: the user can still sign in manually
+      console.error('Failed to create session after registration:', sessionError)
+    }
 
     const posthog = getPostHog()
     const distinctId = String(newUser.id)

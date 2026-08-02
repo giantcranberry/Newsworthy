@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Loader2, Save, Info } from 'lucide-react'
 import { TeamSection } from '@/components/company/team-section'
 
@@ -37,9 +37,12 @@ interface CompanyFormProps {
   isAgency?: boolean
   notice?: string
   readOnly?: boolean
+  // Where to send the user after creating a brand (e.g. back to /pr/create
+  // when brand creation was a detour from starting a release)
+  nextUrl?: string
 }
 
-export function CompanyForm({ initialData, pageTitle, pageDescription, headerExtra, isAgency, notice, readOnly }: CompanyFormProps) {
+export function CompanyForm({ initialData, pageTitle, pageDescription, headerExtra, isAgency, notice, readOnly, nextUrl }: CompanyFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -62,18 +65,31 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
     setIsLoading(true)
 
     try {
+      // Website is required; accept bare domains by defaulting to https://
+      const website = formData.website.trim()
+      const normalizedWebsite = website && !/^https?:\/\//i.test(website)
+        ? `https://${website}`
+        : website
+
       const response = await fetch('/api/company', {
         method: initialData?.uuid ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          website: normalizedWebsite,
           uuid: initialData?.uuid,
         }),
       })
 
       if (response.ok) {
         const data = await response.json()
-        router.push(`/company/${data.uuid}`)
+        // On create, continue brand setup at the next wizard step (Logo);
+        // an explicit nextUrl overrides. Edits return to the brand page.
+        if (!initialData?.uuid) {
+          router.push(nextUrl || `/company/${data.uuid}/logo`)
+        } else {
+          router.push(`/company/${data.uuid}`)
+        }
         router.refresh()
       } else {
         const error = await response.json()
@@ -114,7 +130,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !formData.companyName}
+                disabled={isLoading || !formData.companyName || !formData.website.trim()}
                 className="gap-2 bg-cyan-800 dark:bg-cyan-600 text-white dark:text-white hover:bg-cyan-900 dark:hover:bg-cyan-700 cursor-pointer"
               >
                 {isLoading ? (
@@ -158,12 +174,13 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
           </div>
 
           <div>
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">Website *</Label>
             <Input
               id="website"
               value={formData.website}
               onChange={(e) => setFormData({ ...formData, website: e.target.value })}
               placeholder="https://example.com"
+              required
               disabled={readOnly}
               className="mt-1"
             />
@@ -175,7 +192,8 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
       {initialData?.uuid && (
         <Card data-tour="brand-form-contact-info">
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>Brand Contact Information</CardTitle>
+            <CardDescription>Who do we contact regarding this brand profile?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -213,6 +231,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
       <Card data-tour="brand-form-address">
         <CardHeader>
           <CardTitle>Address</CardTitle>
+          <CardDescription>Where do we send gifts and written correspondence?</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>

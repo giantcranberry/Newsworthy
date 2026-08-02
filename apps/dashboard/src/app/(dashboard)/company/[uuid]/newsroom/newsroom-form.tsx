@@ -107,6 +107,16 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
 
     try {
       const nrDesc = editorRef.current?.getContent() || ''
+      const descText = (editorRef.current?.getContent({ format: 'text' }) || '').trim()
+
+      // Title and description are required — the newsroom is a public page
+      // and brand-setup completeness depends on both.
+      if (!formData.nrTitle.trim()) {
+        throw new Error('Newsroom title is required.')
+      }
+      if (!descText) {
+        throw new Error('Newsroom description is required.')
+      }
 
       const response = await fetch(`/api/company/${companyUuid}/newsroom`, {
         method: 'PUT',
@@ -135,8 +145,26 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
     ? `https://newsworthy.ai/newsroom/${formData.nrUri}`
     : null
 
+  const saveButton = !readOnly && (
+    <Button
+      onClick={handleSave}
+      disabled={isSaving || slugStatus === 'taken' || formData.nrUri.length < 3}
+      size="lg"
+    >
+      {isSaving ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Save className="h-4 w-4" />
+      )}
+      Save Newsroom Settings
+    </Button>
+  )
+
   return (
     <fieldset disabled={readOnly} className="space-y-6">
+      {/* Top save button — visible without scrolling */}
+      {!readOnly && <div className="flex justify-end">{saveButton}</div>}
+
       {error && (
         <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
       )}
@@ -229,7 +257,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </div>
 
           <div>
-            <Label htmlFor="nrTitle" className="font-semibold">Newsroom Title</Label>
+            <Label htmlFor="nrTitle" className="font-semibold">Newsroom Title *</Label>
             <Input
               id="nrTitle"
               value={formData.nrTitle}
@@ -247,9 +275,9 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           </div>
 
           <div>
-            <Label className="font-semibold">Newsroom Description</Label>
+            <Label className="font-semibold">Newsroom Description *</Label>
             <p className="text-xs text-gray-400 mb-2">
-              A brief description of your company or newsroom. Supports rich text formatting.
+              A brief description of your company or newsroom. Supports rich text formatting. Required.
             </p>
             <Editor
               apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
@@ -592,22 +620,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
       </Card>
 
       {/* Save Button */}
-      {!readOnly && (
-        <div className="flex justify-end">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving || slugStatus === 'taken' || formData.nrUri.length < 3}
-            size="lg"
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            Save Newsroom Settings
-          </Button>
-        </div>
-      )}
+      {!readOnly && <div className="flex justify-end">{saveButton}</div>}
     </fieldset>
   )
 }

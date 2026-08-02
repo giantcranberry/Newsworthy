@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyForm } from '../company-form'
 import { CompanyNav } from '@/components/company/company-nav'
+import { getBrandSetupStatus } from '@/lib/brand-setup'
 import { RssFeedLink } from '@/components/company/rss-feed-link'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -54,7 +55,7 @@ export default async function CompanyDetailPage({
       headerExtra={
         <>
           <RssFeedLink companyUuid={co.uuid} />
-          <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+          <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
         </>
       }
     />

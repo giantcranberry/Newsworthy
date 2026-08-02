@@ -32,6 +32,9 @@ import { PendingInvites } from "./pending-invites";
 import { RedeemCourtesyCode } from "./redeem-courtesy-code";
 import { getClipsTotalStats } from "@/services/report";
 import { EngagementChart } from "./engagement-chart";
+import { GettingStarted, BookPromoBanner } from "./getting-started";
+import { qualifiesForFreeFirstPr } from "@/lib/pr-checkout";
+import { getBrandSetupStatus } from "@/lib/brand-setup";
 
 interface CreditsByType {
   pr: number
@@ -286,6 +289,30 @@ export default async function DashboardPage() {
   const editableIds = await getUserCompanyIds(userId, 'collaborator');
   const canCreate = editableIds.length > 0;
 
+  // Guided onboarding path: shown until the user has submitted a release
+  // (anything beyond draft status). Client-only team members can't create
+  // content, so they keep the regular dashboard.
+  const isClientOnly = !canCreate && companies.length > 0;
+  const hasSubmittedRelease = stats.total > stats.drafts;
+  const showGettingStarted = !hasSubmittedRelease && !isClientOnly;
+  const draftStatuses = ["draftnxt", "draft", "start"];
+  const draftUuid =
+    releases.find((r) => draftStatuses.includes(r.status))?.uuid ?? null;
+
+  // First-press-release-free offer: live check (toggle + zero credits + no
+  // press releases), so flipping the admin toggle changes this immediately
+  const firstReleaseFree =
+    showGettingStarted && allCredits.totalPr <= 0
+      ? await qualifiesForFreeFirstPr(userId)
+      : false;
+
+  // Brand-profile setup state for the checklist: step 1 counts as done only
+  // when the profile is complete through SEO/AIO, not merely created
+  const brandSetup =
+    showGettingStarted && companies.length > 0
+      ? await getBrandSetupStatus(companies[0])
+      : null;
+
   return (
     <div className="space-y-6">
       {/* Pending Invites */}
@@ -299,12 +326,16 @@ export default async function DashboardPage() {
         }))} />
       )}
 
+      {showGettingStarted && <BookPromoBanner />}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
           <p className="text-gray-600 dark:text-gray-400">
-            Welcome back! Here&apos;s what&apos;s happening.
+            {showGettingStarted
+              ? "Welcome! Let's get your first press release published."
+              : "Welcome back! Here's what's happening."}
           </p>
         </div>
         {canCreate && (
@@ -317,6 +348,19 @@ export default async function DashboardPage() {
         )}
       </div>
 
+      {showGettingStarted ? (
+        <>
+          {!canCreate && <div data-tour="dashboard-empty" className="hidden" />}
+          <GettingStarted
+            brandSetup={brandSetup}
+            hasDraft={stats.drafts > 0}
+            draftUuid={draftUuid}
+            hasCredits={allCredits.totalPr > 0}
+            firstReleaseFree={firstReleaseFree}
+          />
+        </>
+      ) : (
+      <>
       {/* Stats Grid */}
       <div data-tour="dashboard-stats" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         <Link href="/pr" data-tour="dashboard-stat-releases">
@@ -581,6 +625,8 @@ export default async function DashboardPage() {
           </Card>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

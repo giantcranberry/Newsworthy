@@ -43,7 +43,10 @@ export const releases = pgTable('releases', {
   standardEase: doublePrecision('standard_ease'),
   status: varchar('status', { length: 10 }).default('start').notNull(),
   source: varchar('source', { length: 16 }).default('manual').notNull(),
-  distribution: varchar('distribution', { length: 20 }),
+  distribution: varchar('distribution', { length: 120 }),
+  // Upgrade productTypes selected at the Upgrades step but not yet paid —
+  // settled in the combined checkout on the finalize page. Comma-separated.
+  pendingUpgrades: varchar('pending_upgrades', { length: 120 }),
   prhashId: varchar('prhash_id', { length: 42 }),
   adScreening: jsonb('ad_screening'),
 })

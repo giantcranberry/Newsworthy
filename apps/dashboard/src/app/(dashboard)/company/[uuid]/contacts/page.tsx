@@ -4,6 +4,7 @@ import { contact } from '@/db/schema'
 import { eq, and, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
+import { getBrandSetupStatus } from '@/lib/brand-setup'
 import { ContactsForm } from './contacts-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -43,7 +44,7 @@ export default async function ContactsPage({
         <p className="text-sm text-gray-400 mt-1">These are the contacts that can be added to your press releases for media inquiries. Journalists will use this information to reach out for interviews, quotes, and follow-up questions.</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} />
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
 
       <ContactsForm
         readOnly={isReadOnly}

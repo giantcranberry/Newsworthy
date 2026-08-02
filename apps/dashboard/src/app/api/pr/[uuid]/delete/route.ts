@@ -43,11 +43,14 @@ export async function POST(
       )
     }
 
-    // Reallocate credits: remove the negative credit entries linked to this release.
-    // Exclude product_type='podcast_pr' — podcast credits are consumed at editorial
-    // submit, not at draft creation, so deleting a podcast draft must NOT return a
-    // credit. Any podcast_pr row linked to this release reflects a real prior
-    // editorial submit and must remain on the ledger.
+    // Reallocate credits: remove the negative credit entries linked to this
+    // release. PR credits are consumed at editorial submit (finalize route),
+    // so drafts normally carry no deduction; a 'pr'/'credits' row here means
+    // the release was submitted and later returned by editorial — deleting it
+    // instead of resubmitting returns that credit (and any upgrade credits)
+    // to the user's balance. Exclude product_type='podcast_pr': podcast
+    // submits are deliberately non-refundable, so those rows must remain on
+    // the ledger.
     await db.delete(brandCredits).where(
       and(
         eq(brandCredits.prId, release.id),

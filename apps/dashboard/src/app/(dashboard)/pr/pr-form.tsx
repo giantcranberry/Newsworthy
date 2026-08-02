@@ -1105,18 +1105,21 @@ export function PRForm({
       {/* Import/Generate options - only show for new releases or drafts */}
       {!readOnly && !initialData?.uuid && (
         <div data-tour="pr-create-import-generate" className="grid xl:grid-cols-2 gap-4">
-          {/* Import from Document */}
-          <Card className="border border-blue-200/60 dark:border-blue-800/60 bg-blue-50/30 dark:bg-blue-950/20">
+          {/* Import from Document — recommended path */}
+          <Card className="border ring-2 ring-blue-500 dark:ring-blue-600 border-blue-200/60 dark:border-blue-800/60 bg-blue-50/30 dark:bg-blue-950/20">
             <CardContent className="py-4 space-y-3">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 <p className="font-medium text-gray-900 dark:text-gray-100">
                   Import from Document
                 </p>
+                <span className="bg-blue-600 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  Recommended
+                </span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Upload a Word doc or Markdown, paste Markdown, or use a Google Docs URL.
-                <span className="block text-xs text-gray-500 dark:text-gray-500 mt-0.5">If you use this option AI will complete most of this form for you.</span>
+                Import from a document and we will complete most of the following form for you.
+                <span className="block text-xs text-gray-500 dark:text-gray-500 mt-0.5">Upload a Word doc or Markdown, paste Markdown from AI chat, or use a Google Docs URL.</span>
               </p>
               <button
                 type="button"
@@ -1192,9 +1195,9 @@ export function PRForm({
               Import from Document
             </DialogTitle>
             <DialogDescription>
-              Upload a Word or Markdown document, paste Markdown, or provide a
-              Google Docs URL. We will analyze the content and auto-fill the
-              form.
+              Upload a Word or Markdown document, paste Markdown from AI chat,
+              or provide a Google Docs URL. We will analyze the content and
+              auto-fill the form.
             </DialogDescription>
           </DialogHeader>
 
@@ -1245,7 +1248,7 @@ export function PRForm({
 
             {/* Paste Markdown */}
             <div className="space-y-2">
-              <Label htmlFor="markdownText">Paste Markdown</Label>
+              <Label htmlFor="markdownText">Paste Markdown from AI Chat</Label>
               <Textarea
                 id="markdownText"
                 placeholder={"# Headline\n\nYour press release content in Markdown..."}
@@ -1497,10 +1500,11 @@ export function PRForm({
             >
               {companies.map((company) => {
                 const credits = creditsByCompany[company.id];
-                const hasCredits = credits === undefined || credits > 0 || userCredits > 0;
+                // Drafting is free — never disable a brand for lack of credits;
+                // the credit is purchased/consumed at submission.
                 return (
-                  <option key={company.id} value={company.id} disabled={!hasCredits}>
-                    {company.companyName}{credits !== undefined ? ` (${credits > 0 ? `${credits} credit${credits !== 1 ? 's' : ''}` : userCredits > 0 ? `Will use 1 of your ${userCredits} account credits.` : 'No credits'})` : ''}
+                  <option key={company.id} value={company.id}>
+                    {company.companyName}{credits !== undefined ? ` (${credits > 0 ? `${credits} credit${credits !== 1 ? 's' : ''}` : userCredits > 0 ? `Will use 1 of your ${userCredits} account credits.` : 'Credit needed at submission'})` : ''}
                   </option>
                 );
               })}
