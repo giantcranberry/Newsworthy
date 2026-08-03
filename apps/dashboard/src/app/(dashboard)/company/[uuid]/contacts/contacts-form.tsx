@@ -47,6 +47,19 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
   const [isDeletingContact, setIsDeletingContact] = useState(false)
   const [deleteContactError, setDeleteContactError] = useState<string | null>(null)
 
+  // Error responses aren't always JSON — a proxy 413/502 returns plain text or HTML
+  async function parseErrorMessage(response: Response, fallback: string): Promise<string> {
+    if (response.status === 413) {
+      return 'That photo is too large for the server to accept. Please try a smaller image.'
+    }
+    try {
+      const data = await response.json()
+      return data.error || fallback
+    } catch {
+      return fallback
+    }
+  }
+
   function formatPhoneNumber(value: string): string {
     const hasPlus = value.startsWith('+')
     const digits = value.replace(/\D/g, '')
@@ -105,8 +118,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to upload photo')
+        throw new Error(await parseErrorMessage(response, 'Failed to upload photo'))
       }
 
       const data = await response.json()
@@ -144,8 +156,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to save contact')
+        throw new Error(await parseErrorMessage(response, 'Failed to save contact'))
       }
 
       setShowContactModal(false)
@@ -215,8 +226,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to remove contact')
+        throw new Error(await parseErrorMessage(response, 'Failed to remove contact'))
       }
 
       setShowDeleteContactModal(false)
