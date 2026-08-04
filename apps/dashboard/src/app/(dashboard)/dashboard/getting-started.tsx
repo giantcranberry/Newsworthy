@@ -163,13 +163,15 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
           <p className="mb-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
             Watch: publish your first press release in under a minute
           </p>
-          <video
-            controls
-            preload="metadata"
-            playsInline
-            className="w-full rounded-lg border border-gray-200 dark:border-gray-800"
-            src="https://cdn.newsramp.app/videos/newsworthy-getting-started.mp4"
-          />
+          <div className="relative w-full overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 aspect-video">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/y_Xx6o1O1Ts"
+              title="Publish your first press release in under a minute"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full"
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

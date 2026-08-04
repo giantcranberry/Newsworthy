@@ -25,7 +25,13 @@ const CDN_BASE_URL = process.env.NEXT_PUBLIC_S3_URL || `https://us-southeast-1.l
 function extractKey(urlOrFilename: string): string {
   if (urlOrFilename.startsWith('http')) {
     const url = new URL(urlOrFilename)
-    return url.pathname.slice(1) // Remove leading slash
+    let key = url.pathname.slice(1) // Remove leading slash
+    // Path-style URLs (https://<region>.linodeobjects.com/<bucket>/<key>)
+    // include the bucket in the path; strip it or deletes silently no-op.
+    if (key.startsWith(`${BUCKET}/`)) {
+      key = key.slice(BUCKET.length + 1)
+    }
+    return key
   }
   return urlOrFilename
 }
@@ -533,6 +539,51 @@ export async function deleteTaskFile(urlOrFilename: string): Promise<void> {
     )
   } catch (error) {
     console.error('Error deleting task file:', error)
+  }
+}
+
+/**
+ * Upload an admin-managed asset (any type — no processing) under nwai-assets/
+ */
+export async function uploadNwaiAsset(
+  file: Buffer,
+  originalFilename: string,
+  mimeType: string
+): Promise<{ url: string; filesize: number }> {
+  const sanitized = originalFilename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const key = `nwai-assets/${Date.now()}-${sanitized}`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: file,
+      ContentType: mimeType || 'application/octet-stream',
+      ACL: 'public-read',
+    })
+  )
+
+  return {
+    url: `${CDN_BASE_URL}/${key}`,
+    filesize: file.length,
+  }
+}
+
+/**
+ * Delete an admin-managed asset from S3
+ */
+export async function deleteNwaiAsset(urlOrFilename: string): Promise<void> {
+  if (!urlOrFilename) return
+
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: extractKey(urlOrFilename),
+      })
+    )
+  } catch (error) {
+    console.error('Error deleting asset:', error)
   }
 }
 
