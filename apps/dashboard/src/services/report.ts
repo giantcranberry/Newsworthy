@@ -1,9 +1,9 @@
 import { db } from '@/db'
 import { releases, releaseEnhanced, releasePlacements, releaseOptions, releaseCategories } from '@/db/schema'
-import { clipReport, pdfDownloads } from '@/db/schema'
+import { clipReport, pdfDownloads, crmContacts } from '@/db/schema'
 import { circuits, circuitCategories } from '@/db/schema'
 import { users } from '@/db/schema'
-import { eq, and, inArray, count } from 'drizzle-orm'
+import { eq, and, inArray, count, sql } from 'drizzle-orm'
 import { queryIndex } from '@/lib/opensearch'
 
 // --- 4-hour in-memory cache ---
@@ -66,6 +66,7 @@ export interface ReportData {
   }
   company: {
     id: number
+    uuid: string
     companyName: string
     logoUrl: string | null
   }
@@ -85,6 +86,9 @@ export interface ReportData {
   shStatsMultiplier: number
   releaseIsYearOld: boolean
   hasAdvGroup: boolean
+  // Active advocate contacts in the brand's share list — drives the Total
+  // Shares card CTA when there are no shares yet
+  shareListCount: number
   nwrampReport: any | false
   enhancedPublications: EnhancedPublication[]
   yahooFinanceUrls: string[]
@@ -506,6 +510,19 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     .limit(1)
   const hasAdvGroup = opts.length > 0 && opts[0].advocacy === true
 
+  // Share list size (active advocate contacts) for the brand
+  const [shareListRow] = await db
+    .select({ value: count() })
+    .from(crmContacts)
+    .where(and(
+      eq(crmContacts.companyId, release.companyId),
+      inArray(crmContacts.contactType, ['advocate', 'both']),
+      sql`${crmContacts.isDeleted} IS NOT TRUE`,
+      sql`${crmContacts.unsubscribeAt} IS NULL`,
+      sql`${crmContacts.bouncedAt} IS NULL`,
+    ))
+  const shareListCount = Number(shareListRow?.value ?? 0)
+
   // Release age
   const oneYearAgo = new Date()
   oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
@@ -541,6 +558,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     },
     company: {
       id: release.company.id,
+      uuid: release.company.uuid,
       companyName: release.company.companyName,
       logoUrl: release.company.logoUrl,
     },
@@ -560,6 +578,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     shStatsMultiplier,
     releaseIsYearOld,
     hasAdvGroup,
+    shareListCount,
     nwrampReport,
     enhancedPublications,
     yahooFinanceUrls,

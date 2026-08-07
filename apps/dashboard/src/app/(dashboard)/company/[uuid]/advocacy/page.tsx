@@ -5,7 +5,7 @@ import { eq, and, sql, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { randomUUID } from 'crypto'
 import { CompanyNav } from '@/components/company/company-nav'
-import { getBrandSetupStatus } from '@/lib/brand-setup'
+import { getBrandNavState } from '@/lib/brand-setup'
 import { ShareListForm } from './advocacy-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -70,7 +70,7 @@ export default async function ShareListPage({
         <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} {...(await getBrandNavState(co))} />
 
       <ShareListForm
         readOnly={isReadOnly}

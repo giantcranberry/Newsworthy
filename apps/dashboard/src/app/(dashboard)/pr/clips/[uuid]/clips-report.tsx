@@ -295,6 +295,8 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
   }
 
   const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, shStatsMultiplier, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
+  // May be missing on reports cached before this field existed
+  const shareListCount = data.shareListCount ?? 0
 
   const marketClips = [...clips.fcmarkets, ...clips.marketminute]
   const hasDistNetwork = clips.gomedia.length > 0 || clips.synacor.length > 0 || marketClips.length > 0
@@ -423,13 +425,41 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-2">Total Views</div>
           </div>
         </div>
-        {/* Total Shares */}
+        {/* Total Shares — the zero state invites the user to build a share list instead of showing a 0 */}
         <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
-          <div className="text-center py-6 flex flex-col justify-center items-center">
-            <i className="fa-solid fa-share-nodes text-green-500 mb-3 text-[2rem]" aria-hidden="true" />
-            <div className="text-[2.5rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{totalSh.toLocaleString()}</div>
-            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-2">Total Shares</div>
-          </div>
+          {totalSh > 0 ? (
+            <div className="text-center py-6 flex flex-col justify-center items-center">
+              <i className="fa-solid fa-share-nodes text-green-500 mb-3 text-[2rem]" aria-hidden="true" />
+              <div className="text-[2.5rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{totalSh.toLocaleString()}</div>
+              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-2">Total Shares</div>
+            </div>
+          ) : shareListCount === 0 ? (
+            <div className="text-center py-6 px-4 flex flex-col justify-center items-center h-full">
+              <i className="fa-solid fa-share-nodes text-gray-300 mb-3 text-[2rem]" aria-hidden="true" />
+              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80">Share List Not Activated</div>
+              {!isPublic && (
+                <Link
+                  href={`/company/${company.uuid}/advocacy`}
+                  className="mt-2 text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
+                >
+                  Activate Now
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-6 px-4 flex flex-col justify-center items-center h-full">
+              <i className="fa-solid fa-share-nodes text-gray-300 mb-3 text-[2rem]" aria-hidden="true" />
+              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80">No Share Stats Yet</div>
+              {!isPublic && (
+                <Link
+                  href={`/company/${company.uuid}/advocacy`}
+                  className="mt-2 text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
+                >
+                  Grow your Share List
+                </Link>
+              )}
+            </div>
+          )}
         </div>
         {/* AIO / SEO */}
         <div className="md:col-span-2 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
@@ -482,7 +512,11 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                         <i className="fa-solid fa-share-nodes text-green-500" aria-hidden="true" /> Total Shares
                       </div>
-                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalSh.toLocaleString()}</h4>
+                      {totalSh > 0 ? (
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalSh.toLocaleString()}</h4>
+                      ) : (
+                        <span className="text-sm text-gray-400">No Share Stats Yet</span>
+                      )}
                     </div>
                     <div className={`flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800`}>
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">

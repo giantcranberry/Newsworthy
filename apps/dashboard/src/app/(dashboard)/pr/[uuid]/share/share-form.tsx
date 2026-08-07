@@ -21,6 +21,10 @@ interface ShareFormProps {
   children?: React.ReactNode
 }
 
+// Sharing with your list is optional, but activating it requires a minimum
+// list size so releases aren't "shared" to an empty audience.
+const MIN_SHARE_LIST = 5
+
 export function ShareForm({
   releaseUuid,
   companyUuid,
@@ -61,7 +65,7 @@ export function ShareForm({
       const response = await fetch(`/api/pr/${releaseUuid}/share`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ advocacy: shareWithList, pitchlist: sendToPitchList }),
+        body: JSON.stringify({ advocacy: shareWithList && listCount >= MIN_SHARE_LIST, pitchlist: sendToPitchList }),
       })
 
       if (!response.ok) {
@@ -101,8 +105,8 @@ export function ShareForm({
       setListCount((prev) => prev + data.added)
       setEmails('')
 
-      // Auto-select share with list if they just added people
-      if (data.added > 0 && !shareWithList) {
+      // Auto-select share with list once the minimum is reached
+      if (data.added > 0 && !shareWithList && listCount + data.added >= MIN_SHARE_LIST) {
         setShareWithList(true)
       }
     } catch (err) {
@@ -115,7 +119,7 @@ export function ShareForm({
   return (
     <div className="space-y-6">
       <WizardHeader
-        title="Share with My List"
+        title="Share with My Share List"
         description="Share this release with your subscribers"
         releaseUuid={releaseUuid}
         currentStep={5}
@@ -125,12 +129,18 @@ export function ShareForm({
       />
       {children}
 
-      {/* Add to My List Card */}
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm text-blue-800 dark:text-blue-400">
+          <span className="font-medium">This feature is optional.</span> A share list of at least {MIN_SHARE_LIST} individuals is required to activate Share List Reporting.
+        </p>
+      </div>
+
+      {/* Add to My Share List Card */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">My List</CardTitle>
+              <CardTitle className="text-base">My Share List</CardTitle>
               <CardDescription>
                 {listCount === 0
                   ? 'Add subscribers to share your releases with'
@@ -146,7 +156,7 @@ export function ShareForm({
                 onClick={() => setShowAddForm(true)}
               >
                 <Plus className="h-4 w-4" />
-                Add to My List
+                Add to My Share List
               </Button>
             )}
           </div>
@@ -214,7 +224,7 @@ export function ShareForm({
       {/* Share Options Card */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Share with My List</CardTitle>
+          <CardTitle className="text-base">Share with My Share List</CardTitle>
           <CardDescription>
             Choose whether to share this press release with your subscribers
           </CardDescription>
@@ -231,13 +241,13 @@ export function ShareForm({
             <button
               type="button"
               onClick={() => setShareWithList(true)}
-              disabled={listCount === 0}
+              disabled={listCount < MIN_SHARE_LIST}
               className={cn(
                 'relative flex flex-col items-start p-4 rounded-lg border-2 transition-colors text-left cursor-pointer',
                 shareWithList
                   ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
                   : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700',
-                listCount === 0 && 'opacity-50 !cursor-not-allowed'
+                listCount < MIN_SHARE_LIST && 'opacity-50 !cursor-not-allowed'
               )}
             >
               {shareWithList && (
@@ -257,11 +267,11 @@ export function ShareForm({
                 )} />
               </div>
               <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
-                Share with My List
+                Share with My Share List
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {listCount === 0
-                  ? 'Add subscribers above to enable sharing'
+                {listCount < MIN_SHARE_LIST
+                  ? `Add ${MIN_SHARE_LIST - listCount} more subscriber${MIN_SHARE_LIST - listCount === 1 ? '' : 's'} above to enable sharing (minimum ${MIN_SHARE_LIST})`
                   : `Email this release to ${listCount} subscriber${listCount === 1 ? '' : 's'} when published`
                 }
               </p>
@@ -303,7 +313,7 @@ export function ShareForm({
             </button>
           </div>
 
-          {shareWithList && listCount > 0 && (
+          {shareWithList && listCount >= MIN_SHARE_LIST && (
             <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">What happens next?</h4>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
@@ -316,7 +326,8 @@ export function ShareForm({
         </CardContent>
       </Card>
 
-      {/* Media Pitch List Options Card */}
+      {/* Media Pitch List Options Card — only shown when a pitch list exists */}
+      {mediaListCount > 0 && (
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Email to Media Pitch List</CardTitle>
@@ -413,6 +424,7 @@ export function ShareForm({
           )}
         </CardContent>
       </Card>
+      )}
 
     </div>
   )

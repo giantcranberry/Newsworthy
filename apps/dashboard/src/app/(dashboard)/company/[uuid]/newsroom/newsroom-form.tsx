@@ -53,13 +53,17 @@ interface NewsroomFormProps {
   initialData: NewsroomFormData
 }
 
+const stripHtml = (html: string) => html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+
 export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFormProps) {
   const router = useRouter()
   const editorRef = useRef<any>(null)
   const [formData, setFormData] = useState<NewsroomFormData>(initialData)
+  // Tracks whether the description editor has text, so the save button can
+  // stay disabled until all required fields are filled.
+  const [hasDesc, setHasDesc] = useState(() => stripHtml(initialData.nrDesc) !== '')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
 
   // Slug validation
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
@@ -103,7 +107,6 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
   const handleSave = async () => {
     setIsSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       const nrDesc = editorRef.current?.getContent() || ''
@@ -132,7 +135,8 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
         throw new Error(data.error || 'Failed to save newsroom settings')
       }
 
-      setSuccess('Newsroom settings saved successfully.')
+      // Advance to the next wizard step
+      router.push(`/company/${companyUuid}/seo`)
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save')
@@ -145,10 +149,16 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
     ? `https://newsworthy.ai/newsroom/${formData.nrUri}`
     : null
 
+  const requiredComplete =
+    formData.nrUri.length >= 3 &&
+    slugStatus !== 'taken' &&
+    !!formData.nrTitle.trim() &&
+    hasDesc
+
   const saveButton = !readOnly && (
     <Button
       onClick={handleSave}
-      disabled={isSaving || slugStatus === 'taken' || formData.nrUri.length < 3}
+      disabled={isSaving || !requiredComplete}
       size="lg"
     >
       {isSaving ? (
@@ -156,7 +166,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
       ) : (
         <Save className="h-4 w-4" />
       )}
-      Save Newsroom Settings
+      Save &amp; Continue
     </Button>
   )
 
@@ -167,9 +177,6 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
 
       {error && (
         <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
-      )}
-      {success && (
-        <div className="text-sm text-green-700 dark:text-green-400 bg-green-50 p-3 rounded-lg">{success}</div>
       )}
 
       {/* Info Card */}
@@ -218,6 +225,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <CardTitle className="text-base flex items-center gap-2">
             <Globe className="h-4 w-4" />
             Newsroom Configuration
+            <span className="ml-auto text-xs font-semibold uppercase tracking-wide text-cyan-800 dark:text-cyan-300 bg-cyan-100 dark:bg-cyan-900/40 rounded-full px-2.5 py-0.5">Required</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -282,6 +290,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
             <Editor
               apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || 'no-api-key'}
               onInit={(_evt, editor) => (editorRef.current = editor)}
+              onEditorChange={(content) => setHasDesc(stripHtml(content) !== '')}
               initialValue={formData.nrDesc}
               init={{
                 height: 400,
@@ -311,6 +320,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <CardTitle className="text-base flex items-center gap-2">
             <Share2 className="h-4 w-4" />
             Social Media Links
+            <span className="ml-auto text-xs font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/40 rounded-full px-2.5 py-0.5">Recommended</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -454,6 +464,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <CardTitle className="text-base flex items-center gap-2">
             <Cloud className="h-4 w-4" />
             Cloud Storage Links
+            <span className="ml-auto text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-0.5">Optional</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -511,6 +522,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <CardTitle className="text-base flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Google My Business
+            <span className="ml-auto text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-0.5">Optional</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
@@ -558,6 +570,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
           <CardTitle className="text-base flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             Agency of Record
+            <span className="ml-auto text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full px-2.5 py-0.5">Optional</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">

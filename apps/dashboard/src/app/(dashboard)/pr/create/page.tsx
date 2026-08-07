@@ -160,7 +160,7 @@ export default async function CreatePRPage({
     redirect("/company/add");
   }
 
-  // Require a fully set up brand profile (through SEO/AIO) before the FIRST
+  // Require a fully set up brand profile (through the newsroom) before the FIRST
   // release can be created. Scoped to users who have never submitted a
   // release, so existing customers with older, partially-filled brand
   // profiles are never locked out of creating new releases.
@@ -203,8 +203,8 @@ export default async function CreatePRPage({
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Your press releases publish with your brand&apos;s logo, contact, newsroom, and
-              SEO/AIO settings — finish these steps and you&apos;ll be ready to write:
+              Your press releases publish with your brand&apos;s logo, contact, and
+              newsroom settings — finish these steps and you&apos;ll be ready to write:
             </p>
             <ul className="space-y-1">
               {firstIncomplete.missing.map((item) => (

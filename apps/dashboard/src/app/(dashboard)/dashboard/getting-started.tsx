@@ -8,14 +8,19 @@ import { Building2, PenLine, Send, Check, CalendarClock } from 'lucide-react'
 // user and offers no next action.
 
 interface GettingStartedProps {
-  // null = no brand yet; otherwise setup completeness through SEO/AIO
+  // null = no brand yet; otherwise setup completeness through the newsroom
   brandSetup: {
     complete: boolean
     missing: { label: string; href: string }[]
     nextHref: string | null
   } | null
+  // UUID of the user's brand, for the edit link once setup is complete
+  brandUuid?: string | null
   hasDraft: boolean
   draftUuid: string | null
+  // First incomplete wizard step of the draft, so the CTA resumes where the
+  // user left off rather than restarting at Details
+  draftNextHref?: string | null
   hasCredits: boolean
   // Live first-press-release-free eligibility (admin toggle + zero credits +
   // no press releases) — the finalize route waives the credit at submit
@@ -46,7 +51,7 @@ function StepBadge({ status, step, icon }: { status: StepStatus; step: number; i
   )
 }
 
-export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, firstReleaseFree = false }: GettingStartedProps) {
+export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, draftNextHref, hasCredits, firstReleaseFree = false }: GettingStartedProps) {
   const brandComplete = !!brandSetup?.complete
   const step1: StepStatus = brandComplete ? 'done' : 'active'
   const step2: StepStatus = hasDraft ? 'done' : brandComplete ? 'active' : 'upcoming'
@@ -55,7 +60,7 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
   return (
     <Card data-tour="dashboard-getting-started" className="border-cyan-600/40">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl">Publish your first press release</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl">Publish your first press release &mdash; on us!</CardTitle>
         <CardDescription className="text-base sm:text-lg">
           {firstReleaseFree ? (
             <>Three steps — and <strong className="font-bold text-gray-900 dark:text-gray-100">your first press release is on us.</strong></>
@@ -76,8 +81,8 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
               </p>
               <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
                 {brandSetup && !brandComplete
-                  ? 'Work through each setup step — brand details, logo, PR contact, newsroom, and SEO/AIO — so your releases publish with your full brand presence.'
-                  : 'Tell us about the company your news is about, then complete its profile — logo, PR contact, newsroom, and SEO/AIO.'}
+                  ? 'Work through each setup step — brand details, logo, PR contact, and newsroom — so your releases publish with your full brand presence.'
+                  : 'Tell us about the company your news is about, then complete its profile — logo, PR contact, and newsroom.'}
               </p>
               {brandSetup && !brandComplete && brandSetup.missing.length > 0 && (
                 <ul className="mt-2 space-y-1">
@@ -100,6 +105,14 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
                   </Link>
                 </Button>
               )}
+              {step1 === 'done' && brandUuid && (
+                <Link
+                  href={`/company/${brandUuid}`}
+                  className="mt-1 inline-block text-sm text-cyan-800 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
+                >
+                  Edit your brand
+                </Link>
+              )}
             </div>
           </li>
 
@@ -107,7 +120,7 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
             <StepBadge status={step2} step={2} icon={<PenLine className="h-5 w-5" />} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step2 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                Write your press release
+                Upload your press release
               </p>
               <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
                 Draft with a live preview, images, and writing help. Writing is free — no credit
@@ -115,7 +128,7 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
               </p>
               {step2 === 'active' && (
                 <Button asChild className="mt-3 bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
-                  <Link href="/pr/create">Start writing — it&apos;s free</Link>
+                  <Link href="/pr/create">Upload Your Release</Link>
                 </Button>
               )}
             </div>
@@ -125,18 +138,18 @@ export function GettingStarted({ brandSetup, hasDraft, draftUuid, hasCredits, fi
             <StepBadge status={step3} step={3} icon={<Send className="h-5 w-5" />} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step3 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                Submit &amp; publish
+                Submit &amp; publish &mdash; It&apos;s Free. Your First Press Release is Complimentary
               </p>
               <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
                 {firstReleaseFree
                   ? 'Your first press release is free — submitting costs nothing. Our editors review your release and distribute it across the network.'
                   : hasCredits
-                    ? 'You already have a PR credit, so submitting costs nothing extra. Our editors review your release and distribute it across the network.'
+                    ? 'Your first press release is free. No credit card required. Our editors review your release and distribute it across the network.'
                     : 'One payment at submission covers your press release credit. Our editors review your release and distribute it across the network.'}
               </p>
               {step3 === 'active' && (
                 <Button asChild className="mt-3 bg-emerald-600 text-white hover:bg-emerald-700">
-                  <Link href={draftUuid ? `/pr/${draftUuid}` : '/pr'}>Finish &amp; submit your release</Link>
+                  <Link href={draftNextHref ?? (draftUuid ? `/pr/${draftUuid}` : '/pr')}>Finish &amp; submit your release</Link>
                 </Button>
               )}
             </div>

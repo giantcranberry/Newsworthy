@@ -4,7 +4,7 @@ import { images, banners } from '@/db/schema'
 import { eq, and, desc, sql } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
-import { getBrandSetupStatus } from '@/lib/brand-setup'
+import { getBrandNavState } from '@/lib/brand-setup'
 import { AssetsForm } from './assets-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -164,7 +164,8 @@ export default async function AssetsPage({
         <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
+      {/* hasAssets forced on: we're on the assets page, so the tab must stay visible */}
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} {...(await getBrandNavState(co))} hasAssets />
 
       <AssetsForm
         readOnly={isReadOnly}

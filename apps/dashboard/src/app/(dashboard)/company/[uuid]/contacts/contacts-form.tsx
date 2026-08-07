@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { Loader2, UserPlus, Pencil, Trash2, Users, Camera, User } from 'lucide-react'
+import { ArrowRight, Loader2, UserPlus, Pencil, Trash2, Users, Camera, User } from 'lucide-react'
 
 interface ContactData {
   uuid: string
@@ -322,6 +323,17 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
           )}
         </CardContent>
       </Card>
+
+      {!readOnly && contactsList.length > 0 && (
+        <div className="flex justify-end mt-6">
+          <Button asChild className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+            <Link href={`/company/${companyUuid}/newsroom`}>
+              Continue
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {/* Add/Edit Contact Modal */}
       <Dialog open={showContactModal} onOpenChange={setShowContactModal}>

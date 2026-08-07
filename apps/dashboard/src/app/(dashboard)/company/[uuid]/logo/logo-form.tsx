@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2, Upload, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { ArrowRight, Loader2, Upload, X } from 'lucide-react'
 
 interface LogoFormProps {
   readOnly?: boolean
@@ -210,6 +212,16 @@ export function LogoForm({ readOnly, companyUuid, currentLogoUrl }: LogoFormProp
         )}
         {logoError && (
           <p className="text-sm text-red-600 dark:text-red-400 mt-1">{logoError}</p>
+        )}
+        {!readOnly && logoUrl && !isUploadingLogo && (
+          <div className="flex justify-end mt-4">
+            <Button asChild className="bg-cyan-800 dark:bg-cyan-600 text-white hover:bg-cyan-900 dark:hover:bg-cyan-700">
+              <Link href={`/company/${companyUuid}/contacts`}>
+                Continue
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>

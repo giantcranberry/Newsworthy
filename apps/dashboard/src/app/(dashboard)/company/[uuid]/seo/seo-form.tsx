@@ -502,7 +502,8 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
         throw new Error(data.error || 'Failed to save')
       }
 
-      setSuccess('SEO settings saved successfully.')
+      // Advance to the next wizard step
+      router.push('/pr/create')
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save')
@@ -525,7 +526,7 @@ export function SeoForm({ readOnly, companyUuid, savedSeo, companyData }: SeoFor
       ) : (
         <Save className="h-4 w-4" />
       )}
-      Save All Settings
+      Save &amp; Continue
     </Button>
   )
 

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getEffectiveSession } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import { CompanyNav } from '@/components/company/company-nav'
-import { getBrandSetupStatus } from '@/lib/brand-setup'
+import { getBrandNavState } from '@/lib/brand-setup'
 import { SeoForm } from './seo-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
@@ -29,7 +29,7 @@ export default async function SeoPage({
         <p className="text-gray-500 dark:text-gray-400">{co.companyName}</p>
       </div>
 
-      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} setupMode={!(await getBrandSetupStatus(co)).complete} />
+      <CompanyNav companyUuid={co.uuid} companyName={co.companyName} {...(await getBrandNavState(co))} />
 
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm font-medium text-blue-900">SEO & AI: Get the most out of your news marketing efforts.</p>

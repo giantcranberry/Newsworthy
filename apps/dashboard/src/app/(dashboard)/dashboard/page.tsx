@@ -296,8 +296,21 @@ export default async function DashboardPage() {
   const hasSubmittedRelease = stats.total > stats.drafts;
   const showGettingStarted = !hasSubmittedRelease && !isClientOnly;
   const draftStatuses = ["draftnxt", "draft", "start"];
-  const draftUuid =
-    releases.find((r) => draftStatuses.includes(r.status))?.uuid ?? null;
+  const draft = releases.find((r) => draftStatuses.includes(r.status)) ?? null;
+  const draftUuid = draft?.uuid ?? null;
+
+  // Deep-link the getting-started CTA to the draft's first incomplete
+  // required wizard step (mirrors isStepComplete in wizard-nav.tsx) instead
+  // of always restarting at Details.
+  let draftNextHref: string | null = null;
+  if (draft) {
+    const base = `/pr/${draft.uuid}`;
+    if (!draft.title || !draft.abstract || !draft.body) draftNextHref = base;
+    else if (!draft.company?.logoUrl) draftNextHref = `${base}/logo`;
+    else if (!draft.bannerId) draftNextHref = `${base}/images`;
+    else if (!draft.distribution) draftNextHref = `${base}/upgrades`;
+    else draftNextHref = `${base}/review`;
+  }
 
   // First-press-release-free offer: live check (toggle + zero credits + no
   // press releases), so flipping the admin toggle changes this immediately
@@ -307,7 +320,7 @@ export default async function DashboardPage() {
       : false;
 
   // Brand-profile setup state for the checklist: step 1 counts as done only
-  // when the profile is complete through SEO/AIO, not merely created
+  // when the profile is complete through the newsroom, not merely created
   const brandSetup =
     showGettingStarted && companies.length > 0
       ? await getBrandSetupStatus(companies[0])
@@ -353,8 +366,10 @@ export default async function DashboardPage() {
           {!canCreate && <div data-tour="dashboard-empty" className="hidden" />}
           <GettingStarted
             brandSetup={brandSetup}
+            brandUuid={companies[0]?.uuid ?? null}
             hasDraft={stats.drafts > 0}
             draftUuid={draftUuid}
+            draftNextHref={draftNextHref}
             hasCredits={allCredits.totalPr > 0}
             firstReleaseFree={firstReleaseFree}
           />

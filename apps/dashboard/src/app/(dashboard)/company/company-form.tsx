@@ -138,7 +138,7 @@ export function CompanyForm({ initialData, pageTitle, pageDescription, headerExt
                 ) : (
                   <Save className="h-4 w-4" />
                 )}
-                {initialData?.uuid ? 'Save Changes' : 'Create Brand'}
+                {initialData?.uuid ? 'Save Changes' : 'Save & Continue'}
               </Button>
             </div>
           )}

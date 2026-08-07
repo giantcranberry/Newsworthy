@@ -116,6 +116,19 @@ export async function PUT(
     return NextResponse.json({ error: 'This newsroom address is already taken' }, { status: 409 })
   }
 
+  // Seed the optional SEO/AIO tab's newsroom meta defaults from the newsroom
+  // title and description. Only empty fields are filled — anything already
+  // set on the SEO/AIO tab is kept.
+  const existingSeo = (co.seo && typeof co.seo === 'object' ? co.seo : {}) as Record<string, unknown>
+  const existingMeta = (existingSeo.meta && typeof existingSeo.meta === 'object' ? existingSeo.meta : {}) as Record<string, unknown>
+  const metaTitle = typeof existingMeta.title === 'string' && existingMeta.title.trim()
+    ? existingMeta.title
+    : nrTitle.trim().slice(0, 128)
+  const metaDescription = typeof existingMeta.description === 'string' && existingMeta.description.trim()
+    ? existingMeta.description
+    : (descText.length > 160 ? descText.slice(0, 157).replace(/\s+\S*$/, '') + '…' : descText)
+  const seo = { ...existingSeo, meta: { ...existingMeta, title: metaTitle, description: metaDescription } }
+
   // Log old URI for redirect if it changed
   if (co.nrUri && co.nrUri !== slug) {
     await db.insert(newsroomRedirects).values({
@@ -148,6 +161,7 @@ export async function PUT(
       agencyContactPhone: agencyContactPhone?.trim() || null,
       agencyContactEmail: agencyContactEmail?.trim() || null,
       gmb: gmb?.trim() || null,
+      seo,
     })
     .where(eq(company.id, co.id))
 
