@@ -695,9 +695,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           {yahooFinanceUrls.map((url, i) => (
             <LogoCard key={`yahoo-${i}`} logo="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
           ))}
-          {clips.streetinsiderUrl && (
-            <LogoCard logo="https://cdn.newsramp.app/logos/streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} />
-          )}
+          <LogoCard logo="https://us-southeast-1.linodeobjects.com/cdn.newsramp.app/nwai-assets/1786077136988-streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl || 'https://www.streetinsider.com/Newsworthy'} />
           <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
         </div>
       </SectionCard>
