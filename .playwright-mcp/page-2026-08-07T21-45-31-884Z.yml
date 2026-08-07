@@ -1,0 +1,38 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - img "Newsworthy" [ref=e5]
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "Welcome back" [level=1] [ref=e8]
+        - paragraph [ref=e9]: Sign in to your account to continue
+      - generic [ref=e10]:
+        - button "Password" [ref=e11] [cursor=pointer]
+        - button "Magic Link" [ref=e12] [cursor=pointer]
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - text: Email Address
+          - textbox "Email Address" [ref=e19]:
+            - /placeholder: you@example.com
+            - text: david+claudetest1@teamliveoak.com
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e22]: Password
+            - link "Forgot password?" [ref=e23] [cursor=pointer]:
+              - /url: /forgot-password
+          - generic [ref=e24]:
+            - textbox "Password" [ref=e28]:
+              - /placeholder: Enter your password
+              - text: testpass1234
+            - button "Show password" [ref=e29] [cursor=pointer]
+        - button "Sign In" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]: Or continue with
+      - generic [ref=e39]:
+        - button "Google" [ref=e40] [cursor=pointer]
+        - button "LinkedIn" [ref=e41] [cursor=pointer]
+      - paragraph [ref=e42]:
+        - text: Don't have an account?
+        - link "Sign up" [ref=e43] [cursor=pointer]:
+          - /url: /register
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e49] [cursor=pointer]
+  - alert [ref=e53]

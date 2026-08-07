@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Building2, PenLine, Send, Check, CalendarClock } from 'lucide-react'
+import { Check, CalendarClock } from 'lucide-react'
 
 // Guided path shown on the dashboard until the user submits their first press
 // release. Replaces the stats grid, which reads as a wall of zeros to a new
@@ -29,7 +29,7 @@ interface GettingStartedProps {
 
 type StepStatus = 'done' | 'active' | 'upcoming'
 
-function StepBadge({ status, step, icon }: { status: StepStatus; step: number; icon: React.ReactNode }) {
+function StepBadge({ status, step }: { status: StepStatus; step: number }) {
   if (status === 'done') {
     return (
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
@@ -39,14 +39,14 @@ function StepBadge({ status, step, icon }: { status: StepStatus; step: number; i
   }
   return (
     <div
-      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
         status === 'active'
           ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-400 ring-2 ring-cyan-600'
           : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'
       }`}
       aria-label={`Step ${step}`}
     >
-      {icon}
+      {step}
     </div>
   )
 }
@@ -74,7 +74,7 @@ export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, dra
       <CardContent>
         <ol className="space-y-6">
           <li className="flex gap-4">
-            <StepBadge status={step1} step={1} icon={<Building2 className="h-5 w-5" />} />
+            <StepBadge status={step1} step={1} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step1 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                 {brandSetup && !brandComplete ? 'Complete your brand profile' : 'Create your brand profile'}
@@ -117,7 +117,7 @@ export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, dra
           </li>
 
           <li className="flex gap-4">
-            <StepBadge status={step2} step={2} icon={<PenLine className="h-5 w-5" />} />
+            <StepBadge status={step2} step={2} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step2 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                 Upload your press release
@@ -135,7 +135,7 @@ export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, dra
           </li>
 
           <li className="flex gap-4">
-            <StepBadge status={step3} step={3} icon={<Send className="h-5 w-5" />} />
+            <StepBadge status={step3} step={3} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step3 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
                 Submit &amp; publish &mdash; It&apos;s Free. Your First Press Release is Complimentary

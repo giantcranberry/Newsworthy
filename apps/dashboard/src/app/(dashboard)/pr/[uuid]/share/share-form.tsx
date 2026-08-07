@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
-import { Share2, X, Check, Users, Plus, Loader2, Newspaper } from 'lucide-react'
+import { Share2, X, Check, Users, Plus, Loader2, Newspaper, Info } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ShareFormProps {
@@ -129,10 +129,32 @@ export function ShareForm({
       />
       {children}
 
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-400">
-          <span className="font-medium">This feature is optional.</span> A share list of at least {MIN_SHARE_LIST} individuals is required to activate Share List Reporting.
-        </p>
+      <div className="rounded-xl border-2 border-amber-400 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/40 p-5 shadow-sm">
+        <div className="flex gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-200 dark:bg-amber-900/60">
+            <Info className="h-5 w-5 text-amber-800 dark:text-amber-300" />
+          </div>
+          <div className="min-w-0 space-y-3">
+            <div>
+              <p className="text-base font-bold text-amber-950 dark:text-amber-100">
+                Light a fire under your news
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+                When you send out a press release, we email your Share List a link to your news —
+                with a custom share link so every open and share can be tracked. It&apos;s the fastest
+                way to turn your own network into distribution.
+              </p>
+            </div>
+            <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">
+              There&apos;s no limit to how many people you can add. We only ask that they be known
+              to you — employees, shareholders, family, friends, vendors, customers — generally
+              everyone in your network.
+            </p>
+            <p className="text-base font-semibold text-amber-950 dark:text-amber-100">
+              Optional, but powerful. A list of at least {MIN_SHARE_LIST} people unlocks Share List Reporting.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Add to My Share List Card */}

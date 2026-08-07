@@ -437,6 +437,21 @@ export function ReviewContent({
   const [acceptingHeadline, setAcceptingHeadline] = useState<number | null>(null);
   const [confirmHeadline, setConfirmHeadline] = useState<number | null>(null);
 
+  // Chunk rewrite flow: generate → preview/approve → apply
+  const [rewritingChunk, setRewritingChunk] = useState<number | null>(null);
+  const [chunkRewritePreview, setChunkRewritePreview] = useState<{
+    index: number;
+    originalText: string;
+    rewrittenText: string;
+  } | null>(null);
+  const [applyingChunkRewrite, setApplyingChunkRewrite] = useState(false);
+  const [acceptedChunkRewrites, setAcceptedChunkRewrites] = useState<
+    Map<number, { originalText: string; rewrittenText: string }>
+  >(new Map());
+  const [undoingChunkRewrite, setUndoingChunkRewrite] = useState<number | null>(
+    null,
+  );
+
   const loadAIAnalysis = async (forceRefresh = false) => {
     setIsLoadingAI(true);
     setAiError(null);
@@ -575,6 +590,133 @@ export function ReviewContent({
       alert("Failed to undo change");
     } finally {
       setUndoingImprovement(null);
+    }
+  };
+
+  const handleRewriteChunk = async (index: number) => {
+    const chunk = aiBrandableChunks[index];
+    if (!chunk) return;
+
+    setRewritingChunk(index);
+    setAiError(null);
+
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/rewrite-chunk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chunkContent: chunk.chunkContent,
+          currentIssue: chunk.currentIssue,
+          recommendation: chunk.recommendation,
+          companyName: company.companyName,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to rewrite section");
+      }
+
+      setChunkRewritePreview({
+        index,
+        originalText: data.originalText || chunk.chunkContent,
+        rewrittenText: data.rewrittenText,
+      });
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "Failed to rewrite section");
+    } finally {
+      setRewritingChunk(null);
+    }
+  };
+
+  const handleApplyChunkRewrite = async () => {
+    if (!chunkRewritePreview) return;
+
+    setApplyingChunkRewrite(true);
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/apply-edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalText: chunkRewritePreview.originalText,
+          improvedText: chunkRewritePreview.rewrittenText,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to apply rewrite");
+        return;
+      }
+
+      const rewrittenText = chunkRewritePreview.rewrittenText;
+      setAcceptedChunkRewrites((prev) => {
+        const next = new Map(prev);
+        next.set(chunkRewritePreview.index, {
+          originalText: chunkRewritePreview.originalText,
+          rewrittenText,
+        });
+        return next;
+      });
+      setAiBrandableChunks((prev) =>
+        prev.map((chunk, i) =>
+          i === chunkRewritePreview.index
+            ? { ...chunk, chunkContent: rewrittenText }
+            : chunk,
+        ),
+      );
+      // Close approval dialog first, then open preview + flash like copy improvements
+      setChunkRewritePreview(null);
+      requestAnimationFrame(() => {
+        window.dispatchEvent(
+          new CustomEvent("preview-highlight", {
+            detail: { text: rewrittenText },
+          }),
+        );
+      });
+    } catch {
+      alert("Failed to apply rewrite");
+    } finally {
+      setApplyingChunkRewrite(false);
+    }
+  };
+
+  const handleUndoChunkRewrite = async (index: number) => {
+    const applied = acceptedChunkRewrites.get(index);
+    if (!applied) return;
+
+    setUndoingChunkRewrite(index);
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/apply-edit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalText: applied.rewrittenText,
+          improvedText: applied.originalText,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "Failed to undo rewrite");
+        return;
+      }
+
+      setAcceptedChunkRewrites((prev) => {
+        const next = new Map(prev);
+        next.delete(index);
+        return next;
+      });
+      setAiBrandableChunks((prev) =>
+        prev.map((chunk, i) =>
+          i === index ? { ...chunk, chunkContent: applied.originalText } : chunk,
+        ),
+      );
+      window.dispatchEvent(new Event("preview-refresh"));
+    } catch {
+      alert("Failed to undo rewrite");
+    } finally {
+      setUndoingChunkRewrite(null);
     }
   };
 
@@ -1518,44 +1660,162 @@ export function ReviewContent({
                     likely extract for indexing.
                   </p>
                   <div className="space-y-4">
-                    {aiBrandableChunks.map((chunk, index) => (
-                      <div
-                        key={index}
-                        className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium">
-                            Chunk {index + 1}
-                          </span>
-                          <span
-                            className={cn(
-                              "text-xs font-medium px-2 py-0.5 rounded",
-                              chunk.brandability === "High"
-                                ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                                : chunk.brandability === "Medium"
-                                  ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
-                                  : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
-                            )}
-                          >
-                            {chunk.brandability} Brandability
-                          </span>
+                    {aiBrandableChunks.map((chunk, index) => {
+                      const isRewriting = rewritingChunk === index;
+                      const appliedRewrite = acceptedChunkRewrites.get(index);
+                      return (
+                        <div
+                          key={index}
+                          className={cn(
+                            "p-4 border rounded-lg",
+                            appliedRewrite
+                              ? "border-green-300 dark:border-green-700 bg-green-50/50 dark:bg-green-950/30"
+                              : "border-gray-200 dark:border-gray-800",
+                          )}
+                        >
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-sm font-medium">
+                              Chunk {index + 1}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-xs font-medium px-2 py-0.5 rounded",
+                                chunk.brandability === "High"
+                                  ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+                                  : chunk.brandability === "Medium"
+                                    ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
+                                    : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+                              )}
+                            >
+                              {chunk.brandability} Brandability
+                            </span>
+                            <div className="ml-auto">
+                              {appliedRewrite ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 dark:text-green-400">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    Rewritten
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleUndoChunkRewrite(index)}
+                                    disabled={undoingChunkRewrite === index}
+                                    className="text-gray-500 dark:text-gray-400 hover:text-gray-700 h-7 px-2"
+                                  >
+                                    {undoingChunkRewrite === index ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <Undo2 className="h-3.5 w-3.5" />
+                                    )}
+                                    {undoingChunkRewrite === index
+                                      ? "Undoing..."
+                                      : "Undo"}
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleRewriteChunk(index)}
+                                  disabled={isRewriting || rewritingChunk !== null}
+                                  className="h-7 px-2"
+                                >
+                                  {isRewriting ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                  )}
+                                  {isRewriting
+                                    ? "Rewriting..."
+                                    : "Rewrite section?"}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-gray-950 p-3 rounded text-sm text-gray-700 dark:text-gray-300 mb-3 max-h-40 overflow-y-auto">
+                            {chunk.chunkContent}
+                          </div>
+                          <div className="text-sm">
+                            <p className="text-gray-600 dark:text-gray-400">
+                              <span className="font-medium">Issue:</span>{" "}
+                              {chunk.currentIssue}
+                            </p>
+                            <p className="text-blue-600 dark:text-blue-400 mt-1">
+                              <span className="font-medium">Recommendation:</span>{" "}
+                              {chunk.recommendation}
+                            </p>
+                          </div>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-950 p-3 rounded text-sm text-gray-700 dark:text-gray-300 mb-3 max-h-40 overflow-y-auto">
-                          {chunk.chunkContent}
-                        </div>
-                        <div className="text-sm">
-                          <p className="text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">Issue:</span>{" "}
-                            {chunk.currentIssue}
-                          </p>
-                          <p className="text-blue-600 dark:text-blue-400 mt-1">
-                            <span className="font-medium">Recommendation:</span>{" "}
-                            {chunk.recommendation}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
+
+                  <Dialog
+                    open={chunkRewritePreview !== null}
+                    onOpenChange={(open) => {
+                      if (!open && !applyingChunkRewrite) {
+                        setChunkRewritePreview(null);
+                      }
+                    }}
+                  >
+                    <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>
+                          Approve rewritten section
+                          {chunkRewritePreview
+                            ? ` — Chunk ${chunkRewritePreview.index + 1}`
+                            : ""}
+                        </DialogTitle>
+                        <DialogDescription>
+                          Review the AI rewrite below. Nothing changes in your
+                          press release until you approve.
+                        </DialogDescription>
+                      </DialogHeader>
+                      {chunkRewritePreview && (
+                        <div className="space-y-4 py-2">
+                          <div>
+                            <p className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide mb-1">
+                              Current
+                            </p>
+                            <p className="text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded border-l-2 border-red-300 dark:border-red-700 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {chunkRewritePreview.originalText}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide mb-1">
+                              Proposed rewrite
+                            </p>
+                            <p className="text-sm bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded border-l-2 border-emerald-300 dark:border-emerald-700 max-h-48 overflow-y-auto whitespace-pre-wrap">
+                              {chunkRewritePreview.rewrittenText}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setChunkRewritePreview(null)}
+                          disabled={applyingChunkRewrite}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleApplyChunkRewrite}
+                          disabled={applyingChunkRewrite}
+                        >
+                          {applyingChunkRewrite ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4" />
+                          )}
+                          {applyingChunkRewrite
+                            ? "Applying..."
+                            : "Approve & Replace"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               )}
 

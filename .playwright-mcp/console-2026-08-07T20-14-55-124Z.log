@@ -1,0 +1,6 @@
+[      49ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://austinmetrowire.localhost:3002/:0
+[      97ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://austinmetrowire.localhost:3002/_next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:14537
+[     271ms] [LOG] [Fast Refresh] rebuilding @ http://austinmetrowire.localhost:3002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5949
+[     371ms] [LOG] [Fast Refresh] done in 200ms @ http://austinmetrowire.localhost:3002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5809
+[     681ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://austinmetrowire.localhost:3002/favicon.ico:0
+[    3686ms] [WARNING] The resource http://austinmetrowire.localhost:3002/_next/static/chunks/apps_public-site_app_globals_b382d9d2.css was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://austinmetrowire.localhost:3002/:0

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,6 @@ import {
   Clock,
   MinusCircle,
   Loader2,
-  AlertTriangle,
   Send,
   UserPlus,
 } from 'lucide-react'
@@ -42,41 +41,16 @@ interface ApprovalSectionProps {
   approvals: Approval[]
   priorApprovers: PriorApprover[]
   onApprovalsChange?: (approvals: Approval[]) => void
+  /** True when the user opted in and has not yet added any requests (blocks Ready to Submit). */
+  onAwaitingApproversChange?: (awaiting: boolean) => void
 }
 
-const QUESTIONS = [
-  {
-    id: 'ticker',
-    question: 'Does your press release include stock ticker symbols?',
-    guidance:
-      'Releases that include stock ticker symbols may be subject to SEC regulations. A qualified representative should review the release before distribution.',
-  },
-  {
-    id: 'mergers',
-    question: 'Does your press release announce mergers or acquisitions?',
-    guidance:
-      'Merger and acquisition announcements require careful review by legal counsel to ensure compliance with securities regulations and contractual obligations.',
-  },
-  {
-    id: 'thirdparty',
-    question: 'Does your press release mention a third party company?',
-    guidance:
-      'When mentioning third parties, it is best practice to get their approval before distribution to avoid potential disputes or misrepresentation claims.',
-  },
-  {
-    id: 'person',
-    question:
-      'Does your press release quote or mention a person material to the release?',
-    guidance:
-      'Any person quoted or mentioned materially should review and approve the release to verify accuracy and grant permission for use of their name or likeness.',
-  },
-  {
-    id: 'blame',
-    question: 'Do you want to be blamed if there are problems with the release?',
-    yesIsNo: true,
-    guidance:
-      'Having a stakeholder review and approve the release helps protect you from liability and ensures accuracy across all parties involved.',
-  },
+const REASONS = [
+  'Your press release includes stock ticker symbols',
+  'Your press release announces mergers or acquisitions',
+  'Your press release mentions a third-party company',
+  'Your press release quotes or mentions a person material to the release',
+  'You want a stakeholder to share responsibility for the release',
 ]
 
 function formatDate(dateStr: string | null) {
@@ -96,12 +70,15 @@ export function ApprovalSection({
   approvals: approvalList,
   priorApprovers,
   onApprovalsChange,
+  onAwaitingApproversChange,
 }: ApprovalSectionProps) {
   const setApprovalList = (updater: Approval[] | ((prev: Approval[]) => Approval[])) => {
     const newList = typeof updater === 'function' ? updater(approvalList) : updater
     onApprovalsChange?.(newList)
   }
-  const [answers, setAnswers] = useState<Record<string, 'yes' | 'no'>>({})
+
+  // Opt into the approval flow when the user says yes, or when requests already exist
+  const [approvalRequired, setApprovalRequired] = useState(approvalList.length > 0)
   const [selectedPrior, setSelectedPrior] = useState<Set<string>>(new Set())
   const [newName, setNewName] = useState('')
   const [newEmail, setNewEmail] = useState('')
@@ -110,19 +87,10 @@ export function ApprovalSection({
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const needsApproval = QUESTIONS.some((q) => {
-    const answer = answers[q.id]
-    if (!answer) return false
-    if (q.yesIsNo) return answer === 'no'
-    return answer === 'yes'
-  })
-
-  // Show form as soon as any triggering answer is given (matches Flask behavior)
-  const showForm = needsApproval
-
-  const handleAnswer = (questionId: string, value: 'yes' | 'no') => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }))
-  }
+  // Parent hides Ready to Submit while opted-in with zero requests yet
+  useEffect(() => {
+    onAwaitingApproversChange?.(approvalRequired && approvalList.length === 0)
+  }, [approvalRequired, approvalList.length, onAwaitingApproversChange])
 
   const togglePriorApprover = (email: string) => {
     setSelectedPrior((prev) => {
@@ -162,9 +130,7 @@ export function ApprovalSection({
         throw new Error(data.error || 'Failed to create approval request')
       }
 
-      // Add new approvals to the list
       setApprovalList((prev) => [...prev, ...data.approvals])
-      // Reset form
       setSelectedPrior(new Set())
       setNewName('')
       setNewEmail('')
@@ -191,13 +157,21 @@ export function ApprovalSection({
         throw new Error(data.error || 'Failed to delete approval')
       }
 
-      // Optimistic removal
       setApprovalList((prev) => prev.filter((a) => a.uuid !== approvalUuid))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setDeletingId(null)
     }
+  }
+
+  const handleCancel = () => {
+    setApprovalRequired(false)
+    setError(null)
+    setSelectedPrior(new Set())
+    setNewName('')
+    setNewEmail('')
+    setNotes('')
   }
 
   return (
@@ -213,7 +187,6 @@ export function ApprovalSection({
         {approvalList.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Approval History</h3>
-            {/* Legend */}
             <div className="flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Approved
@@ -305,61 +278,43 @@ export function ApprovalSection({
           </div>
         )}
 
-        {/* Questionnaire */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Is Stakeholder Approval Required?
-          </h2>
-          <div className="space-y-3">
-            {QUESTIONS.map((q) => (
-              <div key={q.id} className="space-y-1.5">
-                <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">{q.question}</p>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value="yes"
-                        checked={answers[q.id] === 'yes'}
-                        onChange={() => handleAnswer(q.id, 'yes')}
-                        className="h-4 w-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700"
-                      />
-                      <span className="text-sm text-gray-900 dark:text-gray-100">Yes</span>
-                    </label>
-                    <label className="flex items-center gap-1.5 cursor-pointer">
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value="no"
-                        checked={answers[q.id] === 'no'}
-                        onChange={() => handleAnswer(q.id, 'no')}
-                        className="h-4 w-4 text-blue-600 dark:text-blue-400 border-gray-300 dark:border-gray-700"
-                      />
-                      <span className="text-sm text-gray-900 dark:text-gray-100">No</span>
-                    </label>
-                  </div>
-                </div>
-                {/* Show guidance when the "triggering" answer is given */}
-                {answers[q.id] &&
-                  ((q.yesIsNo && answers[q.id] === 'no') ||
-                    (!q.yesIsNo && answers[q.id] === 'yes')) && (
-                    <div className="flex items-start gap-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 rounded-md text-xs text-amber-800 dark:text-amber-400">
-                      <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                      <span>{q.guidance}</span>
-                    </div>
-                  )}
-              </div>
-            ))}
+        {!approvalRequired ? (
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Is Stakeholder Approval Required?
+              </h2>
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                Stakeholder approval may be required if:
+              </p>
+              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-gray-700 dark:text-gray-300">
+                {REASONS.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </div>
+            <Button onClick={() => setApprovalRequired(true)}>
+              Yes — Stakeholder Approval Is Required
+            </Button>
           </div>
-        </div>
-
-        {/* Approval Request Form */}
-        {showForm && (
-          <div className="space-y-4 border-t border-gray-200 dark:border-gray-800 pt-4">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Request Approval
-            </h3>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  Request Stakeholder Approval
+                </h2>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  Add one or more stakeholders. Ready to Submit stays hidden until every
+                  request is approved or deleted.
+                </p>
+              </div>
+              {approvalList.length === 0 && (
+                <Button variant="outline" onClick={handleCancel} className="shrink-0">
+                  Cancel
+                </Button>
+              )}
+            </div>
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-md text-sm">
@@ -368,7 +323,6 @@ export function ApprovalSection({
               </div>
             )}
 
-            {/* Prior Approvers */}
             {priorApprovers.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-sm text-gray-600 dark:text-gray-400">
@@ -410,7 +364,6 @@ export function ApprovalSection({
               </div>
             )}
 
-            {/* New Approver */}
             <div className="space-y-3">
               <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
                 <UserPlus className="h-4 w-4" />
@@ -439,7 +392,6 @@ export function ApprovalSection({
               </div>
             </div>
 
-            {/* Notes */}
             <div className="space-y-1.5">
               <Label htmlFor="approval-notes">Notes (optional)</Label>
               <Textarea
@@ -451,13 +403,11 @@ export function ApprovalSection({
               />
             </div>
 
-            {/* Warning */}
             <p className="text-xs text-gray-600 dark:text-gray-400">
               The approval link will give the recipient access to view the full
               press release content. Only send to trusted stakeholders.
             </p>
 
-            {/* Submit */}
             <Button
               onClick={handleSubmit}
               disabled={
@@ -475,15 +425,6 @@ export function ApprovalSection({
                 </>
               )}
             </Button>
-          </div>
-        )}
-
-        {/* Message when all questions are answered and no approval needed */}
-        {QUESTIONS.every((q) => answers[q.id]) && !needsApproval && (
-          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-md text-sm">
-            <CheckCircle2 className="h-4 w-4" />
-            Based on your answers, stakeholder approval does not appear to be
-            required. You may proceed with distribution.
           </div>
         )}
       </CardContent>

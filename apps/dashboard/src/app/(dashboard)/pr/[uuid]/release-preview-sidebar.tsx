@@ -90,9 +90,9 @@ export function ReleasePreviewSidebar() {
     setPanelWidth(Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, DEVICE_SNAP_WIDTHS[mode])))
   }, [])
 
-  const highlightText = useCallback((text: string) => {
+  const highlightText = useCallback((text: string): boolean => {
     const container = scrollRef.current
-    if (!container) return
+    if (!container) return false
 
     // Walk text nodes to find the matching text
     const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
@@ -104,10 +104,44 @@ export function ReleasePreviewSidebar() {
       accumulated += node.textContent || ''
     }
 
-    const matchIndex = accumulated.indexOf(text)
-    if (matchIndex === -1) return
+    // Exact match first; fall back to whitespace-normalized (chunk rewrites
+    // often differ only in newlines/spacing from the rendered preview).
+    let matchIndex = accumulated.indexOf(text)
+    let matchEnd = matchIndex + text.length
 
-    const matchEnd = matchIndex + text.length
+    if (matchIndex === -1) {
+      const mapNormToOriginal = (original: string, normTarget: number) => {
+        let oi = 0
+        let ni = 0
+        while (oi < original.length && ni < normTarget) {
+          if (/\s/.test(original[oi]!)) {
+            while (oi < original.length && /\s/.test(original[oi]!)) oi++
+            ni++
+          } else {
+            oi++
+            ni++
+          }
+        }
+        return oi
+      }
+
+      const normAccumulated = accumulated.replace(/\s+/g, ' ')
+      const normText = text.replace(/\s+/g, ' ').trim()
+      let normIndex = normAccumulated.indexOf(normText)
+      let normLen = normText.length
+
+      // Long sections: anchor on the opening span if the full rewrite isn't contiguous
+      if (normIndex === -1 && normText.length > 80) {
+        const anchor = normText.slice(0, 80)
+        normIndex = normAccumulated.indexOf(anchor)
+        normLen = anchor.length
+      }
+
+      if (normIndex === -1) return false
+      matchIndex = mapNormToOriginal(accumulated, normIndex)
+      matchEnd = mapNormToOriginal(accumulated, normIndex + normLen)
+    }
+
     let startNode: Text | null = null
     let startOffset = 0
     let endNode: Text | null = null
@@ -126,7 +160,7 @@ export function ReleasePreviewSidebar() {
       }
     }
 
-    if (!startNode || !endNode) return
+    if (!startNode || !endNode) return false
 
     const range = document.createRange()
     range.setStart(startNode, startOffset)
@@ -146,6 +180,7 @@ export function ReleasePreviewSidebar() {
           parent.normalize()
         }
       }, { once: true })
+      return true
     } catch {
       // Fallback if text spans multiple elements: highlight the parent block
       const el = startNode.parentElement
@@ -153,38 +188,63 @@ export function ReleasePreviewSidebar() {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' })
         el.classList.add('preview-highlight-flash')
         el.addEventListener('animationend', () => el.classList.remove('preview-highlight-flash'), { once: true })
+        return true
       }
+      return false
     }
   }, [])
 
   const fetchPreview = useCallback(() => {
-    fetch(`/api/pr/${uuid}/preview?t=${Date.now()}`)
+    return fetch(`/api/pr/${uuid}/preview?t=${Date.now()}`)
       .then((res) => res.ok ? res.json() : null)
       .then((d) => {
         setData(d)
-        if (pendingHighlightText.current) {
-          const text = pendingHighlightText.current
-          pendingHighlightText.current = null
-          // Wait for React to render new data before searching DOM
-          requestAnimationFrame(() => highlightText(text))
-        }
+        return d
       })
       .catch(() => null)
-  }, [uuid, highlightText])
+  }, [uuid])
 
   useEffect(() => {
     fetchPreview()
   }, [fetchPreview])
+
+  // Apply a pending highlight once the preview panel is open and rendered
+  useEffect(() => {
+    if (!visible || !data || !pendingHighlightText.current) return
+
+    const text = pendingHighlightText.current
+    const timer = window.setTimeout(() => {
+      if (!pendingHighlightText.current) return
+      const ok = highlightText(pendingHighlightText.current)
+      if (ok) {
+        pendingHighlightText.current = null
+      } else {
+        // Content may still be settling after fetch — retry once shortly
+        window.setTimeout(() => {
+          if (pendingHighlightText.current === text && highlightText(text)) {
+            pendingHighlightText.current = null
+          }
+        }, 150)
+      }
+    }, 50)
+
+    return () => clearTimeout(timer)
+  }, [visible, data, highlightText])
 
   // Re-fetch preview periodically and on explicit refresh events
   useEffect(() => {
     const handler = () => fetchPreview()
     const highlightHandler = (e: Event) => {
       const text = (e as CustomEvent<{ text: string }>).detail?.text
-      if (text) {
-        pendingHighlightText.current = text
-        fetchPreview()
-      }
+      if (!text) return
+      pendingHighlightText.current = text
+      // Ensure the preview sidebar is open so the flash can render
+      setVisible((v) => {
+        if (v) return v
+        sessionStorage.setItem('preview-visible', 'true')
+        return true
+      })
+      fetchPreview()
     }
     window.addEventListener('preview-refresh', handler)
     window.addEventListener('preview-highlight', highlightHandler)

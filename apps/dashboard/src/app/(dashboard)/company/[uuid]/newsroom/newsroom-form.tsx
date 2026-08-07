@@ -21,6 +21,7 @@ import {
   ExternalLink,
   CheckCircle2,
   XCircle,
+  Sparkles,
 } from 'lucide-react'
 
 interface NewsroomFormData {
@@ -63,6 +64,7 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
   // stay disabled until all required fields are filled.
   const [hasDesc, setHasDesc] = useState(() => stripHtml(initialData.nrDesc) !== '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isPopulating, setIsPopulating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Slug validation
@@ -71,6 +73,64 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
   const updateField = (field: keyof NewsroomFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
+
+  const handlePopulateWithAI = useCallback(async () => {
+    if (!formData.website) {
+      setError('Add a website URL on your brand profile first, then try Populate with AI.')
+      return
+    }
+
+    setIsPopulating(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/company/${companyUuid}/newsroom/prefill`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: formData.website }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to populate from website')
+      }
+
+      setFormData((prev) => {
+        const next = { ...prev }
+        // Only suggest a new slug when the field is still empty
+        if (!prev.nrUri && data.nrUri) next.nrUri = data.nrUri
+        if (data.nrTitle) next.nrTitle = data.nrTitle
+        if (data.nrDesc) next.nrDesc = data.nrDesc
+        if (data.website) next.website = data.website
+
+        const urlFields: (keyof NewsroomFormData)[] = [
+          'linkedinUrl',
+          'xUrl',
+          'facebookUrl',
+          'instagramUrl',
+          'youtubeUrl',
+          'tiktokUrl',
+          'blogUrl',
+          'podcastFeedUrl',
+        ]
+        for (const field of urlFields) {
+          if (data[field] && !prev[field]) {
+            next[field] = data[field]
+          }
+        }
+        return next
+      })
+
+      if (data.nrDesc) {
+        editorRef.current?.setContent(data.nrDesc)
+        setHasDesc(stripHtml(data.nrDesc) !== '')
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to populate from website')
+    } finally {
+      setIsPopulating(false)
+    }
+  }, [companyUuid, formData.website])
 
   const handleSlugChange = (value: string) => {
     const cleaned = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').slice(0, 32)
@@ -177,6 +237,40 @@ export function NewsroomForm({ readOnly, companyUuid, initialData }: NewsroomFor
 
       {error && (
         <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{error}</div>
+      )}
+
+      {!readOnly && (
+        <div className="rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 p-4 space-y-3">
+          <div>
+            <p className="text-sm font-medium text-purple-900 dark:text-purple-100">
+              Populate with AI
+            </p>
+            <p className="text-sm text-purple-700 dark:text-purple-300 mt-0.5">
+              {formData.website
+                ? `We'll visit ${formData.website} and fill in your newsroom title, description, and social links.`
+                : 'Add a website URL on your brand profile first, then we can populate this page from it.'}
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={handlePopulateWithAI}
+            disabled={isPopulating || !formData.website}
+            variant="outline"
+            className="border-purple-300 text-purple-700 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40"
+          >
+            {isPopulating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Reading website...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Populate with AI
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       {/* Info Card */}

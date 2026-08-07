@@ -223,11 +223,17 @@ export function FinalizeContent({
 
   // Shared approval state — updated by ApprovalSection via callback
   const [approvalList, setApprovalList] = useState<Approval[]>(initialApprovals)
+  // Opted into approval but has not added any requests yet
+  const [awaitingApprovers, setAwaitingApprovers] = useState(false)
 
   const hasBlockingApprovals = useMemo(
     () => approvalList.some((a) => !a.signedAt || (a.signedAt && !a.approved)),
     [approvalList]
   )
+
+  // Hide Ready to Submit while approvals are pending/rejected, or while the
+  // user has opted in but not yet added any approvers.
+  const hideReadyToSubmit = hasBlockingApprovals || awaitingApprovers
 
   const handleSubmit = async () => {
     if (!confirmed) return
@@ -310,6 +316,7 @@ export function FinalizeContent({
         approvals={approvalList}
         priorApprovers={priorApprovers}
         onApprovalsChange={setApprovalList}
+        onAwaitingApproversChange={setAwaitingApprovers}
       />
 
       {error && (
@@ -434,6 +441,25 @@ export function FinalizeContent({
         </Card>
       )}
 
+      {hideReadyToSubmit ? (
+        <Card className="border-amber-200 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-900 dark:text-amber-300">
+                  Ready to Submit is paused
+                </p>
+                <p className="mt-1 text-sm text-amber-800 dark:text-amber-400">
+                  {awaitingApprovers
+                    ? 'Add at least one stakeholder approval request, or cancel if approval is not needed.'
+                    : 'All stakeholder approval requests must be approved or deleted before you can submit.'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
@@ -559,15 +585,6 @@ export function FinalizeContent({
             </div>
           </div>
 
-          {hasBlockingApprovals && (
-            <div className="flex items-center gap-2 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400 rounded-lg">
-              <AlertCircle className="h-5 w-5 flex-shrink-0" />
-              <p className="text-sm">
-                You have pending or unapproved stakeholder approval requests. All approvals must be approved or deleted before you can submit.
-              </p>
-            </div>
-          )}
-
           {needsPayment && (
             <div className="flex items-center gap-2 p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-400 rounded-lg">
               <AlertCircle className="h-5 w-5 flex-shrink-0" />
@@ -580,8 +597,8 @@ export function FinalizeContent({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={!confirmed || isSubmitting || hasBlockingApprovals || !!dateError || missingItems.length > 0 || needsPayment}
-              className={`flex-1 ${confirmed && !hasBlockingApprovals && !dateError && missingItems.length === 0 && !needsPayment ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
+              disabled={!confirmed || isSubmitting || !!dateError || missingItems.length > 0 || needsPayment}
+              className={`flex-1 ${confirmed && !dateError && missingItems.length === 0 && !needsPayment ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-gray-300 text-gray-500 dark:text-gray-400 cursor-not-allowed'}`}
               size="lg"
             >
               {isSubmitting ? (
@@ -599,6 +616,7 @@ export function FinalizeContent({
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }
