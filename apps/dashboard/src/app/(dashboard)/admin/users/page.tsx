@@ -11,6 +11,7 @@ import { VerifyButton } from './verify-button'
 import { SendMessageDialog } from './[id]/send-message-dialog'
 import { ActAsButton } from './act-as-button'
 import { SyncShareListButton } from './sync-share-list-button'
+import { CopyEmailButton } from './copy-email-button'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
@@ -189,7 +190,12 @@ export default async function AdminUsersPage({
                 {allUsers.map((user, index) => (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
-                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">{user.email}</td>
+                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <span className="inline-flex items-center gap-1.5">
+                        {user.email}
+                        <CopyEmailButton email={user.email} />
+                      </span>
+                    </td>
                     <td className="py-3 px-4">
                       <VerifyButton userId={user.id} verified={!!user.emailVerified} />
                     </td>

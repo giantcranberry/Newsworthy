@@ -172,6 +172,9 @@ export default async function UserDetailPage({
   }
 
   const { user, recentReleases, notes, accountCredits, creditTotals, creditHistory, podcastCreditsByBrand, companies, allPartners, managedPartnerIds, userBrands } = data
+  // created_at is null for many older/recent signups (column has no DB default);
+  // fall back to subscription start which is set at registration.
+  const registeredAt = user.createdAt ?? user.subscription?.startAt ?? null
 
   return (
     <div className="space-y-6">
@@ -219,7 +222,7 @@ export default async function UserDetailPage({
             <CardTitle className="text-base">Details</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-500 dark:text-gray-400">Joined:</span> {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}</p>
+            <p><span className="text-gray-500 dark:text-gray-400">Registered since:</span> {registeredAt ? new Date(registeredAt).toLocaleDateString() : 'N/A'}</p>
             {user.lastSeen && (
               <p><span className="text-gray-500 dark:text-gray-400">Last Seen:</span> {new Date(user.lastSeen).toLocaleDateString()}</p>
             )}

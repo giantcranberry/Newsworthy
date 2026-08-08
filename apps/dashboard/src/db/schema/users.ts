@@ -22,7 +22,7 @@ export const users = pgTable('users', {
   isManager: boolean('is_manager').default(false).notNull(),
   isCircle: boolean('is_circle').default(false),
   scroll: boolean('scroll').default(false),
-  createdAt: timestamp('created_at').defaultNow(),
+  createdAt: timestamp('created_at').$defaultFn(() => new Date()),
   lastSeen: timestamp('last_seen'),
   loginCount: integer('login_count'),
   extUserId: varchar('ext_user_id', { length: 48 }),

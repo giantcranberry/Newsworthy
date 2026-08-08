@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
         emailVerified: true,
         regMethod: 'magic',
         partnerId: 1,
+        createdAt: new Date(),
       }).returning()
       user = newUser
     } else {

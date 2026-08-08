@@ -72,6 +72,7 @@ export async function POST(request: Request) {
         emailVerified: false,
         regMethod: 'email',
         partnerId: validPartnerId,
+        createdAt: new Date(),
         isAdmin: false,
         isDeleted: false,
         isSuper: false,

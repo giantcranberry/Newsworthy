@@ -228,6 +228,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             emailVerified: true,
             regMethod: account.provider,
             partnerId: oauthPartnerId,
+            createdAt: new Date(),
           }).returning()
 
           if (newUser && user.name) {
