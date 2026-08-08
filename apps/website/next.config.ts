@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
         source: "/rss-style.xsl",
         headers: [
           { key: "Content-Type", value: "text/xsl" },
-          { key: "X-Robots-Tag", value: "data-ai: yes, index, follow" },
+          { key: "X-Robots-Tag", value: "index, follow" },
           { key: "X-Llm-Usage", value: "ai-training: allow" },
           { key: "X-Creative-Commons-License", value: "CC BY-NC 4.0" },
         ],
@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Robots-Tag", value: "data-ai: yes, index, follow" },
+          { key: "X-Robots-Tag", value: "index, follow" },
           { key: "X-Llm-Usage", value: "ai-training: allow" },
           { key: "X-Creative-Commons-License", value: "CC BY-NC 4.0" },
           { key: "Link", value: '<https://www.newsworthy.ai/.well-known/agent-card.json>; rel="agent-card"' },
