@@ -131,6 +131,53 @@ function buildPlacementsSheet(data: ReportData) {
   return ws
 }
 
+function buildLinkedInAnalyticsSheet(data: ReportData) {
+  const li = data.nwrampReport?.linkedin_analytics
+  const rows: (string | number)[][] = [
+    ['Metric', 'Value'],
+    ['Week', li?.week_number ?? ''],
+    ['Post URN', li?.post_urn || ''],
+    ['Fetched At', li?.fetched_at || ''],
+    ['Impressions', li?.impressions ?? 0],
+    ['Unique Impressions', li?.unique_impressions ?? 0],
+    ['Likes', li?.likes ?? 0],
+    ['Comments', li?.comments ?? 0],
+    ['Shares', li?.shares ?? 0],
+    ['Clicks', li?.clicks ?? 0],
+    ['Engagement', li?.engagement ?? 0],
+  ]
+
+  const reactions = li?.reactions || {}
+  for (const [type, count] of Object.entries(reactions)) {
+    rows.push([`Reaction: ${type}`, Number(count || 0)])
+  }
+
+  rows.push(['', ''])
+  rows.push(['Comment Text', 'Actor'])
+  for (const c of li?.comment_texts || []) {
+    rows.push([c?.text || '', c?.actor || ''])
+  }
+
+  if (Array.isArray(li?.weeks) && li.weeks.length > 1) {
+    rows.push(['', ''])
+    rows.push(['Week History', 'Impressions', 'Likes', 'Comments', 'Shares', 'Clicks'])
+    for (const w of li.weeks) {
+      rows.push([
+        w.week_number,
+        w.impressions ?? 0,
+        w.likes ?? 0,
+        w.comments ?? 0,
+        w.shares ?? 0,
+        w.clicks ?? 0,
+      ])
+    }
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [{ wch: 24 }, { wch: 60 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }]
+  return ws
+}
+
 function buildAllPlacementsSheet(placements: { name: string | null; link: string | null; imageUrl: string | null; reach: string | null; isTarget: boolean | null }[]) {
   const header = ['Publication', 'Link', 'Reach', 'Target']
   const rows: (string | number | boolean)[][] = [
@@ -206,6 +253,9 @@ export async function GET(
 
     if (data.nwrampReport) {
       XLSX.utils.book_append_sheet(wb, buildPlacementsSheet(data), 'Newsramp Placements')
+      if (data.nwrampReport.linkedin_analytics) {
+        XLSX.utils.book_append_sheet(wb, buildLinkedInAnalyticsSheet(data), 'LinkedIn Analytics')
+      }
     }
 
     const allPlacements = await db

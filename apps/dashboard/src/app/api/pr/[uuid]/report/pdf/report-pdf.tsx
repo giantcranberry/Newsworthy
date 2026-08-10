@@ -414,16 +414,16 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 </View>
                 <View style={s.engRow}>
                   <Text style={s.engLabel}>Total Shares</Text>
-                  <Text style={s.engValue}>{totalSh.toLocaleString()}</Text>
+                  <Text style={s.engValue}>
+                    {totalSh > 0 ? totalSh.toLocaleString() : 'Activate Share List'}
+                  </Text>
                 </View>
-                <View style={s.engRow}>
-                  <Text style={s.engLabel}>Other Engagements</Text>
-                  <Text style={s.engValue}>0</Text>
-                </View>
-                <View style={s.engRow}>
-                  <Text style={s.engLabel}>PDF Downloads</Text>
-                  <Text style={[s.engValue, { color: C.red }]}>{pdfDownloadCount.toLocaleString()}</Text>
-                </View>
+                {pdfDownloadCount > 0 && (
+                  <View style={s.engRow}>
+                    <Text style={s.engLabel}>PDF Downloads</Text>
+                    <Text style={[s.engValue, { color: C.red }]}>{pdfDownloadCount.toLocaleString()}</Text>
+                  </View>
+                )}
                 <View style={[s.engRow, { borderBottomWidth: 0 }]}>
                   <Text style={s.engLabel}>Total Engagement</Text>
                   <Text style={s.engValue}>{(totalPv + totalSh).toLocaleString()}</Text>
@@ -441,6 +441,44 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 </View>
               )}
             </View>
+          </View>
+        )}
+
+        {nwrampReport?.linkedin_analytics && (
+          <View wrap={false} style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 4, borderLeftColor: '#0A66C2', padding: 12, marginBottom: 12 }}>
+            <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.gray800, marginBottom: 2 }}>
+              LinkedIn Performance
+            </Text>
+            <Text style={{ fontSize: 7, color: C.gray500, marginBottom: 8 }}>
+              Organic engagement · Week {nwrampReport.linkedin_analytics.week_number}
+            </Text>
+            <View style={s.metricsRow}>
+              {[
+                ['Impressions', nwrampReport.linkedin_analytics.impressions],
+                ['Likes', nwrampReport.linkedin_analytics.likes],
+                ['Comments', nwrampReport.linkedin_analytics.comments],
+                ['Shares', nwrampReport.linkedin_analytics.shares],
+                ['Clicks', nwrampReport.linkedin_analytics.clicks],
+              ]
+                .filter(([, value]) => Number(value || 0) > 0)
+                .map(([label, value]) => (
+                <View key={String(label)} style={s.metricCard}>
+                  <Text style={[s.metricValue, { fontSize: 14 }]}>{Number(value || 0).toLocaleString()}</Text>
+                  <Text style={s.metricLabel}>{String(label)}</Text>
+                </View>
+              ))}
+            </View>
+            {Array.isArray(nwrampReport.linkedin_analytics.comment_texts) &&
+              nwrampReport.linkedin_analytics.comment_texts.length > 0 && (
+                <View style={{ marginTop: 4 }}>
+                  <Text style={[s.sectionDesc, { marginBottom: 4 }]}>Recent comments</Text>
+                  {nwrampReport.linkedin_analytics.comment_texts.slice(0, 5).map((c: any, i: number) => (
+                    <Text key={c?.urn || i} style={{ fontSize: 8, color: C.gray700, marginBottom: 3 }}>
+                      • {c?.text || '(no text)'}
+                    </Text>
+                  ))}
+                </View>
+              )}
           </View>
         )}
 

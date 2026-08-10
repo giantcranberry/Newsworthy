@@ -437,19 +437,26 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     }
   }
 
-  // eCPC
-  let ecpc = '0.00'
-  if (totalPv + totalSh > 0) {
-    const val = Math.floor((129 / (totalPv + totalSh)) * 100) / 100
-    ecpc = val.toFixed(2)
-  }
-
-  // Newsramp report
+  // Newsramp report (needed before totals so LinkedIn impressions roll into views)
   const nwrampReport = release.prhashId ? await getClipNewsrampReport(release.prhashId) : false
   if (nwrampReport && nwrampReport.placements) {
     for (const p of nwrampReport.placements) {
       if (!p.logo) p.logo = ''
     }
+  }
+
+  const linkedinImpressions = Number(
+    nwrampReport?.linkedin_analytics?.impressions || 0
+  )
+  if (linkedinImpressions > 0) {
+    totalPv += linkedinImpressions
+  }
+
+  // eCPC (views include LinkedIn impressions when available)
+  let ecpc = '0.00'
+  if (totalPv + totalSh > 0) {
+    const val = Math.floor((129 / (totalPv + totalSh)) * 100) / 100
+    ecpc = val.toFixed(2)
   }
 
   // Enhanced distribution

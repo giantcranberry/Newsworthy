@@ -514,22 +514,25 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       </div>
                       {totalSh > 0 ? (
                         <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalSh.toLocaleString()}</h4>
+                      ) : shareListCount === 0 && !isPublic ? (
+                        <Link
+                          href={`/company/${company.uuid}/advocacy`}
+                          className="text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
+                        >
+                          Activate Share List
+                        </Link>
                       ) : (
                         <span className="text-sm text-gray-400">No Share Stats Yet</span>
                       )}
                     </div>
-                    <div className={`flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800`}>
-                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                        <i className="fa-solid fa-mouse-pointer text-amber-500" aria-hidden="true" /> Other Engagements
+                    {pdfDownloadCount > 0 && (
+                      <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                          <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" /> PDF Downloads
+                        </div>
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{pdfDownloadCount.toLocaleString()}</h4>
                       </div>
-                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">0</h4>
-                    </div>
-                    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                        <i className="fa-solid fa-file-pdf text-red-500" aria-hidden="true" /> PDF Downloads
-                      </div>
-                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{pdfDownloadCount.toLocaleString()}</h4>
-                    </div>
+                    )}
                     <div className="flex justify-between items-center py-3">
                       <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
                         <i className="fa-solid fa-users text-cyan-500" aria-hidden="true" /> Total Engagement
@@ -641,6 +644,99 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               </div>
             )}
           </>
+        )}
+
+        {/* LinkedIn social performance — lives with analytics, not distribution logos */}
+        {nwrampReport?.linkedin_analytics && (
+          <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4 border-l-4 border-l-[#0A66C2]">
+            <div className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <img
+                    src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png"
+                    alt=""
+                    className="h-7 w-7 object-contain"
+                  />
+                  <div>
+                    <h6 className="font-semibold text-gray-800 dark:text-gray-200 mb-0">LinkedIn Performance</h6>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-0">
+                      Organic engagement on your company page post · Week {nwrampReport.linkedin_analytics.week_number}
+                    </p>
+                  </div>
+                </div>
+                {nwrampReport.linkedin && (
+                  <a
+                    href={nwrampReport.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-[#0A66C2] hover:underline"
+                  >
+                    View post
+                  </a>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                {[
+                  ['Impressions', nwrampReport.linkedin_analytics.impressions, 'fa-solid fa-eye'],
+                  ['Likes', nwrampReport.linkedin_analytics.likes, 'fa-solid fa-thumbs-up'],
+                  ['Comments', nwrampReport.linkedin_analytics.comments, 'fa-solid fa-comment'],
+                  ['Shares', nwrampReport.linkedin_analytics.shares, 'fa-solid fa-share'],
+                  ['Clicks', nwrampReport.linkedin_analytics.clicks, 'fa-solid fa-arrow-pointer'],
+                ]
+                  .filter(([, value]) => Number(value || 0) > 0)
+                  .map(([label, value, icon]) => (
+                  <div key={String(label)} className="rounded-lg bg-gray-50 dark:bg-gray-950 border border-gray-100 dark:border-gray-800 px-3 py-3 text-center">
+                    <i className={`${icon} text-[#0A66C2] text-sm mb-1`} aria-hidden="true" />
+                    <div className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-none">
+                      {Number(value || 0).toLocaleString()}
+                    </div>
+                    <div className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1.5">{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {nwrampReport.linkedin_analytics.reactions &&
+                Object.keys(nwrampReport.linkedin_analytics.reactions).length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Object.entries(nwrampReport.linkedin_analytics.reactions).map(([type, count]) => (
+                      <span
+                        key={type}
+                        className="text-xs rounded-full bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 px-2.5 py-1 text-gray-700 dark:text-gray-300"
+                      >
+                        {type}: {Number(count).toLocaleString()}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+              {Array.isArray(nwrampReport.linkedin_analytics.comment_texts) &&
+                nwrampReport.linkedin_analytics.comment_texts.length > 0 && (
+                  <div className="mt-5 pt-4 border-t border-gray-100 dark:border-gray-800">
+                    <h6 className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                      Recent comments
+                    </h6>
+                    <ul className="space-y-2.5">
+                      {nwrampReport.linkedin_analytics.comment_texts.slice(0, 6).map((c: any, i: number) => {
+                        const text = c?.text || '(no text)'
+                        const isUrl = /^https?:\/\//i.test(text)
+                        return (
+                          <li key={c?.urn || i} className="text-sm text-gray-700 dark:text-gray-300 break-words">
+                            {isUrl ? (
+                              <a href={text} target="_blank" rel="noopener noreferrer" className="text-[#0A66C2] hover:underline break-all">
+                                {text}
+                              </a>
+                            ) : (
+                              text
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                )}
+            </div>
+          </div>
         )}
 
         {/* Advocacy Group Alert */}
