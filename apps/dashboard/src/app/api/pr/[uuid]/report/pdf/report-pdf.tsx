@@ -638,7 +638,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             </View>
             <View style={s.logoGrid}>
               {nwrampReport.placements && nwrampReport.placements
-                .filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads')
+                .filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads' && p.handle !== 'x')
                 .map((p: any, i: number) => {
                   const logoUrl = p.logo && p.logo.includes('http')
                     ? toPngUrl(p.logo)
@@ -646,6 +646,14 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                   return <LogoCardPdf key={`pl-${i}`} src={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} imageMap={imageMap} />
                 })}
               {nwrampReport.linkedin && <LogoCardPdf src="linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} imageMap={imageMap} />}
+              {(nwrampReport.x || nwrampReport.placements?.find((p: any) => p.handle === 'x')?.url) && (
+                <LogoCardPdf
+                  src="https://cdn.newsramp.app/nwai-assets/1786373283056-logo-black.png"
+                  name="X"
+                  link={nwrampReport.x || nwrampReport.placements.find((p: any) => p.handle === 'x')?.url}
+                  imageMap={imageMap}
+                />
+              )}
               {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} imageMap={imageMap} />}
               {nwrampReport.bluesky && <LogoCardPdf src="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} imageMap={imageMap} />}
               {nwrampReport.mastodon && <LogoCardPdf src="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} imageMap={imageMap} />}

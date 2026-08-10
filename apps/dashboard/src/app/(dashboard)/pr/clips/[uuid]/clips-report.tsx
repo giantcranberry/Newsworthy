@@ -721,7 +721,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
 
           {/* Placements + Social Cards in same grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 mb-6">
-            {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads').map((p: any, i: number) => {
+            {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads' && p.handle !== 'x').map((p: any, i: number) => {
               const logoUrl = p.logo && p.logo.includes('http')
                 ? toPngUrl(p.logo)
                 : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
@@ -731,6 +731,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             {/* Social media cards (same card format) */}
             {nwrampReport.linkedin && (
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
+            )}
+            {(nwrampReport.x || nwrampReport.placements?.find((p: any) => p.handle === 'x')?.url) && (
+              <LogoCard
+                logo="https://cdn.newsramp.app/nwai-assets/1786373283056-logo-black.png"
+                name="X"
+                link={nwrampReport.x || nwrampReport.placements.find((p: any) => p.handle === 'x')?.url}
+              />
             )}
             {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && (
               <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />

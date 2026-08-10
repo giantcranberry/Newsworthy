@@ -114,6 +114,9 @@ async function prefetchRemoteImages(data: ReportData, staticMap: Record<string, 
     // Social images
     if (nwr.bluesky) urls.add('https://cdn.newsramp.app/bluesky.png')
     if (nwr.mastodon) urls.add('https://cdn.newsramp.app/mastodon.png')
+    if (nwr.x || nwr.placements?.some((p: { handle?: string }) => p.handle === 'x')) {
+      urls.add('https://cdn.newsramp.app/nwai-assets/1786373283056-logo-black.png')
+    }
     if (nwr.threads || nwr.placements?.some((p: { handle?: string }) => p.handle === 'threads')) {
       urls.add('https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png')
     }

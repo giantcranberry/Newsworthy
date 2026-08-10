@@ -766,7 +766,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
               )}
               {siteMeta && siteMeta.x && (
                 <Link href={siteMeta.x} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="X">
-                  <Image src="https://cdn1.newsworthy.ai/twitter-x.svg" alt="X" width={24} height={24} className="w-[24px] h-[24px]" />
+                  <Image src="https://cdn.newsramp.app/nwai-assets/1786373445932-X_logo_2023.svg" alt="X" width={24} height={24} className="w-[24px] h-[24px]" />
                 </Link>
               )}
               {siteMeta && siteMeta.mastodon && (

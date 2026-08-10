@@ -108,13 +108,15 @@ function buildPlacementsSheet(data: ReportData) {
   if (nwr) {
     if (nwr.placements) {
       for (const p of nwr.placements) {
-        if (p.url && p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads') {
+        if (p.url && p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads' && p.handle !== 'x') {
           const name = p.placement ? toDomain(p.placement) : ''
           rows.push([name, p.url || ''])
         }
       }
     }
     if (nwr.linkedin) rows.push(['LinkedIn', nwr.linkedin])
+    const xUrl = nwr.x || nwr.placements?.find((p: { handle?: string }) => p.handle === 'x')?.url
+    if (xUrl) rows.push(['X', xUrl])
     if (nwr.telegram_posts?.length) rows.push(['Telegram', nwr.telegram_posts[0]])
     if (nwr.bluesky) rows.push(['Bluesky', nwr.bluesky])
     if (nwr.mastodon) rows.push(['Mastodon', nwr.mastodon])
