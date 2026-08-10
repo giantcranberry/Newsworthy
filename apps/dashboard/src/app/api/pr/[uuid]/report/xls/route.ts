@@ -108,7 +108,7 @@ function buildPlacementsSheet(data: ReportData) {
   if (nwr) {
     if (nwr.placements) {
       for (const p of nwr.placements) {
-        if (p.url && p.placement !== 'https://newswriter.ai/news') {
+        if (p.url && p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads') {
           const name = p.placement ? toDomain(p.placement) : ''
           rows.push([name, p.url || ''])
         }
@@ -118,6 +118,8 @@ function buildPlacementsSheet(data: ReportData) {
     if (nwr.telegram_posts?.length) rows.push(['Telegram', nwr.telegram_posts[0]])
     if (nwr.bluesky) rows.push(['Bluesky', nwr.bluesky])
     if (nwr.mastodon) rows.push(['Mastodon', nwr.mastodon])
+    const threadsUrl = nwr.threads || nwr.placements?.find((p: { handle?: string }) => p.handle === 'threads')?.url
+    if (threadsUrl) rows.push(['Threads', threadsUrl])
     if (nwr.github) rows.push(['GitHub', nwr.github])
     if (nwr.substack) rows.push(['Substack', nwr.substack])
   }

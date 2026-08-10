@@ -721,7 +721,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
 
           {/* Placements + Social Cards in same grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 mb-6">
-            {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news').map((p: any, i: number) => {
+            {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads').map((p: any, i: number) => {
               const logoUrl = p.logo && p.logo.includes('http')
                 ? toPngUrl(p.logo)
                 : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
@@ -740,6 +740,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             )}
             {nwrampReport.mastodon && (
               <LogoCard logo="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} />
+            )}
+            {(nwrampReport.threads || nwrampReport.placements?.find((p: any) => p.handle === 'threads')?.url) && (
+              <LogoCard
+                logo="https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png"
+                name="Threads"
+                link={nwrampReport.threads || nwrampReport.placements.find((p: any) => p.handle === 'threads')?.url}
+              />
             )}
             {nwrampReport.github && (
               <LogoCard logo="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />

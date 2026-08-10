@@ -19,7 +19,7 @@ function buildStaticImageMap(): Record<string, string> {
 
   const files = [
     'google.png', 'microsoft.jpg', 'citybuzz.png', 'streetinsider.png',
-    'linkedin.png', 'reddit.png', 'substack.png', 'newsramp.png',
+    'linkedin.png', 'reddit.png', 'substack.png', 'threads.png', 'newsramp.png',
     'advos.png', 'hcmtechnologyreport.jpg', 'talentculture.png',
     'hrtechalliances.png', 'hrotoday.png', 'hrtechfeed.png',
     'axiswire.png', 'cannabisradio.png', 'weedweek.png',
@@ -114,6 +114,9 @@ async function prefetchRemoteImages(data: ReportData, staticMap: Record<string, 
     // Social images
     if (nwr.bluesky) urls.add('https://cdn.newsramp.app/bluesky.png')
     if (nwr.mastodon) urls.add('https://cdn.newsramp.app/mastodon.png')
+    if (nwr.threads || nwr.placements?.some((p: { handle?: string }) => p.handle === 'threads')) {
+      urls.add('https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png')
+    }
     if (nwr.github) urls.add('https://cdn.newsramp.app/images/clip_report/newsramp/github.png')
     if (nwr.telegram_posts?.length) urls.add('https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png')
 

@@ -26,6 +26,7 @@ export interface SiteMetaJson {
   telegram: string;
   mastodon: string | null;
   bluesky: string | null;
+  threads: string | null;
   x: string | null;
   published: string;
   site_handle: string;

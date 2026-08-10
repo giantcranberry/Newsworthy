@@ -779,6 +779,11 @@ export default async function PressRelease({ searchParams, params }: Props) {
                   <Image src="https://cdn1.newsworthy.ai/bluesky.svg" alt="Bluesky" width={24} height={24} className="w-[24px] h-[24px]" />
                 </Link>
               )}
+              {siteMeta && siteMeta.threads && (
+                <Link href={siteMeta.threads} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Threads">
+                  <Image src="https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png" alt="Threads" width={24} height={24} className="w-[24px] h-[24px]" />
+                </Link>
+              )}
               {siteMeta && siteMeta.substack && siteMeta.feed_item_id > 2500 && (
                 <Link href={`${siteMeta.substack}${siteMeta.md5_permalink}`} target="_blank" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors" title="Substack">
                   <Image src="https://cdn1.newsworthy.ai/substack.svg" alt="Substack" width={24} height={24} className="w-[24px] h-[24px]" />

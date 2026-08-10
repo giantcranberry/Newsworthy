@@ -638,7 +638,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             </View>
             <View style={s.logoGrid}>
               {nwrampReport.placements && nwrampReport.placements
-                .filter((p: any) => p.placement !== 'https://newswriter.ai/news')
+                .filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads')
                 .map((p: any, i: number) => {
                   const logoUrl = p.logo && p.logo.includes('http')
                     ? toPngUrl(p.logo)
@@ -649,6 +649,14 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
               {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} imageMap={imageMap} />}
               {nwrampReport.bluesky && <LogoCardPdf src="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} imageMap={imageMap} />}
               {nwrampReport.mastodon && <LogoCardPdf src="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} imageMap={imageMap} />}
+              {(nwrampReport.threads || nwrampReport.placements?.find((p: any) => p.handle === 'threads')?.url) && (
+                <LogoCardPdf
+                  src="https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png"
+                  name="Threads"
+                  link={nwrampReport.threads || nwrampReport.placements.find((p: any) => p.handle === 'threads')?.url}
+                  imageMap={imageMap}
+                />
+              )}
               {nwrampReport.github && <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} imageMap={imageMap} />}
               {nwrampReport.substack && <LogoCardPdf src="substack.png" name="Substack" link={nwrampReport.substack} imageMap={imageMap} />}
             </View>
