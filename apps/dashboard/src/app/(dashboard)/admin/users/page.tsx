@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, company, releases } from '@/db/schema'
+import { users, userProfiles, company, releases } from '@/db/schema'
 import { desc, ilike, eq, and, sql, inArray, gte, lt, or, isNull } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -140,8 +140,21 @@ async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: 
   }
 
   return db
-    .select()
+    .select({
+      id: users.id,
+      email: users.email,
+      emailVerified: users.emailVerified,
+      isAdmin: users.isAdmin,
+      isEditor: users.isEditor,
+      isStaff: users.isStaff,
+      createdAt: users.createdAt,
+      lastSeen: users.lastSeen,
+      firstName: userProfiles.firstName,
+      lastName: userProfiles.lastName,
+      phone: userProfiles.phone,
+    })
     .from(users)
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
     .where(conditions.length > 0 ? and(...conditions) : undefined)
     .orderBy(sql`${users.createdAt} DESC NULLS LAST`, desc(users.id))
     .limit(100)
@@ -309,7 +322,7 @@ export default async function AdminUsersPage({
               <thead data-tour="users-columns">
                 <tr className="border-b text-left">
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">ID</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">User</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Verified</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">PR Count</th>
@@ -321,14 +334,23 @@ export default async function AdminUsersPage({
               <tbody>
                 {allUsers.map((user, index) => {
                   const prCount = releaseCounts.get(user.id) ?? 0
+                  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ')
                   return (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
-                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                      <span className="inline-flex items-center gap-1.5">
-                        {user.email}
-                        <CopyEmailButton email={user.email} />
-                      </span>
+                    <td className="py-3 px-4">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {fullName || '—'}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                          {user.phone || '—'}
+                        </p>
+                        <p className="inline-flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                          {user.email}
+                          <CopyEmailButton email={user.email} />
+                        </p>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <VerifyButton userId={user.id} verified={!!user.emailVerified} />
