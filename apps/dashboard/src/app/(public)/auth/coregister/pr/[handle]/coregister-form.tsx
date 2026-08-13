@@ -7,7 +7,27 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
+import { Loader2, Mail, Lock, Eye, EyeOff, User, Phone } from 'lucide-react'
+
+function formatPhoneNumber(value: string): string {
+  const hasPlus = value.startsWith('+')
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return hasPlus ? '+' : ''
+  if (hasPlus && !digits.startsWith('1')) {
+    return '+' + digits
+  }
+  const usDigits = digits.startsWith('1') ? digits.substring(1) : digits
+  if (usDigits.length <= 3) return `(${usDigits}`
+  if (usDigits.length <= 6) return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3)}`
+  return `(${usDigits.slice(0, 3)}) ${usDigits.slice(3, 6)}-${usDigits.slice(6, 10)}`
+}
+
+function isValidPhone(value: string): boolean {
+  if (!value.trim()) return false
+  const digits = value.replace(/\D/g, '')
+  if (value.startsWith('+')) return digits.length >= 7 && digits.length <= 15
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith('1'))
+}
 
 interface CoregisterFormProps {
   partnerId: number
@@ -20,6 +40,7 @@ export function CoregisterForm({ partnerId, brandName, logo, company }: Coregist
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -33,6 +54,12 @@ export function CoregisterForm({ partnerId, brandName, logo, company }: Coregist
     setIsLoading(true)
     setError('')
 
+    if (!isValidPhone(phone)) {
+      setError('Please enter a valid phone number')
+      setIsLoading(false)
+      return
+    }
+
     if (password.length < 8) {
       setError('Password must be at least 8 characters')
       setIsLoading(false)
@@ -43,7 +70,7 @@ export function CoregisterForm({ partnerId, brandName, logo, company }: Coregist
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, email, password, partnerId }),
+        body: JSON.stringify({ firstName, lastName, email, phone, password, partnerId }),
       })
 
       const data = await response.json()
@@ -179,6 +206,32 @@ export function CoregisterForm({ partnerId, brandName, logo, company }: Coregist
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       required
+                      className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Phone Number
+                  </Label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 sm:h-4 sm:w-4 text-gray-400" />
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => {
+                        const raw = e.target.value
+                        if (raw.startsWith('+')) {
+                          setPhone('+' + raw.slice(1).replace(/[^\d\s-]/g, ''))
+                        } else {
+                          setPhone(formatPhoneNumber(raw))
+                        }
+                      }}
+                      placeholder="(555) 123-4567"
+                      required
+                      autoComplete="tel"
                       className="pl-12 sm:pl-10 h-14 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-gray-300 dark:border-gray-700 focus:border-cyan-600 focus:ring-cyan-600"
                     />
                   </div>

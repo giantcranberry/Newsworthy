@@ -14,11 +14,24 @@ import { sendSmsNotification } from '@/lib/twilio'
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { firstName, lastName, email, password, partnerId } = body
+    const { firstName, lastName, email, phone, password, partnerId } = body
 
-    if (!firstName || !email || !password) {
+    if (!firstName || !email || !phone || !password) {
       return NextResponse.json(
-        { error: 'First name, email and password are required' },
+        { error: 'First name, email, phone number and password are required' },
+        { status: 400 }
+      )
+    }
+
+    const normalizedPhone = String(phone).trim()
+    const phoneDigits = normalizedPhone.replace(/\D/g, '')
+    const phoneValid = normalizedPhone.startsWith('+')
+      ? phoneDigits.length >= 7 && phoneDigits.length <= 15
+      : phoneDigits.length === 10 || (phoneDigits.length === 11 && phoneDigits.startsWith('1'))
+
+    if (!phoneValid) {
+      return NextResponse.json(
+        { error: 'Please enter a valid phone number' },
         { status: 400 }
       )
     }
@@ -88,6 +101,7 @@ export async function POST(request: Request) {
       userId: newUser.id,
       firstName: firstName.trim(),
       lastName: (lastName || '').trim(),
+      phone: normalizedPhone,
     })
 
     // Create default subscription
