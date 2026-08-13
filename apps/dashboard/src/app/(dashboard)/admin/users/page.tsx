@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { users, company, releases } from '@/db/schema'
-import { desc, ilike, eq, and, sql, inArray } from 'drizzle-orm'
+import { desc, ilike, eq, and, sql, inArray, gte, lt, or, isNull } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,10 +16,13 @@ import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
 
-type ReleaseCounts = {
-  sent: number
-  approved: number
-  editorial: number
+/** Cutover for comparing conversion before/after the product change. */
+const CONVERSION_CUTOFF = new Date('2026-08-04T00:00:00')
+
+type ConversionPeriod = {
+  converted: number
+  total: number
+  rate: number
 }
 
 function formatAgo(date: Date | null | undefined): string {
@@ -46,27 +49,70 @@ async function getUserIdsByBrand(brandQuery: string): Promise<number[]> {
   return [...new Set(matches.map((m) => m.userId))]
 }
 
-async function getReleaseCountsByUser(userIds: number[]): Promise<Map<number, ReleaseCounts>> {
-  const counts = new Map<number, ReleaseCounts>()
+async function getPeriodConversion(
+  registeredSinceCutoff: boolean
+): Promise<ConversionPeriod> {
+  const periodCondition = registeredSinceCutoff
+    ? gte(users.createdAt, CONVERSION_CUTOFF)
+    : or(lt(users.createdAt, CONVERSION_CUTOFF), isNull(users.createdAt))
+
+  const [totals] = await db
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
+    .from(users)
+    .where(and(eq(users.isDeleted, false), periodCondition))
+
+  const [converted] = await db
+    .select({ count: sql<number>`count(distinct ${users.id})`.mapWith(Number) })
+    .from(users)
+    .innerJoin(
+      releases,
+      and(
+        eq(releases.userId, users.id),
+        eq(releases.isDeleted, false),
+        inArray(releases.status, ['sent', 'approved', 'review']),
+      )
+    )
+    .where(and(eq(users.isDeleted, false), periodCondition))
+
+  const total = totals.count
+  const convertedCount = converted.count
+  const rate = total > 0 ? (convertedCount / total) * 100 : 0
+
+  return { converted: convertedCount, total, rate }
+}
+
+async function getConversionStats() {
+  const [sinceAug4, beforeAug4] = await Promise.all([
+    getPeriodConversion(true),
+    getPeriodConversion(false),
+  ])
+  return { sinceAug4, beforeAug4 }
+}
+
+function formatConversionRate(period: ConversionPeriod): string {
+  if (period.total === 0) return '0%'
+  return `${period.rate.toFixed(1)}%`
+}
+
+async function getReleaseCountsByUser(userIds: number[]): Promise<Map<number, number>> {
+  const counts = new Map<number, number>()
   if (userIds.length === 0) return counts
 
   const rows = await db
     .select({
       userId: releases.userId,
-      sent: sql<number>`count(*) filter (where ${releases.status} = 'sent')`.mapWith(Number),
-      approved: sql<number>`count(*) filter (where ${releases.status} = 'approved')`.mapWith(Number),
-      editorial: sql<number>`count(*) filter (where ${releases.status} = 'review')`.mapWith(Number),
+      count: sql<number>`count(*)`.mapWith(Number),
     })
     .from(releases)
-    .where(and(inArray(releases.userId, userIds), eq(releases.isDeleted, false)))
+    .where(and(
+      inArray(releases.userId, userIds),
+      eq(releases.isDeleted, false),
+      inArray(releases.status, ['sent', 'approved', 'review']),
+    ))
     .groupBy(releases.userId)
 
   for (const row of rows) {
-    counts.set(row.userId, {
-      sent: row.sent,
-      approved: row.approved,
-      editorial: row.editorial,
-    })
+    counts.set(row.userId, row.count)
   }
 
   return counts
@@ -166,9 +212,10 @@ export default async function AdminUsersPage({
   const { q: searchQuery, filter: rawFilter, brand: brandQuery } = await searchParams
   const filter: FilterType = rawFilter === 'pending' || rawFilter === 'verified' ? rawFilter : 'all'
   const allUsers = await getUsers(searchQuery, filter, brandQuery)
-  const [counts, releaseCounts] = await Promise.all([
+  const [counts, releaseCounts, conversion] = await Promise.all([
     getCounts(searchQuery, brandQuery),
     getReleaseCountsByUser(allUsers.map((u) => u.id)),
+    getConversionStats(),
   ])
 
   return (
@@ -187,6 +234,38 @@ export default async function AdminUsersPage({
           <p className="text-gray-600 dark:text-gray-400">View and manage all users</p>
         </div>
         {isAdmin && <SyncShareListButton />}
+      </div>
+
+      {/* Conversion Rate */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate · Aug 4 – Present</p>
+            <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+              {formatConversionRate(conversion.sinceAug4)}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <span className="tabular-nums font-medium text-gray-900 dark:text-gray-100">{conversion.sinceAug4.converted}</span>
+              {' of '}
+              <span className="tabular-nums font-medium text-gray-900 dark:text-gray-100">{conversion.sinceAug4.total}</span>
+              {' new users with a PR'}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-5">
+            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Conversion Rate · Pre–Aug 4</p>
+            <p className="mt-1 text-3xl font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+              {formatConversionRate(conversion.beforeAug4)}
+            </p>
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <span className="tabular-nums font-medium text-gray-900 dark:text-gray-100">{conversion.beforeAug4.converted}</span>
+              {' of '}
+              <span className="tabular-nums font-medium text-gray-900 dark:text-gray-100">{conversion.beforeAug4.total}</span>
+              {' users with a PR'}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <UserSearchForm />
@@ -233,9 +312,7 @@ export default async function AdminUsersPage({
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Verified</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Sent</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Approved</th>
-                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Editorial</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">PR Count</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Created</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Last Login</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
@@ -243,7 +320,7 @@ export default async function AdminUsersPage({
               </thead>
               <tbody>
                 {allUsers.map((user, index) => {
-                  const prCounts = releaseCounts.get(user.id) ?? { sent: 0, approved: 0, editorial: 0 }
+                  const prCount = releaseCounts.get(user.id) ?? 0
                   return (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
@@ -283,14 +360,12 @@ export default async function AdminUsersPage({
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.sent}</td>
-                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.approved}</td>
-                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.editorial}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCount}</td>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                      {formatAgo(user.lastSeen)}
+                      {formatAgo(user.lastSeen ?? user.createdAt)}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "users-actions" } : {})}>
