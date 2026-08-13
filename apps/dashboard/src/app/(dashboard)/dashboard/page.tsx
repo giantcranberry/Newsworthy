@@ -32,7 +32,7 @@ import { PendingInvites } from "./pending-invites";
 import { RedeemCourtesyCode } from "./redeem-courtesy-code";
 import { getClipsTotalStats } from "@/services/report";
 import { EngagementChart } from "./engagement-chart";
-import { GettingStarted, BookPromoBanner } from "./getting-started";
+import { GettingStarted } from "./getting-started";
 import { qualifiesForFreeFirstPr } from "@/lib/pr-checkout";
 import { getBrandSetupStatus } from "@/lib/brand-setup";
 
@@ -338,8 +338,6 @@ export default async function DashboardPage() {
           companyLogo: inv.companyLogo,
         }))} />
       )}
-
-      {showGettingStarted && <BookPromoBanner />}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

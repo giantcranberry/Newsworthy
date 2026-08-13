@@ -10,6 +10,7 @@ import { users, userProfiles, partners, partnerManagers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { sendSmsNotification } from '@/lib/twilio'
+import { sendNewsMarketingBookEmail } from '@/lib/email'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
 export const IMPERSONATE_ADMIN_COOKIE = 'impersonate_admin_id'
@@ -231,15 +232,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             createdAt: new Date(),
           }).returning()
 
-          if (newUser && user.name) {
-            const nameParts = user.name.split(' ')
+          if (newUser) {
+            const nameParts = (user.name || '').split(' ').filter(Boolean)
             const firstName = nameParts[0] || ''
             const lastName = nameParts.slice(1).join(' ') || ''
-            await db.insert(userProfiles).values({
-              userId: newUser.id,
-              firstName,
-              lastName,
-            })
+
+            if (user.name) {
+              await db.insert(userProfiles).values({
+                userId: newUser.id,
+                firstName,
+                lastName,
+              })
+            }
 
             // Add to SalesNexus CRM (non-blocking)
             addContactToSalesNexus({
@@ -249,8 +253,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               partner: partnerName,
             })
 
+            // Welcome gift: News Marketing ebook (non-blocking)
+            sendNewsMarketingBookEmail(email, firstName || undefined).catch((err) =>
+              console.error('Failed to send News Marketing book email:', err)
+            )
+
             // SMS notification (non-blocking)
-            sendSmsNotification(`New account registered: ${user.name} (${email}) via ${account.provider}`)
+            sendSmsNotification(
+              `New account registered: ${user.name || email} (${email}) via ${account.provider}`
+            )
           }
         }
       }

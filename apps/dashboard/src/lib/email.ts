@@ -603,3 +603,113 @@ export async function sendWelcomeEmail(email: string, name: string) {
     text: `Welcome to Newsworthy!\n\nHi ${name},\n\nThanks for joining Newsworthy! We're excited to help you with your press release distribution needs.`,
   })
 }
+
+const BOOK_PDF_URL = 'https://shareworthy.link/to/nmPDF'
+const BOOK_EPUB_URL = 'https://shareworthy.link/to/nmEPUB'
+const ONBOARDING_URL = 'https://tidycal.com/newsmarketer/30-minute-meeting'
+
+/**
+ * Welcome gift email with direct News Marketing ebook download links.
+ * Sent after new account registration (no extra signup required).
+ */
+export async function sendNewsMarketingBookEmail(email: string, firstName?: string) {
+  const greeting = firstName?.trim() ? `Hi ${firstName.trim()},` : 'Hi there,'
+  const subject = firstName?.trim()
+    ? `${firstName.trim()}, your free News Marketing book is ready`
+    : 'Your free News Marketing book is ready'
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Your free News Marketing book</title>
+      </head>
+      <body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: Arial, Helvetica, sans-serif; line-height: 1.6; color: #1f2937;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 24px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+                <tr>
+                  <td style="background-color: #155e75; padding: 28px 32px;">
+                    <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #a5f3fc;">Welcome gift</p>
+                    <h1 style="margin: 8px 0 0; font-size: 24px; line-height: 1.3; color: #ffffff;">Your free copy of News Marketing</h1>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 32px;">
+                    <p style="margin: 0 0 16px;">${greeting}</p>
+                    <p style="margin: 0 0 16px;">Thank you for joining the Newsworthy.ai community. We look forward to helping you get your brand discovered.</p>
+                    <p style="margin: 0 0 24px;">As a welcome gift, download <strong>News Marketing</strong> — my book on the 28-day discipline that keeps brands findable in search and AI. These are direct download links; no extra registration needed.</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 12px;">
+                      <tr>
+                        <td style="border-radius: 8px; background-color: #155e75;">
+                          <a href="${BOOK_PDF_URL}" style="display: inline-block; padding: 14px 22px; font-size: 15px; font-weight: 600; color: #ffffff; text-decoration: none;">Download PDF</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 24px;">
+                      <tr>
+                        <td style="border-radius: 8px; border: 1px solid #155e75;">
+                          <a href="${BOOK_EPUB_URL}" style="display: inline-block; padding: 13px 22px; font-size: 15px; font-weight: 600; color: #155e75; text-decoration: none;">Download ePub</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 0 0 8px; font-size: 14px; color: #4b5563;">Prefer plain links?</p>
+                    <p style="margin: 0 0 24px; font-size: 14px; color: #4b5563;">
+                      PDF: <a href="${BOOK_PDF_URL}" style="color: #155e75;">${BOOK_PDF_URL}</a><br>
+                      ePub: <a href="${BOOK_EPUB_URL}" style="color: #155e75;">${BOOK_EPUB_URL}</a>
+                    </p>
+                    <p style="margin: 0 0 24px;">Feel free to share these links with teammates, colleagues, and friends.</p>
+                    <hr style="margin: 0 0 24px; border: none; border-top: 1px solid #e5e7eb;">
+                    <p style="margin: 0 0 16px;">Want a free one-on-one walkthrough of your Newsworthy account? Book a short session with me:</p>
+                    <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 0 28px;">
+                      <tr>
+                        <td style="border-radius: 8px; background-color: #111827;">
+                          <a href="${ONBOARDING_URL}" style="display: inline-block; padding: 12px 20px; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none;">Book a 30-minute session</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin: 0;">Sincerely,</p>
+                    <p style="margin: 4px 0 0; font-weight: 600;">David McInnis<br><span style="font-weight: 400; color: #6b7280;">Founder, Newsworthy.ai</span></p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 0 32px 28px;">
+                    <p style="margin: 0; font-size: 12px; color: #9ca3af;">This email was sent from Newsworthy.ai because you created an account.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `
+
+  const text = `${greeting}
+
+Thank you for joining the Newsworthy.ai community. We look forward to helping you get your brand discovered.
+
+As a welcome gift, download News Marketing — my book on the 28-day discipline that keeps brands findable in search and AI. Direct download links (no extra registration):
+
+PDF: ${BOOK_PDF_URL}
+ePub: ${BOOK_EPUB_URL}
+
+Feel free to share these links with teammates, colleagues, and friends.
+
+Want a free one-on-one walkthrough of your Newsworthy account?
+Book a 30-minute session: ${ONBOARDING_URL}
+
+Sincerely,
+David McInnis
+Founder, Newsworthy.ai`
+
+  await sendEmail({
+    to: email,
+    subject,
+    html,
+    text,
+  })
+}
