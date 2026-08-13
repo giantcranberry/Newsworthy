@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, company } from '@/db/schema'
+import { users, company, releases } from '@/db/schema'
 import { desc, ilike, eq, and, sql, inArray } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -16,12 +16,60 @@ import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
 
+type ReleaseCounts = {
+  sent: number
+  approved: number
+  editorial: number
+}
+
+function formatAgo(date: Date | null | undefined): string {
+  if (!date) return '—'
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 30) return `${days}d ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months}mo ago`
+  const years = Math.floor(days / 365)
+  return `${years}y ago`
+}
+
 async function getUserIdsByBrand(brandQuery: string): Promise<number[]> {
   const matches = await db
     .select({ userId: company.userId })
     .from(company)
     .where(ilike(company.companyName, `%${brandQuery}%`))
   return [...new Set(matches.map((m) => m.userId))]
+}
+
+async function getReleaseCountsByUser(userIds: number[]): Promise<Map<number, ReleaseCounts>> {
+  const counts = new Map<number, ReleaseCounts>()
+  if (userIds.length === 0) return counts
+
+  const rows = await db
+    .select({
+      userId: releases.userId,
+      sent: sql<number>`count(*) filter (where ${releases.status} = 'sent')`.mapWith(Number),
+      approved: sql<number>`count(*) filter (where ${releases.status} = 'approved')`.mapWith(Number),
+      editorial: sql<number>`count(*) filter (where ${releases.status} = 'review')`.mapWith(Number),
+    })
+    .from(releases)
+    .where(and(inArray(releases.userId, userIds), eq(releases.isDeleted, false)))
+    .groupBy(releases.userId)
+
+  for (const row of rows) {
+    counts.set(row.userId, {
+      sent: row.sent,
+      approved: row.approved,
+      editorial: row.editorial,
+    })
+  }
+
+  return counts
 }
 
 async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: string) {
@@ -49,7 +97,7 @@ async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: 
     .select()
     .from(users)
     .where(conditions.length > 0 ? and(...conditions) : undefined)
-    .orderBy(desc(users.id))
+    .orderBy(sql`${users.createdAt} DESC NULLS LAST`, desc(users.id))
     .limit(100)
 }
 
@@ -118,7 +166,10 @@ export default async function AdminUsersPage({
   const { q: searchQuery, filter: rawFilter, brand: brandQuery } = await searchParams
   const filter: FilterType = rawFilter === 'pending' || rawFilter === 'verified' ? rawFilter : 'all'
   const allUsers = await getUsers(searchQuery, filter, brandQuery)
-  const counts = await getCounts(searchQuery, brandQuery)
+  const [counts, releaseCounts] = await Promise.all([
+    getCounts(searchQuery, brandQuery),
+    getReleaseCountsByUser(allUsers.map((u) => u.id)),
+  ])
 
   return (
     <div className="space-y-6">
@@ -182,12 +233,18 @@ export default async function AdminUsersPage({
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Email</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Verified</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Role</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Sent</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Approved</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400 text-right">Editorial</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Created</th>
+                  <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Last Login</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {allUsers.map((user, index) => (
+                {allUsers.map((user, index) => {
+                  const prCounts = releaseCounts.get(user.id) ?? { sent: 0, approved: 0, editorial: 0 }
+                  return (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
                     <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -226,8 +283,14 @@ export default async function AdminUsersPage({
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.sent}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.approved}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 text-right tabular-nums">{prCounts.editorial}</td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                      {formatAgo(user.lastSeen)}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2" {...(index === 0 ? { "data-tour": "users-actions" } : {})}>
@@ -251,7 +314,8 @@ export default async function AdminUsersPage({
                       </div>
                     </td>
                   </tr>
-                ))}
+                  )
+                })}
               </tbody>
             </table>
           </div>
