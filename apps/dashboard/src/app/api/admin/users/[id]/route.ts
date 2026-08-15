@@ -5,6 +5,72 @@ import { eq } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSystemMessage } from '@/lib/messages'
 import { hash } from 'bcryptjs'
+import { permanentlyDeleteUser } from '@/lib/admin-permanent-delete-user'
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  const isAdmin = (session?.user as any)?.isAdmin
+  if (!isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { id } = await params
+  const userId = parseInt(id)
+  if (isNaN(userId)) {
+    return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 })
+  }
+
+  const sessionUserId = Number((session?.user as any)?.id)
+  if (sessionUserId === userId) {
+    return NextResponse.json({ error: 'You cannot permanently delete your own account' }, { status: 400 })
+  }
+
+  try {
+    const body = await request.json().catch(() => ({}))
+    const confirmEmail = typeof body?.confirmEmail === 'string' ? body.confirmEmail.trim().toLowerCase() : ''
+    if (!body?.confirmPermanent || !confirmEmail) {
+      return NextResponse.json(
+        { error: 'Confirmation required. This is a permanent delete.' },
+        { status: 400 },
+      )
+    }
+
+    const [target] = await db
+      .select({ id: users.id, email: users.email, isAdmin: users.isAdmin, isSuper: users.isSuper })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+
+    if (!target) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+    if (target.isAdmin || target.isSuper) {
+      return NextResponse.json({ error: 'Admin accounts cannot be permanently deleted' }, { status: 403 })
+    }
+    if (confirmEmail !== target.email.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Email confirmation does not match. Permanent delete aborted.' },
+        { status: 400 },
+      )
+    }
+
+    const result = await permanentlyDeleteUser(userId)
+    return NextResponse.json({ success: true, ...result })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to permanently delete user'
+    if (message === 'USER_NOT_FOUND') {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+    if (message === 'CANNOT_DELETE_ADMIN') {
+      return NextResponse.json({ error: 'Admin accounts cannot be permanently deleted' }, { status: 403 })
+    }
+    console.error('Error permanently deleting user:', error)
+    return NextResponse.json({ error: 'Failed to permanently delete user' }, { status: 500 })
+  }
+}
 
 export async function PATCH(
   request: NextRequest,

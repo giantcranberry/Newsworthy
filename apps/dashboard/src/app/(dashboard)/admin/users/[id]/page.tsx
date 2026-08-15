@@ -11,6 +11,7 @@ import { UserDetailForm } from './user-detail-form'
 import { ImpersonateButton } from './impersonate-button'
 import { SendMessageDialog } from './send-message-dialog'
 import { StaffNotesCard } from './staff-notes-card'
+import { DeleteUserButton } from './delete-user-button'
 
 async function getUserData(userId: number) {
   const user = await db.query.users.findFirst({
@@ -200,6 +201,13 @@ export default async function UserDetailPage({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isAdmin && !user.isAdmin && !user.isSuper && (
+            <DeleteUserButton
+              userId={user.id}
+              userEmail={user.email}
+              userName={user.profile?.firstName ? `${user.profile.firstName} ${user.profile.lastName || ''}`.trim() : undefined}
+            />
+          )}
           {isAdmin && (
             <SendMessageDialog
               userId={user.id}
