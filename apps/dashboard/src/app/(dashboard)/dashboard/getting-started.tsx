@@ -63,7 +63,10 @@ export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, dra
         <CardTitle className="text-xl sm:text-2xl">Publish your first press release &mdash; on us!</CardTitle>
         <CardDescription className="text-base sm:text-lg">
           {firstReleaseFree ? (
-            <>Three steps — and <strong className="font-bold text-gray-900 dark:text-gray-100">your first press release is on us.</strong></>
+            <>
+              Three steps — and <strong className="font-bold text-gray-900 dark:text-gray-100">your first press release is on us.</strong>{' '}
+              Limited to one complimentary release per company/brand.
+            </>
           ) : hasCredits ? (
             'Three steps — and you already have a credit ready to use.'
           ) : (
@@ -138,13 +141,13 @@ export function GettingStarted({ brandSetup, brandUuid, hasDraft, draftUuid, dra
             <StepBadge status={step3} step={3} />
             <div className="min-w-0 flex-1">
               <p className={`font-semibold ${step3 === 'active' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>
-                Submit &amp; publish &mdash; It&apos;s Free. Your First Press Release is Complimentary
+                Submit &amp; publish &mdash; first press release complimentary
               </p>
               <p className="mt-0.5 text-sm text-gray-600 dark:text-gray-400">
                 {firstReleaseFree
-                  ? 'Your first press release is free — submitting costs nothing. Our editors review your release and distribute it across the network.'
+                  ? 'Your first press release is free — submitting costs nothing. Offer limited to one complimentary release per company/brand. Our editors review your release and distribute it across the network.'
                   : hasCredits
-                    ? 'Your first press release is free. No credit card required. Our editors review your release and distribute it across the network.'
+                    ? 'Your first press release is free. No credit card required. Offer limited to one complimentary release per company/brand. Our editors review your release and distribute it across the network.'
                     : 'One payment at submission covers your press release credit. Our editors review your release and distribute it across the network.'}
               </p>
               {step3 === 'active' && (

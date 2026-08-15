@@ -263,7 +263,7 @@ export default async function CreatePRPage({
           <Info className="h-5 w-5 text-cyan-700 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-cyan-800 dark:text-cyan-400">
             {firstReleaseFree
-              ? "Your first press release is on us — write it now and submit it for review at no cost."
+              ? "Your first press release is on us — write it now and submit it for review at no cost. Limited to one complimentary release per company/brand."
               : canPurchase
                 ? "Writing and previewing your press release is free. You'll purchase a press release credit when you submit it for review."
                 : "Writing and previewing your press release is free. One press release credit is required at submission — ask the brand owner or a brand admin to purchase credits before you submit."}
