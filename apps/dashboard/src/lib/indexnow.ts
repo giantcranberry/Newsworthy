@@ -5,6 +5,13 @@ function getIndexNowKey(): string | undefined {
   return process.env.INDEXNOW_API_KEY || undefined
 }
 
+/** Match apps/website/lib/article_utils.ts slugify */
+export function slugifyHeadline(headline: string): string {
+  let slug = headline.toLowerCase().replace(/[\s\W-]+/g, '-')
+  if (slug.length > 64) slug = slug.substring(0, 64)
+  return slug.replace(/-+$/g, '')
+}
+
 /**
  * Build the canonical public news URL for a press release.
  */
@@ -20,6 +27,20 @@ export function buildIndexNowReleaseUrl(release: {
   const m = String(d.getMonth() + 1).padStart(2, '0')
   const day = String(d.getDate()).padStart(2, '0')
   return `${INDEXNOW_SITE_ORIGIN}/news/${y}${m}${day}${release.id}/${release.slug}`
+}
+
+/**
+ * Build the canonical /curated URL (same shape as news-sitemap / site pages).
+ */
+export function buildIndexNowCuratedUrl(article: {
+  id: number
+  title: string | null
+  publishedAt: Date | string
+}): string | null {
+  if (!article.title) return null
+  const d = new Date(article.publishedAt)
+  if (Number.isNaN(d.getTime())) return null
+  return `${INDEXNOW_SITE_ORIGIN}/curated/${slugifyHeadline(article.title)}/${d.getFullYear()}${article.id}`
 }
 
 /**
