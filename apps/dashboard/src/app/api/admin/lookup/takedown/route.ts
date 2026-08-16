@@ -4,6 +4,7 @@ import { releases } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { deleteDocument } from '@/lib/opensearch'
 import { NextRequest, NextResponse } from 'next/server'
+import { queueIndexNowForRelease } from '@/lib/indexnow'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -21,7 +22,13 @@ export async function POST(request: NextRequest) {
 
   const release = await db.query.releases.findFirst({
     where: eq(releases.id, releaseId),
-    columns: { id: true, elasticDoc: true, isDeleted: true },
+    columns: {
+      id: true,
+      elasticDoc: true,
+      isDeleted: true,
+      slug: true,
+      releaseAt: true,
+    },
   })
 
   if (!release) {
@@ -50,6 +57,8 @@ export async function POST(request: NextRequest) {
       }
     }
   }
+
+  queueIndexNowForRelease(release)
 
   return NextResponse.json({
     success: true,

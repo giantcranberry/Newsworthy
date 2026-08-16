@@ -10,6 +10,7 @@ import { sendGoogleChatNotification, formatGChatPrStatusMessage } from '@/lib/go
 import { getPostHog } from '@/lib/posthog'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { indexDocument, updateDocument } from '@/lib/opensearch'
+import { queueIndexNowForRelease } from '@/lib/indexnow'
 import { randomUUID } from 'crypto'
 
 const CIRCUITS: Record<string, number[]> = {
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
           const y = d.getFullYear()
           const m = String(d.getMonth() + 1).padStart(2, '0')
           const day = String(d.getDate()).padStart(2, '0')
-          newsUrlStr = `https://newsworthy.ai/news/${y}${m}${day}${rel.id}/${rel.slug}`
+          newsUrlStr = `https://www.newsworthy.ai/news/${y}${m}${day}${rel.id}/${rel.slug}`
         }
 
         const content: Record<string, unknown> = {
@@ -207,6 +208,10 @@ export async function POST(request: NextRequest) {
               .where(eq(releases.id, releaseId))
           }
         }
+
+        // Notify IndexNow once the release is approved/indexed (URL is final).
+        // Cron also catches status=sent flips from external distribution.
+        queueIndexNowForRelease(rel)
       } catch (err) {
         console.error('Failed to index release in OpenSearch:', err)
       }

@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/db'
 import { releases } from '@/db/schema'
 import { eq } from 'drizzle-orm'
+import { queueIndexNowForRelease } from '@/lib/indexnow'
 
 // GET - Lookup a released PR by ID
 export async function GET(request: NextRequest) {
@@ -98,6 +99,8 @@ export async function PUT(request: NextRequest) {
         pullquote: pullquote || null,
       })
       .where(eq(releases.id, releaseId))
+
+    queueIndexNowForRelease(existing[0])
 
     return NextResponse.json({ success: true })
   } catch (error) {
