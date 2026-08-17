@@ -14,11 +14,11 @@ declare module 'next-auth' {
   }
 
   interface User extends DefaultUser {
-    isAdmin: boolean
-    isEditor: boolean
-    isStaff: boolean
-    partnerId: number | null
-    managedPartnerIds: number[]
+    isAdmin?: boolean
+    isEditor?: boolean
+    isStaff?: boolean
+    partnerId?: number | null
+    managedPartnerIds?: number[]
   }
 }
 
