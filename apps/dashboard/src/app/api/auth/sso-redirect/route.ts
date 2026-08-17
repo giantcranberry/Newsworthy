@@ -30,10 +30,11 @@ export async function GET(request: NextRequest) {
     return res
   }
 
-  let session: Awaited<ReturnType<typeof auth>> | null = null
+  let hasSessionUser = false
 
   if (action === 'login') {
-    session = await auth()
+    const session = await auth()
+    hasSessionUser = !!session?.user
     // Default post-login home for admins is /admin (not /dashboard).
     // Preserve intentional deep links other than /dashboard.
     if (next === '/dashboard' && (session?.user as any)?.isAdmin) {
@@ -50,10 +51,8 @@ export async function GET(request: NextRequest) {
   }
 
   // For login action, verify user has a valid session
-  if (action === 'login') {
-    if (!session?.user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
+  if (action === 'login' && !hasSessionUser) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   // Generate HMAC-signed token
