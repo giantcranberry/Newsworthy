@@ -1,6 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
+import { db } from '@/db'
+import { users } from '@/db/schema'
+import { eq } from 'drizzle-orm'
 import { createHmac } from 'crypto'
+
+async function resolveLoginDestination(
+  next: string,
+  session: { user?: { id?: string | null } | null } | null
+): Promise<string> {
+  // Only rewrite the default post-login home; keep intentional deep links.
+  if (next !== '/dashboard' && next !== '/') return next
+
+  const userId = session?.user?.id ? Number(session.user.id) : NaN
+  if (!Number.isFinite(userId)) return next === '/' ? '/dashboard' : next
+
+  // Prefer DB over JWT so a stale/missing isAdmin flag can't send admins to /dashboard.
+  const [row] = await db
+    .select({ isAdmin: users.isAdmin })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+
+  if (row?.isAdmin) return '/admin'
+
+  return next === '/' ? '/dashboard' : next
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -35,11 +60,7 @@ export async function GET(request: NextRequest) {
   if (action === 'login') {
     const session = await auth()
     hasSessionUser = !!session?.user
-    // Default post-login home for admins is /admin (not /dashboard).
-    // Preserve intentional deep links other than /dashboard.
-    if (next === '/dashboard' && (session?.user as any)?.isAdmin) {
-      next = '/admin'
-    }
+    next = await resolveLoginDestination(next, session)
   }
 
   console.log('[SSO Redirect]', { action, next, isLocalhost, websiteUrl: !!websiteUrl, ssoSecret: !!ssoSecret })
@@ -50,9 +71,11 @@ export async function GET(request: NextRequest) {
     return withExpandHint(NextResponse.redirect(new URL(next, request.url)))
   }
 
-  // For login action, verify user has a valid session
-  if (action === 'login' && !hasSessionUser) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // For login action, verify user has a valid session before the website SSO bounce.
+  // If the session cookie isn't readable yet (occasional OAuth race), continue to
+  // `next` instead of bouncing to /login — the dashboard layout will enforce auth.
+  if (action === 'login' && !hasSessionUser && !isLocalhost && websiteUrl && ssoSecret) {
+    console.warn('[SSO Redirect] No session after login; continuing to', next)
   }
 
   // Generate HMAC-signed token

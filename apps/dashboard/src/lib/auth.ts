@@ -49,6 +49,7 @@ function verifyWerkzeugPassword(password: string, hash: string): boolean {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   providers: [
     Credentials({
       name: 'credentials',
@@ -129,10 +130,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({
       clientId: process.env.GOOGLE_ID!,
       clientSecret: process.env.GOOGLE_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
+    // LinkedIn OpenID Connect — explicit endpoints/scopes avoid flaky discovery
+    // and missing-email failures that bounce users back to /login on the first try.
     LinkedIn({
       clientId: process.env.LINKEDIN_ID!,
       clientSecret: process.env.LINKEDIN_SECRET!,
+      client: { token_endpoint_auth_method: 'client_secret_post' },
+      issuer: 'https://www.linkedin.com/oauth',
+      jwks_endpoint: 'https://www.linkedin.com/oauth/openid/jwks',
+      authorization: {
+        params: { scope: 'openid profile email' },
+      },
+      token: 'https://www.linkedin.com/oauth/v2/accessToken',
+      userinfo: 'https://api.linkedin.com/v2/userinfo',
+      checks: ['state'],
+      allowDangerousEmailAccountLinking: true,
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+        }
+      },
     }),
   ],
   pages: {
@@ -163,6 +185,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               token.managedPartnerIds = managedRows.map(r => r.partnerId)
               return token
             }
+          } else {
+            console.error('[Auth] OAuth user missing email:', account.provider)
           }
         }
         // Credentials provider already returns the correct DB id
@@ -191,7 +215,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // For OAuth providers, check if user exists or create them
       if (account?.provider === 'google' || account?.provider === 'linkedin') {
         const email = user.email?.toLowerCase()
-        if (!email) return false
+        if (!email) {
+          // LinkedIn occasionally omits email on the first consent response.
+          // Rejecting here sends the user back to /login; asking again usually works.
+          console.error('[Auth] OAuth signIn blocked — no email from', account.provider)
+          return false
+        }
 
         const existingUser = await db.query.users.findFirst({
           where: eq(users.email, email),

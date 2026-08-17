@@ -97,6 +97,15 @@ function LoginForm() {
               {errorParam === 'expired_link' && 'This link has expired. Please request a new one.'}
               {errorParam === 'invalid_link' && 'Invalid sign in link. Please try again.'}
               {errorParam === 'server_error' && 'An error occurred. Please try again.'}
+              {errorParam === 'AccessDenied' &&
+                'Sign in was denied. If you used LinkedIn, please try again and allow email access.'}
+              {errorParam === 'OAuthCallback' &&
+                'Sign in with LinkedIn failed on the first attempt. Please click LinkedIn again.'}
+              {errorParam === 'OAuthAccountNotLinked' &&
+                'This email is already linked to another sign-in method. Try that method, or contact support.'}
+              {!['expired_link', 'invalid_link', 'server_error', 'AccessDenied', 'OAuthCallback', 'OAuthAccountNotLinked'].includes(
+                errorParam
+              ) && 'Sign in failed. Please try again.'}
             </div>
           )}
 
