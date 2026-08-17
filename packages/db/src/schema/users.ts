@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, unique } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
 export const users = pgTable('users', {
@@ -141,6 +141,22 @@ export const googleChatConnections = pgTable('google_chat_connections', {
   webhookUrl: text('webhook_url').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+/** Per-admin favorites of user accounts (shown on /admin). */
+export const adminUserFavorites = pgTable(
+  'admin_user_favorites',
+  {
+    id: serial('id').primaryKey(),
+    adminUserId: integer('admin_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    favoritedUserId: integer('favorited_user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').defaultNow(),
+  },
+  (table) => [unique().on(table.adminUserId, table.favoritedUserId)]
+)
 
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({

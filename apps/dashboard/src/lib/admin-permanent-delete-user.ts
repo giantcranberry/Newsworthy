@@ -78,6 +78,7 @@ import {
   verify,
   slackConnections,
   googleChatConnections,
+  adminUserFavorites,
   partnerManagers,
   contentCalendar,
   kanbanStages,
@@ -705,6 +706,14 @@ export async function permanentlyDeleteUser(userId: number): Promise<{
     await tx.delete(contentCalendar).where(eq(contentCalendar.userId, userId))
     await tx.delete(slackConnections).where(eq(slackConnections.userId, userId))
     await tx.delete(googleChatConnections).where(eq(googleChatConnections.userId, userId))
+    await tx
+      .delete(adminUserFavorites)
+      .where(
+        or(
+          eq(adminUserFavorites.adminUserId, userId),
+          eq(adminUserFavorites.favoritedUserId, userId)
+        )
+      )
     await tx.delete(verify).where(eq(verify.userId, userId))
     await tx.delete(userSubscription).where(eq(userSubscription.userId, userId))
     await tx.delete(userProfiles).where(eq(userProfiles.userId, userId))

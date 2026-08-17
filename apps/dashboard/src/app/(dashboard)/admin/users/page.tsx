@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, userProfiles, company, releases } from '@/db/schema'
+import { users, userProfiles, company, releases, adminUserFavorites } from '@/db/schema'
 import { desc, ilike, eq, and, sql, inArray, gte, lt, or, isNull } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -12,6 +12,7 @@ import { SendMessageDialog } from './[id]/send-message-dialog'
 import { ActAsButton } from './act-as-button'
 import { SyncShareListButton } from './sync-share-list-button'
 import { CopyEmailButton } from './copy-email-button'
+import { FavoriteUserButton } from './favorite-user-button'
 import { cn } from '@/lib/utils'
 
 type FilterType = 'all' | 'pending' | 'verified'
@@ -116,6 +117,15 @@ async function getReleaseCountsByUser(userIds: number[]): Promise<Map<number, nu
   }
 
   return counts
+}
+
+async function getFavoriteUserIds(adminUserId: number): Promise<Set<number>> {
+  const rows = await db
+    .select({ favoritedUserId: adminUserFavorites.favoritedUserId })
+    .from(adminUserFavorites)
+    .where(eq(adminUserFavorites.adminUserId, adminUserId))
+
+  return new Set(rows.map((r) => r.favoritedUserId))
 }
 
 async function getUsers(searchQuery?: string, filter?: FilterType, brandQuery?: string) {
@@ -224,11 +234,15 @@ export default async function AdminUsersPage({
 
   const { q: searchQuery, filter: rawFilter, brand: brandQuery } = await searchParams
   const filter: FilterType = rawFilter === 'pending' || rawFilter === 'verified' ? rawFilter : 'all'
+  const adminUserId = session?.user?.id ? Number(session.user.id) : NaN
   const allUsers = await getUsers(searchQuery, filter, brandQuery)
-  const [counts, releaseCounts, conversion] = await Promise.all([
+  const [counts, releaseCounts, conversion, favoriteIds] = await Promise.all([
     getCounts(searchQuery, brandQuery),
     getReleaseCountsByUser(allUsers.map((u) => u.id)),
     getConversionStats(),
+    isAdmin && Number.isFinite(adminUserId)
+      ? getFavoriteUserIds(adminUserId)
+      : Promise.resolve(new Set<number>()),
   ])
 
   return (
@@ -321,6 +335,9 @@ export default async function AdminUsersPage({
             <table className="w-full">
               <thead data-tour="users-columns">
                 <tr className="border-b text-left">
+                  {isAdmin && (
+                    <th className="py-3 px-2 text-sm font-medium text-gray-500 dark:text-gray-400 w-10" />
+                  )}
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">ID</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">User</th>
                   <th className="py-3 px-4 text-sm font-medium text-gray-500 dark:text-gray-400">Verified</th>
@@ -337,6 +354,14 @@ export default async function AdminUsersPage({
                   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ')
                   return (
                   <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950 transition-colors" {...(index === 0 ? { "data-tour": "users-first-row" } : {})}>
+                    {isAdmin && (
+                      <td className="py-3 px-2">
+                        <FavoriteUserButton
+                          userId={user.id}
+                          favorited={favoriteIds.has(user.id)}
+                        />
+                      </td>
+                    )}
                     <td className="py-3 px-4 text-sm text-gray-600 dark:text-gray-400">{user.id}</td>
                     <td className="py-3 px-4">
                       <div className="min-w-0">

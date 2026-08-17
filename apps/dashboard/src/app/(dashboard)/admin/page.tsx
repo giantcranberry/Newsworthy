@@ -1,16 +1,17 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, releases, company, partners } from '@/db/schema'
+import { users, releases, company, partners, adminUserFavorites, userProfiles } from '@/db/schema'
 import { count, eq, desc, and } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, FileText, Briefcase, Package, Mail, ListChecks } from 'lucide-react'
+import { Users, FileText, Briefcase, Package, Mail, ListChecks, Activity } from 'lucide-react'
 import { PRLookup } from './pr-lookup'
 import { SalesStats } from './sales-stats'
 import { AdminStats } from './admin-stats'
+import { FavoriteUsers } from './favorite-users'
 
 function GoogleAnalyticsIcon({ className }: { className?: string }) {
   return (
@@ -55,6 +56,26 @@ async function getAdminStats() {
   }
 }
 
+async function getFavoriteUsers(adminUserId: number) {
+  return db
+    .select({
+      id: users.id,
+      email: users.email,
+      emailVerified: users.emailVerified,
+      firstName: userProfiles.firstName,
+      lastName: userProfiles.lastName,
+      favoritedAt: adminUserFavorites.createdAt,
+    })
+    .from(adminUserFavorites)
+    .innerJoin(users, eq(users.id, adminUserFavorites.favoritedUserId))
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+    .where(
+      and(eq(adminUserFavorites.adminUserId, adminUserId), eq(users.isDeleted, false))
+    )
+    .orderBy(desc(adminUserFavorites.createdAt))
+    .limit(24)
+}
+
 export default async function AdminPage() {
   const session = await auth()
 
@@ -66,7 +87,13 @@ export default async function AdminPage() {
     redirect('/dashboard')
   }
 
-  const stats = await getAdminStats()
+  const adminUserId = session?.user?.id ? Number(session.user.id) : NaN
+  const [stats, favorites] = await Promise.all([
+    getAdminStats(),
+    isAdmin && Number.isFinite(adminUserId)
+      ? getFavoriteUsers(adminUserId)
+      : Promise.resolve([]),
+  ])
 
   return (
     <div className="space-y-6">
@@ -80,6 +107,8 @@ export default async function AdminPage() {
       <div data-tour="admin-pr-lookup">
         <PRLookup isAdmin={!!isAdmin} />
       </div>
+
+      {isAdmin && <FavoriteUsers favorites={favorites} />}
 
       {/* Quick Actions */}
       <Card data-tour="admin-quick-actions">
@@ -118,6 +147,15 @@ export default async function AdminPage() {
                 {stats.pendingReleases > 0 && (
                   <Badge className="absolute top-2 right-2 bg-red-500 text-white">{stats.pendingReleases}</Badge>
                 )}
+              </Button>
+            </Link>
+            <Link href="/admin/users/active" data-tour="admin-action-most-active-users">
+              <Button
+                variant="outline"
+                className="w-full h-20 flex-col gap-2 border-violet-200 text-violet-900 hover:bg-violet-50 hover:border-violet-300 dark:border-violet-900/60 dark:text-violet-100 dark:hover:bg-violet-950/40 dark:hover:border-violet-800"
+              >
+                <Activity className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+                Most Active Users
               </Button>
             </Link>
             <Link href="/admin/partners" data-tour="admin-action-partners">
