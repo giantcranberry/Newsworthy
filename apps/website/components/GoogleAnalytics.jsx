@@ -1,10 +1,17 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Script from "next/script";
 import * as gtag from "@/gtag.js";
 
 const GoogleAnalytics = () => {
-    //You can show in the console the GA_TRACKING_ID to confirm
+    const pathname = usePathname();
+
+    useEffect(() => {
+        if (!gtag.GA_TRACKING_ID || typeof window.gtag !== "function") return;
+        gtag.pageview(pathname);
+    }, [pathname]);
 
     return (
         <>
