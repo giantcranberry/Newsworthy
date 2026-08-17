@@ -88,8 +88,9 @@ function PeriodCard({
 }
 
 export function SalesStats() {
+  const [open, setOpen] = useState(false)
   const [data, setData] = useState<SalesData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const fetchSales = async (refresh: boolean = false) => {
@@ -111,196 +112,195 @@ export function SalesStats() {
   }
 
   useEffect(() => {
-    fetchSales()
-  }, [])
+    if (open && !data && !loading) {
+      fetchSales()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once when first expanded
+  }, [open])
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-gray-400" />
-            Sales
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8 text-sm text-gray-500 dark:text-gray-400">
-            Loading sales data from Stripe...
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-gray-400" />
-            Sales
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!data) return null
-
-  const totalOutstanding = data.invoices.reduce((sum, inv) => sum + inv.amountRemaining, 0)
+  const totalOutstanding = data?.invoices.reduce((sum, inv) => sum + inv.amountRemaining, 0) ?? 0
 
   return (
-    <div className="space-y-4">
-      {/* Sales Totals */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-gray-400" />
-              Sales
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              {data.cachedAt && (
-                <span className="text-xs text-gray-400">
-                  Updated {new Date(data.cachedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                </span>
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader className={open ? undefined : 'pb-6'}>
+            <div className="flex items-center justify-between gap-3">
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="group flex items-center gap-2 text-left cursor-pointer"
+                  data-tour="admin-sales-toggle"
+                >
+                  <ChevronRight className="h-4 w-4 text-gray-400 transition-transform group-data-[state=open]:rotate-90" />
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5 text-gray-400" />
+                    Sales
+                  </CardTitle>
+                  {!open && (
+                    <span className="text-xs text-gray-400 font-normal">Click to reveal</span>
+                  )}
+                </button>
+              </CollapsibleTrigger>
+              {open && (
+                <div className="flex items-center gap-2">
+                  {data?.cachedAt && (
+                    <span className="text-xs text-gray-400">
+                      Updated {new Date(data.cachedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => fetchSales(true)}
+                    disabled={loading}
+                    className="gap-1.5 text-xs text-gray-500 dark:text-gray-400"
+                  >
+                    <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
+                </div>
               )}
-              <Button variant="ghost" size="sm" onClick={() => fetchSales(true)} className="gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                <RefreshCw className="h-3 w-3" />
-                Refresh
-              </Button>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <PeriodCard
-              icon={<Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />}
-              label="Today"
-              current={data.today}
-              previous={data.prevToday}
-              prevLabel="Yesterday"
-            />
-            <PeriodCard
-              icon={<CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
-              label="Week to Date"
-              current={data.wtd}
-              previous={data.prevWtd}
-              prevLabel="Last Week"
-            />
-            <PeriodCard
-              icon={<TrendingUp className="h-4 w-4 text-purple-600" />}
-              label="Month to Date"
-              current={data.mtd}
-              previous={data.prevMtd}
-              prevLabel="Last Month"
-            />
-            <PeriodCard
-              icon={<DollarSign className="h-4 w-4 text-amber-600" />}
-              label="Year to Date"
-              current={data.ytd}
-              previous={data.prevYtd}
-              prevLabel="Last Year"
-            />
-          </div>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent>
+              {loading && (
+                <div className="flex items-center justify-center py-8 text-sm text-gray-500 dark:text-gray-400">
+                  Loading sales data from Stripe...
+                </div>
+              )}
+              {error && !loading && (
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+              )}
+              {data && !loading && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <PeriodCard
+                    icon={<Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                    label="Today"
+                    current={data.today}
+                    previous={data.prevToday}
+                    prevLabel="Yesterday"
+                  />
+                  <PeriodCard
+                    icon={<CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+                    label="Week to Date"
+                    current={data.wtd}
+                    previous={data.prevWtd}
+                    prevLabel="Last Week"
+                  />
+                  <PeriodCard
+                    icon={<TrendingUp className="h-4 w-4 text-purple-600" />}
+                    label="Month to Date"
+                    current={data.mtd}
+                    previous={data.prevMtd}
+                    prevLabel="Last Month"
+                  />
+                  <PeriodCard
+                    icon={<DollarSign className="h-4 w-4 text-amber-600" />}
+                    label="Year to Date"
+                    current={data.ytd}
+                    previous={data.prevYtd}
+                    prevLabel="Last Year"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
 
-      {/* Outstanding Invoices */}
-      {data.invoices.length > 0 && (
-        <Collapsible>
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer group">
-                    <ChevronRight className="h-4 w-4 text-gray-400 transition-transform group-data-[state=open]:rotate-90" />
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-gray-400" />
-                      Outstanding Invoices
-                      <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-400">
-                        {data.invoices.length}
-                      </span>
-                    </CardTitle>
-                  </CollapsibleTrigger>
+        {open && data && data.invoices.length > 0 && (
+          <Collapsible>
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer group">
+                      <ChevronRight className="h-4 w-4 text-gray-400 transition-transform group-data-[state=open]:rotate-90" />
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-gray-400" />
+                        Outstanding Invoices
+                        <span className="inline-flex items-center rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-400">
+                          {data.invoices.length}
+                        </span>
+                      </CardTitle>
+                    </CollapsibleTrigger>
+                  </div>
+                  <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                    {formatCents(totalOutstanding)}
+                  </p>
                 </div>
-                <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
-                  {formatCents(totalOutstanding)}
-                </p>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 ml-6 mt-1">Last 30 days</p>
-            </CardHeader>
-            <CollapsibleContent>
-              <CardContent className="pt-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-800">
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Invoice</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Customer</th>
-                        <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Amount Due</th>
-                        <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Remaining</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Created</th>
-                        <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Due</th>
-                        <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.invoices.map((inv) => (
-                        <tr key={inv.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-                          <td className="py-2.5 pr-4">
-                            <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{inv.number || inv.id.slice(-8)}</span>
-                          </td>
-                          <td className="py-2.5 pr-4">
-                            <div>
-                              {inv.customerName && (
-                                <p className="text-gray-900 dark:text-gray-100 text-xs font-medium">{inv.customerName}</p>
-                              )}
-                              {inv.customerEmail && (
-                                <p className="text-gray-500 dark:text-gray-400 text-xs">{inv.customerEmail}</p>
-                              )}
-                              {!inv.customerName && !inv.customerEmail && (
-                                <p className="text-gray-400 text-xs">Unknown</p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-2.5 pr-4 text-right font-medium text-gray-900 dark:text-gray-100 text-xs">
-                            {formatCents(inv.amountDue)}
-                          </td>
-                          <td className="py-2.5 pr-4 text-right text-xs">
-                            <span className={inv.amountRemaining > 0 ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-gray-500 dark:text-gray-400'}>
-                              {formatCents(inv.amountRemaining)}
-                            </span>
-                          </td>
-                          <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(inv.created)}
-                          </td>
-                          <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
-                            {inv.dueDate ? formatDate(inv.dueDate) : '—'}
-                          </td>
-                          <td className="py-2.5 text-right">
-                            {inv.hostedInvoiceUrl && (
-                              <a href={inv.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
-                                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300">
-                                  <ExternalLink className="h-3 w-3" />
-                                  View
-                                </Button>
-                              </a>
-                            )}
-                          </td>
+                <p className="text-xs text-gray-500 dark:text-gray-400 ml-6 mt-1">Last 30 days</p>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent className="pt-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-800">
+                          <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Invoice</th>
+                          <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Customer</th>
+                          <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Amount Due</th>
+                          <th className="text-right py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Remaining</th>
+                          <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Created</th>
+                          <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Due</th>
+                          <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400"></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </CollapsibleContent>
-          </Card>
-        </Collapsible>
-      )}
-    </div>
+                      </thead>
+                      <tbody>
+                        {data.invoices.map((inv) => (
+                          <tr key={inv.id} className="border-b border-gray-100 dark:border-gray-800 last:border-0">
+                            <td className="py-2.5 pr-4">
+                              <span className="font-mono text-xs text-gray-700 dark:text-gray-300">{inv.number || inv.id.slice(-8)}</span>
+                            </td>
+                            <td className="py-2.5 pr-4">
+                              <div>
+                                {inv.customerName && (
+                                  <p className="text-gray-900 dark:text-gray-100 text-xs font-medium">{inv.customerName}</p>
+                                )}
+                                {inv.customerEmail && (
+                                  <p className="text-gray-500 dark:text-gray-400 text-xs">{inv.customerEmail}</p>
+                                )}
+                                {!inv.customerName && !inv.customerEmail && (
+                                  <p className="text-gray-400 text-xs">Unknown</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-2.5 pr-4 text-right font-medium text-gray-900 dark:text-gray-100 text-xs">
+                              {formatCents(inv.amountDue)}
+                            </td>
+                            <td className="py-2.5 pr-4 text-right text-xs">
+                              <span className={inv.amountRemaining > 0 ? 'text-amber-700 dark:text-amber-400 font-medium' : 'text-gray-500 dark:text-gray-400'}>
+                                {formatCents(inv.amountRemaining)}
+                              </span>
+                            </td>
+                            <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
+                              {formatDate(inv.created)}
+                            </td>
+                            <td className="py-2.5 pr-4 text-xs text-gray-500 dark:text-gray-400">
+                              {inv.dueDate ? formatDate(inv.dueDate) : '—'}
+                            </td>
+                            <td className="py-2.5 text-right">
+                              {inv.hostedInvoiceUrl && (
+                                <a href={inv.hostedInvoiceUrl} target="_blank" rel="noopener noreferrer">
+                                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 dark:text-gray-300">
+                                    <ExternalLink className="h-3 w-3" />
+                                    View
+                                  </Button>
+                                </a>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+        )}
+      </div>
+    </Collapsible>
   )
 }

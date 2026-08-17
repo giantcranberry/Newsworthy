@@ -118,7 +118,7 @@ function LoginForm() {
                 We sent a sign in link to <strong>{email}</strong>
               </p>
               <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                This link will expire in 15 minutes.
+                This link will expire in 24 hours.
               </p>
               <Button
                 variant="link"

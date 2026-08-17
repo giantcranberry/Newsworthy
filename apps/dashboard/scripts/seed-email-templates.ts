@@ -37,15 +37,15 @@ const templates = [
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
       <h1 style="color: #1a1a1a; margin-bottom: 20px;">Sign in to Newsworthy</h1>
-      <p style="margin-bottom: 20px;">Click the button below to sign in to your account. This link will expire in 15 minutes.</p>
+      <p style="margin-bottom: 20px;">Click the button below to sign in to your account. This link will expire in 24 hours.</p>
       <a href="{{magicLink}}" style="display: inline-block; background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">Sign in</a>
       <p style="margin-top: 20px; font-size: 14px; color: #666;">If you didn't request this email, you can safely ignore it.</p>
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-      <p style="font-size: 12px; color: #999;">This link can only be used once and expires in 15 minutes.</p>
+      <p style="font-size: 12px; color: #999;">This link can only be used once and expires in 24 hours.</p>
     </div>
   </body>
 </html>`,
-    textBody: `Sign in to Newsworthy\n\nClick this link to sign in: {{magicLink}}\n\nThis link expires in 15 minutes.`,
+    textBody: `Sign in to Newsworthy\n\nClick this link to sign in: {{magicLink}}\n\nThis link expires in 24 hours.`,
   },
   {
     slug: 'password-reset',

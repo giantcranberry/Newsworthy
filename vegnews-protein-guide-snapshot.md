@@ -1,0 +1,841 @@
+- generic [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - navigation "Mobile menu" [ref=e5]:
+        - button "Toggle main menu" [ref=e6] [cursor=pointer]:
+          - generic [ref=e11]: Main Menu
+        - text: + + + + +
+      - link [ref=e13] [cursor=pointer]:
+        - /url: /
+        - img "VegNews" [ref=e14]
+      - generic [ref=e15]:
+        - link "Subscribe" [ref=e16] [cursor=pointer]:
+          - /url: https://vegnews.secure.darwin.cx/J4WSUB1V
+        - link "VIP" [ref=e17] [cursor=pointer]:
+          - /url: https://vegnews.com/become-a-vegnews-vip
+        - link "Gift" [ref=e18] [cursor=pointer]:
+          - /url: https://vegnews.secure.darwin.cx/J4WGFT3V
+        - link "Show search" [ref=e19] [cursor=pointer]:
+          - /url: "#"
+        - search [ref=e22]:
+          - generic [ref=e23]:
+            - generic [ref=e26]: Search
+            - searchbox "Search" [ref=e27]
+            - link "Hide search" [ref=e28] [cursor=pointer]:
+              - /url: "#"
+  - banner [ref=e31]:
+    - generic [ref=e32]:
+      - generic [ref=e34]:
+        - link [ref=e36] [cursor=pointer]:
+          - /url: /
+          - img "VegNews" [ref=e37]
+        - generic [ref=e38]:
+          - list [ref=e39]:
+            - listitem [ref=e40]:
+              - link "Instagram (opens in new tab)" [ref=e41] [cursor=pointer]:
+                - /url: https://www.instagram.com/vegnews
+            - listitem [ref=e44]:
+              - link "Facebook (opens in new tab)" [ref=e45] [cursor=pointer]:
+                - /url: https://www.facebook.com/vegnews
+            - listitem [ref=e48]:
+              - link "X (opens in new tab)" [ref=e49] [cursor=pointer]:
+                - /url: https://twitter.com/VegNews
+            - listitem [ref=e52]:
+              - link "Pinterest (opens in new tab)" [ref=e53] [cursor=pointer]:
+                - /url: https://pinterest.com/vegnews/
+            - listitem [ref=e56]:
+              - link "YouTube (opens in new tab)" [ref=e57] [cursor=pointer]:
+                - /url: https://www.youtube.com/@VegNews/shorts
+            - listitem [ref=e60]:
+              - link "LinkedIn (opens in new tab)" [ref=e61] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/vegnews/
+            - listitem [ref=e65]:
+              - link "TikTok (opens in new tab)" [ref=e66] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@vegnews
+          - link [ref=e69] [cursor=pointer]:
+            - /url: https://vegnews.com/about/a-tour-of-vegnews
+            - paragraph [ref=e70]:
+              - emphasis [ref=e71]: Plant-Based
+              - text: Food + Lifestyle
+        - link [ref=e73] [cursor=pointer]:
+          - /url: https://vegnews.secure.darwin.cx/J4WGET1V
+          - heading [level=6] [ref=e74]:
+            - emphasis [ref=e75]: Subscribe
+          - paragraph [ref=e76]: "Get the world's #1 plant‑based magazine"
+      - navigation "Main" [ref=e77]:
+        - list [ref=e78]:
+          - listitem [ref=e79]:
+            - link "News" [ref=e80] [cursor=pointer]:
+              - /url: /news
+          - listitem [ref=e81]:
+            - link "Recipes" [ref=e82] [cursor=pointer]:
+              - /url: /recipes
+          - listitem [ref=e83]:
+            - link "Guides" [ref=e84] [cursor=pointer]:
+              - /url: /guides
+          - listitem [ref=e85]:
+            - link "Health + Wellness" [ref=e86] [cursor=pointer]:
+              - /url: /health-wellness
+          - listitem [ref=e87]:
+            - link "Fashion + Beauty" [ref=e88] [cursor=pointer]:
+              - /url: /fashion-beauty
+          - listitem [ref=e89]:
+            - link "Travel" [ref=e90] [cursor=pointer]:
+              - /url: /travel
+          - listitem [ref=e91]:
+            - link "Shop" [ref=e92] [cursor=pointer]:
+              - /url: /shop
+          - listitem [ref=e93]:
+            - link "Newsletter" [ref=e94] [cursor=pointer]:
+              - /url: /signup
+          - listitem [ref=e95]:
+            - link "Subscribe" [ref=e96] [cursor=pointer]:
+              - /url: https://vegnews.secure.darwin.cx/J4WSUB2V
+          - listitem [ref=e97]:
+            - link "VIP" [ref=e98] [cursor=pointer]:
+              - /url: https://vegnews.com/become-a-vegnews-vip
+          - listitem [ref=e99]:
+            - link "Gift" [ref=e100] [cursor=pointer]:
+              - /url: https://vegnews.secure.darwin.cx/J4WGFT4V
+  - banner [ref=e101]:
+    - paragraph [ref=e102]:
+      - link "This Week's Top Food News" [ref=e103] [cursor=pointer]:
+        - /url: https://vegnews.com/foodnews
+    - paragraph [ref=e104]:
+      - 'link "Hot Product: New Vegan BBQ Sauce!" [ref=e105] [cursor=pointer]':
+        - /url: https://vegnews.com/big-tree-farms-vegan-bali-bbq-sauce-aminos
+    - paragraph [ref=e106]:
+      - link "Our Fun Summer Giveaways" [ref=e107] [cursor=pointer]:
+        - /url: https://vegnews.com/giveaway
+    - paragraph [ref=e108]:
+      - link "The Ultimate Vegan Guide to Summer" [ref=e109] [cursor=pointer]:
+        - /url: https://vegnews.com/summer
+    - paragraph [ref=e110]:
+      - link "Our Weekly VegNewsletter" [ref=e111] [cursor=pointer]:
+        - /url: https://mailchi.mp/vegnews.com/best-fries-in-america?e=298f6334c6
+    - paragraph [ref=e112]:
+      - 'link "Please Read: An Important Message" [ref=e113] [cursor=pointer]':
+        - /url: https://vegnews.com/vegnews-letter-next-26-years
+  - main [ref=e114]:
+    - article [ref=e117]:
+      - generic [ref=e118]:
+        - navigation "Breadcrumbs" [ref=e119]:
+          - list [ref=e120]:
+            - listitem [ref=e121]:
+              - link "VegNews" [ref=e122] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=e123]:
+              - text: ">"
+              - link "Guides" [ref=e124] [cursor=pointer]:
+                - /url: /guides
+        - figure [ref=e125]:
+          - link [ref=e126] [cursor=pointer]:
+            - /url: /guides/vegan-protein-powders-guide
+            - img "The VegNews Guide to Vegan Protein Powders (Because They’re Not All the Same)" [ref=e128]
+          - paragraph [ref=e129]: Vega
+        - heading [level=1] [ref=e130]:
+          - link "The VegNews Guide to Vegan Protein Powders (Because They’re Not All the Same)" [ref=e131] [cursor=pointer]:
+            - /url: /guides/vegan-protein-powders-guide
+        - heading "When it comes to plant-based protein powders, vegans have hundreds of options, but which should you choose? Our guide breaks it all down, from ingredients to benefits." [level=2] [ref=e132]
+        - paragraph [ref=e133]:
+          - emphasis [ref=e134]: by
+          - link "Anna Starostinetskaya" [ref=e135] [cursor=pointer]:
+            - /url: /authors/anna-starostinetskaya
+        - paragraph [ref=e136]: January 14, 2026
+        - separator [ref=e137]
+        - generic [ref=e138]:
+          - emphasis [ref=e140]: Share this
+          - link "Share article on Facebook (opens in new tab)" [ref=e141] [cursor=pointer]:
+            - /url: https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide
+          - link "Share article on X (opens in new tab)" [ref=e144] [cursor=pointer]:
+            - /url: https://x.com/intent/post?text=The+VegNews+Guide+to+Vegan+Protein+Powders+%28Because+They%E2%80%99re+Not+All+the+Same%29&url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&via=VegNews
+          - link "Share article on Pinterest (opens in new tab)" [ref=e147] [cursor=pointer]:
+            - /url: https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&media=https%3A%2F%2Fvegnews.com%2Fmedia%2FW1siZiIsIjQ5MDYwL1ZlZ2EuanBnIl0sWyJwIiwidGh1bWIiLCI2MDB4NjAwIyJdLFsicCIsImVuY29kZSIsImpwZyIsIiJdLFsicCIsIm9wdGltaXplIl1d%2FVega.jpg%3Fsha%3De55e9f702cf5db4a&description=The%20VegNews%20Guide%20to%20Vegan%20Protein%20Powders%20(Because%20They%E2%80%99re%20Not%20All%20the%20Same)
+          - link "Share article on LinkedIn (opens in new tab)" [ref=e150] [cursor=pointer]:
+            - /url: https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide
+          - link "Share article via email" [ref=e154] [cursor=pointer]:
+            - /url: mailto:?body=Check%20out%20this%20story%20on%20VegNews.com%3A%0A%0AThe%20VegNews%20Guide%20to%20Vegan%20Protein%20Powders%20%28Because%20They%E2%80%99re%20Not%20All%20the%20Same%29%0Ahttps%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&subject=Check%20out%20this%20story%20on%20VegNews.com
+      - generic [ref=e158]:
+        - generic [ref=e159]:
+          - paragraph [ref=e160]: The most common base in protein powders is whey, a milk byproduct. But it’s not the only path to gains. There is a veritable world of plant-based protein powders, crafted to meet the needs of the most hardcore athletes.
+          - paragraph [ref=e161]:
+            - link "JUMP TO THE PROTEIN POWDERS" [ref=e162] [cursor=pointer]:
+              - /url: "#powders"
+          - paragraph [ref=e163]: These vegan protein powders are derived from a variety of plant-based sources, each with its own nutrient profile and benefits. Understanding where these proteins come from and their key nutrients can help you make the best choice for your fitness goals, whether that’s building muscle, enhancing endurance, or supporting general health.
+          - heading "What is whey?" [level=2] [ref=e164]
+          - paragraph [ref=e165]: Whey protein is a byproduct of cheese production, derived from the liquid that separates during the curdling process of milk. It is considered a complete protein, containing all nine essential amino acids necessary for muscle growth and recovery, making it a popular choice among athletes. One of whey’s primary advantages is its high concentration of branched-chain amino acids (BCAAs), particularly leucine, which plays a crucial role in muscle protein synthesis. Whey is also highly bioavailable, meaning it is quickly absorbed by the body, making it a popular post-workout supplement.
+          - paragraph [ref=e166]:
+            - text: However,
+            - link "whey comes with some drawbacks" [ref=e167] [cursor=pointer]:
+              - /url: https://vegnews.com/whey-protein-is-it-good-for-you
+            - text: . For one, many people experience digestive issues such as bloating or discomfort due to lactose intolerance, which can be exacerbated by whey protein consumption, particularly in less refined forms such as whey concentrate.
+          - paragraph [ref=e168]:
+            - strong [ref=e169]: "RELATED:"
+            - link "Try These Vegan Hemp Protein Powders for Maximum Gym Gains" [ref=e171] [cursor=pointer]:
+              - /url: /what-is-hemp-protein-vegan-powders
+          - paragraph [ref=e172]: In terms of protein content, whey is highly efficient, often containing between 70 and 80 grams of protein per 100 grams. While it may provide faster muscle recovery due to its amino acid profile, plant-based proteins offer other nutritional benefits, such as fiber and antioxidants, that are lacking in whey.
+          - paragraph [ref=e173]: For those focused on muscle gain, whey has been shown to increase muscle protein synthesis more rapidly, but plant-based proteins—when combined strategically—can also meet the necessary amino acid requirements and provide additional health benefits.
+          - paragraph [ref=e174]:
+            - img "Protein" [ref=e175]
+            - text: Karolina Grabowska/Pexels
+          - heading "Plant protein sources" [level=2] [ref=e176]
+          - paragraph [ref=e177]: We tapped a few experts for insights around the vast world of vegan protein powders, first broken down by their individual protein sources.
+          - heading "Legumes" [level=3] [ref=e178]
+          - paragraph [ref=e179]: Beans and legumes are rich sources of protein and are the most common bases for vegan protein powders.
+          - heading "Soy protein" [level=4] [ref=e180]
+          - paragraph [ref=e181]: Soy protein is derived from soybeans, a legume native to East Asia, and is one of the most commonly used plant-based protein sources due to its versatility. Soy protein is a complete protein, containing high levels of isoflavones, which are beneficial for heart health and cholesterol management. It also provides significant amounts of iron, calcium, and potassium.
+          - paragraph [ref=e182]:
+            - text: “Soy protein is an excellent option for anyone focused on muscle building and enhanced recovery,”
+            - link "Sergii Putsov" [ref=e183] [cursor=pointer]:
+              - /url: https://torokhtiy.com/pages/sergii-putsov
+            - text: ", Certified Personal Trainer (CPT), with a PhD in Sports Science from the International Olympic Academy, tells VegNews. “This is because it contains all the nine essential amino acids, making it a complete protein with a profile similar to animal proteins.”"
+          - paragraph [ref=e184]: “Soy is also rich in BCAAs, crucial for muscle protein synthesis,” Putsov says.
+          - paragraph [ref=e185]:
+            - link [ref=e186] [cursor=pointer]:
+              - /url: https://amzn.to/4ettdxu
+              - img "Soy Protein" [ref=e187]
+            - text: Now Foods
+          - paragraph [ref=e188]:
+            - text: For this reason, sports nutrition company NOW Foods developed a
+            - link "soy protein isolate" [ref=e189] [cursor=pointer]:
+              - /url: https://amzn.to/4ettdxu
+            - text: as a plant-based alternative to whey protein. “It is a good vegetable source of high quality complete protein that has an excellent amino acid profile,” the company tells VegNews. “According to the FDA, diets low in saturated fat and cholesterol that include 25 grams of soy protein a day may reduce the risk of heart disease.”
+          - paragraph [ref=e190]: Soy protein, however, comes with some downsides. It is a common allergen, and some individuals may experience digestive discomfort or sensitivities to it.
+          - heading "Pea protein" [level=4] [ref=e191]
+          - paragraph [ref=e192]: One of the most common bases in vegan protein powder, pea protein is extracted from yellow split peas, a legume high in protein and fiber. Peas are grown globally, with Canada being a major producer. Pea protein is also rich in iron, containing up to 35 percent of the recommended daily intake per serving.
+          - paragraph [ref=e193]:
+            - img "VegNews.nakedpeaprotein.naked" [ref=e194]
+          - paragraph [ref=e195]: “Pea protein is a good alternative for those who have soy sensitivities,” Putsov says. “However, it is not a complete protein on its own; it is rich in lysine, which is essential for muscle repair and growth.”
+          - heading "Chickpea protein" [level=4] [ref=e196]
+          - paragraph [ref=e197]: Chickpea protein, made from ground chickpeas, is rich in fiber, vitamins, and minerals, including iron, magnesium, and phosphorus. While chickpea protein may not be a complete protein on its own, its high digestibility makes it suitable for many dietary needs, including those with sensitivities to common allergens such as dairy, soy, and gluten.
+          - paragraph [ref=e198]: Neutral in flavor, chickpea protein is particularly beneficial for muscle recovery and weight management. It offers a decent amount of protein, with some powders containing up to 20 grams per serving, along with a good amount of fiber, which promotes satiety and helps regulate blood sugar levels.
+          - heading "Lupin protein" [level=4] [ref=e199]
+          - paragraph [ref=e200]: Chocho—a species of lupin grown in the Andes— is another legume protein source. It delivers 54 grams of protein per 100 gram serving, which is higher than soy at 36 grams, hemp at 34 grams, pea (green) at 26 grams, and chickpea at 16 grams.
+          - paragraph [ref=e201]:
+            - img "Mikuna" [ref=e202]
+            - text: Mikuna
+          - paragraph [ref=e203]:
+            - text: It also solves many allergy issues, which is the reason why Ricky Echanique—a fifth-generation Ecuadorian farmer and former professional tennis player—founded his sports nutrition brand
+            - link "Mikuna" [ref=e204] [cursor=pointer]:
+              - /url: https://mikunafoods.com/
+            - text: around this hero ingredient.
+          - blockquote [ref=e205]: “I opted for chocho as my plant protein source due to my intolerance to pea, hemp, whey, and soy,” Echanique tells VegNews. “I found that these alternatives did not agree with my body when I was seeking to improve my overall well-being.”
+          - paragraph [ref=e206]: “Chocho stands out to me because of its minimal processing, retaining its whole food integrity while being rich in essential nutrients and trace minerals without undergoing isolation processes,” Echanique says.
+          - heading "Mung bean protein" [level=4] [ref=e207]
+          - paragraph [ref=e208]: Mung beans have gained prominence in the plant-based market sector as a vegan egg alternative. In fact, mung beans are the main ingredient in Just Egg. And now, this legume is also being turned into protein powder. Alongside protein, mung beans are also rich in fiber, iron, magnesium, and potassium.
+          - paragraph [ref=e209]: Eat Just, makers of Just Egg, launched Just One mung bean protein in 2025. One 35 gram serving boasts 30 grams of protein.
+          - paragraph [ref=e210]: "Brands to try for legume protein include:"
+          - list [ref=e211]:
+            - listitem [level=1] [ref=e212]:
+              - link "365 by Whole Foods Market" [ref=e213] [cursor=pointer]:
+                - /url: https://amzn.to/4dvOPYD
+            - listitem [level=1] [ref=e214]:
+              - link "Alaya Naturals" [ref=e215] [cursor=pointer]:
+                - /url: https://amzn.to/4ewQIWk
+            - listitem [level=1] [ref=e216]:
+              - link "Anthony’s Goods Organic" [ref=e217] [cursor=pointer]:
+                - /url: https://amzn.to/4etNbbm
+            - listitem [ref=e218]:
+              - link "Birdman" [ref=e219] [cursor=pointer]:
+                - /url: https://amzn.to/3ZSM7t0
+            - listitem [ref=e220]:
+              - link "Elements Truffles" [ref=e221] [cursor=pointer]:
+                - /url: https://amzn.to/45enx7X
+            - listitem [level=1] [ref=e222]:
+              - link "Evolve" [ref=e223] [cursor=pointer]:
+                - /url: https://amzn.to/3Ya2yzW
+            - listitem [ref=e224]:
+              - link "Green Boy" [ref=e225] [cursor=pointer]:
+                - /url: https://amzn.to/4gK84kd
+            - listitem [level=1] [ref=e226]:
+              - link "Growing Naturals" [ref=e227] [cursor=pointer]:
+                - /url: https://amzn.to/47Veskg
+            - listitem [level=1] [ref=e228]:
+              - link "Just One" [ref=e229] [cursor=pointer]:
+                - /url: https://amzn.to/3LzYO7e
+            - listitem [level=1] [ref=e230]:
+              - link "KOS" [ref=e231] [cursor=pointer]:
+                - /url: https://amzn.to/4gQK3YA
+            - listitem [ref=e232]:
+              - link "Mikuna Foods" [ref=e233] [cursor=pointer]:
+                - /url: https://amzn.to/4dCbjXU
+            - listitem [ref=e234]:
+              - link "Naked" [ref=e235] [cursor=pointer]:
+                - /url: https://amzn.to/4gQhsT8
+            - listitem [ref=e236]:
+              - link "NorCal Organic Premium" [ref=e237] [cursor=pointer]:
+                - /url: https://amzn.to/3ZVO5sR
+            - listitem [ref=e238]:
+              - link "NOW Foods" [ref=e239] [cursor=pointer]:
+                - /url: https://amzn.to/3Yckzhb
+            - listitem [level=1] [ref=e240]:
+              - link "NuGo" [ref=e241] [cursor=pointer]:
+                - /url: https://amzn.to/4esz71T
+            - listitem [ref=e242]:
+              - link "Nutrasuma" [ref=e243] [cursor=pointer]:
+                - /url: https://amzn.to/3TQRhlB
+            - listitem [level=1] [ref=e244]:
+              - link "NutriBiotic" [ref=e245] [cursor=pointer]:
+                - /url: https://amzn.to/3TTyLsG
+            - listitem [level=1] [ref=e246]:
+              - link "Prote&co" [ref=e247] [cursor=pointer]:
+                - /url: https://amzn.to/3BGDrMb
+            - listitem [level=1] [ref=e248]:
+              - link "Ritual" [ref=e249] [cursor=pointer]:
+                - /url: https://amzn.to/4gTFtJ2
+            - listitem [ref=e250]:
+              - link "Simply Fuel" [ref=e251] [cursor=pointer]:
+                - /url: https://amzn.to/3BsX3U5
+            - listitem [ref=e252]:
+              - link "SOLO Organic" [ref=e253] [cursor=pointer]:
+                - /url: https://amzn.to/4dtED2J
+            - listitem [level=1] [ref=e254]:
+              - link "Sprout Living" [ref=e255] [cursor=pointer]:
+                - /url: https://amzn.to/3TVtAbA
+            - listitem [ref=e256]:
+              - link "Truvani" [ref=e257] [cursor=pointer]:
+                - /url: https://amzn.to/3Bt0aLL
+            - listitem [ref=e258]:
+              - link "Zammex" [ref=e259] [cursor=pointer]:
+                - /url: https://amzn.to/3ZQ4VsV
+          - heading "Grains" [level=3] [ref=e260]
+          - paragraph [ref=e261]: Grains are not always associated with gains, but many provide a protein boost along with other nutritional benefits, particularly when they are sprouted.
+          - heading "Brown rice protein" [level=4] [ref=e262]
+          - paragraph [ref=e263]: Brown rice protein is made from whole-grain brown rice through a process of enzymatic separation. The outer bran and germ are retained, providing more nutrients than white rice. It contains a significant amount of B vitamins, magnesium, and fiber.
+          - paragraph [ref=e264]: Since brown rice protein is low in lysine, an essential amino acid necessary for muscle repair, combining it with another protein is key.
+          - blockquote [ref=e265]: “This is an excellent option for anyone focused on endurance,” Putsov says. “Combined with pea protein, it becomes a complete protein source supporting muscle maintenance and energy levels needed during long workout sessions.”
+          - paragraph [ref=e266]:
+            - text: Sports nutrition brand Sunwarrior follows this formula for its
+            - link "Sunwarrior Organic Active Protein" [ref=e267] [cursor=pointer]:
+              - /url: https://amzn.to/3Y8scVE
+            - text: ", combining brown rice, pea, and pumpkin to achieve a higher Protein Digestibility-Corrected Amino Acid Score (PDCAAS). Plus, the plant protein has other benefits, too."
+          - paragraph [ref=e268]:
+            - link [ref=e269] [cursor=pointer]:
+              - /url: https://amzn.to/3Y8scVE
+              - img "Sunwarrior" [ref=e270]
+            - text: Sunwarrior
+          - paragraph [ref=e271]: “From a sustainability perspective, these plant-based proteins are environmentally friendly, requiring fewer resources and producing less greenhouse gas emissions compared to animal-based proteins,” a Sunwarrior spokesperson tells VegNews.
+          - paragraph [ref=e272]: Brown rice protein is also low in calories, making it a great option for individuals focused on weight management.
+          - paragraph [ref=e274]:
+            - strong [ref=e275]: BECOME A VEGNEWS VIP
+            - text: ":"
+            - link "Get exclusive product deals, freebies, and perks galore!" [ref=e276] [cursor=pointer]:
+              - /url: /vip
+          - heading "Sprouted barley protein" [level=4] [ref=e277]
+          - paragraph [ref=e278]: Sprouting grains, such as barley and rice, means that they have been germinated, enhancing their nutrient content. Sprouting increases the availability of enzymes and breaks down complex sugars, making it easier to digest.
+          - paragraph [ref=e279]:
+            - img "Rise311" [ref=e280]
+            - text: Rise311
+          - paragraph [ref=e281]: Jason Walsh, co-founder of sports nutrition brand Rise311, chose sprouted barley as a hero ingredient—together with pea protein—for this “pre-digested” quality.
+          - blockquote [ref=e282]: “[This] makes it gentle on your stomach, especially when combined with some of our other ingredients,” Walsh tells VegNews. “Arguably the amino acids are also more bioavailable and easier to absorb.”
+          - paragraph [ref=e283]: This protein contains significant amounts of selenium, magnesium, and vitamins B1 and B3, and provides other benefits.
+          - paragraph [ref=e284]: “Sprouted barley offers additional benefits for digestive health due to its high fiber content,” Putsov says. “It supports sustained energy release, which is beneficial for endurance athletes who need long-lasting energy.”
+          - paragraph [ref=e285]: "Brands to try for grain protein include:"
+          - list [ref=e286]:
+            - listitem [ref=e287]:
+              - link "FYTA" [ref=e288] [cursor=pointer]:
+                - /url: https://amzn.to/4jskZaT
+            - listitem [ref=e289]:
+              - link "Growing Naturals" [ref=e290] [cursor=pointer]:
+                - /url: https://amzn.to/3XWdIYJ
+            - listitem [level=1] [ref=e291]:
+              - link "Iron Vegan" [ref=e292] [cursor=pointer]:
+                - /url: https://amzn.to/4elbF6x
+            - listitem [ref=e293]:
+              - link "Judee’s" [ref=e294] [cursor=pointer]:
+                - /url: https://amzn.to/3zGuUbH
+            - listitem [level=1] [ref=e295]:
+              - link "Naked" [ref=e296] [cursor=pointer]:
+                - /url: https://amzn.to/3NdBVUE
+            - listitem [level=1] [ref=e297]:
+              - link "Nutribiotic" [ref=e298] [cursor=pointer]:
+                - /url: https://amzn.to/3TTyLsG
+            - listitem [level=1] [ref=e299]:
+              - link "Rise311" [ref=e300] [cursor=pointer]:
+                - /url: https://rise311.com/pages/about-us
+            - listitem [level=1] [ref=e301]:
+              - link "Sunwarrior" [ref=e302] [cursor=pointer]:
+                - /url: https://amzn.to/47QMczi
+            - listitem [level=1] [ref=e303]:
+              - link "Terrasoul Superfoods" [ref=e304] [cursor=pointer]:
+                - /url: https://amzn.to/3Y9mlzl
+            - listitem [level=1] [ref=e305]:
+              - link "Zen Principle" [ref=e306] [cursor=pointer]:
+                - /url: https://amzn.to/3TW5HRs
+          - heading "Seeds and nuts" [level=3] [ref=e307]
+          - paragraph [ref=e308]: Seeds and nuts are easy to snack on to get more protein and, as it turns out, are commonly used as bases for plant-based protein powders.
+          - heading "Seed protein" [level=4] [ref=e309]
+          - paragraph [ref=e310]:
+            - text: Hemp protein is made from the seeds of the hemp plant (
+            - emphasis [ref=e311]: Cannabis sativa
+            - text: ). It is produced by cold-pressing hemp seeds to remove oil and grinding the remaining solids into a powder. Hemp protein is a complete protein, containing all nine essential amino acids.
+          - paragraph [ref=e312]:
+            - link [ref=e313] [cursor=pointer]:
+              - /url: https://amzn.to/4eQiFrN
+              - img "Manitoba" [ref=e314]
+            - text: Manitoba Harvest
+          - paragraph [ref=e315]: “Most people don’t know this, but hemp is an incredible plant-based protein source,” Jared Simon, President of nutrition companies Manitoba Harvest and Tilray Wellness, tells VegNews.
+          - blockquote [ref=e316]: “In fact, one 30-gram serving of hemp hearts has more protein than 30 grams of chicken and fits perfectly into a variety of dietary preferences from vegan, keto, and gluten-free to dairy-free,” Simon says.
+          - paragraph [ref=e317]:
+            - text: Manitoba Harvest produces its
+            - link "Max Protein Powder" [ref=e318] [cursor=pointer]:
+              - /url: https://amzn.to/4eQiFrN
+            - text: using hemp protein as a base due to its high levels of omega-3 and omega-6 fatty acids, which support heart health. “These fatty acids help slow down our digestion of protein, giving us more stable energy levels compared to other protein powders that might metabolize more quickly,” Simon says.
+          - paragraph [ref=e319]: In addition to hemp, other seeds, such as flax, sunflower, and chia, are rich in omega-3 fatty acids, which deliver recovery benefits.
+          - paragraph [ref=e320]: “Flaxseed and chia seed proteins are good for people looking to support their joint health and reduce inflammation,” Putsov says. “They are also a good source of fiber and protein critical to overall recovery and long-term health.”
+          - paragraph [ref=e321]: Another ingredient found in some vegan protein powders is pumpkin seed protein, which supports immune health and muscle function. “It is high in zinc, magnesium, and iron, which are crucial for recovery, immune function, and vitality,” Putsov says.
+          - paragraph [ref=e322]: "Brands to try for seed protein include:"
+          - list [ref=e323]:
+            - listitem [level=1] [ref=e324]:
+              - link "365 by Whole Foods Market" [ref=e325] [cursor=pointer]:
+                - /url: https://amzn.to/47UrJK6
+            - listitem [level=1] [ref=e326]:
+              - link "Anthony’s Goods" [ref=e327] [cursor=pointer]:
+                - /url: https://amzn.to/4eua6Dc
+            - listitem [level=1] [ref=e328]:
+              - link "Bob’s Red Mill" [ref=e329] [cursor=pointer]:
+                - /url: https://amzn.to/3zNry6L
+            - listitem [ref=e330]:
+              - link "Cantein Protein" [ref=e331] [cursor=pointer]:
+                - /url: https://amzn.to/47QECVm
+            - listitem [ref=e332]:
+              - link "Gundry MD" [ref=e333] [cursor=pointer]:
+                - /url: https://amzn.to/3ZPRhpO
+            - listitem [ref=e334]:
+              - link "Lekithos" [ref=e335] [cursor=pointer]:
+                - /url: https://amzn.to/4qspwxW
+            - listitem [level=1] [ref=e336]:
+              - link "Manitoba Harvest" [ref=e337] [cursor=pointer]:
+                - /url: https://amzn.to/3ZPJ70E
+            - listitem [level=1] [ref=e338]:
+              - link "Naked" [ref=e339] [cursor=pointer]:
+                - /url: https://amzn.to/3ZS6OWc
+            - listitem [level=1] [ref=e340]:
+              - link "NOW Foods" [ref=e341] [cursor=pointer]:
+                - /url: https://amzn.to/4esDSIN
+            - listitem [level=1] [ref=e342]:
+              - link "Nutiva" [ref=e343] [cursor=pointer]:
+                - /url: https://amzn.to/3XPPf6w
+            - listitem [level=1] [ref=e344]:
+              - link "PaleoPro" [ref=e345] [cursor=pointer]:
+                - /url: https://amzn.to/4eRtMRd
+            - listitem [level=1] [ref=e346]:
+              - link "Sakara" [ref=e347] [cursor=pointer]:
+                - /url: https://amzn.to/4gSHAwU
+            - listitem [level=1] [ref=e348]:
+              - link "Sprout Living" [ref=e349] [cursor=pointer]:
+                - /url: https://amzn.to/4eskWda
+            - listitem [level=1] [ref=e350]:
+              - link "Sunwarrior" [ref=e351] [cursor=pointer]:
+                - /url: https://amzn.to/3TX8pGh
+          - heading "Nut Protein" [level=4] [ref=e352]
+          - paragraph [ref=e353]: Nuts are a common dietary plant protein source and some are used in vegan protein powders. Almond protein is produced by grinding almonds into a fine powder, often after cold-pressing to remove oils. It retains many of the health benefits of whole almonds, including healthy fats and micronutrients.
+          - paragraph [ref=e354]:
+            - text: “It leaves you with a super-almond, high in protein per calorie, and maintains all of the nutritional benefits that make almonds a superfood, while removing the one bad nutrient, saturated fats,” Sean Hall, founder of almond protein powder brand
+            - link "Wellious" [ref=e355] [cursor=pointer]:
+              - /url: https://www.wellious.co/
+            - text: ", tells Vegews."
+          - paragraph [ref=e356]:
+            - img "Wellious protein powder" [ref=e357]
+            - text: Wellious
+          - paragraph [ref=e358]: Almond protein—which Wellious mixes with chickpea protein for a balanced amino acid profile—is also rich in vitamin E and magnesium.
+          - paragraph [ref=e359]: Peanuts, while technically a legume, are also used as a protein powder due to their high protein content and rich nutrient profile. Peanut protein powder, or peanut flour, is packed with healthy fats, fiber, and vitamins such as vitamin E and magnesium.
+          - paragraph [ref=e360]: Although it is not a complete protein, peanut protein powder can still contribute to muscle repair and energy levels when combined with other plant-based proteins to form a balanced amino acid profile.
+          - paragraph [ref=e361]: "Brands to try for nut protein include:"
+          - list [ref=e362]:
+            - listitem [level=1] [ref=e363]:
+              - link "Bob’s Red Mill" [ref=e364] [cursor=pointer]:
+                - /url: https://amzn.to/3TU8QRC
+            - listitem [level=1] [ref=e365]:
+              - link "Drink Wholesome" [ref=e366] [cursor=pointer]:
+                - /url: https://amzn.to/3NcUCaU
+            - listitem [level=1] [ref=e367]:
+              - link "Naked" [ref=e368] [cursor=pointer]:
+                - /url: https://amzn.to/3zL8mX9
+            - listitem [level=1] [ref=e369]:
+              - link "PB2" [ref=e370] [cursor=pointer]:
+                - /url: https://amzn.to/4etXHPS
+            - listitem [level=1] [ref=e371]:
+              - link "PBfit" [ref=e372] [cursor=pointer]:
+                - /url: https://amzn.to/3YaRa6Q
+            - listitem [level=1] [ref=e373]:
+              - link "Wellious" [ref=e374] [cursor=pointer]:
+                - /url: https://amzn.to/3TVSqsd
+          - heading "Blended protein powders" [level=3] [ref=e375]
+          - paragraph [ref=e376]: Eating a varied diet is key to optimal nutrition—which informs how vegan protein powders are created.
+          - paragraph [ref=e377]:
+            - img "Orgain protein powder" [ref=e378]
+            - text: Orgain
+          - paragraph [ref=e379]: Most brands create their vegan protein powders from a blend of sources to ensure a complete nutritional profile.
+          - paragraph [ref=e380]: "Brands and products to try include:"
+          - list [ref=e381]:
+            - listitem [level=1] [ref=e382]:
+              - link "ALOHA" [ref=e383] [cursor=pointer]:
+                - /url: https://amzn.to/3TYEvRZ
+            - listitem [ref=e384]:
+              - link "Ambrosia" [ref=e385] [cursor=pointer]:
+                - /url: https://amzn.to/3XPS1bW
+            - listitem [level=1] [ref=e386]:
+              - link "Ascent" [ref=e387] [cursor=pointer]:
+                - /url: https://amzn.to/4eG6Cxk
+            - listitem [ref=e388]:
+              - link "Be Amazing" [ref=e389] [cursor=pointer]:
+                - /url: https://amzn.to/4sH6BRw
+            - listitem [level=1] [ref=e390]:
+              - link "Biochem" [ref=e391] [cursor=pointer]:
+                - /url: https://amzn.to/3Ya5WL8
+            - listitem [level=1] [ref=e392]:
+              - link "Complement" [ref=e393] [cursor=pointer]:
+                - /url: https://amzn.to/3LK17os
+            - listitem [level=1] [ref=e394]:
+              - link "EarthChimp" [ref=e395] [cursor=pointer]:
+                - /url: https://amzn.to/47Q9rtx
+            - listitem [ref=e396]:
+              - link "Further Food" [ref=e397] [cursor=pointer]:
+                - /url: https://amzn.to/3zNEgCp
+            - listitem [level=1] [ref=e398]:
+              - link "Garden of Life" [ref=e399] [cursor=pointer]:
+                - /url: https://amzn.to/3NaxMAz
+            - listitem [level=1] [ref=e400]:
+              - link "Ghost" [ref=e401] [cursor=pointer]:
+                - /url: https://amzn.to/3Y8Ce9f
+            - listitem [level=1] [ref=e402]:
+              - link "Gnarly Nutrition" [ref=e403] [cursor=pointer]:
+                - /url: https://amzn.to/3Bxkgof
+            - listitem [level=1] [ref=e404]:
+              - link "Huel" [ref=e405] [cursor=pointer]:
+                - /url: https://amzn.to/4duZ53j
+            - listitem [level=1] [ref=e406]:
+              - link "Happy Viking" [ref=e407] [cursor=pointer]:
+                - /url: https://amzn.to/3Yad6Py
+            - listitem [level=1] [ref=e408]:
+              - link "Iron Vegan" [ref=e409] [cursor=pointer]:
+                - /url: https://amzn.to/3zI2des
+            - listitem [level=1] [ref=e410]:
+              - link "MRM Nutrition" [ref=e411] [cursor=pointer]:
+                - /url: https://amzn.to/3zLxKMw
+            - listitem [level=1] [ref=e412]:
+              - link "MyProtein" [ref=e413] [cursor=pointer]:
+                - /url: https://amzn.to/4es65PH
+            - listitem [level=1] [ref=e414]:
+              - link "Naked" [ref=e415] [cursor=pointer]:
+                - /url: https://amzn.to/3YaiMJu
+            - listitem [level=1] [ref=e416]:
+              - link "NOW Foods" [ref=e417] [cursor=pointer]:
+                - /url: https://amzn.to/4gMXY1L
+            - listitem [level=1] [ref=e418]:
+              - link "Optimum Nutrition" [ref=e419] [cursor=pointer]:
+                - /url: https://amzn.to/3TTalzD
+            - listitem [level=1] [ref=e420]:
+              - link "Ora" [ref=e421] [cursor=pointer]:
+                - /url: https://amzn.to/4euBD7N
+            - listitem [level=1] [ref=e422]:
+              - link "Orgain" [ref=e423] [cursor=pointer]:
+                - /url: https://amzn.to/3Bw6odU
+            - listitem [level=1] [ref=e424]:
+              - link "OWYN" [ref=e425] [cursor=pointer]:
+                - /url: https://amzn.to/4gPBBsE
+            - listitem [level=1] [ref=e426]:
+              - link "Possible" [ref=e427] [cursor=pointer]:
+                - /url: https://amzn.to/3XZgBHs
+            - listitem [level=1] [ref=e428]:
+              - link "PowerLife" [ref=e429] [cursor=pointer]:
+                - /url: https://amzn.to/3NaNPhS
+            - listitem [level=1] [ref=e430]:
+              - link "PlantFusion" [ref=e431] [cursor=pointer]:
+                - /url: https://amzn.to/4dG56KQ
+            - listitem [level=1] [ref=e432]:
+              - link "Purely Inspired" [ref=e433] [cursor=pointer]:
+                - /url: https://amzn.to/3ZRwmT3
+            - listitem [level=1] [ref=e434]:
+              - link "Sprout Living" [ref=e435] [cursor=pointer]:
+                - /url: https://amzn.to/4eup6kG
+            - listitem [level=1] [ref=e436]:
+              - link "Sunwarrior" [ref=e437] [cursor=pointer]:
+                - /url: https://amzn.to/3BsOKYh
+            - listitem [level=1] [ref=e438]:
+              - link "Tru" [ref=e439] [cursor=pointer]:
+                - /url: https://amzn.to/4etvA3j
+            - listitem [level=1] [ref=e440]:
+              - link "UnNourish" [ref=e441] [cursor=pointer]:
+                - /url: https://amzn.to/47UEhkG
+            - listitem [level=1] [ref=e442]:
+              - link "Vega" [ref=e443] [cursor=pointer]:
+                - /url: https://amzn.to/4f8lUeD
+            - listitem [level=1] [ref=e444]:
+              - link "Vital Proteins" [ref=e445] [cursor=pointer]:
+                - /url: https://amzn.to/3TVSqsd
+            - listitem [level=1] [ref=e446]:
+              - link "XEELA" [ref=e447] [cursor=pointer]:
+                - /url: https://amzn.to/3zKm2BM
+          - paragraph [ref=e448]: Whether you opt for blends or single-ingredient options, there is an abundance of plant-based protein powders carefully designed to help you meet your fitness and nutritional goals.
+          - paragraph [ref=e450]:
+            - strong [ref=e451]: DON'T MISS OUT
+            - text: ":"
+            - link "Get breaking news, recipes, and our weekly vegan deal by signing up for our FREE VegNewsletter" [ref=e452] [cursor=pointer]:
+              - /url: /signup
+          - generic [ref=e453]:
+            - heading "For more plant-based stories like this, read:" [level=2] [ref=e454]
+            - list [ref=e455]:
+              - listitem [ref=e456]:
+                - link "Hungover? These Are the Best Foods to Eat When You Have a Hangover" [ref=e457] [cursor=pointer]:
+                  - /url: https://vegnews.com/best-foods-for-hangover
+              - listitem [ref=e458]:
+                - link "Can ADHD Be Managed With Diet? We Asked an Expert" [ref=e459] [cursor=pointer]:
+                  - /url: https://vegnews.com/adhd-diet-expert
+              - listitem [ref=e460]:
+                - link "Cassava Root is Rich in Vitamin C, but Don’t Eat it Raw. Here’s How to Cook With It" [ref=e461] [cursor=pointer]:
+                  - /url: https://vegnews.com/guides/cassava-root-how-to-cook
+          - paragraph [ref=e463]:
+            - generic [ref=e464]:
+              - strong [ref=e465]: JUMP TO
+              - strong [ref=e466]: ...
+            - link "Latest News" [ref=e467] [cursor=pointer]:
+              - /url: /vegan-news
+            - text: "|"
+            - link "Recipes" [ref=e468] [cursor=pointer]:
+              - /url: /vegan-recipes
+            - text: "|"
+            - link "Guides" [ref=e469] [cursor=pointer]:
+              - /url: /vegan-guides
+            - text: "|"
+            - link "Health" [ref=e470] [cursor=pointer]:
+              - /url: /vegan-health-wellness
+            - text: "|"
+            - link "Subscribe" [ref=e471] [cursor=pointer]:
+              - /url: https://vegnews.secure.darwin.cx/J4WENDAV
+          - generic [ref=e473]:
+            - figure [ref=e475]:
+              - img "AnnaStarostinetskaya" [ref=e476]
+            - paragraph [ref=e477]: Anna Starostinetskaya is always keeping an eye on all things vegan in her home city of San Francisco, CA and everywhere else.
+          - paragraph [ref=e479]: Here at VegNews, we live and breathe the plant-based lifestyle, and only recommend products we feel make our lives amazing. Occasionally, articles may include links where we might earn a small commission, but in no way does this effect the editorial integrity of VegNews.
+        - generic [ref=e480]:
+          - generic [ref=e481]:
+            - emphasis [ref=e482]: Share this
+            - link "Share article on Facebook (opens in new tab)" [ref=e483] [cursor=pointer]:
+              - /url: https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide
+            - link "Share article on X (opens in new tab)" [ref=e486] [cursor=pointer]:
+              - /url: https://x.com/intent/post?text=The+VegNews+Guide+to+Vegan+Protein+Powders+%28Because+They%E2%80%99re+Not+All+the+Same%29&url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&via=VegNews
+            - link "Share article on Pinterest (opens in new tab)" [ref=e489] [cursor=pointer]:
+              - /url: https://www.pinterest.com/pin/create/button/?url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&media=https%3A%2F%2Fvegnews.com%2Fmedia%2FW1siZiIsIjQ5MDYwL1ZlZ2EuanBnIl0sWyJwIiwidGh1bWIiLCI2MDB4NjAwIyJdLFsicCIsImVuY29kZSIsImpwZyIsIiJdLFsicCIsIm9wdGltaXplIl1d%2FVega.jpg%3Fsha%3De55e9f702cf5db4a&description=The%20VegNews%20Guide%20to%20Vegan%20Protein%20Powders%20(Because%20They%E2%80%99re%20Not%20All%20the%20Same)
+            - link "Share article on LinkedIn (opens in new tab)" [ref=e492] [cursor=pointer]:
+              - /url: https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide
+            - link "Share article via email" [ref=e496] [cursor=pointer]:
+              - /url: mailto:?body=Check%20out%20this%20story%20on%20VegNews.com%3A%0A%0AThe%20VegNews%20Guide%20to%20Vegan%20Protein%20Powders%20%28Because%20They%E2%80%99re%20Not%20All%20the%20Same%29%0Ahttps%3A%2F%2Fvegnews.com%2Fguides%2Fvegan-protein-powders-guide&subject=Check%20out%20this%20story%20on%20VegNews.com
+          - generic [ref=e500]:
+            - paragraph [ref=e501]: Become a VegNews VIP for freebies, insider deals, and perks galore!
+            - paragraph [ref=e502]:
+              - link "Tell Me More" [ref=e503] [cursor=pointer]:
+                - /url: https://vegnews.com/become-a-vegnews-vip
+  - contentinfo [ref=e505]:
+    - generic [ref=e506]:
+      - list [ref=e507]:
+        - listitem [ref=e508]:
+          - emphasis [ref=e509]: Let's connect!
+        - listitem [ref=e510]:
+          - link "Instagram (opens in new tab)" [ref=e511] [cursor=pointer]:
+            - /url: https://www.instagram.com/vegnews
+        - listitem [ref=e514]:
+          - link "Facebook (opens in new tab)" [ref=e515] [cursor=pointer]:
+            - /url: https://www.facebook.com/vegnews
+        - listitem [ref=e518]:
+          - link "X (opens in new tab)" [ref=e519] [cursor=pointer]:
+            - /url: https://twitter.com/VegNews
+        - listitem [ref=e522]:
+          - link "Pinterest (opens in new tab)" [ref=e523] [cursor=pointer]:
+            - /url: https://pinterest.com/vegnews/
+        - listitem [ref=e526]:
+          - link "YouTube (opens in new tab)" [ref=e527] [cursor=pointer]:
+            - /url: https://www.youtube.com/@VegNews/shorts
+        - listitem [ref=e530]:
+          - link "LinkedIn (opens in new tab)" [ref=e531] [cursor=pointer]:
+            - /url: https://www.linkedin.com/company/vegnews/
+        - listitem [ref=e535]:
+          - link "TikTok (opens in new tab)" [ref=e536] [cursor=pointer]:
+            - /url: https://www.tiktok.com/@vegnews
+      - generic [ref=e539]:
+        - navigation "Footer" [ref=e541]:
+          - list [ref=e542]:
+            - listitem [ref=e543]:
+              - text: About Us
+              - list [ref=e544]:
+                - listitem [ref=e545]:
+                  - link "Our Story" [ref=e546] [cursor=pointer]:
+                    - /url: /ourstory
+                - listitem [ref=e547]:
+                  - link "Our Team" [ref=e548] [cursor=pointer]:
+                    - /url: /team
+                - listitem [ref=e549]:
+                  - link "Jobs" [ref=e550] [cursor=pointer]:
+                    - /url: /staffjobs
+                - listitem [ref=e551]:
+                  - link "FAQ" [ref=e552] [cursor=pointer]:
+                    - /url: /faq
+                - listitem [ref=e553]:
+                  - link "Policies" [ref=e554] [cursor=pointer]:
+                    - /url: /policies
+                - listitem [ref=e555]:
+                  - link "Privacy" [ref=e556] [cursor=pointer]:
+                    - /url: /privacy
+                - listitem [ref=e557]:
+                  - link "Shop" [ref=e558] [cursor=pointer]:
+                    - /url: /shop
+                - listitem [ref=e559]:
+                  - link "Contact Us" [ref=e560] [cursor=pointer]:
+                    - /url: /contact
+            - listitem [ref=e561]:
+              - text: Magazine
+              - list [ref=e562]:
+                - listitem [ref=e563]:
+                  - link "Subscribe" [ref=e564] [cursor=pointer]:
+                    - /url: https://vegnews.secure.darwin.cx/J4WFOOTV
+                - listitem [ref=e565]:
+                  - link "Renew" [ref=e566] [cursor=pointer]:
+                    - /url: https://veg.my.darwin.cx
+                - listitem [ref=e567]:
+                  - link "Become a VIP" [ref=e568] [cursor=pointer]:
+                    - /url: https://vegnews.secure.darwin.cx/J4WVIP5V
+                - listitem [ref=e569]:
+                  - link "Give a Gift" [ref=e570] [cursor=pointer]:
+                    - /url: https://vegnews.secure.darwin.cx/J4WGFT2V
+                - listitem [ref=e571]:
+                  - link "Get the Newsletter" [ref=e572] [cursor=pointer]:
+                    - /url: /signup
+                - listitem [ref=e573]:
+                  - link "Where to Buy" [ref=e574] [cursor=pointer]:
+                    - /url: /wheretobuy
+                - listitem [ref=e575]:
+                  - link "Back Issues" [ref=e576] [cursor=pointer]:
+                    - /url: https://vegnews.myshopify.com/collections/back-issues
+                - listitem [ref=e577]:
+                  - link "The VegNews Book" [ref=e578] [cursor=pointer]:
+                    - /url: https://www.amazon.com/VegNews-Guide-Being-Fabulous-Vegan/dp/0306846187/ref=sr_1_15?dchild=1&keywords=vegnews&qid=1591741421&sr=8-15
+                - listitem [ref=e579]:
+                  - link "The VegNews Podcast" [ref=e580] [cursor=pointer]:
+                    - /url: /podcast
+                - listitem [ref=e581]:
+                  - link "The VegNews Meal Planner" [ref=e582] [cursor=pointer]:
+                    - /url: /mealplanner
+                - listitem [ref=e583]:
+                  - link "Customer Service" [ref=e584] [cursor=pointer]:
+                    - /url: /customercare
+            - listitem [ref=e585]:
+              - text: Advertise
+              - list [ref=e586]:
+                - listitem [ref=e587]:
+                  - link "Media Kit" [ref=e588] [cursor=pointer]:
+                    - /url: /advertise/vegnews
+            - listitem [ref=e589]:
+              - text: Submissions
+              - list [ref=e590]:
+                - listitem [ref=e591]:
+                  - link "New Products" [ref=e592] [cursor=pointer]:
+                    - /url: /newproducts
+                - listitem [ref=e593]:
+                  - link "Books" [ref=e594] [cursor=pointer]:
+                    - /url: /books
+                - listitem [ref=e595]:
+                  - link "Write for Us" [ref=e596] [cursor=pointer]:
+                    - /url: /writeforus
+                - listitem [ref=e597]:
+                  - link "The Best Meal Delivery Kits" [ref=e598] [cursor=pointer]:
+                    - /url: https://vegnews.com/guides/vegan-meal-kits
+                - listitem [ref=e599]:
+                  - link "The Best Vegan Cookbooks" [ref=e600] [cursor=pointer]:
+                    - /url: https://vegnews.com/best-vegan-cookbooks
+                - listitem [ref=e601]:
+                  - link "The Best Cookware" [ref=e602] [cursor=pointer]:
+                    - /url: https://vegnews.com/nontoxic-cookware-best
+                - listitem [ref=e603]:
+                  - link "The Best Blenders" [ref=e604] [cursor=pointer]:
+                    - /url: https://vegnews.com/best-vitamix-blenders-for-every-budget
+                - listitem [ref=e605]:
+                  - link "The Best Air Fryers" [ref=e606] [cursor=pointer]:
+                    - /url: https://vegnews.com/best-air-fryer-vegan
+                - listitem [ref=e607]:
+                  - link "The Best Rice Cookers" [ref=e608] [cursor=pointer]:
+                    - /url: https://vegnews.com/rice-cooker-every-budget
+                - listitem [ref=e609]:
+                  - link "The Best Pantry Staples" [ref=e610] [cursor=pointer]:
+                    - /url: https://vegnews.com/shop
+            - listitem [ref=e611]:
+              - text: Press
+              - list [ref=e612]:
+                - listitem [ref=e613]:
+                  - link "Awards" [ref=e614] [cursor=pointer]:
+                    - /url: /awards
+                - listitem [ref=e615]:
+                  - link "Image Downloads" [ref=e616] [cursor=pointer]:
+                    - /url: /imagedownloads
+                - listitem [ref=e617]:
+                  - link "Fact Sheet" [ref=e618] [cursor=pointer]:
+                    - /url: /factsheet
+        - generic [ref=e619]:
+          - link [ref=e620] [cursor=pointer]:
+            - /url: https://vegnews.secure.darwin.cx/J4WFOOTV
+            - img "#147 2026 The Summer Travel Issue" [ref=e622]
+            - generic [ref=e623]:
+              - heading [level=6] [ref=e624]:
+                - emphasis [ref=e625]: Subscribe
+              - paragraph [ref=e626]: "Get the world's #1 plant-based magazine"
+          - generic [ref=e627]:
+            - heading [level=6] [ref=e628]:
+              - emphasis [ref=e629]: Never miss out!
+            - generic [ref=e632]:
+              - generic [ref=e633]: Get the Newsletter
+              - textbox "Get the Newsletter" [ref=e634]
+              - generic [ref=e635]:
+                - textbox [ref=e637]
+                - button "Sign Up" [ref=e638] [cursor=pointer]
+      - generic [ref=e639]:
+        - img "Fresh Healthy Media" [ref=e641]
+        - generic [ref=e642]:
+          - link [ref=e643] [cursor=pointer]:
+            - /url: https://vegnews.com
+            - img "VegNews" [ref=e644]
+          - link [ref=e645] [cursor=pointer]:
+            - /url: /vacations
+            - img "VegNews Vacations" [ref=e646]
+          - link [ref=e647] [cursor=pointer]:
+            - /url: https://mealplanner.vegnews.com/
+            - img "VegNews Ultimate Vegan Meal Planner" [ref=e648]
+          - link [ref=e649] [cursor=pointer]:
+            - /url: https://www.amazon.com/VegNews-Guide-Being-Fabulous-Vegan/dp/0306846187/ref=sr_1_15?dchild=1&keywords=vegnews&qid=1591741421&sr=8-15
+            - img "The VegNews Guide to Being a Fabulous Vegan" [ref=e650]
+          - link [ref=e651] [cursor=pointer]:
+            - /url: /podcast
+            - img "The VegNews Podcast" [ref=e652]
+      - paragraph [ref=e653]: Copyright © 2026 Fresh Healthy Media, LLC
+      - paragraph [ref=e654]:
+        - link "Do not sell or share my personal information" [ref=e655] [cursor=pointer]:
+          - /url: "#"
+  - button "Close" [ref=e658] [cursor=pointer]
+  - dialog [ref=e660]:
+    - generic [ref=e661]:
+      - generic [ref=e662]:
+        - heading "Hello, vegan cookies!" [level=2] [ref=e663]
+        - paragraph [ref=e664]: We use cookies to analyze site traffic, serve ads, and support social media features. Some data is shared with third-party partners.
+      - generic [ref=e665]:
+        - generic [ref=e666]:
+          - button "Accept all" [ref=e667] [cursor=pointer]
+          - button "Reject all" [ref=e668] [cursor=pointer]
+        - button "Manage preferences" [ref=e670] [cursor=pointer]
+  - generic [ref=e672]:
+    - generic [ref=e673]:
+      - img "subscribers modal icon" [ref=e675]
+      - generic [ref=e676]:
+        - heading "YES! Please send me breaking vegan news from the VegNews team." [level=3] [ref=e677]
+        - separator [ref=e678]
+        - heading "Updates can be turned off anytime by viewing your browser settings." [level=4] [ref=e679]
+    - generic [ref=e680]:
+      - button "Yes, please!" [ref=e681] [cursor=pointer]
+      - button "No, thanks" [ref=e682] [cursor=pointer]
+  - dialog [active] [ref=e683]:
+    - document [ref=e684]:
+      - generic [ref=e685]:
+        - button "Close" [ref=e686] [cursor=pointer]
+        - link [ref=e689] [cursor=pointer]:
+          - /url: https://vegnews.com/become-a-vegnews-vip
+          - img "VegNews.VIP.2024.PopUp" [ref=e691]

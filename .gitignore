@@ -10,6 +10,8 @@ node_modules
 !.yarn/releases
 !.yarn/versions
 
+.playwright-mcp
+.firecrawl
 # testing
 /coverage
 .venv
@@ -44,3 +46,12 @@ next-env.d.ts
 # turbo
 .turbo
 .env.local
+
+# Media list workers
+workers/.venv/
+workers/.env
+workers/.cache/
+
+# Google service account keys
+*service-account*.json
+newsworthytts*.json

@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Find token that is unused and less than 15 minutes old
+    // Find token that is unused and less than 24 hours old
     const verifyRecord = await db.query.verify.findFirst({
       where: and(
         eq(verify.uuid, token),
         eq(verify.verified, false),
-        gt(verify.createdAt, new Date(Date.now() - 15 * 60 * 1000))
+        gt(verify.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000))
       ),
     })
 

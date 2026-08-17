@@ -7,9 +7,10 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, FileText, Building2, Briefcase, Settings, Package, Mail, ListChecks } from 'lucide-react'
+import { Users, FileText, Briefcase, Package, Mail, ListChecks, LineChart } from 'lucide-react'
 import { PRLookup } from './pr-lookup'
 import { SalesStats } from './sales-stats'
+import { AdminStats } from './admin-stats'
 
 async function getAdminStats() {
   const [userCount] = await db.select({ count: count() }).from(users)
@@ -58,70 +59,6 @@ export default async function AdminPage() {
         <PRLookup isAdmin={!!isAdmin} />
       </div>
 
-      {/* Sales Stats */}
-      <div data-tour="admin-sales-stats">
-        <SalesStats />
-      </div>
-
-      {/* Stats */}
-      <div data-tour="admin-stats" className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card data-tour="admin-stat-users">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.users}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Users</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card data-tour="admin-stat-releases">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.releases}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Releases</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card data-tour="admin-stat-companies">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.companies}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Companies</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card data-tour="admin-stat-partners">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                <Briefcase className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.partners}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Partners</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Quick Actions */}
       <Card data-tour="admin-quick-actions">
         <CardHeader>
@@ -129,16 +66,27 @@ export default async function AdminPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {isAdmin && (
+              <Link href="/admin/analytics" data-tour="admin-action-analytics">
+                <Button variant="outline" className="w-full h-20 flex-col gap-2">
+                  <LineChart className="h-6 w-6" />
+                  Analytics
+                </Button>
+              </Link>
+            )}
             <Link href="/admin/users" data-tour="admin-action-users">
               <Button variant="outline" className="w-full h-20 flex-col gap-2">
                 <Users className="h-6 w-6" />
                 Manage Users
               </Button>
             </Link>
-            <Link href="/admin/releases" data-tour="admin-action-releases">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2">
+            <Link href="/editorial/queue" data-tour="admin-action-review-queue">
+              <Button variant="outline" className="w-full h-20 flex-col gap-2 relative">
                 <FileText className="h-6 w-6" />
-                All Releases
+                Review Queue
+                {stats.pendingReleases > 0 && (
+                  <Badge className="absolute top-2 right-2 bg-red-500 text-white">{stats.pendingReleases}</Badge>
+                )}
               </Button>
             </Link>
             <Link href="/admin/partners" data-tour="admin-action-partners">
@@ -165,18 +113,22 @@ export default async function AdminPage() {
                 Tasks
               </Button>
             </Link>
-            <Link href="/editorial/queue" data-tour="admin-action-review-queue">
-              <Button variant="outline" className="w-full h-20 flex-col gap-2 relative">
-                <FileText className="h-6 w-6" />
-                Review Queue
-                {stats.pendingReleases > 0 && (
-                  <Badge className="absolute top-2 right-2 bg-red-500 text-white">{stats.pendingReleases}</Badge>
-                )}
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
+
+      {/* Sales Stats */}
+      <div data-tour="admin-sales-stats">
+        <SalesStats />
+      </div>
+
+      {/* Stats */}
+      <AdminStats
+        users={stats.users}
+        releases={stats.releases}
+        companies={stats.companies}
+        partners={stats.partners}
+      />
 
       {/* Pending Items */}
       {stats.pendingReleases > 0 && (
