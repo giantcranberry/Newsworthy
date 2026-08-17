@@ -30,11 +30,15 @@ import {
   ExternalLink,
   ArrowLeft,
   AlertTriangle,
+  MapPin,
+  FileText,
 } from 'lucide-react'
 import type {
   GaDateRange,
   GaPropertyReport,
   GaPropertySummary,
+  GaRealtimeLocation,
+  GaRealtimePage,
 } from '@/lib/google-analytics'
 
 ChartJS.register(
@@ -232,6 +236,130 @@ function SetupCard({ data }: { data: AnalyticsResponse }) {
   )
 }
 
+function formatLocation(loc: GaRealtimeLocation): string {
+  const city = loc.city && loc.city !== '(not set)' ? loc.city : ''
+  const country = loc.country && loc.country !== '(not set)' ? loc.country : 'Unknown'
+  return city ? `${city}, ${country}` : country
+}
+
+function LivePagesTable({
+  pages,
+  showProperty,
+}: {
+  pages: Array<GaRealtimePage & { propertyLabel?: string }>
+  showProperty?: boolean
+}) {
+  if (pages.length === 0) {
+    return <p className="text-sm text-gray-500 dark:text-gray-400 py-4">No live page activity</p>
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-gray-800">
+            {showProperty ? (
+              <th className="text-left py-2 pr-3 font-medium text-gray-500 dark:text-gray-400">
+                Property
+              </th>
+            ) : null}
+            <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">
+              Page
+            </th>
+            <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400">
+              Users
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {pages.map((page, i) => (
+            <tr
+              key={`${page.propertyLabel || ''}:${page.path}:${i}`}
+              className="border-b border-gray-100 dark:border-gray-800 last:border-0"
+            >
+              {showProperty ? (
+                <td className="py-2 pr-3 text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                  {page.propertyLabel}
+                </td>
+              ) : null}
+              <td className="py-2 pr-4 font-mono text-xs text-gray-800 dark:text-gray-200 max-w-[28rem] truncate">
+                {page.path}
+              </td>
+              <td className="py-2 text-right font-medium text-gray-900 dark:text-gray-100">
+                {formatNumber(page.activeUsers)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function LiveLocationsTable({
+  locations,
+  multiColumn,
+}: {
+  locations: GaRealtimeLocation[]
+  multiColumn?: boolean
+}) {
+  if (locations.length === 0) {
+    return (
+      <p className="text-sm text-gray-500 dark:text-gray-400 py-4">No live location activity</p>
+    )
+  }
+
+  if (multiColumn) {
+    return (
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2.5">
+        {locations.map((loc, i) => (
+          <div
+            key={`${loc.country}:${loc.city}:${i}`}
+            className="flex items-baseline justify-between gap-3 text-sm"
+          >
+            <span className="text-gray-800 dark:text-gray-200 truncate">{formatLocation(loc)}</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0">
+              {formatNumber(loc.activeUsers)}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-gray-800">
+            <th className="text-left py-2 pr-4 font-medium text-gray-500 dark:text-gray-400">
+              Location
+            </th>
+            <th className="text-right py-2 font-medium text-gray-500 dark:text-gray-400">
+              Users
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {locations.map((loc, i) => (
+            <tr
+              key={`${loc.country}:${loc.city}:${i}`}
+              className="border-b border-gray-100 dark:border-gray-800 last:border-0"
+            >
+              <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
+                {formatLocation(loc)}
+              </td>
+              <td className="py-2 text-right font-medium text-gray-900 dark:text-gray-100">
+                {formatNumber(loc.activeUsers)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 function RangeControls({
   range,
   loading,
@@ -354,7 +482,7 @@ export function AnalyticsDashboard() {
     labels: chartLabels,
     datasets: [
       {
-        label: 'Active users',
+        label: 'Users',
         data: report?.timeseries.map((p) => p.activeUsers) || [],
         borderColor: 'rgb(8, 145, 178)',
         backgroundColor: 'rgba(8, 145, 178, 0.12)',
@@ -362,16 +490,30 @@ export function AnalyticsDashboard() {
         tension: 0.3,
         pointRadius: 0,
         borderWidth: 2,
+        yAxisID: 'y',
       },
       {
-        label: 'Page views',
-        data: report?.timeseries.map((p) => p.pageViews) || [],
-        borderColor: 'rgb(217, 119, 6)',
+        label: 'New users',
+        data: report?.timeseries.map((p) => p.newUsers) || [],
+        borderColor: 'rgb(16, 185, 129)',
         backgroundColor: 'transparent',
         fill: false,
         tension: 0.3,
         pointRadius: 0,
         borderWidth: 2,
+        borderDash: [6, 4],
+        yAxisID: 'y',
+      },
+      {
+        label: 'Page views',
+        data: report?.timeseries.map((p) => p.pageViews) || [],
+        borderColor: 'rgb(217, 119, 6)',
+        backgroundColor: 'rgba(217, 119, 6, 0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0,
+        borderWidth: 2,
+        yAxisID: 'y1',
       },
     ],
   }
@@ -391,6 +533,10 @@ export function AnalyticsDashboard() {
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
     plugins: {
       legend: {
         position: 'bottom' as const,
@@ -403,9 +549,56 @@ export function AnalyticsDashboard() {
         ticks: { maxTicksLimit: 8, font: { size: 10 } },
       },
       y: {
+        type: 'linear' as const,
+        position: 'left' as const,
+        beginAtZero: true,
+        ticks: {
+          font: { size: 10 },
+          color: 'rgb(8, 145, 178)',
+        },
+        grid: { color: 'rgba(148, 163, 184, 0.2)' },
+        title: {
+          display: true,
+          text: 'Users',
+          font: { size: 10 },
+          color: 'rgb(8, 145, 178)',
+        },
+      },
+      y1: {
+        type: 'linear' as const,
+        position: 'right' as const,
+        beginAtZero: true,
+        ticks: {
+          font: { size: 10 },
+          color: 'rgb(217, 119, 6)',
+        },
+        grid: { drawOnChartArea: false },
+        title: {
+          display: true,
+          text: 'Page views',
+          font: { size: 10 },
+          color: 'rgb(217, 119, 6)',
+        },
+      },
+    },
+  }
+
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    indexAxis: 'y' as const,
+    scales: {
+      x: {
         beginAtZero: true,
         ticks: { font: { size: 10 } },
         grid: { color: 'rgba(148, 163, 184, 0.2)' },
+      },
+      y: {
+        grid: { display: false },
+        ticks: { font: { size: 10 } },
       },
     },
   }
@@ -420,6 +613,32 @@ export function AnalyticsDashboard() {
     },
     { users: 0, sessions: 0, views: 0, live: 0 }
   )
+
+  const overviewLivePages = overview
+    .flatMap((row) =>
+      (row.realtimePages || []).map((page) => ({
+        ...page,
+        propertyLabel: row.label,
+      }))
+    )
+    .sort((a, b) => b.activeUsers - a.activeUsers)
+    .slice(0, 15)
+
+  const overviewLiveLocations = Object.values(
+    overview
+      .flatMap((row) => row.realtimeLocations || [])
+      .reduce<Record<string, GaRealtimeLocation>>((acc, loc) => {
+        const key = `${loc.country}::${loc.city}`
+        if (!acc[key]) {
+          acc[key] = { ...loc }
+        } else {
+          acc[key].activeUsers += loc.activeUsers
+        }
+        return acc
+      }, {})
+  )
+    .sort((a, b) => b.activeUsers - a.activeUsers)
+    .slice(0, 15)
 
   return (
     <div className="space-y-6">
@@ -570,6 +789,46 @@ export function AnalyticsDashboard() {
             </Card>
           </div>
 
+          {(overviewLivePages.length > 0 || overviewLiveLocations.length > 0) && (
+            <div
+              className={
+                overviewLivePages.length > 0 ? 'grid lg:grid-cols-2 gap-4' : undefined
+              }
+            >
+              {overviewLivePages.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-orange-500" />
+                      Live pages
+                    </CardTitle>
+                    <CardDescription>Active users by page right now</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LivePagesTable pages={overviewLivePages} showProperty />
+                  </CardContent>
+                </Card>
+              )}
+              {overviewLiveLocations.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-emerald-500" />
+                      Live locations
+                    </CardTitle>
+                    <CardDescription>Active users by city / country right now</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LiveLocationsTable
+                      locations={overviewLiveLocations}
+                      multiColumn={overviewLivePages.length === 0}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {overview.map((row) => (
               <button
@@ -706,12 +965,54 @@ export function AnalyticsDashboard() {
             </Card>
           </div>
 
+          {((report.realtimePages?.length || 0) > 0 ||
+            (report.realtimeLocations?.length || 0) > 0) && (
+            <div
+              className={
+                (report.realtimePages?.length || 0) > 0 ? 'grid lg:grid-cols-2 gap-4' : undefined
+              }
+            >
+              {(report.realtimePages?.length || 0) > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-orange-500" />
+                      Live pages
+                    </CardTitle>
+                    <CardDescription>Where active users are right now</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LivePagesTable pages={report.realtimePages || []} />
+                  </CardContent>
+                </Card>
+              )}
+              {(report.realtimeLocations?.length || 0) > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-emerald-500" />
+                      Live locations
+                    </CardTitle>
+                    <CardDescription>City and country of active users</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <LiveLocationsTable
+                      locations={report.realtimeLocations || []}
+                      multiColumn={(report.realtimePages?.length || 0) === 0}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
           <div className="grid lg:grid-cols-3 gap-4">
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Traffic over time</CardTitle>
+                <CardTitle className="text-base">Users & page views</CardTitle>
                 <CardDescription>
-                  {report.startDate} → {report.endDate}
+                  Users and new users overlaid · page views on the right · {report.startDate} →{' '}
+                  {report.endDate}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -729,14 +1030,7 @@ export function AnalyticsDashboard() {
               <CardContent>
                 <div className="h-[280px]">
                   {report.channels.length > 0 ? (
-                    <Bar
-                      data={channelData}
-                      options={{
-                        ...chartOptions,
-                        indexAxis: 'y' as const,
-                        plugins: { ...chartOptions.plugins, legend: { display: false } },
-                      }}
-                    />
+                    <Bar data={channelData} options={barChartOptions} />
                   ) : (
                     <div className="h-full flex items-center justify-center text-sm text-gray-400">
                       No channel data

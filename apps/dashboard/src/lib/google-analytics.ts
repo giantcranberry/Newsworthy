@@ -11,6 +11,7 @@ export interface GaPropertyConfig {
 export interface GaTimeseriesPoint {
   date: string
   activeUsers: number
+  newUsers: number
   sessions: number
   pageViews: number
 }
@@ -36,6 +37,23 @@ export interface GaPropertyTotals {
   bounceRate: number
 }
 
+export interface GaRealtimePage {
+  path: string
+  activeUsers: number
+}
+
+export interface GaRealtimeLocation {
+  country: string
+  city: string
+  activeUsers: number
+}
+
+export interface GaRealtimeSnapshot {
+  activeUsers: number | null
+  pages: GaRealtimePage[]
+  locations: GaRealtimeLocation[]
+}
+
 export interface GaPropertySummary {
   propertyId: string
   label: string
@@ -46,6 +64,8 @@ export interface GaPropertySummary {
   totals: Pick<GaPropertyTotals, 'activeUsers' | 'sessions' | 'pageViews'>
   previousTotals: Pick<GaPropertyTotals, 'activeUsers' | 'sessions' | 'pageViews'>
   realtimeUsers: number | null
+  realtimePages: GaRealtimePage[]
+  realtimeLocations: GaRealtimeLocation[]
   error?: string
 }
 
@@ -61,6 +81,8 @@ export interface GaPropertyReport {
   topPages: GaTopPage[]
   channels: GaChannel[]
   realtimeUsers: number | null
+  realtimePages: GaRealtimePage[]
+  realtimeLocations: GaRealtimeLocation[]
 }
 
 const RANGE_DAYS: Record<GaDateRange, number> = {
@@ -245,19 +267,72 @@ export async function resolveGaProperties(): Promise<{
   }
 }
 
-async function fetchRealtimeUsers(
+const EMPTY_REALTIME: GaRealtimeSnapshot = {
+  activeUsers: null,
+  pages: [],
+  locations: [],
+}
+
+async function fetchRealtimeSnapshot(
   client: ReturnType<typeof getDataClient>,
   propertyName: string
-): Promise<number | null> {
-  try {
-    const res = await client.properties.runRealtimeReport({
+): Promise<GaRealtimeSnapshot> {
+  const [usersResult, pagesResult, locationsResult] = await Promise.allSettled([
+    client.properties.runRealtimeReport({
       property: propertyName,
       requestBody: { metrics: [{ name: 'activeUsers' }] },
-    })
-    return metricValue(res.data.rows?.[0], 0)
-  } catch {
-    return null
+    }),
+    client.properties.runRealtimeReport({
+      property: propertyName,
+      requestBody: {
+        dimensions: [{ name: 'unifiedPagePathScreen' }],
+        metrics: [{ name: 'activeUsers' }],
+        orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+        limit: '10',
+      },
+    }),
+    client.properties.runRealtimeReport({
+      property: propertyName,
+      requestBody: {
+        dimensions: [{ name: 'country' }, { name: 'city' }],
+        metrics: [{ name: 'activeUsers' }],
+        orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+        limit: '10',
+      },
+    }),
+  ])
+
+  if (
+    usersResult.status === 'rejected' &&
+    pagesResult.status === 'rejected' &&
+    locationsResult.status === 'rejected'
+  ) {
+    return EMPTY_REALTIME
   }
+
+  const activeUsers =
+    usersResult.status === 'fulfilled'
+      ? metricValue(usersResult.value.data.rows?.[0], 0)
+      : null
+
+  const pages: GaRealtimePage[] =
+    pagesResult.status === 'fulfilled'
+      ? (pagesResult.value.data.rows || []).map((row) => ({
+          path: dimensionValue(row, 0) || '/',
+          activeUsers: metricValue(row, 0),
+        }))
+      : []
+
+  const locations: GaRealtimeLocation[] =
+    locationsResult.status === 'fulfilled'
+      ? (locationsResult.value.data.rows || []).map((row) => ({
+          country: dimensionValue(row, 0) || 'Unknown',
+          city: dimensionValue(row, 1) || '',
+          activeUsers: metricValue(row, 0),
+        }))
+      : []
+
+  return { activeUsers, pages, locations }
 }
 
 export async function fetchGaPropertySummary(
@@ -269,7 +344,7 @@ export async function fetchGaPropertySummary(
   const { startDate, endDate, prevStartDate, prevEndDate } = rangeToDates(range)
 
   try {
-    const [totalsRes, prevRes, realtimeUsers] = await Promise.all([
+    const [totalsRes, prevRes, realtime] = await Promise.all([
       client.properties.runReport({
         property: propertyName,
         requestBody: {
@@ -292,7 +367,7 @@ export async function fetchGaPropertySummary(
           ],
         },
       }),
-      fetchRealtimeUsers(client, propertyName),
+      fetchRealtimeSnapshot(client, propertyName),
     ])
 
     const totalsRow = totalsRes.data.rows?.[0]
@@ -315,7 +390,9 @@ export async function fetchGaPropertySummary(
         sessions: metricValue(prevRow, 1),
         pageViews: metricValue(prevRow, 2),
       },
-      realtimeUsers,
+      realtimeUsers: realtime.activeUsers,
+      realtimePages: realtime.pages,
+      realtimeLocations: realtime.locations,
     }
   } catch (error: any) {
     return {
@@ -328,6 +405,8 @@ export async function fetchGaPropertySummary(
       totals: { activeUsers: 0, sessions: 0, pageViews: 0 },
       previousTotals: { activeUsers: 0, sessions: 0, pageViews: 0 },
       realtimeUsers: null,
+      realtimePages: [],
+      realtimeLocations: [],
       error:
         error?.errors?.[0]?.message ||
         error?.message ||
@@ -351,7 +430,7 @@ export async function fetchGaPropertyReport(
   const propertyName = `properties/${property.propertyId}`
   const { startDate, endDate, prevStartDate, prevEndDate } = rangeToDates(range)
 
-  const [totalsRes, prevRes, timeseriesRes, pagesRes, channelsRes, realtimeUsers] =
+  const [totalsRes, prevRes, timeseriesRes, pagesRes, channelsRes, realtime] =
     await Promise.all([
       client.properties.runReport({
         property: propertyName,
@@ -385,6 +464,7 @@ export async function fetchGaPropertyReport(
           dimensions: [{ name: 'date' }],
           metrics: [
             { name: 'activeUsers' },
+            { name: 'newUsers' },
             { name: 'sessions' },
             { name: 'screenPageViews' },
           ],
@@ -411,7 +491,7 @@ export async function fetchGaPropertyReport(
           limit: '8',
         },
       }),
-      fetchRealtimeUsers(client, propertyName),
+      fetchRealtimeSnapshot(client, propertyName),
     ])
 
   const totalsRow = totalsRes.data.rows?.[0]
@@ -426,8 +506,9 @@ export async function fetchGaPropertyReport(
     return {
       date,
       activeUsers: metricValue(row, 0),
-      sessions: metricValue(row, 1),
-      pageViews: metricValue(row, 2),
+      newUsers: metricValue(row, 1),
+      sessions: metricValue(row, 2),
+      pageViews: metricValue(row, 3),
     }
   })
 
@@ -465,6 +546,8 @@ export async function fetchGaPropertyReport(
     timeseries,
     topPages,
     channels,
-    realtimeUsers,
+    realtimeUsers: realtime.activeUsers,
+    realtimePages: realtime.pages,
+    realtimeLocations: realtime.locations,
   }
 }
