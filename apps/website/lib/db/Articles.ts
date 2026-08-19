@@ -56,26 +56,6 @@ export async function getSitemapArticleUrls(year: number, month: number) {
   }));
 }
 
-/** md5_permalink values for curated articles that match the given PR hashes */
-export async function getCuratedPermalinkSet(
-  prHashes: string[],
-): Promise<Set<string>> {
-  if (prHashes.length === 0) {
-    return new Set();
-  }
-
-  const query = `
-    SELECT DISTINCT a.md5_permalink
-    FROM articles a
-    INNER JOIN feeditem f ON f.id = a.feed_item_id
-    WHERE f.deleted_at IS NULL
-      AND a.target = 'newsworthy.ai'
-      AND a.md5_permalink = ANY($1)
-  `;
-  const result = await runQuery<{ md5_permalink: string }>(query, [prHashes]);
-  return new Set(result.map((r) => r.md5_permalink));
-}
-
 export async function getRecentArticles(hoursAgo: number = 48) {
   const query = `
     SELECT

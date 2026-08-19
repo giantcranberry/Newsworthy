@@ -41,7 +41,7 @@ export async function getSitemapUrls(year: number, month: number) {
     const currentDatetime = new Date().toISOString();
 
     const urls = await db.execute(
-      sql`SELECT slug, id, released_at as release_datetime, released_at, timezone, title, prhash_id as "prhashId"
+      sql`SELECT slug, id, released_at as release_datetime, released_at, timezone, title
         FROM releases
         WHERE EXTRACT(YEAR FROM released_at) = ${year}
           AND EXTRACT(MONTH FROM released_at) = ${month}

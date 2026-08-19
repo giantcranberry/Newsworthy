@@ -1,13 +1,7 @@
 import { slugify } from "@/lib/article_utils";
-import {
-  getCuratedPermalinkSet,
-  getSitemapArticleUrls,
-} from "@/lib/db/Articles";
+import { getSitemapArticleUrls } from "@/lib/db/Articles";
 import { getSitemapUrls } from "@/lib/prisma/press_releases";
-import {
-  formatDateForSitemap,
-  sitemapUrl,
-} from "@/lib/utils";
+import { formatDateForSitemap, sitemapUrl } from "@/lib/utils";
 import { ArticleSiteMapData } from "@/types/Articles";
 import { SiteMapData as OriginalSiteMapData } from "@/types/Release";
 import { getServerSideSitemap } from "next-sitemap";
@@ -21,7 +15,6 @@ type SiteMapData = OriginalSiteMapData & {
   release_datetime: string | Date;
   released_at: Date;
   timezone: string;
-  prhashId?: string | null;
 };
 
 interface ArticleSiteMapDataExtended extends ArticleSiteMapData {
@@ -46,28 +39,17 @@ export async function GET(request: Request, { params }: Props) {
       year,
       month,
     )) as unknown as SiteMapData[];
-
-    // Prefer curated master URL: drop /news/… entries that already have a curated twin
-    const prHashes = rawNews
-      .map((entry) => entry.prhashId)
-      .filter((hash): hash is string => Boolean(hash));
-    const curatedHashes = await getCuratedPermalinkSet(prHashes);
-
-    news = rawNews
-      .filter(
-        (entry) => !entry.prhashId || !curatedHashes.has(entry.prhashId),
-      )
-      .map((entry) => ({
-        ...entry,
-        release_datetime:
-          entry.release_datetime instanceof Date
-            ? entry.release_datetime
-            : new Date(entry.release_datetime as unknown as string),
-        released_at:
-          entry.released_at instanceof Date
-            ? entry.released_at
-            : new Date(entry.released_at as unknown as string),
-      }));
+    news = rawNews.map((entry) => ({
+      ...entry,
+      release_datetime:
+        entry.release_datetime instanceof Date
+          ? entry.release_datetime
+          : new Date(entry.release_datetime as unknown as string),
+      released_at:
+        entry.released_at instanceof Date
+          ? entry.released_at
+          : new Date(entry.released_at as unknown as string),
+    }));
   } else if (langCode === "curated-en") {
     const articleData = await getSitemapArticleUrls(year, month);
     news = articleData.map((article) => ({
