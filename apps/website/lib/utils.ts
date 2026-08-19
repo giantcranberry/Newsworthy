@@ -171,21 +171,18 @@ export function formatDateForSitemap(
 }
 
 export function computeLastMod(year: number, month: number) {
+  // `month` is 1-based (1–12), matching SQL EXTRACT(MONTH) and sitemap URLs
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
-  const currentMonth = currentDate.getMonth(); // Months are zero-based
+  const currentMonth = currentDate.getMonth() + 1;
 
-  if (year === currentYear && month < currentMonth) {
-    const lastDay = new Date(year, month, 0).getDate();
-    const lastModDate = new Date(year, month - 1, lastDay);
-    return formatDateForSitemap(lastModDate);
-  } else if (year === currentYear && month === currentMonth) {
+  if (year === currentYear && month === currentMonth) {
     return formatDateForSitemap(currentDate);
-  } else {
-    const lastDay = new Date(year, month - 1, 0).getDate();
-    const lastModDate = new Date(year, month - 2, lastDay);
-    return formatDateForSitemap(lastModDate);
   }
+
+  // Last day of the given month: day 0 of the next month index
+  const lastModDate = new Date(year, month, 0);
+  return formatDateForSitemap(lastModDate);
 }
 
 export const identifyContactType = (str: string): ContactType => {

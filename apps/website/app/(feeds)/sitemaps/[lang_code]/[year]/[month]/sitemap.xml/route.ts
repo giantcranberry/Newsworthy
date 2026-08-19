@@ -1,14 +1,11 @@
 import { slugify } from "@/lib/article_utils";
-import { getSitemapArticleUrls } from "@/lib/db/Articles";
 import {
-  getSitemapLanguageUrls,
-  getSitemapUrls,
-} from "@/lib/prisma/press_releases";
+  getCuratedPermalinkSet,
+  getSitemapArticleUrls,
+} from "@/lib/db/Articles";
+import { getSitemapUrls } from "@/lib/prisma/press_releases";
 import {
-  baseUrl,
-  computeLastMod,
   formatDateForSitemap,
-  newsUrl,
   sitemapUrl,
 } from "@/lib/utils";
 import { ArticleSiteMapData } from "@/types/Articles";
@@ -24,6 +21,7 @@ type SiteMapData = OriginalSiteMapData & {
   release_datetime: string | Date;
   released_at: Date;
   timezone: string;
+  prhashId?: string | null;
 };
 
 interface ArticleSiteMapDataExtended extends ArticleSiteMapData {
@@ -37,25 +35,39 @@ type SitemapEntry = SiteMapData | ArticleSiteMapDataExtended;
 
 export async function GET(request: Request, { params }: Props) {
   const resolvedParams = await params;
-  let langCode: string;
-  let year: number;
-  let month: number;
-
-  langCode = resolvedParams.lang_code;
-  year = parseInt(resolvedParams.year);
-  month = parseInt(resolvedParams.month);
+  const langCode = resolvedParams.lang_code;
+  const year = parseInt(resolvedParams.year);
+  const month = parseInt(resolvedParams.month);
 
   let news: SitemapEntry[] = [];
-  let langString = "";
 
   if (langCode === "en") {
-    langString = "";
-    const rawNews = (await getSitemapUrls(year, month)) as unknown as SiteMapData[];
-    news = rawNews.map((entry) => ({
-      ...entry,
-      release_datetime: entry.release_datetime instanceof Date ? entry.release_datetime : new Date(entry.release_datetime as unknown as string),
-      released_at: entry.released_at instanceof Date ? entry.released_at : new Date(entry.released_at as unknown as string),
-    }));
+    const rawNews = (await getSitemapUrls(
+      year,
+      month,
+    )) as unknown as SiteMapData[];
+
+    // Prefer curated master URL: drop /news/… entries that already have a curated twin
+    const prHashes = rawNews
+      .map((entry) => entry.prhashId)
+      .filter((hash): hash is string => Boolean(hash));
+    const curatedHashes = await getCuratedPermalinkSet(prHashes);
+
+    news = rawNews
+      .filter(
+        (entry) => !entry.prhashId || !curatedHashes.has(entry.prhashId),
+      )
+      .map((entry) => ({
+        ...entry,
+        release_datetime:
+          entry.release_datetime instanceof Date
+            ? entry.release_datetime
+            : new Date(entry.release_datetime as unknown as string),
+        released_at:
+          entry.released_at instanceof Date
+            ? entry.released_at
+            : new Date(entry.released_at as unknown as string),
+      }));
   } else if (langCode === "curated-en") {
     const articleData = await getSitemapArticleUrls(year, month);
     news = articleData.map((article) => ({
@@ -67,6 +79,8 @@ export async function GET(request: Request, { params }: Props) {
     })) as ArticleSiteMapDataExtended[];
   }
 
+  // Archive sitemaps: loc + lastmod only. Google News (<news:news>) belongs
+  // exclusively in /news-sitemap.xml for the rolling 48-hour window.
   const sitemap = news.map((entry) => ({
     loc: `https://newsworthy.ai${
       langCode === "en"
@@ -75,12 +89,6 @@ export async function GET(request: Request, { params }: Props) {
             (entry as ArticleSiteMapDataExtended).slug
           }/${entry.released_at.getFullYear()}${entry.id}`
     }`,
-    news: {
-      title: entry.title,
-      publicationName: "Newsworthy.ai",
-      publicationLanguage: "en",
-      date: formatDateForSitemap(entry.released_at, entry.timezone || "UTC"),
-    },
     lastmod: formatDateForSitemap(entry.released_at, entry.timezone || "UTC"),
   }));
 

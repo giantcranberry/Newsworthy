@@ -18,7 +18,7 @@ export async function GET() {
   const now = new Date()
   const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000)
 
-  // Fetch press releases and curated articles in parallel
+  // /news and /curated do not overlap on this site — include both
   const [recentReleases, recentArticles] = await Promise.all([
     db.query.releases.findMany({
       columns: {
@@ -39,7 +39,6 @@ export async function GET() {
     getRecentArticles(48),
   ])
 
-  // Press release URLs
   const prUrls = recentReleases
     .filter((r) => r.title && r.releasedAt && r.slug)
     .map((release) => ({
@@ -49,7 +48,6 @@ export async function GET() {
       date: release.releasedAt!,
     }))
 
-  // Curated article URLs
   const articleUrls = recentArticles
     .filter((a) => a.title && a.released_at)
     .map((article) => {
@@ -63,7 +61,6 @@ export async function GET() {
       }
     })
 
-  // Merge and sort by date descending
   const allUrls = [...prUrls, ...articleUrls].sort(
     (a, b) => b.date.getTime() - a.date.getTime()
   )
