@@ -1,7 +1,7 @@
 import { slugify } from "@/lib/article_utils";
 import { getSitemapArticleUrls } from "@/lib/db/Articles";
 import { getSitemapUrls } from "@/lib/prisma/press_releases";
-import { formatDateForSitemap, sitemapUrl } from "@/lib/utils";
+import { baseUrl, formatDateForSitemap, sitemapUrl } from "@/lib/utils";
 import { ArticleSiteMapData } from "@/types/Articles";
 import { SiteMapData as OriginalSiteMapData } from "@/types/Release";
 import { getServerSideSitemap } from "next-sitemap";
@@ -64,7 +64,7 @@ export async function GET(request: Request, { params }: Props) {
   // Archive sitemaps: loc + lastmod only. Google News (<news:news>) belongs
   // exclusively in /news-sitemap.xml for the rolling 48-hour window.
   const sitemap = news.map((entry) => ({
-    loc: `https://newsworthy.ai${
+    loc: `${baseUrl}${
       langCode === "en"
         ? sitemapUrl(entry as SiteMapData, langCode)
         : `/curated/${
