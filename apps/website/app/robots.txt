@@ -1,22 +1,73 @@
-User-Agent: *
-Allow: /
-
+# AI training + AI search/citation — explicitly allowed
+# OpenAI
 User-agent: GPTBot
 Allow: /
 
-User-agent: Anthropic-claude
+User-agent: OAI-SearchBot
 Allow: /
 
-User-agent: ClaudeBot
-Allow:/
+User-agent: ChatGPT-User
+Allow: /
 
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# Google Gemini (training control token; does not affect Google Search)
+User-agent: Google-Extended
+Allow: /
+
+# Apple Intelligence
+User-agent: Applebot-Extended
+Allow: /
+
+# Meta / Llama
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: FacebookBot
+Allow: /
+
+# Common Crawl (widely used for model training)
+User-agent: CCBot
+Allow: /
+
+# Others
 User-agent: PerplexityBot
 Allow: /
 
-User-agent: OAI-SearchBot	
-Allow:/
+User-agent: Perplexity-User
+Allow: /
 
-Disallow: /private/
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: AI2Bot
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+# Everyone else
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Content-Signal: search=yes, ai-train=yes, ai-input=yes
 
 Sitemap: https://www.newsworthy.ai/sitemaps
 Sitemap: https://www.newsworthy.ai/news-sitemap.xml
@@ -24,6 +75,7 @@ Sitemap: https://www.newsworthy.ai/news-sitemap.xml
 # A2A Agent Discovery
 # https://google.github.io/A2A/
 Agent-card: https://www.newsworthy.ai/.well-known/agent-card.json
+
 
 # Block bad robots
 User-agent: asterias
@@ -81,8 +133,6 @@ disallow: /
 User-agent: httplib
 disallow: /
 User-agent: humanlinks
-disallow: /
-User-agent: ia_archiver
 disallow: /
 User-agent: InfoNaviRobot
 disallow: /
@@ -236,10 +286,6 @@ User-agent: Wget/1.6
 disallow: /
 User-agent: WWW-Collector-E
 disallow: /
-User-agent: Xenu's
-disallow: /
-User-agent: Xenu's Link Sleuth 1.1c
-disallow: /D
 User-agent: Zeus
 disallow: /
 User-agent: Zeus 32297 Webster Pro V2.9 Win32
