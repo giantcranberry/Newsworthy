@@ -7,6 +7,7 @@ import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import PlausibleProvider from "next-plausible";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 
 export const metadata: Metadata = {
   title: {
@@ -45,6 +46,7 @@ export default async function RootLayout({
         className={`${nunitoSans.variable} ${lora.variable} flex h-screen flex-col justify-between font-sans text-black`}
       >
         <GoogleAnalytics />
+        <MicrosoftClarity />
         <div className="w-full mx-auto">
           <NavBar />
         </div>

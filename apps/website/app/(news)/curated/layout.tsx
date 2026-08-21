@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { CrispProvider } from "@/components/crisp-provider";
 import { Metadata } from "next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -68,6 +69,7 @@ export default async function RootLayout({
       <CrispProvider />
       <body className="flex h-screen flex-col justify-between font-sans text-gray-950">
         <GoogleAnalytics />
+        <MicrosoftClarity />
         <header className="mx-auto w-full">
           <NavBar />
         </header>

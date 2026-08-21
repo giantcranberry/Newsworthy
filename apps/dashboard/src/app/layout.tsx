@@ -4,6 +4,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { Toaster } from '@/components/ui/sonner'
 import CrispChat from '@/components/crisp-chat'
+import MicrosoftClarity from '@/components/microsoft-clarity'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -36,6 +37,7 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
+        <MicrosoftClarity />
         <Providers>
           {children}
           <Toaster position="top-center" richColors />

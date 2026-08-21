@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import PlausibleProvider from "next-plausible";
 import Script from "next/script";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 
 export const metadata: Metadata = {
   title: {
@@ -48,6 +49,7 @@ export default async function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <GoogleAnalytics />
+        <MicrosoftClarity />
       </head>
 
       <body className={`flex h-screen flex-col justify-between text-black`} suppressHydrationWarning>

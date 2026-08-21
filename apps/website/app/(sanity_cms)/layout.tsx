@@ -1,4 +1,5 @@
 import '../globals.css';
+import MicrosoftClarity from '@/components/MicrosoftClarity';
 
 export const metadata = {
   title: 'Newsworthy Content Studio',
@@ -12,7 +13,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <MicrosoftClarity />
+        {children}
+      </body>
     </html>
   )
 }

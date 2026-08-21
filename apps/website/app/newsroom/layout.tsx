@@ -8,6 +8,7 @@ import { CrispProvider } from "@/components/crisp-provider";
 import { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 
 const lora = Lora({
   subsets: ['latin'],
@@ -41,6 +42,7 @@ export default async function NewsroomLayout({ children }: { children: React.Rea
             <CrispProvider />
             <body suppressHydrationWarning className="flex h-screen flex-col justify-between font-sans text-gray-950">
                 <GoogleAnalytics />
+                <MicrosoftClarity />
                 <header className="mx-auto w-full">
                     <NavBar hideMenu />
                 </header>
