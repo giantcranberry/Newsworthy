@@ -8,6 +8,7 @@ import { CrispProvider } from "@/components/crisp-provider";
 import { Metadata } from "next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import VerifiedSchema from "@/components/VerifiedSchema";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -68,6 +69,7 @@ export default async function RootLayout({
     <html lang="en" className={`${nunitoSans.variable} ${lora.variable}`}>
       <CrispProvider />
       <body className="flex h-screen flex-col justify-between font-sans text-gray-950">
+        <VerifiedSchema />
         <GoogleAnalytics />
         <MicrosoftClarity />
         <header className="mx-auto w-full">

@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import VerifiedSchema from "@/components/VerifiedSchema";
 
 const lora = Lora({
   subsets: ['latin'],
@@ -41,6 +42,7 @@ export default async function NewsroomLayout({ children }: { children: React.Rea
         <html lang="en" className={`${nunitoSans.variable} ${lora.className}`}>
             <CrispProvider />
             <body suppressHydrationWarning className="flex h-screen flex-col justify-between font-sans text-gray-950">
+                <VerifiedSchema />
                 <GoogleAnalytics />
                 <MicrosoftClarity />
                 <header className="mx-auto w-full">

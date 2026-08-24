@@ -9,6 +9,7 @@ import PlausibleProvider from "next-plausible";
 import Script from "next/script";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import VerifiedSchema from "@/components/VerifiedSchema";
 
 export const metadata: Metadata = {
   title: {
@@ -48,6 +49,7 @@ export default async function RootLayout({
     <html lang="en" className={`${nunitoSans.variable} ${lora.variable}`}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <VerifiedSchema />
         <GoogleAnalytics />
         <MicrosoftClarity />
       </head>

@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import PlausibleProvider from "next-plausible";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import VerifiedSchema from "@/components/VerifiedSchema";
 
 export const metadata: Metadata = {
   title: {
@@ -45,6 +46,7 @@ export default async function RootLayout({
       <body
         className={`${nunitoSans.variable} ${lora.variable} flex h-screen flex-col justify-between font-sans text-black`}
       >
+        <VerifiedSchema />
         <GoogleAnalytics />
         <MicrosoftClarity />
         <div className="w-full mx-auto">

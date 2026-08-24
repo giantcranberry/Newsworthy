@@ -10,6 +10,7 @@ import { Metadata } from "next";
 import PlausibleProvider from "next-plausible";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
+import VerifiedSchema from "@/components/VerifiedSchema";
 
 const lora = Lora({
   subsets: ['latin'],
@@ -71,6 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <html lang="en" className={`${nunitoSans.variable} ${lora.className}`}>
             <CrispProvider />
             <body suppressHydrationWarning className="flex min-h-screen flex-col justify-between font-sans text-gray-950">
+                <VerifiedSchema />
                 <GoogleAnalytics />
                 <MicrosoftClarity />
                 <script
