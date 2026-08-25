@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSystemMessage } from '@/lib/messages'
 import { hash } from 'bcryptjs'
 import { permanentlyDeleteUser } from '@/lib/admin-permanent-delete-user'
+import { sendAccountDeletedEmail } from '@/lib/email'
 
 export async function DELETE(
   request: NextRequest,
@@ -31,9 +32,16 @@ export async function DELETE(
   try {
     const body = await request.json().catch(() => ({}))
     const confirmEmail = typeof body?.confirmEmail === 'string' ? body.confirmEmail.trim().toLowerCase() : ''
+    const reason = typeof body?.reason === 'string' ? body.reason.trim() : ''
     if (!body?.confirmPermanent || !confirmEmail) {
       return NextResponse.json(
         { error: 'Confirmation required. This is a permanent delete.' },
+        { status: 400 },
+      )
+    }
+    if (reason.length < 10) {
+      return NextResponse.json(
+        { error: 'A deletion reason of at least 10 characters is required. It will be emailed to the user.' },
         { status: 400 },
       )
     }
@@ -57,8 +65,29 @@ export async function DELETE(
       )
     }
 
+    const profile = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, userId),
+      columns: { firstName: true, lastName: true },
+    })
+    const displayName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || null
+
+    // Email before hard-delete so the address still exists and the user is notified.
+    try {
+      await sendAccountDeletedEmail({
+        email: target.email,
+        name: displayName,
+        reason,
+      })
+    } catch (err) {
+      console.error('Failed to send account-deleted email:', err)
+      return NextResponse.json(
+        { error: 'Could not email the user the deletion reason. Account was not deleted — try again.' },
+        { status: 502 },
+      )
+    }
+
     const result = await permanentlyDeleteUser(userId)
-    return NextResponse.json({ success: true, ...result })
+    return NextResponse.json({ success: true, emailSent: true, ...result })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to permanently delete user'
     if (message === 'USER_NOT_FOUND') {

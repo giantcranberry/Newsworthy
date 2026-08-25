@@ -85,7 +85,9 @@ export function ApprovalSection({
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [resendingId, setResendingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
 
   // Parent hides Ready to Submit while opted-in with zero requests yet
   useEffect(() => {
@@ -107,6 +109,7 @@ export function ApprovalSection({
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setError(null)
+    setSuccess(null)
 
     try {
       const priorSelections = priorApprovers.filter(
@@ -135,6 +138,12 @@ export function ApprovalSection({
       setNewName('')
       setNewEmail('')
       setNotes('')
+      const count = data.approvals?.length || 1
+      setSuccess(
+        data.warning
+          ? `Request saved. ${data.warning}`
+          : `Approval request sent via email${count > 1 ? ` to ${count} stakeholders` : ''}.`
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -142,8 +151,33 @@ export function ApprovalSection({
     }
   }
 
+  const handleResend = async (approvalUuid: string) => {
+    setResendingId(approvalUuid)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      const response = await fetch(`/api/pr/${releaseUuid}/approval`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'resend', approvalUuid }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to resend approval email')
+      }
+      setSuccess('Approval email resent successfully.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setResendingId(null)
+    }
+  }
+
   const handleDelete = async (approvalUuid: string) => {
     setDeletingId(approvalUuid)
+    setError(null)
+    setSuccess(null)
 
     try {
       const response = await fetch(`/api/pr/${releaseUuid}/approval`, {
@@ -168,6 +202,7 @@ export function ApprovalSection({
   const handleCancel = () => {
     setApprovalRequired(false)
     setError(null)
+    setSuccess(null)
     setSelectedPrior(new Set())
     setNewName('')
     setNewEmail('')
@@ -229,6 +264,20 @@ export function ApprovalSection({
                         <span className="text-xs text-gray-600 dark:text-gray-400">
                           {formatDate(approval.requestedAt)}
                         </span>
+                        {isPending && (
+                          <button
+                            onClick={() => handleResend(approval.uuid)}
+                            disabled={resendingId === approval.uuid}
+                            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 disabled:opacity-50"
+                            title="Resend approval email"
+                          >
+                            {resendingId === approval.uuid ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Send className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(approval.uuid)}
                           disabled={deletingId === approval.uuid}
@@ -320,6 +369,13 @@ export function ApprovalSection({
               <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400 rounded-md text-sm">
                 <XCircle className="h-4 w-4 shrink-0" />
                 {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 rounded-md text-sm">
+                <CheckCircle2 className="h-4 w-4 shrink-0" />
+                {success}
               </div>
             )}
 

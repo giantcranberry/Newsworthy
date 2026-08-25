@@ -2,7 +2,7 @@ import { db } from '@/db'
 import { approvals, releases, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
-import { sendEmail } from '@/lib/email'
+import { getAppBaseUrl, sendEmail } from '@/lib/email'
 
 export async function POST(
   request: Request,
@@ -51,9 +51,9 @@ export async function POST(
       where: eq(users.id, approval.userId),
     })
 
-    // Send notification email to the release owner
+    // Send notification email to the release owner via Resend
     if (user?.email && release) {
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
+      const appUrl = getAppBaseUrl()
 
       try {
         await sendEmail({
@@ -96,8 +96,8 @@ export async function POST(
           text: `${approved ? 'Approval' : 'Response'} received from ${approval.emailTo || signature} for "${release.title || 'your press release'}". ${feedback ? `Feedback: "${feedback}"` : ''}`,
         })
       } catch (emailError) {
-        console.error('[API] Error sending notification email:', emailError)
-        // Continue even if email fails
+        console.error('[API] Error sending notification email via Resend:', emailError)
+        // Response is already saved — don't fail the stakeholder action
       }
     }
 

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -27,13 +28,16 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [confirmEmail, setConfirmEmail] = useState('')
+  const [reason, setReason] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState('')
 
   const emailMatches = confirmEmail.trim().toLowerCase() === userEmail.toLowerCase()
+  const reasonOk = reason.trim().length >= 10
+  const canDelete = emailMatches && reasonOk && !isDeleting
 
   const handleDelete = async () => {
-    if (!emailMatches || isDeleting) return
+    if (!canDelete) return
     setIsDeleting(true)
     setError('')
 
@@ -44,6 +48,7 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
         body: JSON.stringify({
           confirmPermanent: true,
           confirmEmail: confirmEmail.trim(),
+          reason: reason.trim(),
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -68,6 +73,7 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
         setOpen(next)
         if (!next) {
           setConfirmEmail('')
+          setReason('')
           setError('')
         }
       }}
@@ -97,6 +103,23 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
                 <li>Credits, contacts, assets, CRM, and user account rows</li>
               </ul>
               <div className="space-y-2 pt-1">
+                <Label htmlFor="delete-reason">
+                  Reason (emailed to the user)
+                </Label>
+                <Textarea
+                  id="delete-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Explain why this account is being deleted…"
+                  disabled={isDeleting}
+                  rows={3}
+                  className="resize-y"
+                />
+                <p className="text-xs text-muted-foreground">
+                  At least 10 characters. The user will receive this reason by email before the account is removed.
+                </p>
+              </div>
+              <div className="space-y-2 pt-1">
                 <Label htmlFor="confirm-delete-email">
                   Type the user&apos;s email to confirm
                 </Label>
@@ -120,7 +143,7 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
           <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <Button
             variant="destructive"
-            disabled={!emailMatches || isDeleting}
+            disabled={!canDelete}
             onClick={(e) => {
               e.preventDefault()
               handleDelete()

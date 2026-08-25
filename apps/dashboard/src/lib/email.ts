@@ -19,6 +19,10 @@ export async function sendEmail({
   html: string
   text?: string
 }) {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not configured')
+  }
+
   try {
     const { data, error } = await getResend().emails.send({
       from: `Newsworthy <${fromEmail}>`,
@@ -29,15 +33,29 @@ export async function sendEmail({
     })
 
     if (error) {
-      console.error('Error sending email:', error)
-      throw error
+      console.error('[Resend] Error sending email:', error)
+      const message =
+        typeof error === 'object' && error && 'message' in error
+          ? String((error as { message: string }).message)
+          : 'Resend rejected the email'
+      throw new Error(message)
     }
 
+    console.log('[Resend] Email sent', { to, subject, id: data?.id })
     return data
   } catch (error) {
-    console.error('Failed to send email:', error)
+    console.error('[Resend] Failed to send email:', error)
     throw error
   }
+}
+
+/** Public app base URL for links in outbound email (production: app.newsworthyai.com). */
+export function getAppBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.DASHBOARD_URL ||
+    'https://app.newsworthyai.com'
+  ).replace(/\/$/, '')
 }
 
 /**
@@ -52,6 +70,15 @@ async function getTemplate(slug: string) {
   } catch {
     return null
   }
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 /**
@@ -283,6 +310,9 @@ If you have any questions, please contact us at support@newsworthyai.com.
   })
 }
 
+/**
+ * Stakeholder approval request — always sent via Resend.
+ */
 export async function sendApprovalRequestEmail({
   to,
   approverName,
@@ -298,13 +328,16 @@ export async function sendApprovalRequestEmail({
   notes?: string | null
   approvalUuid: string
 }) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthy.ai'
-  const approvalLink = `${appUrl}/approval/${approvalUuid}`
+  const approvalLink = `${getAppBaseUrl()}/approval/${approvalUuid}`
+  const safeApprover = escapeHtml(approverName)
+  const safeRequestor = escapeHtml(requestorName)
+  const safeTitle = escapeHtml(releaseTitle)
+  const safeNotes = notes ? escapeHtml(notes) : ''
 
   const notesHtml = notes
     ? `<div style="background-color: #fff; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
-        <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Message from ${requestorName}:</h3>
-        <p style="margin: 0; color: #333; font-style: italic;">"${notes}"</p>
+        <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Message from ${safeRequestor}:</h3>
+        <p style="margin: 0; color: #333; font-style: italic;">"${safeNotes}"</p>
       </div>`
     : ''
 
@@ -312,12 +345,35 @@ export async function sendApprovalRequestEmail({
 
   const tmpl = await getTemplate('approval-request')
   if (tmpl) {
-    const vars = { approverName, requestorName, releaseTitle, notesHtml, notesText, approvalLink }
+    const vars = {
+      approverName: safeApprover,
+      requestorName: safeRequestor,
+      releaseTitle: safeTitle,
+      notesHtml,
+      notesText,
+      approvalLink,
+    }
     await sendEmail({
       to,
-      subject: renderTemplate(tmpl.subject, vars),
+      subject: renderTemplate(tmpl.subject, {
+        approverName,
+        requestorName,
+        releaseTitle,
+        notesHtml,
+        notesText,
+        approvalLink,
+      }),
       html: renderTemplate(tmpl.htmlBody, vars),
-      text: tmpl.textBody ? renderTemplate(tmpl.textBody, vars) : undefined,
+      text: tmpl.textBody
+        ? renderTemplate(tmpl.textBody, {
+            approverName,
+            requestorName,
+            releaseTitle,
+            notesHtml,
+            notesText,
+            approvalLink,
+          })
+        : undefined,
     })
     return
   }
@@ -335,15 +391,15 @@ export async function sendApprovalRequestEmail({
             <h1 style="color: #1a1a1a; margin: 0;">Your Approval is Requested</h1>
           </div>
 
-          <p style="margin-bottom: 20px;">Hi ${approverName},</p>
+          <p style="margin-bottom: 20px;">Hi ${safeApprover},</p>
 
           <p style="margin-bottom: 20px;">
-            <strong>${requestorName}</strong> has requested your approval for a press release before it is distributed.
+            <strong>${safeRequestor}</strong> has requested your approval for a press release before it is distributed.
           </p>
 
           <div style="background-color: #fff; padding: 20px; border-radius: 6px; margin-bottom: 20px;">
             <h3 style="margin: 0 0 10px 0; color: #1a1a1a;">Press Release</h3>
-            <p style="margin: 0; font-weight: 600; color: #333;">${releaseTitle}</p>
+            <p style="margin: 0; font-weight: 600; color: #333;">${safeTitle}</p>
           </div>
 
           ${notesHtml}
@@ -359,7 +415,7 @@ export async function sendApprovalRequestEmail({
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
 
           <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
-            This email was sent from Newsworthy on behalf of ${requestorName}. If you believe this was sent in error, you can safely ignore it.
+            This email was sent from Newsworthy on behalf of ${safeRequestor}. If you believe this was sent in error, you can safely ignore it.
           </p>
         </div>
       </body>
@@ -711,5 +767,57 @@ Founder, Newsworthy.ai`
     subject,
     html,
     text,
+  })
+}
+
+/**
+ * Notify a user that their account was permanently deleted, including the
+ * admin-provided reason. Must be sent before the user row is removed.
+ */
+export async function sendAccountDeletedEmail({
+  email,
+  name,
+  reason,
+}: {
+  email: string
+  name?: string | null
+  reason: string
+}) {
+  const greetingName = name?.trim() || 'there'
+  const safeReason = escapeHtml(reason.trim())
+  const reasonText = reason.trim()
+  const subject = 'Your Newsworthy account has been deleted'
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${subject}</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
+          <h1 style="color: #1a1a1a; margin-bottom: 20px;">Account deleted</h1>
+          <p>Hi ${escapeHtml(greetingName)},</p>
+          <p style="margin-bottom: 20px;">
+            Your Newsworthy account associated with <strong>${escapeHtml(email)}</strong>
+            has been permanently deleted.
+          </p>
+          <p style="margin-bottom: 8px;"><strong>Reason:</strong></p>
+          <p style="margin-bottom: 20px; padding: 12px 16px; background: #fff; border-left: 3px solid #dc2626; white-space: pre-wrap;">${safeReason}</p>
+          <p style="margin-bottom: 20px; font-size: 14px; color: #666;">
+            If you believe this was done in error, please contact support at
+            <a href="mailto:support@newsworthyai.com">support@newsworthyai.com</a>.
+          </p>
+        </div>
+      </body>
+    </html>
+  `
+
+  await sendEmail({
+    to: email,
+    subject,
+    html,
+    text: `Account deleted\n\nHi ${greetingName},\n\nYour Newsworthy account associated with ${email} has been permanently deleted.\n\nReason:\n${reasonText}\n\nIf you believe this was done in error, contact support@newsworthyai.com.`,
   })
 }

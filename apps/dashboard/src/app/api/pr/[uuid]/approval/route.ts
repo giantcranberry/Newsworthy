@@ -24,6 +24,57 @@ async function getReleaseForUser(uuid: string, userId: number) {
   return release
 }
 
+async function createAndEmailApproval({
+  release,
+  userId,
+  requestorName,
+  email,
+  emailTo,
+  notes,
+}: {
+  release: { id: number; companyId: number; title: string | null }
+  userId: number
+  requestorName: string
+  email: string
+  emailTo: string
+  notes?: string | null
+}) {
+  const approvalUuid = uuidv4()
+  const [row] = await db
+    .insert(approvals)
+    .values({
+      uuid: approvalUuid,
+      releaseId: release.id,
+      email,
+      emailTo,
+      notes: notes || null,
+      companyId: release.companyId,
+      userId,
+      requestedAt: new Date(),
+      approved: false,
+    })
+    .returning()
+
+  try {
+    await sendApprovalRequestEmail({
+      to: email,
+      approverName: emailTo || 'Stakeholder',
+      requestorName,
+      releaseTitle: release.title || 'Untitled Press Release',
+      notes,
+      approvalUuid,
+    })
+  } catch (emailError) {
+    // Don't leave a pending request that never reached the stakeholder
+    await db.delete(approvals).where(eq(approvals.uuid, approvalUuid))
+    const detail =
+      emailError instanceof Error ? emailError.message : 'Unknown email error'
+    throw new Error(`Failed to send approval email to ${email}: ${detail}`)
+  }
+
+  return row
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> }
@@ -44,14 +95,12 @@ export async function GET(
       return NextResponse.json({ error: 'Release not found' }, { status: 404 })
     }
 
-    // Fetch approvals for this release
     const releaseApprovals = await db
       .select()
       .from(approvals)
       .where(eq(approvals.releaseId, release.id))
       .orderBy(approvals.requestedAt)
 
-    // Fetch prior approvers from same company (different releases)
     const priorApprovers = await db
       .selectDistinctOn([approvals.email], {
         email: approvals.email,
@@ -96,86 +145,110 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { email, emailTo, notes, priorApprovers: priorIds } = body
-
-    // Get requestor name from session
     const requestorName = session.user.name || session.user.email || 'A Newsworthy user'
 
-    const created: (typeof approvals.$inferSelect)[] = []
+    // Resend an existing pending approval email via Resend
+    if (body?.action === 'resend') {
+      const approvalUuid = body.approvalUuid as string | undefined
+      if (!approvalUuid) {
+        return NextResponse.json({ error: 'Approval UUID required' }, { status: 400 })
+      }
 
-    // Handle prior approver selections
+      const approval = await db.query.approvals.findFirst({
+        where: and(
+          eq(approvals.uuid, approvalUuid),
+          eq(approvals.releaseId, release.id)
+        ),
+      })
+
+      if (!approval) {
+        return NextResponse.json({ error: 'Approval not found' }, { status: 404 })
+      }
+      if (approval.signedAt) {
+        return NextResponse.json(
+          { error: 'This approval has already been responded to' },
+          { status: 400 }
+        )
+      }
+      if (!approval.email) {
+        return NextResponse.json({ error: 'Approval has no email address' }, { status: 400 })
+      }
+
+      await sendApprovalRequestEmail({
+        to: approval.email,
+        approverName: approval.emailTo || 'Stakeholder',
+        requestorName,
+        releaseTitle: release.title || 'Untitled Press Release',
+        notes: approval.notes,
+        approvalUuid: approval.uuid,
+      })
+
+      return NextResponse.json({ success: true, emailSent: true })
+    }
+
+    const { email, emailTo, notes, priorApprovers: priorIds } = body
+    const created: (typeof approvals.$inferSelect)[] = []
+    const emailErrors: string[] = []
+
     if (priorIds && Array.isArray(priorIds) && priorIds.length > 0) {
       for (const prior of priorIds) {
-        const approvalUuid = uuidv4()
-        const [row] = await db.insert(approvals).values({
-          uuid: approvalUuid,
-          releaseId: release.id,
-          email: prior.email,
-          emailTo: prior.emailTo,
-          notes: notes || null,
-          companyId: release.companyId,
-          userId,
-          requestedAt: new Date(),
-          approved: false,
-        }).returning()
-        created.push(row)
-
-        // Send email to prior approver
-        if (prior.email) {
-          try {
-            await sendApprovalRequestEmail({
-              to: prior.email,
-              approverName: prior.emailTo || 'Stakeholder',
-              requestorName,
-              releaseTitle: release.title || 'Untitled Press Release',
-              notes,
-              approvalUuid,
-            })
-          } catch (emailError) {
-            console.error('[API] Error sending approval email:', emailError)
-            // Continue even if email fails
-          }
+        if (!prior.email) continue
+        try {
+          const row = await createAndEmailApproval({
+            release,
+            userId,
+            requestorName,
+            email: prior.email,
+            emailTo: prior.emailTo || 'Stakeholder',
+            notes,
+          })
+          created.push(row)
+        } catch (err) {
+          console.error('[API] Error sending approval email:', err)
+          emailErrors.push(err instanceof Error ? err.message : String(err))
         }
       }
     }
 
-    // Handle new approver
     if (email && emailTo) {
-      const approvalUuid = uuidv4()
-      const [row] = await db.insert(approvals).values({
-        uuid: approvalUuid,
-        releaseId: release.id,
-        email,
-        emailTo,
-        notes: notes || null,
-        companyId: release.companyId,
-        userId,
-        requestedAt: new Date(),
-        approved: false,
-      }).returning()
-      created.push(row)
-
-      // Send email to new approver
       try {
-        await sendApprovalRequestEmail({
-          to: email,
-          approverName: emailTo,
+        const row = await createAndEmailApproval({
+          release,
+          userId,
           requestorName,
-          releaseTitle: release.title || 'Untitled Press Release',
+          email,
+          emailTo,
           notes,
-          approvalUuid,
         })
-      } catch (emailError) {
-        console.error('[API] Error sending approval email:', emailError)
-        // Continue even if email fails
+        created.push(row)
+      } catch (err) {
+        console.error('[API] Error sending approval email:', err)
+        emailErrors.push(err instanceof Error ? err.message : String(err))
       }
     }
 
     if (created.length === 0) {
+      if (emailErrors.length > 0) {
+        return NextResponse.json(
+          {
+            error:
+              'Could not send the stakeholder approval email via Resend. No request was saved. ' +
+              emailErrors.join('; '),
+          },
+          { status: 502 }
+        )
+      }
       return NextResponse.json({ error: 'No approver specified' }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true, approvals: created })
+    return NextResponse.json({
+      success: true,
+      approvals: created,
+      emailSent: true,
+      ...(emailErrors.length > 0
+        ? { warning: `Some emails failed: ${emailErrors.join('; ')}` }
+        : {}),
+    })
   } catch (error) {
     console.error('[API] Error creating approval:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to create approval'
@@ -209,7 +282,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Approval UUID required' }, { status: 400 })
     }
 
-    // Find the approval and ensure it belongs to this release and isn't signed
     const approval = await db.query.approvals.findFirst({
       where: and(
         eq(approvals.uuid, approvalUuid),
