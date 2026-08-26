@@ -9,6 +9,7 @@ import { Metadata } from "next";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
 import VerifiedSchema from "@/components/VerifiedSchema";
+import { CrawlerHitBeacon } from "@/components/crawler-hit-beacon";
 
 const lora = Lora({
   subsets: ["latin"],
@@ -78,6 +79,7 @@ export default async function RootLayout({
         <main className="mx-auto mb-auto w-full">{children}</main>
         <Footer />
         <Toaster />
+        <CrawlerHitBeacon />
       </body>
     </html>
   );

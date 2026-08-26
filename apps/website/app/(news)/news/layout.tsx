@@ -10,6 +10,7 @@ import Script from "next/script";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
 import VerifiedSchema from "@/components/VerifiedSchema";
+import { CrawlerHitBeacon } from "@/components/crawler-hit-beacon";
 
 export const metadata: Metadata = {
   title: {
@@ -61,6 +62,7 @@ export default async function RootLayout({
         <main className="mx-auto mb-auto w-full bg-white">{children}</main>
         <Footer />
         <Toaster />
+        <CrawlerHitBeacon />
       </body>
     </html>
   );

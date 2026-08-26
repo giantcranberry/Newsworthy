@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json, pgEnum, index } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { company } from './company'
 import { releases } from './releases'
@@ -417,6 +417,34 @@ export const pdfDownloads = pgTable('pdf_downloads', {
   referrer: text('referrer'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
+
+/** SEO / AI crawler visits on public news + curated pages */
+export const crawlerVisitorEnum = pgEnum('crawler_visitor', [
+  'browser',
+  'seo',
+  'ai',
+  'other',
+])
+
+export const pageHits = pgTable(
+  'page_hits',
+  {
+    id: text('id').primaryKey(),
+    pageUrl: text('page_url').notNull(),
+    path: text('path').notNull(),
+    visitor: crawlerVisitorEnum('visitor').notNull(),
+    botName: text('bot_name'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    index('page_hits_created_idx').on(table.createdAt),
+    index('page_hits_visitor_created_idx').on(table.visitor, table.createdAt),
+    index('page_hits_path_created_idx').on(table.path, table.createdAt),
+  ],
+)
+
+export type CrawlerVisitor = (typeof crawlerVisitorEnum.enumValues)[number]
 
 export const aiVideos = pgTable('ai_videos', {
   id: serial('id').primaryKey(),
