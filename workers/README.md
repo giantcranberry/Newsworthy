@@ -40,6 +40,15 @@ Also available from the repo root `.env.local` (loaded automatically):
 | `DIRECT_DATABASE_URL` | Fraction DB for journalist lookup cache |
 | `DATABASE_URL` | fallback if direct URL is unset |
 
+**AI grounding check** (separate tool): see [`grounding_check/README.md`](./grounding_check/README.md).
+
+```bash
+psql "$DIRECT_DATABASE_URL" -f apps/dashboard/drizzle/manual/2026-08-26-release-grounding.sql
+bun workers/grounding_check/run_batch.ts
+```
+
+Needs `OPENAI_KEY`, `SERPAPI_API_KEY` (Google AI Overviews), and optionally `PERPLEXITY_API_KEY`.
+
 **Firecrawl:** the `firecrawl` CLI should be on your `PATH` (preferred). Otherwise set `FIRECRAWL_API_KEY`.
 
 **Optional DB cache** (recommended — skips repeat Firecrawl/Hunter for known people):

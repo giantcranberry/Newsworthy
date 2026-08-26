@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json, pgEnum, index } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { company } from './company'
 import { releases } from './releases'
@@ -444,6 +444,29 @@ export const pageHits = pgTable(
 )
 
 export type CrawlerVisitor = (typeof crawlerVisitorEnum.enumValues)[number]
+
+/** Successful AI search grounding hits (google / openai / perplexity). */
+export const releaseGrounding = pgTable(
+  'release_grounding',
+  {
+    id: serial('id').primaryKey(),
+    prId: integer('pr_id')
+      .notNull()
+      .references(() => releases.id),
+    groundingSource: varchar('grounding_source', { length: 32 }).notNull(),
+    groundingQuery: text('grounding_query').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('release_grounding_pr_source_query_uidx').on(
+      table.prId,
+      table.groundingSource,
+      table.groundingQuery,
+    ),
+    index('release_grounding_pr_id_idx').on(table.prId),
+    index('release_grounding_created_idx').on(table.createdAt),
+  ],
+)
 
 export const aiVideos = pgTable('ai_videos', {
   id: serial('id').primaryKey(),
