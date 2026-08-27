@@ -2,6 +2,7 @@ import "../globals.css";
 
 import { Nunito_Sans, Lora } from "next/font/google";
 import { NavBar } from "@/components/navbar";
+import { CrawlerStatsBar } from "@/components/crawler-stats-bar";
 
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
@@ -91,6 +92,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     }}
                 />
                 <header className="sticky top-0 z-50 mx-auto w-full">
+                    <CrawlerStatsBar />
                     <NavBar />
                 </header>
                 <main className="mx-auto mb-auto w-full">{children}</main>

@@ -2,6 +2,7 @@ import "../globals.css";
 
 import { Nunito_Sans, Lora } from "next/font/google";
 import { NavBar } from "@/components/navbar";
+import { CrawlerStatsBar } from "@/components/crawler-stats-bar";
 import Footer from "@/components/footer";
 import { Toaster } from "@/components/ui/toaster";
 import { CrispProvider } from "@/components/crisp-provider";
@@ -46,6 +47,7 @@ export default async function NewsroomLayout({ children }: { children: React.Rea
                 <GoogleAnalytics />
                 <MicrosoftClarity />
                 <header className="mx-auto w-full">
+                    <CrawlerStatsBar />
                     <NavBar hideMenu />
                 </header>
                 <main className="mx-auto mb-auto w-full">{children}</main>

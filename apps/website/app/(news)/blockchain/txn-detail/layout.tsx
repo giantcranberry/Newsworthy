@@ -2,6 +2,7 @@ import "@/app/globals.css";
 import { getPages } from "@/sanity/sanity-utils";
 import { Nunito_Sans, Lora } from "next/font/google";
 import { NavBar } from "@/components/navbar";
+import { CrawlerStatsBar } from "@/components/crawler-stats-bar";
 import Footer from "@/components/footer";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
@@ -50,6 +51,7 @@ export default async function RootLayout({
         <GoogleAnalytics />
         <MicrosoftClarity />
         <div className="w-full mx-auto">
+          <CrawlerStatsBar />
           <NavBar />
         </div>
         <main className="mx-auto mb-auto w-full bg-white">{children}</main>

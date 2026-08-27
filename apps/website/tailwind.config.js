@@ -69,10 +69,20 @@ module.exports = {
 					from: { height: "var(--radix-accordion-content-height)" },
 					to: { height: 0 },
 				},
+				shimmer: {
+					"0%": { transform: "translateX(-100%)" },
+					"100%": { transform: "translateX(200%)" },
+				},
+				"pulse-glow": {
+					"0%, 100%": { opacity: 0.35 },
+					"50%": { opacity: 0.75 },
+				},
 			},
 			animation: {
 				"accordion-down": "accordion-down 0.2s ease-out",
 				"accordion-up": "accordion-up 0.2s ease-out",
+				shimmer: "shimmer 5s ease-in-out infinite",
+				"pulse-glow": "pulse-glow 4s ease-in-out infinite",
 			},
 		},
 	},
