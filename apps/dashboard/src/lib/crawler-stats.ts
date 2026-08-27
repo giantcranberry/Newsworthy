@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache'
-import { db, pageHits, and, gte, inArray, count } from '@/lib/db'
+import { db, pageHits, and, gte, inArray, count } from '@nwai/db'
 
 export type CrawlerStats24h = {
   aiHits: number
