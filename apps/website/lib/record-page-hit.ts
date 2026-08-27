@@ -1,5 +1,6 @@
 import { db, pageHits } from '@nwai/db'
 import { classifyUserAgent } from '@/lib/classify-user-agent'
+import { parsePrIdFromNewsPath } from '@/lib/parse-news-pr-id'
 
 /**
  * Insert a page_hits row for SEO, AI, or other (unknown) crawlers.
@@ -21,6 +22,7 @@ export async function recordCrawlerHit(input: {
       visitor,
       botName,
       userAgent: input.userAgent?.slice(0, 512) ?? null,
+      prId: parsePrIdFromNewsPath(input.path),
     })
     return true
   } catch (err) {

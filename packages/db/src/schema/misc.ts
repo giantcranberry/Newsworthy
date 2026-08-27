@@ -434,12 +434,14 @@ export const pageHits = pgTable(
     visitor: crawlerVisitorEnum('visitor').notNull(),
     botName: text('bot_name'),
     userAgent: text('user_agent'),
+    prId: integer('pr_id').references(() => releases.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => [
     index('page_hits_created_idx').on(table.createdAt),
     index('page_hits_visitor_created_idx').on(table.visitor, table.createdAt),
     index('page_hits_path_created_idx').on(table.path, table.createdAt),
+    index('page_hits_pr_id_created_idx').on(table.prId, table.createdAt),
   ],
 )
 
