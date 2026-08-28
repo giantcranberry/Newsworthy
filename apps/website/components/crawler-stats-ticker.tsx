@@ -3,11 +3,100 @@
 import { useEffect, useRef, useState } from 'react'
 import { Sparkles, Search } from 'lucide-react'
 import type { CrawlerStats24h } from '@/lib/crawler-stats'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
-const REFRESH_MS = 20_000
+const REFRESH_MS = 60_000
 
 function formatCount(n: number) {
   return n.toLocaleString('en-US')
+}
+
+function StatsHelpDialog() {
+  return (
+    <Dialog>
+      <DialogTrigger
+        type="button"
+        aria-label="About AI training and search indexing stats"
+        className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/15 text-sm font-bold text-amber-300 ring-1 ring-white/30 transition hover:bg-white/25 hover:text-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+      >
+        ?
+      </DialogTrigger>
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="font-serif text-xl font-semibold">
+            About these stats
+          </DialogTitle>
+          <DialogDescription asChild>
+            <div className="grid gap-6 text-left text-stone-900">
+              <section className="grid gap-3">
+                <h3 className="text-base font-semibold text-stone-950">
+                  AI Training
+                </h3>
+                <p>
+                  AI companies use automated crawlers to discover and access
+                  content across the web that may be used to develop and improve
+                  AI systems.{' '}
+                  <a
+                    href="https://newsworthy.ai"
+                    className="font-bold text-stone-950 underline underline-offset-2 hover:text-indigo-700"
+                  >
+                    Newsworthy.ai
+                  </a>{' '}
+                  monitors this activity and tracks when recognized AI crawlers
+                  access press releases published on our platform.
+                </p>
+                <p>
+                  A crawl does not guarantee that content will ultimately be
+                  included in an AI model&apos;s training data. But making your
+                  news accessible and discoverable to the systems building the
+                  next generation of AI starts with being where their crawlers
+                  are looking.
+                </p>
+                <p className="font-bold text-stone-950">
+                  In the AI era, distributing news means distributing it for
+                  machines as well as people.
+                </p>
+              </section>
+              <section className="grid gap-3">
+                <h3 className="text-base font-semibold text-stone-950">
+                  Search Indexing
+                </h3>
+                <p>
+                  Search engines continuously crawl and index{' '}
+                  <a
+                    href="https://newsworthy.ai"
+                    className="font-bold text-stone-950 underline underline-offset-2 hover:text-indigo-700"
+                  >
+                    Newsworthy.ai
+                  </a>{' '}
+                  press releases, making current company news discoverable
+                  beyond the moment it is published.
+                </p>
+                <p>
+                  That matters even more in the AI era. Search indexes and other
+                  retrieval systems can help AI platforms find current
+                  information when answering questions, allowing recently
+                  published news to become part of the information ecosystem AI
+                  can discover, retrieve, and potentially cite.
+                </p>
+                <p className="font-bold text-stone-950">
+                  Your news can&apos;t be discovered if the systems looking for
+                  it can&apos;t find it.
+                </p>
+              </section>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 /** Dot-grid + glow artwork behind the bar. */
@@ -123,12 +212,12 @@ export function CrawlerStatsTicker({ initial }: { initial: CrawlerStats24h }) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-900 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-900" />
           </span>
-          Live
+          Live (Last 24 Hours)
         </span>
 
         <Stat
           icon={<Sparkles size={18} strokeWidth={2.5} />}
-          label="AI Training: Press Releases Added Last 24 Hours by Newsworthy.ai"
+          label="AI Training Crawls"
           value={stats.aiHits}
         />
 
@@ -136,9 +225,11 @@ export function CrawlerStatsTicker({ initial }: { initial: CrawlerStats24h }) {
 
         <Stat
           icon={<Search size={18} strokeWidth={2.5} />}
-          label="Releases indexed by search last 24 hours"
+          label="Search Engine Crawls"
           value={stats.seoHits}
         />
+
+        <StatsHelpDialog />
       </div>
     </div>
   )
