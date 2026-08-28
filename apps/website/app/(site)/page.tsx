@@ -8,14 +8,15 @@ import { getCategorySections, getSiteAdBySlug } from "@/sanity/sanity-utils";
 import TrustedDialog from "@/components/trusted";
 import { CardNews } from "@/components/home_news_card";
 import { MobileNewsCard } from "@/components/mobile_news_card";
-import BannerAdBand from "@/components/banner-ad/banner-ad-band";
 import SeeYourNewsGutter from "@/components/see_your_news_gutter";
 import { headers } from "next/headers";
 import { FeedStatsType } from "@/types/Stats";
 import { postESGeneric } from "@/lib/elastic";
 import { TrendingFeeds } from "@/components/trending_feeds";
+import { HomePromoBars, HomePlatformPromoBars } from "@/components/home-promo-bars";
 
-import FreePrReview from "@/components/free-pr-review";
+import RotatingPromoAd from "@/components/rotating-promo-ad";
+import PodcastPrAd from "@/components/podcast-pr-ad";
 
 export const revalidate = 0;
 
@@ -231,10 +232,7 @@ export default async function Home({ searchParams }: Props) {
               </div>
             )}
           </section>
-          <section className="mx-auto grid w-full max-w-screen-xl grid-cols-1 items-start gap-5 px-5 pt-5 md:grid-cols-2 xl:my-5 xl:max-w-screen-2xl">
-            <BannerAdBand slug="news-marketing-book" />
-            <BannerAdBand slug="see-your-news-here" />
-          </section>
+          <HomePromoBars />
 
           <section className="mx-auto w-full max-w-screen-xl xl:max-w-screen-2xl px-3 lg:px-5 pt-8 relative">
             <div className="flex items-center gap-4 mb-6">
@@ -247,12 +245,18 @@ export default async function Home({ searchParams }: Props) {
             {/* Mobile layout */}
             <div className="lg:hidden">
               <div className="flex flex-col">
-                {releasesList.map((release, index) => (
+                {releasesList.slice(0, 2).map((release) => (
+                  <MobileNewsCard key={release.id} release={release} />
+                ))}
+              </div>
+              <HomePlatformPromoBars className="my-5" />
+              <div className="flex flex-col">
+                {releasesList.slice(2).map((release) => (
                   <MobileNewsCard key={release.id} release={release} />
                 ))}
               </div>
               <aside className="my-5 px-5">
-                <FreePrReview />
+                <RotatingPromoAd />
               </aside>
             </div>
 
@@ -342,21 +346,34 @@ export default async function Home({ searchParams }: Props) {
                 </div>
               )}
 
-              {/* Bottom grid: remaining stories as cards */}
+              <HomePlatformPromoBars className="mt-12" />
+
+              {/* Bottom grid: news cards with promo ads nested among stories */}
               {releasesList.length > 2 &&
                 (() => {
                   const remaining = releasesList.slice(2);
-                  // +1 for the FreePrReview card, round down to nearest multiple of 4
-                  const totalSlots = Math.floor((remaining.length + 1) / 4) * 4;
-                  const cardCount = totalSlots - 1;
+                  // Reserve 2 slots for ads; keep total on a multiple of 4
+                  const totalSlots = Math.floor((remaining.length + 2) / 4) * 4;
+                  const cardCount = Math.max(totalSlots - 2, 0);
                   const cards = remaining.slice(0, cardCount);
+
+                  // Ad mid–second row (after 5 news cards on xl: 4 + 1),
+                  // then more stories, then Podcast PR, then the rest.
+                  const beforeFirstAd = cards.slice(0, 5);
+                  const betweenAds = cards.slice(5, 10);
+                  const afterSecondAd = cards.slice(10);
+
                   return (
-                    <div className="grid grid-cols-3 xl:grid-cols-4 gap-5 mt-8">
-                      {cards.slice(0, 2).map((release) => (
+                    <div className="mt-10 grid grid-cols-3 gap-8 xl:grid-cols-4">
+                      {beforeFirstAd.map((release) => (
                         <CardNews key={release.id} release={release} />
                       ))}
-                      <FreePrReview />
-                      {cards.slice(2).map((release) => (
+                      <RotatingPromoAd />
+                      {betweenAds.map((release) => (
+                        <CardNews key={release.id} release={release} />
+                      ))}
+                      {betweenAds.length > 0 && <PodcastPrAd />}
+                      {afterSecondAd.map((release) => (
                         <CardNews key={release.id} release={release} />
                       ))}
                     </div>
