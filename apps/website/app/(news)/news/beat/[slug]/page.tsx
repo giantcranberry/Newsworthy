@@ -6,6 +6,9 @@ import { PressRelease } from '@/types/Release'
 import { notFound } from 'next/navigation'
 import { HorizontalNews } from '@/components/news_card'
 import SeeYourNewsGutter from '@/components/see_your_news_gutter'
+import NutriCompanyAd, {
+  NutriCompanyListingAd,
+} from '@/components/nutricompany-ad'
 import { headers } from 'next/headers'
 import { FeedStatsType } from '@/types/Stats'
 import { postESGeneric } from '@/lib/elastic'
@@ -157,19 +160,33 @@ export default async function NewsBeat({ params }: Props) {
 
       {/* Content */}
       <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 lg:px-8 mt-8">
+        {slug === 'health' && (
+          <div className="mb-8 lg:hidden">
+            <NutriCompanyAd />
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-10 lg:gap-14">
           {/* News feed */}
           <div>
             <div className="divide-y divide-gray-100">
-              {release_list.map((release) => (
-                <HorizontalNews key={release.id} release={release} />
-              ))}
+              {release_list.flatMap((release, index) => {
+                const items = [
+                  <HorizontalNews key={release.id} release={release} />,
+                ]
+                if (slug === 'health' && index === 4) {
+                  items.push(
+                    <NutriCompanyListingAd key="nutricompany-listing-ad" />,
+                  )
+                }
+                return items
+              })}
             </div>
           </div>
 
           {/* Sidebar */}
           <div className="hidden lg:block">
             <div className="sticky top-24 space-y-6">
+              {slug === 'health' && <NutriCompanyAd />}
               <SeeYourNewsGutter />
             </div>
           </div>
