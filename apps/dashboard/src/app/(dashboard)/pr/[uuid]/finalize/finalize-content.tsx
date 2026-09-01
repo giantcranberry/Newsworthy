@@ -16,6 +16,10 @@ import { WizardHeader } from '@/components/pr-wizard/wizard-header'
 import { PaymentForm } from '@/components/stripe/payment-form'
 import { getStripePublishableKey } from '@/lib/stripe-client'
 import { ApprovalSection, type Approval, type PriorApprover } from './approval-section'
+import {
+  ClipReportRecipientsSection,
+  type ClipReportRecipient,
+} from './clip-report-recipients-section'
 import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
 
 /**
@@ -96,6 +100,7 @@ interface FinalizeContentProps {
   distribution: string | null
   initialApprovals: Approval[]
   priorApprovers: PriorApprover[]
+  initialClipRecipients: ClipReportRecipient[]
   missingItems?: { label: string; path: string }[]
   checkout?: FinalizeCheckout | null
   wizardNav?: React.ReactNode
@@ -109,6 +114,7 @@ export function FinalizeContent({
   distribution,
   initialApprovals,
   priorApprovers,
+  initialClipRecipients,
   missingItems = [],
   checkout = null,
   wizardNav,
@@ -317,6 +323,11 @@ export function FinalizeContent({
         priorApprovers={priorApprovers}
         onApprovalsChange={setApprovalList}
         onAwaitingApproversChange={setAwaitingApprovers}
+      />
+
+      <ClipReportRecipientsSection
+        releaseUuid={releaseUuid}
+        initialRecipients={initialClipRecipients}
       />
 
       {error && (

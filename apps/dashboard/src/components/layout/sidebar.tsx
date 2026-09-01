@@ -186,6 +186,7 @@ const navSections: NavSection[] = [
           { title: 'Categories', href: '/admin/categories', icon: 'fa-light fa-tags' },
           { title: 'Email Templates', href: '/admin/email-templates', icon: 'fa-light fa-envelope-open-text' },
           { title: 'Assets', href: '/admin/assets', icon: 'fa-light fa-folder-open' },
+          { title: 'Block List', href: '/admin/blocklist', icon: 'fa-light fa-ban' },
           { title: 'Settings', href: '/admin/settings', icon: 'fa-light fa-toggle-on' },
         ],
       },

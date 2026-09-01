@@ -122,6 +122,18 @@ export const clipReport = pgTable('clip_report', {
   createdAt: timestamp('created_at').defaultNow(),
 })
 
+/** Emails that should receive the public clipping report link for a release. */
+export const clipReportRecipients = pgTable('clip_report_recipients', {
+  id: serial('id').primaryKey(),
+  releaseId: integer('release_id')
+    .notNull()
+    .references(() => releases.id, { onDelete: 'cascade' }),
+  email: varchar('email', { length: 254 }).notNull(),
+  name: varchar('name', { length: 128 }),
+  isPrimaryContact: boolean('is_primary_contact').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
 export const clipImage = pgTable('clip_image', {
   id: serial('id').primaryKey(),
   fqDomain: varchar('fq_domain', { length: 64 }),
@@ -504,4 +516,13 @@ export const appSettings = pgTable('app_settings', {
   value: varchar('value', { length: 255 }).notNull(),
   updatedBy: integer('updated_by'),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+// Admin-managed keyword/phrase block list (storage only for now).
+export const blocklistTerms = pgTable('blocklist_terms', {
+  id: serial('id').primaryKey(),
+  term: text('term').notNull(),
+  note: varchar('note', { length: 256 }),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
 })

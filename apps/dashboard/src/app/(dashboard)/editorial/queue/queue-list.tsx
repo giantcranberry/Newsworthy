@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
+import { AlertTriangle } from 'lucide-react'
 
 interface QueueItem {
   queueId: number
@@ -23,6 +24,7 @@ interface QueueItem {
   checkedout: string | null
   editorId: number | null
   editorName: string | null
+  blockedTerms: string[]
 }
 
 function DistributionBadge({ distribution }: { distribution: string | null }) {
@@ -44,6 +46,42 @@ function DistributionBadge({ distribution }: { distribution: string | null }) {
     <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-gray-500 text-white">
       STANDARD
     </span>
+  )
+}
+
+function BlocklistWarning({ terms }: { terms: string[] }) {
+  const [open, setOpen] = useState(false)
+  if (!terms.length) return null
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-950/70 cursor-pointer"
+        title="Blocked keywords found in this release"
+      >
+        <AlertTriangle className="h-3.5 w-3.5" />
+        Block list ({terms.length})
+      </button>
+      {open && (
+        <div className="mt-2 rounded-md border border-amber-200 bg-amber-50/80 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-amber-800 dark:text-amber-400 mb-1.5">
+            Matched terms
+          </p>
+          <ul className="flex flex-wrap gap-1.5">
+            {terms.map((term) => (
+              <li
+                key={term}
+                className="rounded bg-white px-2 py-0.5 text-xs font-medium text-amber-950 ring-1 ring-amber-200 dark:bg-amber-900/40 dark:text-amber-100 dark:ring-amber-700"
+              >
+                {term}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -192,6 +230,8 @@ export function QueueList({
                     </span>
                   </p>
                 )}
+
+                <BlocklistWarning terms={item.blockedTerms} />
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-3 flex-wrap" {...(index === 0 ? { "data-tour": "queue-actions" } : {})}>

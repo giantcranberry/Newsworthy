@@ -1,11 +1,12 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, company, users } from '@/db/schema'
+import { queue, releases, company, users, blocklistTerms } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { CheckCircle, Clock } from 'lucide-react'
 import { QueueList } from './queue-list'
+import { findBlockedTerms } from '@/lib/blocklist'
 
 async function getQueueItems() {
   const items = await db
@@ -37,7 +38,11 @@ export default async function EditorialQueuePage() {
     redirect('/dashboard')
   }
 
-  const queueItems = await getQueueItems()
+  const [queueItems, blocklist] = await Promise.all([
+    getQueueItems(),
+    db.select({ term: blocklistTerms.term }).from(blocklistTerms),
+  ])
+  const blockTerms = blocklist.map((row) => row.term)
   const currentUserId = parseInt(session?.user?.id || '0')
   const currentUserName = session?.user?.name || session?.user?.email || 'Editor'
 
@@ -82,6 +87,16 @@ export default async function EditorialQueuePage() {
             checkedout: item.queue.checkedout?.toISOString() ?? null,
             editorId: item.queue.editorId,
             editorName: item.queue.editorName,
+            blockedTerms: findBlockedTerms(
+              {
+                title: item.release.title,
+                abstract: item.release.abstract,
+                body: item.release.body,
+                pullquote: item.release.pullquote,
+                location: item.release.location,
+              },
+              blockTerms,
+            ),
           }))}
           currentUserId={currentUserId}
           currentUserName={currentUserName}

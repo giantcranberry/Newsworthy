@@ -1,12 +1,44 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js'
+import { Chart } from 'react-chartjs-2'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { DollarSign, TrendingUp, Calendar, CalendarDays, FileText, ExternalLink, RefreshCw, ChevronRight } from 'lucide-react'
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+)
+
 interface SalesPeriod {
+  amount: number
+  count: number
+}
+
+interface DailySalesPoint {
+  date: string
+  label: string
   amount: number
   count: number
 }
@@ -34,6 +66,7 @@ interface SalesData {
   prevWtd: SalesPeriod
   prevMtd: SalesPeriod
   prevYtd: SalesPeriod
+  series: DailySalesPoint[]
   invoices: Invoice[]
   cachedAt: number
 }
@@ -82,6 +115,144 @@ function PeriodCard({
         <p className="text-xs text-gray-400">
           {previous.count} transaction{previous.count !== 1 ? 's' : ''}
         </p>
+      </div>
+    </div>
+  )
+}
+
+type SeriesRange = 30 | 90
+
+function SalesActivityChart({ series }: { series: DailySalesPoint[] }) {
+  const [range, setRange] = useState<SeriesRange>(30)
+
+  const points = useMemo(
+    () => (series.length <= range ? series : series.slice(-range)),
+    [series, range],
+  )
+
+  const totalAmount = points.reduce((sum, p) => sum + p.amount, 0)
+  const totalCount = points.reduce((sum, p) => sum + p.count, 0)
+
+  return (
+    <div className="mt-6 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Activity over time
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+            {formatCents(totalAmount)} · {totalCount} transaction
+            {totalCount !== 1 ? 's' : ''} in this range
+          </p>
+        </div>
+        <div className="flex gap-1 rounded-lg bg-gray-100 dark:bg-gray-800 p-0.5">
+          {([30, 90] as const).map((days) => (
+            <button
+              key={days}
+              type="button"
+              onClick={() => setRange(days)}
+              className={`cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                range === days
+                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-gray-100'
+                  : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              {days}d
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="h-[260px]">
+        <Chart
+          type="bar"
+          data={{
+            labels: points.map((p) => p.label),
+            datasets: [
+              {
+                type: 'bar' as const,
+                label: 'Revenue',
+                data: points.map((p) => p.amount / 100),
+                backgroundColor: 'rgba(37, 99, 235, 0.55)',
+                borderColor: 'rgb(37, 99, 235)',
+                borderWidth: 1,
+                borderRadius: 3,
+                yAxisID: 'y',
+                order: 2,
+              },
+              {
+                type: 'line' as const,
+                label: 'Transactions',
+                data: points.map((p) => p.count),
+                borderColor: 'rgb(217, 119, 6)',
+                backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 4,
+                yAxisID: 'y1',
+                order: 1,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+              x: {
+                ticks: {
+                  maxTicksLimit: range === 30 ? 10 : 12,
+                  font: { size: 10 },
+                  maxRotation: 0,
+                },
+                grid: { display: false },
+              },
+              y: {
+                type: 'linear',
+                position: 'left',
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: 'Revenue ($)',
+                  font: { size: 11 },
+                },
+                ticks: {
+                  callback: (value) =>
+                    typeof value === 'number'
+                      ? `$${value.toLocaleString()}`
+                      : value,
+                },
+              },
+              y1: {
+                type: 'linear',
+                position: 'right',
+                beginAtZero: true,
+                grid: { drawOnChartArea: false },
+                title: {
+                  display: true,
+                  text: 'Transactions',
+                  font: { size: 11 },
+                },
+                ticks: { stepSize: 1 },
+              },
+            },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 12 },
+              },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    if (ctx.dataset.label === 'Revenue') {
+                      return `Revenue: ${formatCents(Math.round((ctx.parsed.y ?? 0) * 100))}`
+                    }
+                    return `Transactions: ${ctx.parsed.y ?? 0}`
+                  },
+                },
+              },
+            },
+          }}
+        />
       </div>
     </div>
   )
@@ -174,36 +345,41 @@ export function SalesStats() {
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               )}
               {data && !loading && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <PeriodCard
-                    icon={<Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />}
-                    label="Today"
-                    current={data.today}
-                    previous={data.prevToday}
-                    prevLabel="Yesterday"
-                  />
-                  <PeriodCard
-                    icon={<CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
-                    label="Week to Date"
-                    current={data.wtd}
-                    previous={data.prevWtd}
-                    prevLabel="Last Week"
-                  />
-                  <PeriodCard
-                    icon={<TrendingUp className="h-4 w-4 text-purple-600" />}
-                    label="Month to Date"
-                    current={data.mtd}
-                    previous={data.prevMtd}
-                    prevLabel="Last Month"
-                  />
-                  <PeriodCard
-                    icon={<DollarSign className="h-4 w-4 text-amber-600" />}
-                    label="Year to Date"
-                    current={data.ytd}
-                    previous={data.prevYtd}
-                    prevLabel="Last Year"
-                  />
-                </div>
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <PeriodCard
+                      icon={<Calendar className="h-4 w-4 text-green-600 dark:text-green-400" />}
+                      label="Today"
+                      current={data.today}
+                      previous={data.prevToday}
+                      prevLabel="Yesterday"
+                    />
+                    <PeriodCard
+                      icon={<CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
+                      label="Week to Date"
+                      current={data.wtd}
+                      previous={data.prevWtd}
+                      prevLabel="Last Week"
+                    />
+                    <PeriodCard
+                      icon={<TrendingUp className="h-4 w-4 text-purple-600" />}
+                      label="Month to Date"
+                      current={data.mtd}
+                      previous={data.prevMtd}
+                      prevLabel="Last Month"
+                    />
+                    <PeriodCard
+                      icon={<DollarSign className="h-4 w-4 text-amber-600" />}
+                      label="Year to Date"
+                      current={data.ytd}
+                      previous={data.prevYtd}
+                      prevLabel="Last Year"
+                    />
+                  </div>
+                  {data.series?.length > 0 && (
+                    <SalesActivityChart series={data.series} />
+                  )}
+                </>
               )}
             </CardContent>
           </CollapsibleContent>

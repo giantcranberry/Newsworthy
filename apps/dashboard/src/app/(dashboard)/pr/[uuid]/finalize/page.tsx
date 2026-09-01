@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, releaseOptions, releaseImages, approvals, users } from '@/db/schema'
+import { releases, releaseOptions, releaseImages, approvals, users, clipReportRecipients } from '@/db/schema'
 import { eq, and, asc, ne } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
@@ -20,6 +20,7 @@ async function getReleaseWithDetails(uuid: string) {
     where: eq(releases.uuid, uuid),
     with: {
       company: true,
+      primaryContact: true,
       primaryImage: true,
       banner: true,
       releaseImages: {
@@ -30,6 +31,35 @@ async function getReleaseWithDetails(uuid: string) {
   })
 
   return release
+}
+
+async function getOrSeedClipReportRecipients(
+  releaseId: number,
+  primaryContact: { email: string | null; name: string | null } | null | undefined,
+) {
+  let recipients = await db
+    .select()
+    .from(clipReportRecipients)
+    .where(eq(clipReportRecipients.releaseId, releaseId))
+    .orderBy(asc(clipReportRecipients.createdAt))
+
+  const contactEmail = primaryContact?.email?.trim()
+  if (recipients.length === 0 && contactEmail) {
+    const normalized = contactEmail.toLowerCase()
+    await db.insert(clipReportRecipients).values({
+      releaseId,
+      email: normalized,
+      name: primaryContact?.name?.trim() || null,
+      isPrimaryContact: true,
+    })
+    recipients = await db
+      .select()
+      .from(clipReportRecipients)
+      .where(eq(clipReportRecipients.releaseId, releaseId))
+      .orderBy(asc(clipReportRecipients.createdAt))
+  }
+
+  return recipients
 }
 
 async function getReleaseOptions(prId: number) {
@@ -102,6 +132,10 @@ export default async function FinalizePage({
   const options = release.id ? await getReleaseOptions(release.id) : null
   const releaseApprovals = await getApprovals(release.id)
   const priorApprovers = await getPriorApprovers(release.companyId, release.id)
+  const clipRecipients = await getOrSeedClipReportRecipients(
+    release.id,
+    release.primaryContact,
+  )
 
   // Verification is deliberately surfaced here — at the submission step —
   // rather than nagging across the whole dashboard. The finalize API enforces
@@ -150,6 +184,14 @@ export default async function FinalizePage({
     signedAt: a.signedAt?.toISOString() ?? null,
   }))
 
+  const serializedClipRecipients = clipRecipients.map((r) => ({
+    id: r.id,
+    email: r.email,
+    name: r.name,
+    isPrimaryContact: r.isPrimaryContact,
+    createdAt: r.createdAt?.toISOString() ?? new Date().toISOString(),
+  }))
+
   return (
     <div className="space-y-6">
       {needsVerification && <VerifyEmailBanner email={submitter!.email} />}
@@ -161,6 +203,7 @@ export default async function FinalizePage({
         distribution={release.distribution}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
+        initialClipRecipients={serializedClipRecipients}
         missingItems={missingItems}
         checkout={checkout}
         wizardNav={
