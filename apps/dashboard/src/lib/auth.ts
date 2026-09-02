@@ -11,6 +11,7 @@ import { eq, and } from 'drizzle-orm'
 import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { sendSmsNotification } from '@/lib/twilio'
 import { sendNewsMarketingBookEmail } from '@/lib/email'
+import { isBlockedRegistrationEmail } from '@/lib/registration-email'
 
 export const IMPERSONATE_COOKIE = 'impersonate_user_id'
 export const IMPERSONATE_ADMIN_COOKIE = 'impersonate_admin_id'
@@ -227,6 +228,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         })
 
         if (!existingUser) {
+          if (isBlockedRegistrationEmail(email)) {
+            return '/login?error=company_email_required'
+          }
+
           // Check for co-registration partner cookie
           let oauthPartnerId = 1
           let partnerName: string | undefined

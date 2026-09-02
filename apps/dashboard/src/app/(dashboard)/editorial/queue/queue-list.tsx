@@ -18,6 +18,7 @@ interface QueueItem {
   distribution: string | null
   companyName: string | null
   userEmail: string
+  registeredAt: string | null
   submitted: string | null
   releaseAt: string | null
   timezone: string | null
@@ -94,6 +95,31 @@ function formatDate(iso: string | null) {
     hour: 'numeric',
     minute: '2-digit',
   })
+}
+
+function formatRegisteredAgo(iso: string | null) {
+  if (!iso) return null
+  const seconds = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+  if (seconds < 0) return 'just now'
+  if (seconds < 60) return 'just now'
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) {
+    return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`
+  }
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) {
+    return hours === 1 ? '1 hour ago' : `${hours} hours ago`
+  }
+  const days = Math.floor(hours / 24)
+  if (days < 30) {
+    return days === 1 ? '1 day ago' : `${days} days ago`
+  }
+  const months = Math.floor(days / 30)
+  if (months < 12) {
+    return months === 1 ? '1 month ago' : `${months} months ago`
+  }
+  const years = Math.floor(days / 365)
+  return years === 1 ? '1 year ago' : `${years} years ago`
 }
 
 function formatReleaseDate(iso: string | null, tz: string | null) {
@@ -190,7 +216,9 @@ export function QueueList({
 
   return (
     <div data-tour="queue-list" className="space-y-3">
-      {items.map((item, index) => (
+      {items.map((item, index) => {
+        const registeredAgo = formatRegisteredAgo(item.registeredAt)
+        return (
         <Card key={item.queueId} className="overflow-hidden" {...(index === 0 ? { "data-tour": "queue-first-item" } : {})}>
           <div className="p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
@@ -232,6 +260,12 @@ export function QueueList({
                 )}
 
                 <BlocklistWarning terms={item.blockedTerms} />
+
+                {registeredAgo && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    User registered {registeredAgo}
+                  </p>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-3 flex-wrap" {...(index === 0 ? { "data-tour": "queue-actions" } : {})}>
@@ -281,7 +315,8 @@ export function QueueList({
             </div>
           </div>
         </Card>
-      ))}
+        )
+      })}
     </div>
   )
 }

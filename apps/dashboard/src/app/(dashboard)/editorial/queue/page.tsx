@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { queue, releases, company, users, blocklistTerms } from '@/db/schema'
+import { queue, releases, company, users, userSubscription, blocklistTerms } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
@@ -15,11 +15,13 @@ async function getQueueItems() {
       release: releases,
       company: company,
       user: users,
+      subscriptionStartAt: userSubscription.startAt,
     })
     .from(queue)
     .innerJoin(releases, eq(queue.releaseId, releases.id))
     .innerJoin(company, eq(releases.companyId, company.id))
     .innerJoin(users, eq(releases.userId, users.id))
+    .leftJoin(userSubscription, eq(userSubscription.userId, users.id))
     .where(
       eq(releases.status, 'review')
     )
@@ -71,33 +73,39 @@ export default async function EditorialQueuePage() {
         </Card>
       ) : (
         <QueueList
-          items={queueItems.map((item) => ({
-            queueId: item.queue.id,
-            queueUuid: item.queue.uuid,
-            releaseId: item.release.id,
-            releaseUuid: item.release.uuid,
-            title: item.release.title,
-            abstract: item.release.abstract,
-            distribution: item.release.distribution,
-            companyName: item.company.companyName,
-            userEmail: item.user.email,
-            submitted: item.queue.submitted?.toISOString() ?? null,
-            releaseAt: item.release.releaseAt?.toISOString() ?? null,
-            timezone: item.release.timezone,
-            checkedout: item.queue.checkedout?.toISOString() ?? null,
-            editorId: item.queue.editorId,
-            editorName: item.queue.editorName,
-            blockedTerms: findBlockedTerms(
-              {
-                title: item.release.title,
-                abstract: item.release.abstract,
-                body: item.release.body,
-                pullquote: item.release.pullquote,
-                location: item.release.location,
-              },
-              blockTerms,
-            ),
-          }))}
+          items={queueItems.map((item) => {
+            // created_at is null for some accounts; fall back to subscription start
+            const registeredAt =
+              item.user.createdAt ?? item.subscriptionStartAt ?? null
+            return {
+              queueId: item.queue.id,
+              queueUuid: item.queue.uuid,
+              releaseId: item.release.id,
+              releaseUuid: item.release.uuid,
+              title: item.release.title,
+              abstract: item.release.abstract,
+              distribution: item.release.distribution,
+              companyName: item.company.companyName,
+              userEmail: item.user.email,
+              registeredAt: registeredAt?.toISOString() ?? null,
+              submitted: item.queue.submitted?.toISOString() ?? null,
+              releaseAt: item.release.releaseAt?.toISOString() ?? null,
+              timezone: item.release.timezone,
+              checkedout: item.queue.checkedout?.toISOString() ?? null,
+              editorId: item.queue.editorId,
+              editorName: item.queue.editorName,
+              blockedTerms: findBlockedTerms(
+                {
+                  title: item.release.title,
+                  abstract: item.release.abstract,
+                  body: item.release.body,
+                  pullquote: item.release.pullquote,
+                  location: item.release.location,
+                },
+                blockTerms,
+              ),
+            }
+          })}
           currentUserId={currentUserId}
           currentUserName={currentUserName}
         />

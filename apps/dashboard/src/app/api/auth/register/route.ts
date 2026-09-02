@@ -10,6 +10,10 @@ import { sendVerificationEmail, sendNewsMarketingBookEmail } from '@/lib/email'
 import { addContactToSalesNexus } from '@/lib/salesnexus'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
+import {
+  COMPANY_EMAIL_REQUIRED_MESSAGE,
+  isBlockedRegistrationEmail,
+} from '@/lib/registration-email'
 
 export async function POST(request: Request) {
   try {
@@ -44,6 +48,13 @@ export async function POST(request: Request) {
     }
 
     const normalizedEmail = email.toLowerCase().trim()
+
+    if (isBlockedRegistrationEmail(normalizedEmail)) {
+      return NextResponse.json(
+        { error: COMPANY_EMAIL_REQUIRED_MESSAGE },
+        { status: 400 }
+      )
+    }
 
     // Check if user already exists
     const existingUser = await db.query.users.findFirst({
