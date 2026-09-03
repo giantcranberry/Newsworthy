@@ -57,6 +57,10 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
         setIsDeleting(false)
         return
       }
+      if (data.emailSent === false) {
+        // Account is gone; notify admin that the reason email did not go out.
+        window.alert('Account deleted, but the notification email could not be sent.')
+      }
       router.push('/admin/users')
       router.refresh()
     } catch {
@@ -116,7 +120,7 @@ export function DeleteUserButton({ userId, userEmail, userName }: DeleteUserButt
                   className="resize-y"
                 />
                 <p className="text-xs text-muted-foreground">
-                  At least 10 characters. The user will receive this reason by email before the account is removed.
+                  At least 10 characters. We try to email this reason to the user before removal; a send failure will not block deletion.
                 </p>
               </div>
               <div className="space-y-2 pt-1">

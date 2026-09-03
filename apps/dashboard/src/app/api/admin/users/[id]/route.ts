@@ -78,26 +78,24 @@ export async function DELETE(
     })
     const displayName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || null
 
-    // Email before hard-delete so the address still exists and the user is notified.
+    // Best-effort notify before hard-delete (address still exists). Do not block wipe on email failure.
+    let emailSent = false
     try {
       await sendAccountDeletedEmail({
         email: target.email,
         name: displayName,
         reason,
       })
+      emailSent = true
     } catch (err) {
-      console.error('Failed to send account-deleted email:', err)
-      return NextResponse.json(
-        { error: 'Could not email the user the deletion reason. Account was not deleted — try again.' },
-        { status: 502 },
-      )
+      console.error('Failed to send account-deleted email (continuing with delete):', err)
     }
 
     // Remove CRMWorthy contact before wiping the local user (non-blocking on CRM failure).
     await deleteContactFromCrmWorthy(target.uuid)
 
     const result = await permanentlyDeleteUser(userId)
-    return NextResponse.json({ success: true, emailSent: true, ...result })
+    return NextResponse.json({ success: true, emailSent, ...result })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to permanently delete user'
     if (message === 'USER_NOT_FOUND') {
