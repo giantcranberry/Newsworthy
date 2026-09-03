@@ -7,7 +7,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { encode } from 'next-auth/jwt'
 import { sendVerificationEmail, sendNewsMarketingBookEmail } from '@/lib/email'
-import { addContactToSalesNexus } from '@/lib/salesnexus'
+import { addContactToCrmWorthy } from '@/lib/crmworthy'
 import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
 import {
@@ -91,6 +91,7 @@ export async function POST(request: Request) {
     const [newUser] = await db
       .insert(users)
       .values({
+        uuid: randomUUID(),
         email: normalizedEmail,
         passwordHash,
         emailVerified: false,
@@ -138,12 +139,13 @@ export async function POST(request: Request) {
       console.error('Failed to send News Marketing book email:', err)
     )
 
-    // Add to SalesNexus CRM (non-blocking)
-    addContactToSalesNexus({
+    // Add to CRMWorthy CRM (non-blocking)
+    addContactToCrmWorthy({
       email: normalizedEmail,
       firstName: firstName.trim(),
       lastName: (lastName || '').trim() || undefined,
       partner: partnerName,
+      sourceId: newUser.uuid,
     })
 
     // SMS notification (non-blocking)

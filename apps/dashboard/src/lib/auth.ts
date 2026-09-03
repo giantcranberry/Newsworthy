@@ -3,12 +3,12 @@ import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import LinkedIn from 'next-auth/providers/linkedin'
 import { compare } from 'bcryptjs'
-import { pbkdf2Sync } from 'crypto'
+import { pbkdf2Sync, randomUUID } from 'crypto'
 import { cookies } from 'next/headers'
 import { db } from '@/db'
 import { users, userProfiles, partners, partnerManagers } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
-import { addContactToSalesNexus } from '@/lib/salesnexus'
+import { addContactToCrmWorthy } from '@/lib/crmworthy'
 import { sendSmsNotification } from '@/lib/twilio'
 import { sendNewsMarketingBookEmail } from '@/lib/email'
 import { isBlockedRegistrationEmail } from '@/lib/registration-email'
@@ -259,6 +259,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           // Create new user from OAuth
           const [newUser] = await db.insert(users).values({
+            uuid: randomUUID(),
             email,
             emailVerified: true,
             regMethod: account.provider,
@@ -279,12 +280,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               })
             }
 
-            // Add to SalesNexus CRM (non-blocking)
-            addContactToSalesNexus({
+            // Add to CRMWorthy CRM (non-blocking)
+            addContactToCrmWorthy({
               email,
               firstName: firstName || undefined,
               lastName: lastName || undefined,
               partner: partnerName,
+              sourceId: newUser.uuid,
             })
 
             // Welcome gift: News Marketing ebook (non-blocking)

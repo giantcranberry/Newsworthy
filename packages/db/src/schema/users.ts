@@ -3,6 +3,7 @@ import { relations } from 'drizzle-orm'
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
+  uuid: varchar('uuid', { length: 36 }).unique().notNull(),
   partnerId: integer('partner_id').default(1),
   imPartnerId: integer('im_partner_id').default(1),
   managerFor: integer('manager_for'),

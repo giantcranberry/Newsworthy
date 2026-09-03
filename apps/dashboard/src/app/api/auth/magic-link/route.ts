@@ -5,6 +5,7 @@ import { eq, and, gt } from 'drizzle-orm'
 import { cookies } from 'next/headers'
 import { encode } from 'next-auth/jwt'
 import { getPostHog } from '@/lib/posthog'
+import { randomUUID } from 'crypto'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
     if (!user) {
       // Create new user for magic link sign in
       const [newUser] = await db.insert(users).values({
+        uuid: randomUUID(),
         email: email.toLowerCase(),
         emailVerified: true,
         regMethod: 'magic',
