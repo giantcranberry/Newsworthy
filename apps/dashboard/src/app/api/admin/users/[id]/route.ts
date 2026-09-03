@@ -7,6 +7,7 @@ import { createSystemMessage } from '@/lib/messages'
 import { hash } from 'bcryptjs'
 import { permanentlyDeleteUser } from '@/lib/admin-permanent-delete-user'
 import { sendAccountDeletedEmail } from '@/lib/email'
+import { deleteContactFromCrmWorthy } from '@/lib/crmworthy'
 
 export async function DELETE(
   request: NextRequest,
@@ -47,7 +48,13 @@ export async function DELETE(
     }
 
     const [target] = await db
-      .select({ id: users.id, email: users.email, isAdmin: users.isAdmin, isSuper: users.isSuper })
+      .select({
+        id: users.id,
+        uuid: users.uuid,
+        email: users.email,
+        isAdmin: users.isAdmin,
+        isSuper: users.isSuper,
+      })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1)
@@ -85,6 +92,9 @@ export async function DELETE(
         { status: 502 },
       )
     }
+
+    // Remove CRMWorthy contact before wiping the local user (non-blocking on CRM failure).
+    await deleteContactFromCrmWorthy(target.uuid)
 
     const result = await permanentlyDeleteUser(userId)
     return NextResponse.json({ success: true, emailSent: true, ...result })

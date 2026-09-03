@@ -167,7 +167,7 @@ export default async function Home({ searchParams }: Props) {
                   <div>
                     {featured.selfHost && <TrustedDialog />}
                     <Link
-                      className="font-serif text-xl md:text-2xl md:group-hover:text-sky-700 mb-4"
+                      className="font-serif text-2xl xl:text-3xl leading-tight md:group-hover:text-sky-700 mb-4"
                       href={newsUrl(featured)}
                     >
                       {featured.title}
@@ -212,7 +212,7 @@ export default async function Home({ searchParams }: Props) {
                   <div>
                     {secondFeatured.selfHost && <TrustedDialog />}
                     <Link
-                      className="font-serif text-xl md:text-2xl md:group-hover:text-sky-700 mb-4"
+                      className="font-serif text-2xl xl:text-3xl leading-tight md:group-hover:text-sky-700 mb-4"
                       href={newsUrl(secondFeatured)}
                     >
                       {secondFeatured.title}
