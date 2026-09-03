@@ -30,6 +30,8 @@ export async function addContactToCrmWorthy({
       email,
       sourceId,
       sourceName: CRMWORTHY_SOURCE_NAME,
+      contactType: 'Registered User',
+      workflowId: 'f9debead-6335-4d4f-933c-e0bfbfc72383',
     }
     if (firstName) body.firstName = firstName
     if (lastName) body.lastName = lastName
