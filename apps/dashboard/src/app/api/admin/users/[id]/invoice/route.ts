@@ -26,9 +26,16 @@ export type AdminUserInvoice = {
   created: number
   dueDate: number | null
   hostedInvoiceUrl: string | null
+  /** Line-item label (Qty × Unit). */
   description: string | null
+  /** Stripe invoice memo / notes (invoice.description). */
+  memo: string | null
+  quantity: number
+  /** Unit price in cents from the first line item. */
+  unitAmountCents: number | null
   credits: number
   creditType: string | null
+  companyId: number | null
 }
 
 function paidInvoiceCents(inv: Stripe.Invoice): number {
@@ -41,6 +48,14 @@ function paidInvoiceCents(inv: Stripe.Invoice): number {
 function mapInvoice(inv: Stripe.Invoice): AdminUserInvoice {
   const credits = parseInt(inv.metadata?.credits || '0', 10) || 0
   const amountPaid = paidInvoiceCents(inv)
+  const line = inv.lines?.data?.[0]
+  const quantity = Math.max(1, Math.floor(line?.quantity ?? 1))
+  const lineAmountCents = typeof line?.amount === 'number' ? line.amount : null
+  const unitFromLine =
+    lineAmountCents != null ? Math.round(lineAmountCents / quantity) : null
+  const companyRaw = inv.metadata?.company_id
+    ? parseInt(inv.metadata.company_id, 10)
+    : NaN
   return {
     id: inv.id,
     number: inv.number,
@@ -52,9 +67,13 @@ function mapInvoice(inv: Stripe.Invoice): AdminUserInvoice {
     created: inv.created,
     dueDate: inv.due_date,
     hostedInvoiceUrl: inv.hosted_invoice_url ?? null,
-    description: inv.description ?? inv.footer ?? null,
+    description: line?.description ?? null,
+    memo: inv.description ?? null,
+    quantity,
+    unitAmountCents: unitFromLine,
     credits,
     creditType: inv.metadata?.credit_type || null,
+    companyId: Number.isFinite(companyRaw) ? companyRaw : null,
   }
 }
 

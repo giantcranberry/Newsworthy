@@ -5,6 +5,7 @@ import {
   Banknote,
   ChevronLeft,
   ChevronRight,
+  Copy,
   ExternalLink,
   FileText,
   Loader2,
@@ -14,7 +15,11 @@ import {
 import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { InvoiceUserDialog } from './invoice-user-dialog'
+import {
+  InvoiceFormPrefill,
+  InvoiceUserDialog,
+  InvoiceUserTrigger,
+} from './invoice-user-dialog'
 import { OobPayDialog } from './oob-pay-dialog'
 import { useLifetimeSpend } from './lifetime-spend'
 
@@ -30,8 +35,12 @@ export type UserInvoiceRow = {
   dueDate: number | null
   hostedInvoiceUrl: string | null
   description: string | null
+  memo: string | null
+  quantity: number
+  unitAmountCents: number | null
   credits: number
   creditType: string | null
+  companyId: number | null
 }
 
 interface UserInvoicesCardProps {
@@ -52,6 +61,26 @@ function formatCents(cents: number, currency = 'usd') {
 
 function formatDate(epoch: number) {
   return new Date(epoch * 1000).toLocaleDateString()
+}
+
+function invoiceToPrefill(inv: UserInvoiceRow): InvoiceFormPrefill {
+  const creditType =
+    inv.credits > 0 && inv.creditType ? inv.creditType : 'none'
+  return {
+    description: inv.description || undefined,
+    quantity: inv.quantity || 1,
+    unitPriceDollars:
+      inv.unitAmountCents != null && inv.unitAmountCents > 0
+        ? inv.unitAmountCents / 100
+        : inv.amountDue > 0
+          ? inv.amountDue / 100 / Math.max(1, inv.quantity || 1)
+          : undefined,
+    credits: inv.credits,
+    creditType,
+    companyId: inv.companyId,
+    memo: inv.memo,
+    sourceLabel: inv.number || inv.id.slice(-8),
+  }
 }
 
 function statusBadge(status: string | null) {
@@ -89,6 +118,8 @@ export function UserInvoicesCard({
   const [page, setPage] = useState(0)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [oobInvoice, setOobInvoice] = useState<UserInvoiceRow | null>(null)
+  const [invoiceDialogOpen, setInvoiceDialogOpen] = useState(false)
+  const [invoicePrefill, setInvoicePrefill] = useState<InvoiceFormPrefill | null>(null)
 
   const applyLifetimeSpend = useCallback(
     (cents: number | undefined, updatedAt?: string | Date | null) => {
@@ -128,6 +159,21 @@ export function UserInvoicesCard({
   useEffect(() => {
     loadInvoices()
   }, [loadInvoices])
+
+  const openCreateInvoice = () => {
+    setInvoicePrefill(null)
+    setInvoiceDialogOpen(true)
+  }
+
+  const openDuplicateInvoice = (inv: UserInvoiceRow) => {
+    setInvoicePrefill(invoiceToPrefill(inv))
+    setInvoiceDialogOpen(true)
+  }
+
+  const handleInvoiceDialogOpenChange = (next: boolean) => {
+    setInvoiceDialogOpen(next)
+    if (!next) setInvoicePrefill(null)
+  }
 
   const handleDelete = async (inv: UserInvoiceRow) => {
     const label = inv.number || inv.id.slice(-8)
@@ -203,17 +249,21 @@ export function UserInvoicesCard({
             >
               <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
-            <InvoiceUserDialog
-              userId={userId}
-              userEmail={userEmail}
-              userName={userName}
-              userBrands={userBrands}
-              onSuccess={() => loadInvoices(true)}
-            />
+            <InvoiceUserTrigger onClick={openCreateInvoice} />
           </div>
         </div>
       </CardHeader>
       <CardContent>
+        <InvoiceUserDialog
+          userId={userId}
+          userEmail={userEmail}
+          userName={userName}
+          userBrands={userBrands}
+          open={invoiceDialogOpen}
+          onOpenChange={handleInvoiceDialogOpenChange}
+          prefill={invoicePrefill}
+          onSuccess={() => loadInvoices(true)}
+        />
         <OobPayDialog
           userId={userId}
           invoice={oobInvoice}
@@ -303,6 +353,17 @@ export function UserInvoicesCard({
                         </td>
                         <td className="py-2.5 text-right align-top">
                           <div className="inline-flex items-center justify-end gap-0.5">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs gap-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                              title="Duplicate invoice (edit then send)"
+                              disabled={busy}
+                              onClick={() => openDuplicateInvoice(inv)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
                             {inv.hostedInvoiceUrl && (
                               <a
                                 href={inv.hostedInvoiceUrl}
