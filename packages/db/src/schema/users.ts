@@ -54,6 +54,9 @@ export const userProfiles = pgTable('user_profiles', {
   newsdb: boolean('newsdb').default(false),
   influencer: boolean('influencer').default(false),
   stripe: varchar('stripe', { length: 128 }),
+  /** Net lifetime spend in cents (Stripe invoices + non-invoice payfile). Updated when admin invoices are loaded. */
+  lifetimeSpend: integer('lifetime_spend').default(0),
+  lifetimeSpendUpdatedAt: timestamp('lifetime_spend_updated_at'),
   firstName: varchar('first_name', { length: 48 }),
   lastName: varchar('last_name', { length: 48 }),
   state: varchar('state', { length: 2 }),

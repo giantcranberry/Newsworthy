@@ -821,3 +821,108 @@ export async function sendAccountDeletedEmail({
     text: `Account deleted\n\nHi ${greetingName},\n\nYour Newsworthy account associated with ${email} has been permanently deleted.\n\nReason:\n${reasonText}\n\nIf you believe this was done in error, contact support@newsworthyai.com.`,
   })
 }
+
+const ADMIN_INVOICE_CC = 'admin@mail.newsworthy.ai'
+
+/** Copy of a newly sent admin invoice — Stripe cannot CC Billing emails via API. */
+export async function sendInvoiceAdminCopyEmail({
+  customerEmail,
+  customerName,
+  userId,
+  invoiceNumber,
+  invoiceId,
+  amountDue,
+  dueDate,
+  description,
+  memo,
+  hostedInvoiceUrl,
+  invoicePdf,
+}: {
+  customerEmail: string
+  customerName: string
+  userId: number
+  invoiceNumber: string | null
+  invoiceId: string
+  amountDue: number
+  dueDate: number | null
+  description: string
+  memo: string | null
+  hostedInvoiceUrl: string | null
+  invoicePdf: string | null
+}) {
+  const formattedAmount = `$${(amountDue / 100).toFixed(2)}`
+  const numberLabel = invoiceNumber || invoiceId
+  const dueLabel = dueDate
+    ? new Date(dueDate * 1000).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '—'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://newsworthyai.com'
+  const adminUserUrl = `${appUrl}/admin/users/${userId}`
+
+  const safeName = escapeHtml(customerName)
+  const safeEmail = escapeHtml(customerEmail)
+  const safeDesc = escapeHtml(description)
+  const safeMemo = memo ? escapeHtml(memo) : ''
+
+  const linksHtml = [
+    hostedInvoiceUrl
+      ? `<p><a href="${escapeHtml(hostedInvoiceUrl)}">View hosted invoice</a></p>`
+      : '',
+    invoicePdf ? `<p><a href="${escapeHtml(invoicePdf)}">Download PDF</a></p>` : '',
+  ]
+    .filter(Boolean)
+    .join('')
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head><meta charset="utf-8"></head>
+      <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a1a; line-height: 1.5;">
+        <div style="max-width: 560px; margin: 0 auto; padding: 24px;">
+          <h1 style="font-size: 18px; margin: 0 0 16px;">Invoice sent</h1>
+          <p style="margin: 0 0 12px;">An invoice was emailed to the customer.</p>
+          <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+            <tr><td style="padding: 6px 0; color: #666;">Invoice</td><td style="padding: 6px 0; text-align: right;"><strong>${escapeHtml(numberLabel)}</strong></td></tr>
+            <tr><td style="padding: 6px 0; color: #666;">Customer</td><td style="padding: 6px 0; text-align: right;">${safeName} &lt;${safeEmail}&gt;</td></tr>
+            <tr><td style="padding: 6px 0; color: #666;">Amount due</td><td style="padding: 6px 0; text-align: right;"><strong>${formattedAmount}</strong></td></tr>
+            <tr><td style="padding: 6px 0; color: #666;">Due date</td><td style="padding: 6px 0; text-align: right;">${dueLabel}</td></tr>
+            <tr><td style="padding: 6px 0; color: #666; vertical-align: top;">Line item</td><td style="padding: 6px 0; text-align: right;">${safeDesc}</td></tr>
+            ${
+              safeMemo
+                ? `<tr><td style="padding: 6px 0; color: #666; vertical-align: top;">Memo</td><td style="padding: 6px 0; text-align: right; white-space: pre-wrap;">${safeMemo}</td></tr>`
+                : ''
+            }
+          </table>
+          ${linksHtml}
+          <p style="margin: 16px 0 0; font-size: 13px; color: #666;">
+            <a href="${escapeHtml(adminUserUrl)}">Open user in admin</a>
+          </p>
+        </div>
+      </body>
+    </html>
+  `
+
+  const textLines = [
+    'Invoice sent',
+    '',
+    `Invoice: ${numberLabel}`,
+    `Customer: ${customerName} <${customerEmail}>`,
+    `Amount due: ${formattedAmount}`,
+    `Due date: ${dueLabel}`,
+    `Line item: ${description}`,
+    memo ? `Memo: ${memo}` : null,
+    hostedInvoiceUrl ? `Hosted invoice: ${hostedInvoiceUrl}` : null,
+    invoicePdf ? `PDF: ${invoicePdf}` : null,
+    `Admin: ${adminUserUrl}`,
+  ].filter(Boolean)
+
+  await sendEmail({
+    to: ADMIN_INVOICE_CC,
+    subject: `Invoice ${numberLabel} sent to ${customerEmail} (${formattedAmount})`,
+    html,
+    text: textLines.join('\n'),
+  })
+}

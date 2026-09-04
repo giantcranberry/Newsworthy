@@ -1,13 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { db } from '@/db'
-import { carts, products, brandCredits, payfile, paymentLinks } from '@/db/schema'
+import { carts, products, brandCredits, payfile, paymentLinks, users } from '@/db/schema'
 import { eq, and, isNull, sql } from 'drizzle-orm'
 import type { PaymentLinkProduct } from '@/db/schema/payment'
 import { getStripe, getWebhookSecret } from '@/lib/stripe'
 import type Stripe from 'stripe'
 import { createSystemMessage } from '@/lib/messages'
 import { getPostHog } from '@/lib/posthog'
+import { reportSpendToCrmWorthy } from '@/lib/crmworthy'
+
+async function getUserUuid(userId: number): Promise<string | null> {
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { uuid: true },
+  })
+  return user?.uuid || null
+}
 
 export async function POST(request: NextRequest) {
   const stripe = await getStripe()
@@ -125,17 +134,19 @@ export async function POST(request: NextRequest) {
           createdAt: new Date(),
         })
 
+        // Product names for messaging + CRM spend
+        const productNames: string[] = []
+        for (const item of claimed) {
+          if (!item.productId) continue
+          const prod = await db.query.products.findFirst({
+            where: eq(products.id, item.productId),
+            columns: { displayName: true, shortName: true },
+          })
+          if (prod) productNames.push(prod.displayName || prod.shortName || 'Product')
+        }
+
         // Send system message with receipt info
         try {
-          const productNames: string[] = []
-          for (const item of claimed) {
-            if (!item.productId) continue
-            const prod = await db.query.products.findFirst({
-              where: eq(products.id, item.productId),
-              columns: { displayName: true, shortName: true },
-            })
-            if (prod) productNames.push(prod.displayName || prod.shortName || 'Product')
-          }
           const formattedAmount = `$${(paymentIntent.amount / 100).toFixed(2)}`
           const productList = productNames.length > 0 ? productNames.join(', ') : 'your purchase'
           await createSystemMessage(
@@ -159,6 +170,20 @@ export async function POST(request: NextRequest) {
           },
         })
 
+        try {
+          const sourceId = await getUserUuid(userId)
+          if (sourceId) {
+            await reportSpendToCrmWorthy({
+              sourceId,
+              amountCents: paymentIntent.amount,
+              nomen: productNames.length > 0 ? productNames.join(', ') : 'Purchase',
+              transactionId: paymentIntentId,
+            })
+          }
+        } catch (err) {
+          console.error('[Webhook] Failed to report spend to CRMWorthy:', err)
+        }
+
         console.log(`[Webhook] Fulfilled ${claimed.length} cart items for user ${userId}`)
         break
       }
@@ -169,6 +194,12 @@ export async function POST(request: NextRequest) {
           `[Webhook] Payment failed: ${paymentIntent.id}`,
           paymentIntent.last_payment_error?.message,
         )
+        break
+      }
+
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice
+        await handleAdminInvoicePaid(stripe, invoice)
         break
       }
     }
@@ -259,5 +290,173 @@ async function handleGuestPayment(
     },
   })
 
+  try {
+    const sourceId = await getUserUuid(agencyUserId)
+    if (sourceId) {
+      const nomen =
+        products_list.map((p) => p.name).filter(Boolean).join(', ') || 'Guest purchase'
+      await reportSpendToCrmWorthy({
+        sourceId,
+        amountCents: paymentIntent.amount,
+        nomen,
+        transactionId: paymentIntent.id,
+      })
+    }
+  } catch (err) {
+    console.error('[Webhook] Failed to report guest spend to CRMWorthy:', err)
+  }
+
   console.log(`[Webhook] Guest payment fulfilled for agency user ${agencyUserId}, link ${token}`)
+}
+
+async function handleAdminInvoicePaid(stripe: Stripe, invoice: Stripe.Invoice) {
+  const metadata = invoice.metadata || {}
+  if (metadata.source !== 'admin_invoice') {
+    console.log(`[Webhook] Ignoring invoice.paid (not admin_invoice): ${invoice.id}`)
+    return
+  }
+
+  const userId = parseInt(metadata.user_id || '', 10)
+  if (!userId) {
+    console.error(`[Webhook] admin invoice.paid missing user_id: ${invoice.id}`)
+    return
+  }
+
+  console.log(`[Webhook] invoice.paid admin invoice ${invoice.id} for user ${userId}`)
+
+  // Idempotency: cart_uuid stores the Stripe invoice id for admin invoices
+  const invoiceKey = invoice.id.slice(0, 36)
+  const existing = await db.query.payfile.findFirst({
+    where: eq(payfile.cartUuid, invoiceKey),
+  })
+  if (existing) {
+    console.log(`[Webhook] Payfile already exists for invoice ${invoice.id}`)
+    return
+  }
+
+  const partnerId = parseInt(metadata.partner_id || '1', 10) || 1
+  const credits = Math.max(0, parseInt(metadata.credits || '0', 10) || 0)
+  const creditType = metadata.credit_type || 'pr'
+  const companyIdRaw = metadata.company_id ? parseInt(metadata.company_id, 10) : NaN
+  const companyId = Number.isFinite(companyIdRaw) ? companyIdRaw : null
+
+  // Newer Stripe Invoice API removed top-level payment_intent/charge — use payments.
+  let paymentIntentId: string | null = null
+  let stripeCharge: string | null = null
+  let receiptUrl: string | null = invoice.hosted_invoice_url || null
+
+  try {
+    const fullInvoice = await stripe.invoices.retrieve(invoice.id, {
+      expand: ['payments.data.payment.payment_intent'],
+    })
+    const paidPayment = fullInvoice.payments?.data?.find((p) => p.status === 'paid')
+    const payment = paidPayment?.payment
+    if (payment?.type === 'payment_intent') {
+      const pi = payment.payment_intent
+      paymentIntentId = typeof pi === 'string' ? pi : pi?.id || null
+      if (pi && typeof pi !== 'string' && typeof pi.latest_charge === 'string') {
+        stripeCharge = pi.latest_charge
+      }
+    } else if (payment?.type === 'charge') {
+      stripeCharge = typeof payment.charge === 'string' ? payment.charge : payment.charge?.id || null
+    }
+  } catch (err) {
+    console.error('[Webhook] Error expanding invoice payments:', err)
+  }
+
+  if (!receiptUrl && paymentIntentId) {
+    try {
+      const pi = await stripe.paymentIntents.retrieve(paymentIntentId)
+      const latestChargeId = pi.latest_charge
+      if (typeof latestChargeId === 'string') {
+        stripeCharge = stripeCharge || latestChargeId
+        const charge = await stripe.charges.retrieve(latestChargeId)
+        receiptUrl = charge.receipt_url || receiptUrl
+      }
+    } catch (err) {
+      console.error('[Webhook] Error fetching charge for admin invoice:', err)
+    }
+  } else if (!receiptUrl && stripeCharge) {
+    try {
+      const charge = await stripe.charges.retrieve(stripeCharge)
+      receiptUrl = charge.receipt_url || receiptUrl
+    } catch (err) {
+      console.error('[Webhook] Error fetching charge receipt for admin invoice:', err)
+    }
+  }
+
+  await db.transaction(async (tx) => {
+    await tx.insert(payfile).values({
+      userId,
+      partnerId,
+      cartUuid: invoiceKey,
+      stripeIntent: paymentIntentId,
+      stripeCustomer: typeof invoice.customer === 'string' ? invoice.customer : null,
+      stripeCharge,
+      amount: invoice.amount_paid || invoice.amount_due || 0,
+      receiptUrl,
+      paidVia: 'invoice',
+      createdAt: new Date(),
+    })
+
+    if (credits > 0) {
+      const noteBase = `Invoice: ${invoice.number || invoice.id}`
+      await tx.insert(brandCredits).values({
+        userId,
+        companyId,
+        credits,
+        productType: creditType,
+        notes: noteBase.slice(0, 48),
+        createdAt: new Date(),
+      })
+    }
+  })
+
+  try {
+    const formattedAmount = `$${((invoice.amount_paid || 0) / 100).toFixed(2)}`
+    await createSystemMessage(
+      userId,
+      'Invoice paid',
+      `Your invoice${invoice.number ? ` ${invoice.number}` : ''} payment of ${formattedAmount} has been received.${
+        credits > 0 ? ` ${credits} ${creditType} credit${credits === 1 ? '' : 's'} added.` : ''
+      }`,
+    )
+  } catch (err) {
+    console.error('[Webhook] Failed to create system message for invoice:', err)
+  }
+
+  getPostHog().capture({
+    distinctId: String(userId),
+    event: 'admin_invoice_paid',
+    properties: {
+      invoice_id: invoice.id,
+      invoice_number: invoice.number,
+      amount_cents: invoice.amount_paid,
+      credits,
+      credit_type: creditType,
+      company_id: companyId,
+    },
+  })
+
+  try {
+    const sourceId = await getUserUuid(userId)
+    const amountCents = invoice.amount_paid || invoice.amount_due || 0
+    if (sourceId && amountCents > 0) {
+      await reportSpendToCrmWorthy({
+        sourceId,
+        amountCents,
+        nomen:
+          invoice.description ||
+          (invoice.number ? `Invoice ${invoice.number}` : 'Invoice payment'),
+        transactionId: invoice.id,
+      })
+    }
+  } catch (err) {
+    console.error('[Webhook] Failed to report invoice spend to CRMWorthy:', err)
+  }
+
+  console.log(
+    `[Webhook] Admin invoice ${invoice.id} recorded for user ${userId}` +
+      (credits > 0 ? ` (+${credits} ${creditType} credits)` : ''),
+  )
 }

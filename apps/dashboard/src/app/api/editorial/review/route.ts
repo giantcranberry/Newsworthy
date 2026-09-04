@@ -11,6 +11,7 @@ import { getPostHog } from '@/lib/posthog'
 import { normalizeTimezone, tzLabel } from '@/lib/timezones'
 import { indexDocument, updateDocument } from '@/lib/opensearch'
 import { queueIndexNowForRelease } from '@/lib/indexnow'
+import { reportPressReleaseToCrmWorthy } from '@/lib/crmworthy'
 import { randomUUID } from 'crypto'
 
 const CIRCUITS: Record<string, number[]> = {
@@ -405,6 +406,39 @@ export async function POST(request: NextRequest) {
           is_featured: feature || false,
         },
       })
+
+      // CRMWorthy: public news + report URLs (works pre-distribution)
+      try {
+        const [crmRelease] = await db
+          .select({
+            id: releases.id,
+            uuid: releases.uuid,
+            slug: releases.slug,
+            releaseAt: releases.releaseAt,
+            userId: releases.userId,
+          })
+          .from(releases)
+          .where(eq(releases.id, releaseId))
+
+        if (crmRelease?.uuid && crmRelease.userId) {
+          const [owner] = await db
+            .select({ uuid: users.uuid })
+            .from(users)
+            .where(eq(users.id, crmRelease.userId))
+
+          if (owner?.uuid) {
+            await reportPressReleaseToCrmWorthy({
+              releaseId: crmRelease.id,
+              releaseUuid: crmRelease.uuid,
+              slug: crmRelease.slug,
+              releaseAt: crmRelease.releaseAt,
+              contactId: owner.uuid,
+            })
+          }
+        }
+      } catch (err) {
+        console.error('[CRMWorthy] Failed to sync approved press release:', err)
+      }
 
       return NextResponse.json({ success: true, action: 'approved' })
 

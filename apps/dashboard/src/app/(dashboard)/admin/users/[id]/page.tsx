@@ -12,6 +12,8 @@ import { ImpersonateButton } from './impersonate-button'
 import { SendMessageDialog } from './send-message-dialog'
 import { StaffNotesCard } from './staff-notes-card'
 import { DeleteUserButton } from './delete-user-button'
+import { UserInvoicesCard } from './user-invoices-card'
+import { LifetimeSpendDetailsRow, LifetimeSpendProvider } from './lifetime-spend'
 
 async function getUserData(userId: number) {
   const user = await db.query.users.findFirst({
@@ -178,6 +180,10 @@ export default async function UserDetailPage({
   const registeredAt = user.createdAt ?? user.subscription?.startAt ?? null
 
   return (
+    <LifetimeSpendProvider
+      initialCents={typeof user.profile?.lifetimeSpend === 'number' ? user.profile.lifetimeSpend : null}
+      initialUpdatedAt={user.profile?.lifetimeSpendUpdatedAt ?? null}
+    >
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -237,6 +243,7 @@ export default async function UserDetailPage({
             {user.loginCount && (
               <p><span className="text-gray-500 dark:text-gray-400">Login Count:</span> {user.loginCount}</p>
             )}
+            <LifetimeSpendDetailsRow />
             <div className="flex flex-wrap gap-1 pt-2">
               {user.isAdmin && <span className="px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs">Admin</span>}
               {user.isEditor && <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs">Editor</span>}
@@ -305,8 +312,17 @@ export default async function UserDetailPage({
           canResetPassword={isAdmin || isEditor}
         />
 
-        <StaffNotesCard notes={notes} userId={user.id} />
+        <div className="space-y-6">
+          <UserInvoicesCard
+            userId={user.id}
+            userEmail={user.email}
+            userName={user.profile?.firstName ? `${user.profile.firstName} ${user.profile.lastName || ''}`.trim() : undefined}
+            userBrands={userBrands}
+          />
+          <StaffNotesCard notes={notes} userId={user.id} />
+        </div>
       </div>
     </div>
+    </LifetimeSpendProvider>
   )
 }
