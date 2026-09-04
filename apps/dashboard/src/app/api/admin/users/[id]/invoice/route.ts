@@ -443,7 +443,7 @@ export async function POST(
         dueDate: sent.due_date,
         description,
         memo: memo || null,
-        hostedInvoiceUrl: sent.hosted_invoice_url,
+        hostedInvoiceUrl: sent.hosted_invoice_url ?? null,
         invoicePdf: sent.invoice_pdf ?? null,
       })
     } catch (emailErr) {
