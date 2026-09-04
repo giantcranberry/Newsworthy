@@ -432,7 +432,7 @@ export async function POST(request: NextRequest) {
               releaseUuid: crmRelease.uuid,
               slug: crmRelease.slug,
               releaseAt: crmRelease.releaseAt,
-              contactId: owner.uuid,
+              sourceId: owner.uuid,
             })
           }
         }

@@ -1,14 +1,38 @@
 const CRMWORTHY_API_URL = 'https://crmworthy.com/api/v1'
 const CRMWORTHY_SOURCE_NAME = 'newsworthy.ai'
+const CONTACT_WORKFLOW_ID = 'f9debead-6335-4d4f-933c-e0bfbfc72383'
 
 function getApiKey() {
-  return process.env.CRMWORTHY_API_KEY
+  // Prefer correct spelling; tolerate common typo CRMWROTHY_API_KEY
+  const raw =
+    process.env.CRMWORTHY_API_KEY || process.env.CRMWROTHY_API_KEY || ''
+  // .env.local had a leading "-" typo (-crmw_…) which causes 401s
+  return raw.trim().replace(/^-+/, '') || undefined
+}
+
+function authHeaders(apiKey: string) {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  }
+}
+
+/** CRMWorthy contact create returns `{ contact: { id } }` (not top-level id). */
+function parseContactId(data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null
+  const obj = data as Record<string, unknown>
+  if (typeof obj.id === 'string') return obj.id
+  const contact = obj.contact
+  if (contact && typeof contact === 'object' && typeof (contact as any).id === 'string') {
+    return (contact as { id: string }).id
+  }
+  return null
 }
 
 /**
- * Create a contact in CRMWorthy for a newly registered user.
- *
- * Non-blocking: failures are logged and swallowed so they never break signup.
+ * Create or upsert a contact in CRMWorthy.
+ * Returns CRMWorthy's contact.id (NOT users.uuid / sourceId).
  */
 export async function addContactToCrmWorthy({
   email,
@@ -22,11 +46,11 @@ export async function addContactToCrmWorthy({
   lastName?: string
   partner?: string
   sourceId: string
-}) {
+}): Promise<string | null> {
   const apiKey = getApiKey()
   if (!apiKey) {
     console.warn('[CRMWorthy] CRMWORTHY_API_KEY not set, skipping CRM sync')
-    return
+    return null
   }
 
   try {
@@ -35,7 +59,7 @@ export async function addContactToCrmWorthy({
       sourceId,
       sourceName: CRMWORTHY_SOURCE_NAME,
       contactType: 'Registered User',
-      workflowId: 'f9debead-6335-4d4f-933c-e0bfbfc72383',
+      workflowId: CONTACT_WORKFLOW_ID,
     }
     if (firstName) body.firstName = firstName
     if (lastName) body.lastName = lastName
@@ -43,25 +67,34 @@ export async function addContactToCrmWorthy({
 
     const response = await fetch(`${CRMWORTHY_API_URL}/contacts`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
+      headers: authHeaders(apiKey),
       body: JSON.stringify(body),
     })
 
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('[CRMWorthy] Failed to add contact:', response.status, error)
-      return
+    const text = await response.text()
+    let data: unknown = null
+    try {
+      data = text ? JSON.parse(text) : null
+    } catch {
+      /* ignore */
     }
 
-    const data = await response.json()
-    console.log('[CRMWorthy] Contact created:', email, data.id)
-    return data
+    if (!response.ok && response.status !== 409) {
+      console.error('[CRMWorthy] Failed to add contact:', response.status, text)
+      return null
+    }
+
+    const contactId = parseContactId(data)
+    if (!contactId) {
+      console.error('[CRMWorthy] Contact response missing id:', text.slice(0, 300))
+      return null
+    }
+
+    console.log('[CRMWorthy] Contact upserted:', email, contactId)
+    return contactId
   } catch (error) {
     console.error('[CRMWorthy] Error adding contact:', error)
+    return null
   }
 }
 
@@ -211,35 +244,36 @@ export function buildCrmWorthyReleaseUrl(release: {
 
 /** Public clipping report URL (login-free). */
 export function buildCrmWorthyReportingUrl(releaseUuid: string): string {
-  return `https://newsworthy.ai/pr/clipsreport/${releaseUuid}`
+  return `https://app.newsworthyai.com/pr/clipsreport/${releaseUuid}`
 }
 
 /**
  * Notify CRMWorthy when a press release is approved.
  *
- * Non-blocking: failures are logged and swallowed so they never break approval.
- * contactId must be users.uuid; releaseId is releases.id; releaseDate is releases.release_at.
+ * Identify the contact via sourceName + sourceId (users.uuid), per CRMWorthy API:
+ * "Identify the contact by contactId, or sourceName + sourceId"
  */
 export async function reportPressReleaseToCrmWorthy({
   releaseId,
   releaseUuid,
   slug,
   releaseAt,
-  contactId,
+  sourceId,
 }: {
   releaseId: number
   releaseUuid: string
   slug: string | null
   releaseAt: Date | string | null
-  contactId: string
+  /** users.uuid */
+  sourceId: string
 }) {
   const apiKey = getApiKey()
   if (!apiKey) {
     console.warn('[CRMWorthy] CRMWORTHY_API_KEY not set, skipping press-release sync')
     return
   }
-  if (!contactId) {
-    console.warn('[CRMWorthy] No contactId provided, skipping press-release sync')
+  if (!sourceId) {
+    console.warn('[CRMWorthy] Missing sourceId (users.uuid), skipping press-release sync')
     return
   }
   if (!releaseAt) {
@@ -260,17 +294,14 @@ export async function reportPressReleaseToCrmWorthy({
   try {
     const response = await fetch(`${CRMWORTHY_API_URL}/press-releases`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
+      headers: authHeaders(apiKey),
       body: JSON.stringify({
         releaseId,
         releaseUrl,
         reportingUrl,
         releaseDate,
-        contactId,
+        sourceId,
+        sourceName: CRMWORTHY_SOURCE_NAME,
       }),
     })
 
@@ -282,7 +313,7 @@ export async function reportPressReleaseToCrmWorthy({
 
     console.log('[CRMWorthy] Press release reported:', {
       releaseId,
-      contactId,
+      sourceId,
       releaseUrl,
     })
   } catch (error) {
