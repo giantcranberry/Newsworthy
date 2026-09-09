@@ -93,9 +93,15 @@ export const files = pgTable('files', {
   companyId: integer('company_id').notNull().references(() => company.id),
   description: text('description'),
   title: varchar('title', { length: 64 }).notNull(),
+  filename: varchar('filename', { length: 255 }),
   url: text('url').notNull(),
+  mimeType: varchar('mime_type', { length: 100 }),
+  filesize: integer('filesize').default(0),
+  // 'linode' = uploaded to object storage; 'external' = public share URL
+  source: varchar('source', { length: 32 }).default('linode'),
   isArchived: boolean('is_archived').default(false),
   isDeleted: boolean('is_deleted').default(false),
+  createdAt: timestamp('created_at').defaultNow(),
 })
 
 export const banners = pgTable('banners', {
@@ -147,6 +153,7 @@ export const companyRelations = relations(company, ({ one, many }) => ({
   }),
   contacts: many(contact),
   images: many(images),
+  files: many(files),
   banners: many(banners),
   socials: many(socials),
   members: many(companyMembers),
@@ -163,6 +170,13 @@ export const contactRelations = relations(contact, ({ one }) => ({
 export const imagesRelations = relations(images, ({ one }) => ({
   company: one(company, {
     fields: [images.companyId],
+    references: [company.id],
+  }),
+}))
+
+export const filesRelations = relations(files, ({ one }) => ({
+  company: one(company, {
+    fields: [files.companyId],
     references: [company.id],
   }),
 }))

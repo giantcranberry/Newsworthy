@@ -1,5 +1,5 @@
 import { db } from '@/db'
-import { banners, contact, images } from '@/db/schema'
+import { banners, contact, files, images } from '@/db/schema'
 import { and, eq, isNull, or, sql } from 'drizzle-orm'
 
 // Brand-profile setup completeness. A brand counts as fully set up once the
@@ -59,7 +59,13 @@ export async function hasBrandAssets(companyId: number): Promise<boolean> {
     .select({ count: sql<number>`count(*)` })
     .from(banners)
     .where(and(eq(banners.companyId, companyId), sql`${banners.isDeleted} IS NOT TRUE`))
-  return Number(bannerRow?.count || 0) > 0
+  if (Number(bannerRow?.count || 0) > 0) return true
+
+  const [fileRow] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(files)
+    .where(and(eq(files.companyId, companyId), sql`${files.isDeleted} IS NOT TRUE`))
+  return Number(fileRow?.count || 0) > 0
 }
 
 // Props for CompanyNav, computed in one place for every brand page.

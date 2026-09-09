@@ -42,8 +42,10 @@ import {
   Crop,
   Search,
   Type,
+  Paperclip,
 } from 'lucide-react'
 import { ColorInputField } from '@/components/color-input-field'
+import { FileAttachmentsPanel, type FileRecord, type ReleaseFileRecord } from './file-attachments-panel'
 
 interface ImageRecord {
   id: number
@@ -91,6 +93,8 @@ interface ImagesContentProps {
   banner: BannerRecord | null
   releaseTitle: string
   bannerLibrary: BannerRecord[]
+  releaseFiles: ReleaseFileRecord[]
+  fileLibrary: FileRecord[]
   children?: React.ReactNode
 }
 
@@ -486,6 +490,8 @@ export function ImagesContent({
   banner,
   releaseTitle,
   bannerLibrary,
+  releaseFiles,
+  fileLibrary,
   children,
 }: ImagesContentProps) {
   const router = useRouter()
@@ -1144,8 +1150,8 @@ export function ImagesContent({
   return (
     <div className="space-y-6">
       <WizardHeader
-        title="Images"
-        description="Add news images and social media banner for your press release"
+        title="Images & Files"
+        description="Add news images, file attachments, and social media banner for your press release"
         releaseUuid={releaseUuid}
         currentStep={4}
         isLoading={isLoadingBanner}
@@ -1153,6 +1159,10 @@ export function ImagesContent({
         onNext={() => {
           if (activeTab === 'social-banner') {
             setActiveTab('news-images')
+            return false
+          }
+          if (activeTab === 'news-images') {
+            setActiveTab('file-attachments')
             return false
           }
         }}
@@ -1217,6 +1227,19 @@ export function ImagesContent({
             <ImageIcon className="h-4 w-4" />
             News Images
             <span className={`text-xs ${activeTab === 'news-images' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('file-attachments')}
+            className={`flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-medium transition-all cursor-pointer border-2 ${
+              activeTab === 'file-attachments'
+                ? 'bg-cyan-700 text-white border-cyan-700 shadow-sm dark:shadow-gray-900/50'
+                : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:border-cyan-600 hover:text-cyan-700'
+            }`}
+          >
+            <Paperclip className="h-4 w-4" />
+            File Attachments
+            <span className={`text-xs ${activeTab === 'file-attachments' ? 'text-gray-300' : 'text-gray-400'}`}>(Optional)</span>
           </button>
         </div>
 
@@ -1510,6 +1533,14 @@ export function ImagesContent({
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="file-attachments" className="mt-6">
+          <FileAttachmentsPanel
+            releaseUuid={releaseUuid}
+            releaseFiles={releaseFiles}
+            fileLibrary={fileLibrary}
+          />
         </TabsContent>
 
         <TabsContent value="social-banner" className="mt-6">

@@ -8,7 +8,7 @@ import CompanyTrackingScripts from "@/components/company-tracking-scripts";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createHash } from 'crypto';
-import { db, eq, ne, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
+import { db, eq, ne, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseFiles, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
 import {
   getDateline,
   newsTranslatedUrl,
@@ -46,6 +46,7 @@ import GoogleMyBusiness from "@/components/google_my_business";
 import TldrComponent from "@/components/tldr_newsramp";
 import Article from "@/components/article";
 import { ImageCarousel } from "@/components/image-carousel";
+import { FileAttachments } from "@/components/file-attachments";
 import PortraitVideoPlayer from "@/components/portrait_video_player";
 import MediaPlacements from "@/components/media_placements";
 import DownloadPdfButton from "@/components/download-pdf-button";
@@ -306,6 +307,24 @@ export default async function PressRelease({ searchParams, params }: Props) {
               title: true,
               caption: true,
               imgCredits: true,
+            },
+          },
+        },
+      },
+      releaseFiles: {
+        orderBy: [asc(releaseFiles.sortOrder)],
+        with: {
+          file: {
+            columns: {
+              id: true,
+              title: true,
+              description: true,
+              filename: true,
+              url: true,
+              mimeType: true,
+              filesize: true,
+              source: true,
+              isDeleted: true,
             },
           },
         },
@@ -928,6 +947,12 @@ export default async function PressRelease({ searchParams, params }: Props) {
                 Additional Information
               </Link>
             ) : null)}
+
+          <FileAttachments
+            files={(release.releaseFiles || [])
+              .filter((rf) => rf.file && !rf.file.isDeleted)
+              .map((rf) => rf.file)}
+          />
 
           {/* FAQs */}
           {release.faqs && release.faqs.length > 0 && (

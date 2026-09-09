@@ -63,8 +63,9 @@ interface AssetsFormProps {
   currentPage: number
   totalPages: number
   filter: string
-  counts: { news: number; social: number }
+  counts: { news: number; social: number; files?: number }
   videoShortsOptOut: boolean
+  hideFilterCards?: boolean
 }
 
 function resizedUrl(url: string, width: number = 300) {
@@ -133,6 +134,7 @@ export function AssetsForm({
   filter,
   counts,
   videoShortsOptOut: initialVideoShortsOptOut,
+  hideFilterCards = false,
 }: AssetsFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -496,6 +498,7 @@ export function AssetsForm({
       </Card>
 
       {/* Filter Cards */}
+      {!hideFilterCards && (
       <div className="grid grid-cols-2 gap-4">
         <Link href={`/company/${companyUuid}/assets?filter=news`}>
           <Card className={`cursor-pointer transition-colors ${filter === 'news' ? 'ring-2 ring-cyan-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-950'}`}>
@@ -516,6 +519,7 @@ export function AssetsForm({
           </Card>
         </Link>
       </div>
+      )}
 
       {/* Upload Section */}
       {!readOnly && <Card>

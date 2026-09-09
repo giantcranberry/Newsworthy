@@ -46,12 +46,16 @@ async function getOrSeedClipReportRecipients(
   const contactEmail = primaryContact?.email?.trim()
   if (recipients.length === 0 && contactEmail) {
     const normalized = contactEmail.toLowerCase()
-    await db.insert(clipReportRecipients).values({
-      releaseId,
-      email: normalized,
-      name: primaryContact?.name?.trim() || null,
-      isPrimaryContact: true,
-    })
+    // Concurrent finalize renders can both see an empty list; ignore duplicate.
+    await db
+      .insert(clipReportRecipients)
+      .values({
+        releaseId,
+        email: normalized,
+        name: primaryContact?.name?.trim() || null,
+        isPrimaryContact: true,
+      })
+      .onConflictDoNothing()
     recipients = await db
       .select()
       .from(clipReportRecipients)

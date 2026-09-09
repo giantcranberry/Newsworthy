@@ -16,7 +16,7 @@ const STEPS: WizardStep[] = [
   { id: 1, name: 'Details', path: '', icon: FileText },
   { id: 2, name: 'Logo', path: '/logo', icon: Image },
   { id: 3, name: 'FAQ', path: '/faq', icon: HelpCircle, optional: true },
-  { id: 4, name: 'Images', path: '/images', icon: ImageIcon },
+  { id: 4, name: 'Images & Files', path: '/images', icon: ImageIcon },
   { id: 5, name: 'Share', path: '/share', icon: Share2, optional: true },
   { id: 6, name: 'Upgrades', path: '/upgrades', icon: Sparkles },
   { id: 7, name: 'Review', path: '/review', icon: ClipboardCheck },

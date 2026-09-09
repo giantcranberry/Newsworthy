@@ -1,7 +1,7 @@
 import { pgTable, serial, varchar, text, boolean, timestamp, integer, doublePrecision, jsonb, unique } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { users } from './users'
-import { company, contact, images, banners } from './company'
+import { company, contact, images, banners, files } from './company'
 import { category } from './taxonomy'
 
 export const releases = pgTable('releases', {
@@ -168,9 +168,14 @@ export const translations = pgTable('translations', {
 
 // Junction tables for many-to-many relationships
 export const releaseFiles = pgTable('release_files', {
+  id: serial('id'),
   releaseId: integer('release_id').notNull().references(() => releases.id),
-  fileId: integer('file_id').notNull(),
-})
+  fileId: integer('file_id').notNull().references(() => files.id, { onDelete: 'cascade' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => [
+  unique().on(table.releaseId, table.fileId),
+])
 
 export const releaseRegions = pgTable('release_regions', {
   releaseId: integer('release_id').notNull().references(() => releases.id),
@@ -210,6 +215,17 @@ export const releaseImages = pgTable('release_images', {
 ])
 
 // Relations
+export const releaseFilesRelations = relations(releaseFiles, ({ one }) => ({
+  release: one(releases, {
+    fields: [releaseFiles.releaseId],
+    references: [releases.id],
+  }),
+  file: one(files, {
+    fields: [releaseFiles.fileId],
+    references: [files.id],
+  }),
+}))
+
 export const releaseImagesRelations = relations(releaseImages, ({ one }) => ({
   release: one(releases, {
     fields: [releaseImages.releaseId],
@@ -249,6 +265,7 @@ export const releasesRelations = relations(releases, ({ one, many }) => ({
   approvals: many(approvals),
   releaseNotes: many(releaseNotes),
   releaseImages: many(releaseImages),
+  releaseFiles: many(releaseFiles),
   faqs: many(releaseFaqs),
   releaseCategories: many(releaseCategories),
   translations: many(translations),

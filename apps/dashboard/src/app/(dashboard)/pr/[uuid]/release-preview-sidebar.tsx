@@ -32,6 +32,17 @@ interface PreviewFaq {
   answer: string
 }
 
+interface PreviewFile {
+  id: number
+  title: string
+  description: string | null
+  filename: string | null
+  url: string
+  mimeType: string | null
+  filesize: number | null
+  source: string | null
+}
+
 interface PreviewData {
   title: string | null
   abstract: string | null
@@ -46,6 +57,7 @@ interface PreviewData {
   logoUrl: string | null
   bannerUrl: string | null
   images: PreviewImage[]
+  files: PreviewFile[]
   faqs: PreviewFaq[]
 }
 
@@ -355,6 +367,7 @@ export function ReleasePreviewSidebar() {
               banner={data.bannerUrl ? { url: data.bannerUrl } : null}
               textOverlay={textOverlay}
               images={data.images?.length > 0 ? data.images : undefined}
+              files={data.files?.length > 0 ? data.files : undefined}
               faqs={data.faqs?.length > 0 ? data.faqs : undefined}
               compact
               deviceMode={effectiveDevice}

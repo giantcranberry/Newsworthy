@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, images, releaseImages, releaseOptions, banners } from '@/db/schema'
+import { releases, images, releaseImages, releaseOptions, banners, files, releaseFiles } from '@/db/schema'
 import { eq, and, or, asc, desc, isNull } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
@@ -17,6 +17,10 @@ async function getReleaseWithImages(uuid: string) {
       releaseImages: {
         orderBy: [asc(releaseImages.sortOrder)],
         with: { image: true },
+      },
+      releaseFiles: {
+        orderBy: [asc(releaseFiles.sortOrder)],
+        with: { file: true },
       },
     },
   })
@@ -41,6 +45,16 @@ async function getBannerLibrary(companyId: number) {
       or(eq(banners.isDeleted, false), isNull(banners.isDeleted)),
     ),
     orderBy: [desc(banners.id)],
+  })
+}
+
+async function getFileLibrary(companyId: number) {
+  return await db.query.files.findMany({
+    where: and(
+      eq(files.companyId, companyId),
+      or(eq(files.isDeleted, false), isNull(files.isDeleted)),
+    ),
+    orderBy: [desc(files.id)],
   })
 }
 
@@ -75,6 +89,7 @@ export default async function ImagesPage({
 
   const imageLibrary = await getImageLibrary(release.companyId)
   const bannerLibrary = await getBannerLibrary(release.companyId)
+  const fileLibrary = await getFileLibrary(release.companyId)
   const options = release.id ? await getReleaseOptions(release.id) : null
 
   // Map releaseImages to the shape the form expects
@@ -85,6 +100,13 @@ export default async function ImagesPage({
     image: ri.image,
   }))
 
+  const formReleaseFiles = (release.releaseFiles || []).map((rf) => ({
+    id: rf.id,
+    fileId: rf.fileId,
+    sortOrder: rf.sortOrder,
+    file: rf.file,
+  }))
+
   return (
     <ImagesContent
       releaseUuid={uuid}
@@ -93,6 +115,8 @@ export default async function ImagesPage({
       banner={release.banner || null}
       releaseTitle={release.title || ''}
       bannerLibrary={bannerLibrary}
+      releaseFiles={formReleaseFiles}
+      fileLibrary={fileLibrary}
     >
       <WizardNav
         releaseUuid={uuid}

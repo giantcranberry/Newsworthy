@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import { getEffectiveSession } from "@/lib/auth";
 import { db } from "@/db";
-import { releases, company, banners, images, releaseImages, releaseFaqs } from "@/db/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { releases, company, banners, images, releaseImages, releaseFaqs, files, releaseFiles } from "@/db/schema";
+import { eq, and, asc, or, isNull } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserCompanyIds } from "@/lib/team-auth";
 
@@ -81,6 +81,28 @@ export async function GET(
     .where(eq(releaseFaqs.prId, releaseData.id))
     .orderBy(asc(releaseFaqs.sortOrder));
 
+  // Fetch attached files
+  const attachedFiles = await db
+    .select({
+      id: files.id,
+      title: files.title,
+      description: files.description,
+      filename: files.filename,
+      url: files.url,
+      mimeType: files.mimeType,
+      filesize: files.filesize,
+      source: files.source,
+    })
+    .from(releaseFiles)
+    .innerJoin(files, eq(releaseFiles.fileId, files.id))
+    .where(
+      and(
+        eq(releaseFiles.releaseId, releaseData.id),
+        or(eq(files.isDeleted, false), isNull(files.isDeleted)),
+      )
+    )
+    .orderBy(asc(releaseFiles.sortOrder));
+
   return NextResponse.json({
     title: releaseData.title,
     abstract: releaseData.abstract,
@@ -95,6 +117,7 @@ export async function GET(
     logoUrl: releaseData.logoUrl,
     bannerUrl: releaseData.bannerUrl,
     images: allImages,
+    files: attachedFiles,
     faqs,
   });
 }

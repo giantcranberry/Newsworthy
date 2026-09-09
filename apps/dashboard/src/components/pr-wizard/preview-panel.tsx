@@ -39,6 +39,16 @@ export interface PreviewPanelProps {
     fontFamily: string
   } | null
   images?: { id: number; url: string; title?: string | null; caption?: string | null; imgCredits?: string | null }[]
+  files?: {
+    id: number
+    title: string
+    description?: string | null
+    filename?: string | null
+    url: string
+    mimeType?: string | null
+    filesize?: number | null
+    source?: string | null
+  }[]
   faqs?: { question: string; answer: string }[]
   compact?: boolean
   deviceMode?: 'desktop' | 'tablet' | 'mobile'
@@ -84,6 +94,7 @@ export function PreviewPanel({
   banner,
   textOverlay,
   images,
+  files,
   faqs,
   compact = false,
   deviceMode = 'desktop',
@@ -259,6 +270,52 @@ export function PreviewPanel({
             </div>
           );
         })()}
+
+        {/* File attachments */}
+        {files && files.length > 0 && (
+          <div className={cn(
+            'border-t border-gray-200 dark:border-gray-800 clear-both',
+            compact ? 'pt-3 mt-3' : 'pt-5 mt-5'
+          )}>
+            <h3 className={cn(
+              'font-semibold text-gray-900 dark:text-gray-100 mb-3',
+              compact ? 'text-sm' : 'text-lg'
+            )}>
+              File Attachments
+            </h3>
+            <p className={cn(
+              'text-gray-500 dark:text-gray-400 mb-2',
+              compact ? 'text-[10px]' : 'text-xs'
+            )}>
+              You should be cautious when downloading files online. Take normal precautions.
+            </p>
+            <ul className="space-y-2">
+              {files.map((f) => (
+                <li key={f.id} className="rounded-lg border border-gray-200 dark:border-gray-700 px-3 py-2">
+                  <a
+                    href={f.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'font-medium text-sky-600 hover:underline',
+                      compact ? 'text-xs' : 'text-sm'
+                    )}
+                  >
+                    {f.title}
+                  </a>
+                  {f.description && (
+                    <p className={cn(
+                      'text-gray-500 dark:text-gray-400 mt-0.5',
+                      compact ? 'text-[10px]' : 'text-xs'
+                    )}>
+                      {f.description}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* FAQ section */}
         {faqs && faqs.length > 0 && (

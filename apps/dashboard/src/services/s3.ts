@@ -2,7 +2,10 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectAclCommand,
 } from '@aws-sdk/client-s3'
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import sharp from 'sharp'
 
 // Extract just the region code from LINODES3_REGION (might be full hostname)
@@ -494,6 +497,121 @@ export async function deletePRImage(urlOrFilename: string): Promise<void> {
   } catch (error) {
     console.error('Error deleting image:', error)
   }
+}
+
+/**
+ * Upload a brand/company file through the app server (same path as images).
+ * Prefer this over browser→Linode presigned PUTs — no bucket CORS required.
+ */
+export async function uploadCompanyFile(
+  file: Buffer,
+  companyId: number,
+  originalFilename: string,
+  mimeType: string
+): Promise<{ url: string; key: string; filesize: number }> {
+  const sanitized = originalFilename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const key = `files/co-${companyId}-${Date.now()}-${sanitized}`
+
+  await s3Client.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: file,
+      ContentType: mimeType || 'application/octet-stream',
+      ACL: 'public-read',
+    })
+  )
+
+  return {
+    url: `${CDN_BASE_URL}/${key}`,
+    key,
+    filesize: file.length,
+  }
+}
+
+/**
+ * Presigned PUT URL for a brand/company file attachment (direct browser → Linode).
+ * ACL is applied server-side after upload (see makeObjectPublic) so the browser
+ * PUT only needs Content-Type — avoids CORS issues with x-amz-acl.
+ * Prefer uploadCompanyFile when possible (no CORS).
+ */
+export async function getCompanyFileUploadUrl(
+  companyId: number,
+  originalFilename: string,
+  mimeType: string
+): Promise<{ uploadUrl: string; key: string; publicUrl: string }> {
+  const sanitized = originalFilename.replace(/[^a-zA-Z0-9._-]/g, '_')
+  const key = `files/co-${companyId}-${Date.now()}-${sanitized}`
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET,
+    Key: key,
+    ContentType: mimeType || 'application/octet-stream',
+  })
+
+  // Presigner / client package peer types can diverge slightly in monorepos.
+  const uploadUrl = await getSignedUrl(s3Client as any, command as any, { expiresIn: 60 * 15 })
+
+  return {
+    uploadUrl,
+    key,
+    publicUrl: `${CDN_BASE_URL}/${key}`,
+  }
+}
+
+/**
+ * Make an uploaded object publicly readable (called after successful confirm).
+ */
+export async function makeObjectPublic(keyOrUrl: string): Promise<void> {
+  await s3Client.send(
+    new PutObjectAclCommand({
+      Bucket: BUCKET,
+      Key: extractKey(keyOrUrl),
+      ACL: 'public-read',
+    })
+  )
+}
+
+/**
+ * Delete a company file from S3
+ */
+export async function deleteCompanyFile(urlOrFilename: string): Promise<void> {
+  if (!urlOrFilename) return
+
+  try {
+    await s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: extractKey(urlOrFilename),
+      })
+    )
+  } catch (error) {
+    console.error('Error deleting company file:', error)
+  }
+}
+
+/**
+ * Read the first bytes of an object via authenticated S3 (not the public URL).
+ * Used to sniff uploads that may not be publicly readable yet.
+ */
+export async function readObjectHead(
+  keyOrUrl: string,
+  maxBytes = 1024
+): Promise<Buffer> {
+  const key = extractKey(keyOrUrl)
+  const end = Math.max(0, maxBytes - 1)
+  const res = await s3Client.send(
+    new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Range: `bytes=0-${end}`,
+    })
+  )
+  if (!res.Body) {
+    throw new Error('Empty object body')
+  }
+  const bytes = await res.Body.transformToByteArray()
+  return Buffer.from(bytes)
 }
 
 /**
