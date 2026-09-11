@@ -134,6 +134,20 @@
         "typescript": "^5.9.3",
       },
     },
+    "apps/tui": {
+      "name": "@nwai/tui",
+      "version": "1.0.0",
+      "bin": {
+        "newsworthy-tui": "./bin/newsworthy-tui",
+      },
+      "dependencies": {
+        "@nwai/db": "workspace:*",
+        "stripe": "^20.2.0",
+      },
+      "devDependencies": {
+        "typescript": "^5.9.3",
+      },
+    },
     "apps/website": {
       "name": "@nwai/website",
       "version": "0.1.0",
@@ -888,6 +902,8 @@
     "@nwai/db": ["@nwai/db@workspace:packages/db"],
 
     "@nwai/oauth": ["@nwai/oauth@workspace:apps/oauth"],
+
+    "@nwai/tui": ["@nwai/tui@workspace:apps/tui"],
 
     "@nwai/website": ["@nwai/website@workspace:apps/website"],
 

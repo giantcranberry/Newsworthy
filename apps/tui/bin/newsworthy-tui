@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Launcher for the Newsworthy admin TUI.
+#
+# Runs the app with Bun. When no database URL is present in the environment and
+# the Doppler CLI is installed, the app is started under `doppler run` with the
+# dashboard's config so it picks up the same secrets the web app uses.
+set -euo pipefail
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+BUN="$(command -v bun || true)"
+if [[ -z "$BUN" && -x "$HOME/.bun/bin/bun" ]]; then
+  BUN="$HOME/.bun/bin/bun"
+fi
+if [[ -z "$BUN" ]]; then
+  echo "bun was not found on PATH. Install it from https://bun.sh." >&2
+  exit 1
+fi
+
+if [[ -z "${DIRECT_DATABASE_URL:-}" && -z "${DATABASE_URL:-}" ]] && command -v doppler >/dev/null 2>&1; then
+  exec doppler run --project newsworthy-dashboard --config dev -- \
+    "$BUN" run "$APP_DIR/index.ts" "$@"
+fi
+
+exec "$BUN" run "$APP_DIR/index.ts" "$@"

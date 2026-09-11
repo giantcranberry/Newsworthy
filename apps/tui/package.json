@@ -1,0 +1,21 @@
+{
+  "name": "@nwai/tui",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "newsworthy-tui": "./bin/newsworthy-tui"
+  },
+  "scripts": {
+    "start": "bun run index.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nwai/db": "workspace:*",
+    "stripe": "^20.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

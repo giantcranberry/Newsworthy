@@ -55,3 +55,7 @@ workers/.cache/
 # Google service account keys
 *service-account*.json
 newsworthytts*.json
+
+# admin TUI local secrets
+apps/tui/.env
+apps/tui/.env.local

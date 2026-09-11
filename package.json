@@ -12,6 +12,7 @@
     "build:dev": "turbo build:dev",
     "lint": "turbo lint",
     "dev:dashboard": "turbo dev --filter=@nwai/dashboard",
+    "tui": "bun run apps/tui/index.ts",
     "dev:website": "turbo dev --filter=@nwai/website",
     "build:dashboard": "turbo build --filter=@nwai/dashboard",
     "build:website": "turbo build --filter=@nwai/website",

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Newsworthy Admin
+GenericName=Admin Dashboard
+Comment=Live sales, platform stats and the editorial queue in a terminal
+Exec=omarchy-launch-tui --app-id=org.omarchy.newsworthy-admin __TUI_BIN__
+Terminal=false
+Icon=utilities-system-monitor
+Categories=Development;Monitor;Office;
+Keywords=newsworthy;admin;sales;stripe;dashboard;
+StartupNotify=true
+StartupWMClass=org.omarchy.newsworthy-admin

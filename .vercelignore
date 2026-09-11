@@ -1,0 +1,3 @@
+# The admin TUI is a local terminal app. It is never part of a Vercel build, so
+# keep it out of every deployment upload.
+apps/tui
