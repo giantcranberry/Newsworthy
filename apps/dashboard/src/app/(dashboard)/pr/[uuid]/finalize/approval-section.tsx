@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
+  Check,
   CheckCircle2,
   XCircle,
   Clock,
+  Copy,
   MinusCircle,
   Loader2,
   Send,
@@ -86,6 +88,7 @@ export function ApprovalSection({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [resendingId, setResendingId] = useState<string | null>(null)
+  const [copiedLinkId, setCopiedLinkId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -199,6 +202,15 @@ export function ApprovalSection({
     }
   }
 
+  const handleCopyApprovalLink = async (approvalUuid: string) => {
+    const url = `${window.location.origin}/approval/${approvalUuid}`
+    await navigator.clipboard.writeText(url)
+    setCopiedLinkId(approvalUuid)
+    setTimeout(() => {
+      setCopiedLinkId((current) => (current === approvalUuid ? null : current))
+    }, 2000)
+  }
+
   const handleCancel = () => {
     setApprovalRequired(false)
     setError(null)
@@ -293,7 +305,7 @@ export function ApprovalSection({
                       </div>
                     </div>
                     {isPending && (
-                      <div className="ml-6 mt-1">
+                      <div className="ml-6 mt-1 flex items-center gap-1.5">
                         <a
                           href={`/approval/${approval.uuid}`}
                           target="_blank"
@@ -302,6 +314,27 @@ export function ApprovalSection({
                         >
                           View approval link →
                         </a>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyApprovalLink(approval.uuid)}
+                          className="inline-flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer transition-colors"
+                          title={
+                            copiedLinkId === approval.uuid
+                              ? 'Copied'
+                              : 'Copy approval link'
+                          }
+                          aria-label={
+                            copiedLinkId === approval.uuid
+                              ? 'Approval link copied'
+                              : 'Copy approval link'
+                          }
+                        >
+                          {copiedLinkId === approval.uuid ? (
+                            <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </div>
                     )}
                     {approval.notes && (

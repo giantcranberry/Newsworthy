@@ -1,7 +1,15 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { users, releases, company, partners, adminUserFavorites, userProfiles } from '@/db/schema'
-import { count, eq, desc, and } from 'drizzle-orm'
+import {
+  users,
+  releases,
+  company,
+  partners,
+  adminUserFavorites,
+  userProfiles,
+  approvals,
+} from '@/db/schema'
+import { count, eq, desc, and, isNull, sql } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,6 +20,7 @@ import { PRLookup } from './pr-lookup'
 import { SalesStats } from './sales-stats'
 import { AdminStats } from './admin-stats'
 import { FavoriteUsers } from './favorite-users'
+import { StuckSection, type StuckStakeholderRelease } from './stuck-section'
 
 function GoogleAnalyticsIcon({ className }: { className?: string }) {
   return (
@@ -76,6 +85,55 @@ async function getFavoriteUsers(adminUserId: number) {
     .limit(24)
 }
 
+async function getStuckStakeholderApprovals(): Promise<StuckStakeholderRelease[]> {
+  const rows = await db
+    .select({
+      releaseId: releases.id,
+      releaseUuid: releases.uuid,
+      title: releases.title,
+      status: releases.status,
+      requestedAt: sql<Date | null>`max(${approvals.requestedAt})`,
+      pendingApprovers: sql<number>`count(${approvals.id})::int`,
+      companyName: company.companyName,
+      userId: users.id,
+      userEmail: users.email,
+      firstName: userProfiles.firstName,
+      lastName: userProfiles.lastName,
+    })
+    .from(approvals)
+    .innerJoin(releases, eq(approvals.releaseId, releases.id))
+    .innerJoin(users, eq(releases.userId, users.id))
+    .leftJoin(userProfiles, eq(userProfiles.userId, users.id))
+    .leftJoin(company, eq(releases.companyId, company.id))
+    .where(and(isNull(approvals.signedAt), eq(releases.isDeleted, false)))
+    .groupBy(
+      releases.id,
+      releases.uuid,
+      releases.title,
+      releases.status,
+      company.companyName,
+      users.id,
+      users.email,
+      userProfiles.firstName,
+      userProfiles.lastName
+    )
+    .orderBy(sql`max(${approvals.requestedAt}) DESC NULLS LAST`)
+
+  return rows.map((row) => ({
+    releaseId: row.releaseId,
+    releaseUuid: row.releaseUuid,
+    title: row.title,
+    status: row.status,
+    requestedAt: row.requestedAt ? new Date(row.requestedAt).toISOString() : null,
+    pendingApprovers: Number(row.pendingApprovers) || 0,
+    companyName: row.companyName,
+    userId: row.userId,
+    userEmail: row.userEmail,
+    firstName: row.firstName,
+    lastName: row.lastName,
+  }))
+}
+
 export default async function AdminPage() {
   const session = await auth()
 
@@ -88,11 +146,12 @@ export default async function AdminPage() {
   }
 
   const adminUserId = session?.user?.id ? Number(session.user.id) : NaN
-  const [stats, favorites] = await Promise.all([
+  const [stats, favorites, stuckStakeholderReleases] = await Promise.all([
     getAdminStats(),
     isAdmin && Number.isFinite(adminUserId)
       ? getFavoriteUsers(adminUserId)
       : Promise.resolve([]),
+    getStuckStakeholderApprovals(),
   ])
 
   return (
@@ -198,6 +257,8 @@ export default async function AdminPage() {
         companies={stats.companies}
         partners={stats.partners}
       />
+
+      <StuckSection stakeholderReleases={stuckStakeholderReleases} />
 
       {/* Pending Items */}
       {stats.pendingReleases > 0 && (
