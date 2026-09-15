@@ -1,4 +1,5 @@
 import Head from "next/head";
+import { Metadata } from "next";
 import { db, and, or, eq, gt, gte, lte, desc, count, releases } from "@/lib/db";
 import { PressRelease } from "@/types/Release";
 import { newsUrl } from "@/lib/utils";
@@ -19,6 +20,12 @@ import RotatingPromoAd from "@/components/rotating-promo-ad";
 import PodcastPrAd from "@/components/podcast-pr-ad";
 
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: "Newswire of Choice for AI Visibility(GEO / AEO) & SEO",
+  description:
+    "Make News. Get Found. The Newswire of Choice for SEO & AI.",
+};
 
 type Props = {
   searchParams: Promise<{ page?: string }>;
