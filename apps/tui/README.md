@@ -149,19 +149,24 @@ previous binding is put back before the script exits.
 The entry runs the TUI through `omarchy-launch-or-focus-tui`, so pressing the
 key again focuses the existing window rather than opening another one.
 
-### A machine that has nothing yet
+### Another machine that has nothing yet
 
-Copy one file over and run it:
+Copy one file over and run it. Nothing has to exist on the far side first, not
+even a checkout:
 
 ```sh
 scp apps/tui/omarchy/bootstrap.sh other-machine:
 ssh -t other-machine ./bootstrap.sh
 ```
 
-It installs `git` and `bun` through `omarchy pkg add`, clones or fast-forwards
+Use `ssh -t`. The script asks for credentials and for a sudo password when it
+installs packages, and without a terminal it stops rather than guessing.
+
+It installs `git` and `bun` through `omarchy-pkg-add`, clones or fast-forwards
 the repo, runs `bun install`, sets up credentials, installs the launcher and
-keybinding, and finishes with a live connection check. Every step is skipped
-when it is already done, so it is safe to re-run.
+keybinding, then runs the TUI once to prove it can reach Postgres and Stripe.
+Every step is skipped when it is already done, so re-running it is how you
+update a machine as well as how you set one up.
 
 ```
 --dir <path>     Where the repo lives. Default ~/Dev/nextjs/newsworthy
@@ -174,11 +179,83 @@ when it is already done, so it is safe to re-run.
 -y, --yes        Never prompt; fail instead of asking
 ```
 
-For credentials it takes the first thing that works: an existing
-`apps/tui/.env`, the repo's `.env.local`, Doppler when `--doppler` is passed, or
-values typed at the prompt. Typed values are written to `apps/tui/.env` with
-owner-only permissions, and that path is gitignored. Secrets are never baked
-into the script.
+#### What each machine needs first
+
+| Requirement | Why | If it is missing |
+| --- | --- | --- |
+| Omarchy, or any Arch system with `pacman` | The installer uses `pacman` and the Omarchy launcher helpers | The script stops immediately |
+| A way to clone the repo | The app runs from a checkout, not a package | Add the machine's SSH key to GitHub, or pass `--repo` with an https URL |
+| A database URL and a Stripe key | Every panel reads one or the other | The script asks for them and writes `apps/tui/.env` |
+
+Only `~/.local/share/applications` and `~/.config/hypr/bindings.lua` are
+touched outside the checkout, and `bindings.lua` is backed up before each edit.
+
+#### Doing several machines
+
+Loop over them. Each run is independent and safe to repeat:
+
+```sh
+for host in workstation laptop studio; do
+  scp apps/tui/omarchy/bootstrap.sh "$host:"
+  ssh -t "$host" ./bootstrap.sh
+done
+```
+
+Give every machine the same key if you want the muscle memory to carry across,
+rather than letting each one pick its own free binding:
+
+```sh
+ssh -t other-machine './bootstrap.sh --key "SUPER + ALT + N"'
+```
+
+On a machine that pulls secrets from Doppler instead of a local file:
+
+```sh
+ssh -t other-machine './bootstrap.sh --doppler'
+```
+
+#### Credentials
+
+The script takes the first source that works: an existing `apps/tui/.env`, the
+repo's `.env.local`, Doppler when `--doppler` is passed, or values typed at the
+prompt. Typed values are written to `apps/tui/.env` with owner-only permissions,
+and that path is gitignored. Secrets are never baked into the script, so the
+copy you `scp` around carries none of them.
+
+Copying your own `.env` to another machine works too, and skips the prompts:
+
+```sh
+ssh other-machine 'mkdir -p ~/Dev/nextjs/newsworthy/apps/tui'
+scp apps/tui/.env other-machine:Dev/nextjs/newsworthy/apps/tui/.env
+ssh -t other-machine './bootstrap.sh'
+```
+
+#### Updating a machine later
+
+Re-run the bootstrap script, or from a checkout on that machine:
+
+```sh
+cd ~/Dev/nextjs/newsworthy && git pull && bun install
+```
+
+The launcher runs the app straight from the checkout, so a pull is enough. The
+keybinding and desktop entry only need reinstalling if they were removed.
+
+#### When something goes wrong
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `Clone failed` | The machine has no SSH key on GitHub | Add one, or re-run with `--repo https://github.com/giantcranberry/Newsworthy.git` |
+| `This installer is for Arch-based Omarchy systems` | No `pacman` | The TUI still runs by hand there; only the launcher install is Arch-only |
+| `is needed but there is no terminal to ask on` | Ran without `ssh -t` | Re-run with `-t`, or pre-place `apps/tui/.env` |
+| `The TUI could not fetch data` | Wrong or missing credentials | Fix `apps/tui/.env` on that machine and re-run |
+| The keybinding does nothing | Hyprland has not reloaded | `hyprctl reload`, or log out and back in |
+
+To remove it from a machine:
+
+```sh
+ssh other-machine '~/Dev/nextjs/newsworthy/apps/tui/omarchy/install.sh --uninstall'
+```
 
 ## Deployment
 
