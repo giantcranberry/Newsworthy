@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { metaDescription } from "@/lib/utils";
 import Link from "next/link";
 import Script from "next/script";
 import {
@@ -19,13 +20,15 @@ const BOOKING_URL = "https://tidycal.com/newsmarketer/30-minute-meeting";
 export const metadata: Metadata = {
   title:
     "JSON-LD Schema Markup for Press Releases | AI Visibility by Newsworthy.ai",
-  description:
+  description: metaDescription(
     "The first newswire with deep JSON-LD schema markup built into every press release. Get found by search engines, AI systems, and LLMs automatically. No technical knowledge required.",
+  ),
   openGraph: {
     title:
       "JSON-LD Schema Markup for Press Releases | AI Visibility by Newsworthy.ai",
-    description:
+    description: metaDescription(
       "The first newswire with deep JSON-LD schema markup built into every press release. Get found by search engines, AI systems, and LLMs automatically.",
+    ),
     images: [
       {
         url: "https://newsworthy.ai/nw-social-image.jpg",

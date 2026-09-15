@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
   },
   alternates: {
-    canonical: `https://newsworthy.ai`
+    canonical: `https://www.newsworthy.ai`
   }
 };
 

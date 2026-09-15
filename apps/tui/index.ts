@@ -25,11 +25,15 @@ Options
       --ga-interval <sec>     Google Analytics poll interval. Default 60.
       --queue-limit <n>       Review-queue rows to load. Default 50.
       --signup-limit <n>      Recent-signup rows to load. Default 15.
-      --tab <name>            Tab to open on: overview or analytics.
+      --tab <name>            Tab to open on: overview, analytics or sql.
       --max-width <n>         Cap the layout width. Default 200.
       --env-file <path>       Extra dotenv file to load first.
       --once                  Print one frame and exit, no full-screen UI.
   -h, --help                  Show this help.
+
+On the SQL tab, type a query and press Ctrl-J or F5 to run it.
+Ctrl-C quits; q is a character in the editor. The current database
+is shown under the header.
 
 Environment
   DIRECT_DATABASE_URL or DATABASE_URL   Required.
@@ -108,8 +112,8 @@ function parseArgs(argv: string[]): ParsedArgs {
         break
       case '--tab': {
         const value = next().toLowerCase()
-        if (value !== 'overview' && value !== 'analytics') {
-          process.stderr.write(`Unknown tab: ${value}. Use overview or analytics.\n`)
+        if (value !== 'overview' && value !== 'analytics' && value !== 'sql') {
+          process.stderr.write(`Unknown tab: ${value}. Use overview, analytics or sql.\n`)
           process.exit(2)
         }
         parsed.tab = value

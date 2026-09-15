@@ -46,8 +46,21 @@ import {
   visibleWidth,
 } from './ui.ts'
 import { formatCents, formatClock } from './format.ts'
+import {
+  findRiskyCommands,
+  interpretSqlKey,
+  isExecuteKey,
+  pushHistory,
+  type DatabaseTarget,
+  type RiskyCommand,
+  type SqlEditor,
+  type SqlResult,
+  type SqlSession,
+} from './sql.ts'
+import { fetchSqlSession, runSql, targetFromClient } from './sql-exec.ts'
+import { buildSqlBody, resultGridLength, sqlSummaryLine } from './sql-panels.ts'
 
-export type TabId = 'overview' | 'analytics'
+export type TabId = 'overview' | 'analytics' | 'sql'
 
 export interface AppOptions {
   adminEmail: string | null
@@ -80,6 +93,7 @@ type SectionId =
 const TABS: Array<{ id: TabId; label: string }> = [
   { id: 'overview', label: 'Overview' },
   { id: 'analytics', label: 'Analytics' },
+  { id: 'sql', label: 'SQL' },
 ]
 
 /** Section jump keys, per tab. */
@@ -101,6 +115,7 @@ const JUMPS: Record<TabId, Record<string, SectionId>> = {
     c: 'channels',
     p: 'pages',
   },
+  sql: {},
 }
 
 interface State {
@@ -122,6 +137,19 @@ interface State {
   showHelp: boolean
   adminUserId: number | null
   status: string
+  sqlTarget: DatabaseTarget
+  sqlSession: SqlSession | null
+  sqlSessionError: string | null
+  sqlSessionLoading: boolean
+  sqlEditor: SqlEditor
+  sqlResult: SqlResult | null
+  sqlResultError: string | null
+  sqlLoading: boolean
+  sqlResultScroll: number
+  sqlHistory: string[]
+  sqlHistoryIndex: number
+  sqlDraft: string
+  sqlConfirm: RiskyCommand[] | null
 }
 
 const CTRL_C = '\x03'
@@ -132,7 +160,7 @@ const TAB = '\t'
 const KEYS: Array<[string, string]> = [
   ['q / Ctrl-C', 'quit'],
   ['Tab', 'next tab, Shift-Tab for previous'],
-  ['1 / 2', 'Overview / Analytics'],
+  ['1 / 2 / 3', 'Overview / Analytics / SQL'],
   ['r', 'refresh the active tab now'],
   ['R', 'rebuild Stripe history and rediscover GA properties'],
   ['j / k', 'scroll one line'],
@@ -142,7 +170,7 @@ const KEYS: Array<[string, string]> = [
   ['d', 'cycle the date range of the active tab'],
   ['', ''],
   ['Overview', ''],
-  ['3 / 9', 'chart range: 30 or 90 days'],
+  ['9', 'chart range: 90 days (d toggles 30 / 90)'],
   ['s t a i', "Sales, Today's payments, Activity, Invoices"],
   ['p', 'Platform stats'],
   ['u e f', 'Recent signups, Review queue, Favorites'],
@@ -151,6 +179,14 @@ const KEYS: Array<[string, string]> = [
   ['n / N', 'focus the next / previous property'],
   ['0', 'back to all properties'],
   ['l o t c p', 'Live, Properties, Totals, Channels, Pages'],
+  ['', ''],
+  ['SQL', ''],
+  ['letters', 'type in the editor; q does not quit'],
+  ['Ctrl-J / F5', 'run the query'],
+  ['Ctrl-L', 'clear the editor'],
+  ['Ctrl-P / Ctrl-N', 'previous / next query in history'],
+  ['PgUp / PgDn', 'scroll the result grid'],
+  ['y / n', 'UPDATE, DELETE, TRUNCATE, DROP ask Risky, Continue?'],
   ['', ''],
   ['?', 'toggle this help'],
 ]
@@ -175,11 +211,24 @@ export async function run(options: AppOptions): Promise<void> {
     gaRange: '28d',
     gaPropertyIndex: null,
     chartRange: 30,
-    scroll: { overview: 0, analytics: 0 },
+    scroll: { overview: 0, analytics: 0, sql: 0 },
     tick: 0,
     showHelp: false,
     adminUserId: null,
     status: '',
+    sqlTarget: targetFromClient(),
+    sqlSession: null,
+    sqlSessionError: null,
+    sqlSessionLoading: false,
+    sqlEditor: { text: '', cursor: 0 },
+    sqlResult: null,
+    sqlResultError: null,
+    sqlLoading: false,
+    sqlResultScroll: 0,
+    sqlHistory: [],
+    sqlHistoryIndex: -1,
+    sqlDraft: '',
+    sqlConfirm: null,
   }
 
   if (options.adminEmail) {
@@ -196,6 +245,7 @@ export async function run(options: AppOptions): Promise<void> {
   const anchors = new Map<SectionId, number>()
   let bodyLines: string[] = []
   let bodyHeight = 10
+  let frameWidth = 80
   let stopped = false
   let dbTimer: ReturnType<typeof setInterval> | undefined
   let salesTimer: ReturnType<typeof setInterval> | undefined
@@ -276,6 +326,72 @@ export async function run(options: AppOptions): Promise<void> {
       state.analyticsLoading = false
       render()
     }
+  }
+
+  const refreshSqlSession = async (): Promise<void> => {
+    state.sqlTarget = targetFromClient()
+    state.sqlSessionLoading = true
+    render()
+    try {
+      state.sqlSession = await fetchSqlSession()
+      state.sqlSessionError = null
+    } catch (error) {
+      state.sqlSessionError = describeError(error)
+    } finally {
+      state.sqlSessionLoading = false
+      render()
+    }
+  }
+
+  const executeSql = async (confirmed = false): Promise<void> => {
+    if (state.sqlLoading) return
+    const query = state.sqlEditor.text
+    const risky = findRiskyCommands(query)
+    if (risky.length > 0 && !confirmed) {
+      state.sqlConfirm = risky
+      state.status = ''
+      render()
+      return
+    }
+    state.sqlConfirm = null
+    state.sqlLoading = true
+    state.sqlResultError = null
+    state.sqlResultScroll = 0
+    render()
+    try {
+      state.sqlResult = await runSql(query)
+      state.sqlHistory = pushHistory(state.sqlHistory, query)
+      state.sqlHistoryIndex = -1
+      state.sqlDraft = ''
+    } catch (error) {
+      state.sqlResult = null
+      state.sqlResultError = describeError(error)
+    } finally {
+      state.sqlLoading = false
+      render()
+    }
+  }
+
+  function recallHistory(direction: 1 | -1): void {
+    if (state.sqlHistory.length === 0) return
+    if (state.sqlHistoryIndex === -1) {
+      if (direction === 1) return
+      state.sqlDraft = state.sqlEditor.text
+      state.sqlHistoryIndex = state.sqlHistory.length - 1
+    } else {
+      const next = state.sqlHistoryIndex + direction
+      if (next >= state.sqlHistory.length) {
+        state.sqlHistoryIndex = -1
+        state.sqlEditor = { text: state.sqlDraft, cursor: state.sqlDraft.length }
+        render()
+        return
+      }
+      if (next < 0) return
+      state.sqlHistoryIndex = next
+    }
+    const text = state.sqlHistory[state.sqlHistoryIndex] ?? ''
+    state.sqlEditor = { text, cursor: text.length }
+    render()
   }
 
   function buildOverviewBody(width: number): string[] {
@@ -512,7 +628,23 @@ export async function run(options: AppOptions): Promise<void> {
   }
 
   function buildBody(width: number): string[] {
-    return state.tab === 'analytics' ? buildAnalyticsBody(width) : buildOverviewBody(width)
+    if (state.tab === 'analytics') return buildAnalyticsBody(width)
+    if (state.tab === 'sql') {
+      return buildSqlBody({
+        width,
+        height: bodyHeight,
+        editor: state.sqlEditor,
+        result: state.sqlResult,
+        resultScroll: state.sqlResultScroll,
+        session: state.sqlSession,
+        target: state.sqlTarget,
+        sessionError: state.sqlSessionError,
+        resultError: state.sqlResultError,
+        loading: state.sqlLoading,
+        confirm: state.sqlConfirm,
+      })
+    }
+    return buildOverviewBody(width)
   }
 
   function buildHelp(width: number): string[] {
@@ -528,7 +660,7 @@ export async function run(options: AppOptions): Promise<void> {
         '',
         ...KEYS.map(
           ([key, description]) =>
-            ` ${bold(color.cyan(padEnd(key, 14)))} ${color.muted(description)}`,
+            ` ${bold(color.cyan(padEnd(key, 18)))} ${color.muted(description)}`,
         ),
         '',
         ` ${dim(color.faint(`The database is polled every ${dbSeconds}s and Stripe every ${salesSeconds}s.`))}`,
@@ -546,7 +678,9 @@ export async function run(options: AppOptions): Promise<void> {
     const width = Math.max(60, columnCount)
 
     bodyHeight = Math.max(3, rows - 4)
+    frameWidth = width
     bodyLines = state.showHelp ? buildHelp(width) : buildBody(width)
+    if (state.tab === 'sql' && !state.showHelp) state.scroll.sql = 0
 
     const maxScroll = Math.max(0, bodyLines.length - bodyHeight)
     const scroll = Math.min(Math.max(state.scroll[state.tab], 0), maxScroll)
@@ -558,10 +692,15 @@ export async function run(options: AppOptions): Promise<void> {
     const busy =
       state.tab === 'analytics'
         ? state.analyticsLoading
-        : state.dbLoading || state.salesLoading
-    const live = busy
-      ? color.amber(`${spinner(state.tick)} syncing`)
-      : color.green('● live')
+        : state.tab === 'sql'
+          ? state.sqlLoading || state.sqlSessionLoading
+          : state.dbLoading || state.salesLoading
+    const live =
+      state.tab === 'sql' && state.sqlConfirm
+        ? color.amber('● confirm')
+        : busy
+          ? color.amber(`${spinner(state.tick)} ${state.tab === 'sql' ? 'running' : 'syncing'}`)
+          : color.green('● live')
 
     const tabs = TABS.map((tab, index) => {
       const label = ` ${index + 1} ${tab.label} `
@@ -578,18 +717,27 @@ export async function run(options: AppOptions): Promise<void> {
       color.faint(
         state.tab === 'analytics'
           ? 'q quit · Tab tabs · n property · d range · r refresh · ? help'
-          : 'q quit · Tab tabs · r refresh · R rebuild · j/k scroll · ? help',
+          : state.tab === 'sql'
+            ? state.sqlConfirm
+              ? 'Risky, Continue?  y run · n cancel'
+              : 'Ctrl-C quit · Tab tabs · Ctrl-J run · Ctrl-L clear · PgUp/PgDn results'
+            : 'q quit · Tab tabs · r refresh · R rebuild · j/k scroll · ? help',
       ),
     )
     const status = state.status ? color.amber(` ${state.status}`) : ''
     const footerLeft = ` ${keyHint}${status}`
     const footer = padEnd(footerLeft, width - visibleWidth(scrollHint) - 1) + scrollHint
 
-    const frame = [
-      header,
+    const summary =
       state.tab === 'analytics'
         ? analyticsSummaryLine(state.analytics)
-        : summaryLine(state.db, state.sales),
+        : state.tab === 'sql'
+          ? sqlSummaryLine(state.sqlSession, state.sqlTarget)
+          : summaryLine(state.db, state.sales)
+
+    const frame = [
+      header,
+      summary,
       ...visible,
       color.faint('─'.repeat(width)),
       footer,
@@ -616,6 +764,7 @@ export async function run(options: AppOptions): Promise<void> {
   }
 
   function selectTab(tab: TabId): void {
+    if (tab !== 'sql') state.sqlConfirm = null
     state.tab = tab
     state.status = ''
     state.showHelp = false
@@ -624,7 +773,50 @@ export async function run(options: AppOptions): Promise<void> {
     if (tab === 'analytics' && !state.analytics && !state.analyticsLoading) {
       void refreshAnalytics()
     }
+    if (tab === 'sql') {
+      void refreshSqlSession()
+    }
     render()
+  }
+
+  function handleSqlKey(key: string): void {
+    if (state.sqlConfirm) {
+      if (key === 'y' || key === 'Y' || key === '\r' || isExecuteKey(key)) {
+        void executeSql(true)
+        return
+      }
+      if (key === 'n' || key === 'N' || key === ESC) {
+        state.sqlConfirm = null
+        state.status = 'Cancelled.'
+        render()
+        return
+      }
+      return
+    }
+    const effect = interpretSqlKey(key, state.sqlEditor)
+    if (effect.type === 'execute') {
+      void executeSql()
+      return
+    }
+    if (effect.type === 'history') {
+      recallHistory(effect.direction)
+      return
+    }
+    if (effect.type === 'scroll-results') {
+      const page = Math.max(1, Math.floor(bodyHeight / 2))
+      const max = Math.max(0, resultGridLength(state.sqlResult, state.sqlResultError, frameWidth) - 4)
+      state.sqlResultScroll = Math.max(
+        0,
+        Math.min(max, state.sqlResultScroll + effect.pages * page),
+      )
+      render()
+      return
+    }
+    if (effect.type === 'edit') {
+      state.sqlEditor = effect.editor
+      state.sqlHistoryIndex = -1
+      render()
+    }
   }
 
   function stepProperty(direction: 1 | -1): void {
@@ -645,7 +837,7 @@ export async function run(options: AppOptions): Promise<void> {
   function handleKey(chunk: Buffer): void {
     const key = chunk.toString('utf8')
 
-    if (key === 'q' || key === CTRL_C || key === CTRL_D) {
+    if (key === CTRL_C || key === CTRL_D || (state.tab !== 'sql' && key === 'q')) {
       void shutdown(0)
       return
     }
@@ -659,8 +851,12 @@ export async function run(options: AppOptions): Promise<void> {
       selectTab(TABS[(index - 1 + TABS.length) % TABS.length].id)
       return
     }
-    if (key === '1' || key === '2') {
-      selectTab(key === '1' ? 'overview' : 'analytics')
+    if (state.tab === 'sql') {
+      handleSqlKey(key)
+      return
+    }
+    if (key === '1' || key === '2' || key === '3') {
+      selectTab(key === '1' ? 'overview' : key === '2' ? 'analytics' : 'sql')
       return
     }
     if (key === 'r') {
@@ -709,8 +905,8 @@ export async function run(options: AppOptions): Promise<void> {
         return
       }
     }
-    if (state.tab === 'overview' && (key === '3' || key === '9')) {
-      state.chartRange = key === '3' ? 30 : 90
+    if (state.tab === 'overview' && key === '9') {
+      state.chartRange = 90
       render()
       return
     }
@@ -773,17 +969,24 @@ export async function run(options: AppOptions): Promise<void> {
   // status bars, cron jobs and `watch`.
   if (options.once) {
     await Promise.all([
-      refreshDb(),
-      refreshSales(true),
+      state.tab === 'sql' ? Promise.resolve() : refreshDb(),
+      state.tab === 'sql' ? Promise.resolve() : refreshSales(true),
       // Analytics costs GA API calls, so a single frame only pays for them
       // when that tab is the one being printed.
       state.tab === 'analytics' ? refreshAnalytics(true) : Promise.resolve(),
+      state.tab === 'sql' ? refreshSqlSession() : Promise.resolve(),
     ])
     const width = Math.max(60, Math.min(process.stdout.columns || 100, options.maxWidth))
     bodyHeight = 30
+    const summary =
+      state.tab === 'analytics'
+        ? analyticsSummaryLine(state.analytics)
+        : state.tab === 'sql'
+          ? sqlSummaryLine(state.sqlSession, state.sqlTarget)
+          : summaryLine(state.db, state.sales)
     const lines = [
       ` ${bold(color.text('Newsworthy Admin'))} ${dim(color.faint(formatClock(Date.now())))}`,
-      summaryLine(state.db, state.sales),
+      summary,
       ...buildBody(width),
     ]
     process.stdout.write(`${lines.join('\n')}\n`)
@@ -816,5 +1019,6 @@ export async function run(options: AppOptions): Promise<void> {
     refreshDb(),
     refreshSales(false),
     state.tab === 'analytics' ? refreshAnalytics() : Promise.resolve(),
+    state.tab === 'sql' ? refreshSqlSession() : Promise.resolve(),
   ])
 }

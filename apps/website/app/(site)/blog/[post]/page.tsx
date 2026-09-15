@@ -2,7 +2,7 @@ import { getPostBySlug, getBannerAdBySlug, urlFor } from "@/sanity/sanity-utils"
 import Image from "next/image";
 import { PortableText } from "@portabletext/react";
 import Link from "next/link";
-import { formatDate } from "@/lib/utils";
+import { formatDate, metaDescription } from "@/lib/utils";
 import { PortableTextImageComponent, BannerAdEmbedComponent } from "@/components/portable_text_component";
 import { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
@@ -26,12 +26,14 @@ export async function generateMetadata({ params }: Props): Promise<CustomMetadat
         return notFound();
     }
 
+    const description = metaDescription(postData.excerpt);
+
     return {
         title: postData.headline,
-        description: postData.excerpt,
+        description,
         openGraph: {
             title: postData.headline!,
-            description: postData.excerpt!,
+            description,
             images: [
                 {
                     url: postData.coverImage && urlFor(postData.coverImage.asset),

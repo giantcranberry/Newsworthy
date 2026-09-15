@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { metaDescription } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
@@ -13,12 +14,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const board = await getBoardBySlug(slug)
   if (!board) return {}
+  const description = metaDescription(board.description || `Browse discussions in the ${board.name} board on Newsworthy.ai.`)
   return {
     title: `Community - ${board.name}`,
-    description: board.description || `Browse discussions in the ${board.name} board on Newsworthy.ai.`,
+    description,
     openGraph: {
       title: `Community - ${board.name} | Newsworthy.ai`,
-      description: board.description || `Browse discussions in the ${board.name} board on Newsworthy.ai.`,
+      description,
     },
   }
 }

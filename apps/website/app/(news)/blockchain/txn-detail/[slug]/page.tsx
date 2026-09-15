@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { db, eq, and, ne, lte, desc, releases, blockchain, aiJobs } from '@/lib/db'
-import { formatDateForSitemap, getDateline, newsUrl } from '@/lib/utils'
+import { formatDateForSitemap, getDateline, metaDescription, newsUrl } from '@/lib/utils'
 import { PressRelease, Takeaways } from '@/types/Release'
 
 import { headers } from 'next/headers'
@@ -59,13 +59,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       'resize=width:1200'
     ) ?? ''
 
+  const description = metaDescription(`Newsworthy.ai registers all news on the blockchain for your safety. This is the blockchain transaction record for this press release. ${release.title}`)
+
   return {
     title: `Blockchain Record for ${release.title}`,
-    description: `Newsworthy.ai registers all news on the blockchain for your safety. This is the blockchain transaction record for this press release. ${release.title}`,
+    description,
     openGraph: {
       images: [cdn_url],
       title: `Blockchain Record for ${release.title}`,
-      description: `Newsworthy.ai registers all news on the blockchain for your safety. This is the blockchain transaction record for this press release. ${release.title}`,
+      description,
     },
   }
 }

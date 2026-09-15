@@ -138,6 +138,9 @@ export default async function Home({ searchParams }: Props) {
       <div className="mx-auto w-full pb-10">
         <div>
           <section className="mx-auto max-w-screen-xl xl:max-w-screen-2xl mt-7 px-3 lg:px-5">
+            <h1 className="font-serif text-2xl lg:text-3xl text-gray-900 mb-5">
+              Make News. Get Found. The Newswire of Choice for SEO &amp; AI
+            </h1>
             <TrendingFeeds />
           </section>
           <section className="grid lg:grid-cols-8 mx-auto max-w-screen-xl xl:max-w-screen-2xl gap-10 mt-5 px-5">

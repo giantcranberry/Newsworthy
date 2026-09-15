@@ -4,7 +4,7 @@ import { createHash } from "crypto";
 import { db, eq, and, lte, desc, count, releases, company as companyTable, releaseEmails } from "@/lib/db";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { newsUrl, removeHtmlTags } from "@/lib/utils";
+import { metaDescription, newsUrl } from "@/lib/utils";
 import Article from "@/components/article";
 import CompanyTrackingScripts from "@/components/company-tracking-scripts";
 import { Instagram, Linkedin, Youtube, Globe, FolderOpen, HardDrive, Box } from "lucide-react";
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: company.nrTitle || `${company.companyName} Newsroom`,
-    description: company.nrDesc || `Latest press releases from ${company.companyName}`,
+    description: metaDescription(company.nrDesc || `Latest press releases from ${company.companyName}`),
   };
 }
 

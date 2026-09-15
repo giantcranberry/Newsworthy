@@ -1,5 +1,6 @@
 import PageBreadcrumb from "@/components/page-breadcrumb";
 import { getArticleById, getArticleByPRHashId } from "@/lib/db/Articles";
+import { metaDescription } from "@/lib/utils";
 import {
   formatDateString,
   getFeedItemIdFromUrl,
@@ -34,15 +35,17 @@ export const generateMetadata = async (props: Props): Promise<Metadata> => {
     return notFound();
   }
 
+  const description = metaDescription(article.summary);
+
   return {
     title: article.headline,
-    description: article.summary,
+    description,
     alternates: {
       canonical: `${metadataBase}curated/${resolvedParams.slug}/${resolvedParams.story_id}`,
     },
     openGraph: {
       title: `${article.headline ?? ""}`,
-      description: `${article.summary ?? ""}`,
+      description,
       images: [
         {
           url: article.enclosure,

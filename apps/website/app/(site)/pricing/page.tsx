@@ -3,6 +3,7 @@ import { getPage, getBannerAdBySlug, urlFor } from "@/sanity/sanity-utils";
 import page from "@/sanity/schemas/page";
 import { PortableText } from "@portabletext/react";
 import { Package, Users, CheckCircle, Star, Zap, Shield, LucideIcon } from "lucide-react";
+import { metaDescription } from "@/lib/utils";
 import { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,12 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 		return notFound();
 	}
 
+	const description = metaDescription(page.seo_description);
+
 	return {
 		title: "Pricing",
-		description: page.seo_description,
+		description,
 		openGraph: {
 			title: "Pricing"!,
-			description: page.seo_description!,
+			description,
 			images: [
 				{
 					url: page.hero_image && urlFor(page.hero_image.asset),

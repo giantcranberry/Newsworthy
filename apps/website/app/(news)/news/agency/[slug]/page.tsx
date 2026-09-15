@@ -4,7 +4,7 @@ import SearchInput from "@/components/search";
 import { db, eq, and, lte, desc, releases, userProfiles } from "@/lib/db";
 import { Metadata } from "next";
 
-import { newsUrl, removeHtmlTags } from "@/lib/utils";
+import { metaDescription } from "@/lib/utils";
 
 import { PressRelease } from "@/types/Release";
 
@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `These press releases are managed on behalf of ${agency.acctName}`,
-    description: removeHtmlTags(agency.acctPromo!),
+    description: metaDescription(agency.acctPromo),
   };
 }
 

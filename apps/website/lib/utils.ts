@@ -37,6 +37,16 @@ export function removeHtmlTags(input: string): string {
   return input.replace(htmlTagsRegex, ""); // Replace HTML tags with an empty string
 }
 
+export const META_DESCRIPTION_MAX_LENGTH = 160;
+
+/** Strip HTML/whitespace and hard-cap at 160 characters for meta descriptions. */
+export function metaDescription(text: string | null | undefined): string {
+  if (text == null) return "";
+  const cleaned = removeHtmlTags(String(text)).replace(/\s+/g, " ").trim();
+  if (cleaned.length <= META_DESCRIPTION_MAX_LENGTH) return cleaned;
+  return cleaned.slice(0, META_DESCRIPTION_MAX_LENGTH);
+}
+
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
 

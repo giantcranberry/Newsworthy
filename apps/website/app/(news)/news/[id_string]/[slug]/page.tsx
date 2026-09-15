@@ -11,6 +11,7 @@ import { createHash } from 'crypto';
 import { db, eq, ne, and, desc, asc, lte, releases, company, contact, banners, images, releaseImages, releaseFiles, releaseCategories, category, tinyUrl, blockchain, aiVideos, aiJobs, translations, releaseEmails, releaseEvents } from '@/lib/db';
 import {
   getDateline,
+  metaDescription,
   newsTranslatedUrl,
   newsUrl,
   removeHtmlTags,
@@ -188,14 +189,15 @@ export async function generateMetadata({
   const cdn_url = release.banner?.url ?? "";
 
   const canonicalURL = newsUrl(release);
+  const description = metaDescription(release.abstract);
 
   return {
     metadataBase: new URL("https://www.newsworthy.ai"),
     title: release.title,
-    description: release.abstract,
+    description,
     openGraph: {
       title: release.title!,
-      description: release.abstract!,
+      description,
       images: [
         { url: cdn_url, width: 1200, height: 630 },
         { url: cdn_url, width: 1200, height: 675 },
@@ -209,7 +211,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       title: release.title!,
-      description: release.abstract!,
+      description,
       creator: "@NewsworthyAI",
       images: [cdn_url],
     },
@@ -628,7 +630,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
       "@id": `https://www.newsworthy.ai${newsUrl(release)}`,
     },
     headline: release.title && release.title.length > 100 ? release.title.substring(0, 97) + '...' : release.title,
-    description: release.abstract,
+    description: metaDescription(release.abstract),
     image: {
       "@type": "ImageObject",
       url: release.banner?.url ?? "",

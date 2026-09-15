@@ -6,6 +6,7 @@ import { getPostByUuid, getCommentsByPostId } from '@/lib/community'
 import { PostImages } from '@/components/community/post-images'
 import { RegisterCTA } from '@/components/community/register-cta'
 import { RegisterBanner } from '@/components/community/register-banner'
+import { metaDescription } from '@/lib/utils'
 import { linkifyHtml } from '@/lib/linkify-html'
 import { Avatar } from '@/components/community/avatar'
 
@@ -20,8 +21,7 @@ export async function generateMetadata({ params }: { params: Promise<{ uuid: str
   const post = await getPostByUuid(uuid)
   if (!post) return {}
 
-  const plainText = stripHtml(post.body)
-  const description = plainText.length > 160 ? plainText.slice(0, 157) + '...' : plainText
+  const description = metaDescription(post.body)
 
   return {
     title: `${post.userName} in ${post.boardName} - Community`,

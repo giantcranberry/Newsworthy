@@ -3,7 +3,7 @@ import { getFlatPage, getPage, getBannerAdBySlug, urlFor } from "@/sanity/sanity
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { cn, metaDescription } from "@/lib/utils";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const title = page?.title ?? flatPage?.title;
-  const description = page?.seo_description ?? `${title} - Newsworthy`;
+  const description = metaDescription(page?.seo_description ?? `${title} - Newsworthy`);
 
   return {
     title,
