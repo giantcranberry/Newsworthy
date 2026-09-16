@@ -80,7 +80,7 @@ export default async function NewsPage(props: Props) {
           <PageBreadcrumb currentPage={article.headline} />
           <article
             key={article.feed_item_id}
-            className="max-w-none prose prose-h1:font-serif prose-h1:font-semibold prose-h1:text-black prose-h1:text-3xl lg:prose-h1:text-4xl prose-p:text-black prose-p:text-lg prose-p:font-normal prose-lead:text-xl lg:prose-lead:text-2xl prose-lead:font-thin prose-img:my-0 prose-a:text-sstone-900 hover:prose-a:text-sky-700 prose-strong:text-black prose-li:text-black prose-li:text-lg prose-li:marker:text-sky-700 prose-img:rounded-lg prose-img:w-[600px] prose-img:mx-auto"
+            className="max-w-none prose prose-h1:font-serif prose-h1:font-semibold prose-h1:text-black prose-h1:text-3xl lg:prose-h1:text-4xl prose-p:text-black prose-p:text-lg prose-p:font-normal prose-lead:text-xl lg:prose-lead:text-2xl prose-lead:font-thin prose-img:my-0 prose-a:text-sky-600 hover:prose-a:text-sky-500 prose-strong:text-black prose-li:text-black prose-li:text-lg prose-li:marker:text-sky-700 prose-img:rounded-lg prose-img:w-[600px] prose-img:mx-auto"
           >
             <h1>{article.headline}</h1>
             <p>
@@ -131,7 +131,6 @@ export default async function NewsPage(props: Props) {
           </article>
         </>
       )}
-      ;
     </section>
   );
 }

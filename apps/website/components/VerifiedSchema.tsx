@@ -5,10 +5,10 @@ const SITE_ID = "7bdf1aec-7de6-4bb8-a310-adf015bfb97c";
 export default function VerifiedSchema() {
   return (
     <Script
-      async
+      id="verified-schema"
       src={`https://sdb.verifiedschema.com/v.js?site=${SITE_ID}`}
       data-site={SITE_ID}
-      strategy="beforeInteractive"
+      strategy="afterInteractive"
     />
   );
 }
