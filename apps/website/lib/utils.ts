@@ -145,7 +145,7 @@ export function convertRelatedLinksToList(linksString: string): string {
     if (!link.startsWith("http://") && !link.startsWith("https://")) {
       link = `https://${link}`;
     }
-    return `<li><a href="${link}" class="hover:underline hover:text-sky-600">${link}</a></li>`;
+    return `<li><a href="${link}" rel="nofollow" class="hover:underline hover:text-sky-600">${link}</a></li>`;
   });
 
   if (listItems.length === 0) {

@@ -122,7 +122,7 @@ function transformLink(url: string): string {
     if (!isSafeUrl(actualUrl)) return keyword;
     const safeUrl = actualUrl.replace(/"/g, '&quot;');
     const safeKeyword = keyword.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<a href="${safeUrl}" class="text-sky-600 hover:underline">${safeKeyword}</a>`;
+    return `<a href="${safeUrl}" rel="nofollow" class="text-sky-600 hover:underline">${safeKeyword}</a>`;
   }
   return url;
 }
@@ -944,6 +944,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
             ) : isSafeUrl(release.landingPage) ? (
               <Link
                 href={release.landingPage}
+                rel="nofollow"
                 className="mt-3 text-sky-600 hover:underline clear-both block"
               >
                 Additional Information
@@ -1193,6 +1194,7 @@ export default async function PressRelease({ searchParams, params }: Props) {
             {release.publicDrive && (
               <Link
                 href={release.publicDrive}
+                rel="nofollow"
                 className="flex items-center justify-between px-4 py-3 text-sm hover:bg-gray-50 transition-colors"
                 target="_blank"
               >

@@ -26,6 +26,7 @@ import { Metadata } from "next";
 import { headers } from "next/headers";
 import { PageStatsType } from "@/types/Stats";
 import { postESGeneric } from "@/lib/elastic";
+import { nofollowLinks } from "@/lib/sanitize-body";
 import { subscribeFormSchemaType } from "@/types/Forms";
 
 // Embed detection
@@ -294,12 +295,13 @@ export default async function FrenchPR({ params }: Props) {
           <div
             className="article max-w-none prose prose-p:text-base prose-p:text-black prose-li:pb-0 prose-li:marker:text-teal-600 prose-ol:list-decimal"
             dangerouslySetInnerHTML={{
-              __html: formatTextWithPTags(currentPr.body!),
+              __html: nofollowLinks(formatTextWithPTags(currentPr.body!)),
             }}
           />
           {pr.landingPage && (
             <Link
               href={pr.landingPage}
+              rel="nofollow"
               className="text-sky-600 hover:underline"
             >
               Información Adicional

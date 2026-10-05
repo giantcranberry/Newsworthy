@@ -1,4 +1,4 @@
-import { sanitizeReleaseBody } from '@/lib/sanitize-body';
+import { sanitizeReleaseBody, nofollowLink } from '@/lib/sanitize-body';
 import sanitizeHtml from 'sanitize-html';
 import React from 'react';
 
@@ -25,6 +25,8 @@ export default function Article({ htmlContent, insertAfterParagraph, insertConte
     },
     allowedSchemes: ['https', 'http', 'mailto', 'tel'],
     disallowedTagsMode: 'discard',
+    // Body links are user submitted: never pass link equity
+    transformTags: { a: nofollowLink },
   });
 
   if (insertAfterParagraph && insertContent) {

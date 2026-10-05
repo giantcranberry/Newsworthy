@@ -1,3 +1,5 @@
+import sanitizeHtml from 'sanitize-html'
+
 /**
  * Sanitize press release body HTML.
  *
@@ -36,4 +38,24 @@ export function sanitizeReleaseBody(html: string): string {
   result = result.replace(/[—–]/g, '-')
 
   return result
+}
+
+// sanitize-html transform marking a link rel="nofollow". Press release links
+// are user submitted and must never pass link equity; any other rel tokens
+// the author set (noopener, sponsored, ...) are kept.
+export function nofollowLink(tagName: string, attribs: Record<string, string>) {
+  const rel = new Set((attribs.rel || '').toLowerCase().split(/\s+/).filter(Boolean))
+  rel.add('nofollow')
+  return { tagName, attribs: { ...attribs, rel: Array.from(rel).join(' ') } }
+}
+
+// Add rel="nofollow" to every link in user-submitted HTML, leaving all other
+// markup exactly as it was.
+export function nofollowLinks(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: false,
+    allowedAttributes: false,
+    allowVulnerableTags: true,
+    transformTags: { a: nofollowLink },
+  })
 }
