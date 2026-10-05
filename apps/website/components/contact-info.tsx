@@ -4,11 +4,9 @@ export default function ContactInfo() {
   return (
     <div>
       <p>
-        607 E. Blanco Rd
+        PO Box 94
         <br />
-        Box 2036
-        <br />
-        Boerne, Texas 78006
+        Granbury, Texas 76048
         <br />
         <br />
         <Link
