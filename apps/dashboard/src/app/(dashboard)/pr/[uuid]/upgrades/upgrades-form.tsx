@@ -15,7 +15,7 @@ import { getStripePublishableKey } from '@/lib/stripe-client'
 
 interface UpgradesFormProps {
   releaseUuid: string
-  distribution: string | null
+  appliedUpgrades: string[]
   creditBalance: Record<string, number>
   paymentSuccess?: boolean
   paymentCanceled?: boolean
@@ -90,7 +90,7 @@ const EXCLUSIVE_UPGRADES: Record<string, string> = {
 
 export function UpgradesForm({
   releaseUuid,
-  distribution: initialDistribution,
+  appliedUpgrades: initialAppliedUpgrades,
   creditBalance: initialCreditBalance,
   paymentSuccess: initialPaymentSuccess,
   paymentCanceled,
@@ -108,17 +108,11 @@ export function UpgradesForm({
     return () => window.removeEventListener('preview-visibility', handler)
   }, [])
 
-  // Parse distribution to get purchased product types
-  // - 'standard' → default, no upgrades purchased (DB default)
-  // - 'yahoo', 'enhanced', etc. → purchased upgrades
-  const parseDistribution = (dist: string | null): Set<string> => {
-    if (!dist || dist === 'standard') return new Set()
-    return new Set(dist.split(',').filter(t => t && t !== 'standard'))
-  }
-
-  // Track already purchased products (from initial distribution)
+  // Track already purchased products. The release's distribution column only
+  // ever holds 'standard', 'yahoo' or 'enhanced'; other upgrades are recorded
+  // in the credit ledger and ad campaigns, so the API reports the full set.
   const [purchasedProducts, setPurchasedProducts] = useState<Set<string>>(
-    parseDistribution(initialDistribution)
+    new Set(initialAppliedUpgrades)
   )
 
   // Track newly selected products (cart) - starts empty since purchased items aren't in cart
@@ -190,8 +184,8 @@ export function UpgradesForm({
             setSelectedProducts(new Set(data.pendingUpgrades))
           }
           // Update purchased products from API response
-          if (data.distribution && data.distribution !== 'standard') {
-            setPurchasedProducts(new Set(data.distribution.split(',').filter((t: string) => t && t !== 'standard')))
+          if (Array.isArray(data.appliedUpgrades)) {
+            setPurchasedProducts(new Set(data.appliedUpgrades))
           }
         }
       } catch (err) {

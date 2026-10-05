@@ -97,7 +97,7 @@ interface FinalizeContentProps {
   releaseTitle: string
   releaseAt: string | null
   releaseTimezone: string
-  distribution: string | null
+  distributionUpgrade: string | null
   initialApprovals: Approval[]
   priorApprovers: PriorApprover[]
   initialClipRecipients: ClipReportRecipient[]
@@ -111,7 +111,7 @@ export function FinalizeContent({
   releaseTitle,
   releaseAt,
   releaseTimezone,
-  distribution,
+  distributionUpgrade,
   initialApprovals,
   priorApprovers,
   initialClipRecipients,
@@ -181,6 +181,8 @@ export function FinalizeContent({
   const handlePaymentSuccess = () => {
     setShowPayment(false)
     setPaid(true)
+    // Pick up the upgrades the confirm call just applied to the release
+    router.refresh()
   }
 
   // Drop the deferred upgrade selection (keeps the PR credit line if owed)
@@ -491,10 +493,7 @@ export function FinalizeContent({
             <p className="font-medium text-gray-900 dark:text-gray-100">{releaseTitle}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Distribution</p>
             <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              {distribution === 'premium' && 'Premium Distribution'}
-              {distribution === 'yahoo' && 'Yahoo Finance Distribution'}
-              {distribution === 'standard' && 'Standard Distribution'}
-              {!distribution && 'Standard Distribution'}
+              {distributionUpgrade || 'Standard Distribution'}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Release Date</p>
             <div className="flex flex-wrap items-center gap-2 mt-1">

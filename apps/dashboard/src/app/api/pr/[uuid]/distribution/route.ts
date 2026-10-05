@@ -7,7 +7,13 @@ import { headers } from 'next/headers'
 import { sendPaymentReceiptEmail } from '@/lib/email'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { creditBalance } from '@/lib/brand-credits'
-import { releaseNeedsPrCredit } from '@/lib/pr-checkout'
+import {
+  releaseNeedsPrCredit,
+  notifyAdminsOfUpgrade,
+  isDistributionUpgrade,
+  pickDistributionUpgrade,
+  STANDARD_DISTRIBUTION,
+} from '@/lib/pr-checkout'
 import { randomUUID } from 'crypto'
 import { screenAdContent, type AdScreeningResult } from '@/services/ad-content-screener'
 // Get the correct Stripe secret key based on environment
@@ -143,8 +149,35 @@ export async function GET(
         isSoloUpgrade: p.isSoloUpgrade ?? false,
       }))
 
+    // Upgrades already applied to this release, gathered from every place
+    // they are recorded: the distribution column (yahoo/enhanced only), the
+    // credit ledger (any upgrade redeemed against this release) and ad
+    // campaigns. Drives the "Purchased" state so an upgrade a user already
+    // holds can't be bought or redeemed a second time.
+    const redeemed = await db
+      .select({ productType: brandCredits.productType })
+      .from(brandCredits)
+      .where(and(eq(brandCredits.prId, release.id), sql`${brandCredits.credits} < 0`))
+
+    const campaign = await db
+      .select({ id: adCampaigns.id })
+      .from(adCampaigns)
+      .where(eq(adCampaigns.releaseId, release.id))
+      .limit(1)
+
+    const appliedUpgrades = Array.from(
+      new Set([
+        ...(isDistributionUpgrade(release.distribution || '') ? [release.distribution!] : []),
+        ...redeemed
+          .map((r) => r.productType)
+          .filter((t): t is string => !!t && t !== 'pr' && t !== 'credits'),
+        ...(campaign.length > 0 ? ['ads'] : []),
+      ]),
+    )
+
     return NextResponse.json({
       distribution: release.distribution || null,
+      appliedUpgrades,
       creditBalance,
       products: productList,
       // When the user still owes a PR credit, card payments for upgrades are
@@ -208,10 +241,44 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid or unavailable product type' }, { status: 400 })
     }
 
+    // Yahoo and enhanced share the single distribution column: never both in
+    // one cart, and never one on top of an upgrade already applied.
+    const requestedUpgrades = selectedTypes.filter(isDistributionUpgrade)
+    if (requestedUpgrades.length > 1) {
+      return NextResponse.json(
+        { error: 'Only one distribution upgrade can be selected' },
+        { status: 400 },
+      )
+    }
+    if (requestedUpgrades.length > 0 && isDistributionUpgrade(release.distribution || '')) {
+      return NextResponse.json(
+        { error: 'This release already has a distribution upgrade applied' },
+        { status: 400 },
+      )
+    }
+
     if (action === 'use_credit' && productType) {
       const product = availableProducts.find(p => p.productType === productType)
       if (!product) {
         return NextResponse.json({ error: 'Invalid product type' }, { status: 400 })
+      }
+
+      // Yahoo and enhanced share the single distribution column and cannot
+      // coexist. Refuse before deducting, so a credit is never spent on an
+      // upgrade that would overwrite one already applied.
+      const appliedUpgrade = isDistributionUpgrade(release.distribution || '')
+        ? release.distribution
+        : null
+      if (isDistributionUpgrade(productType) && appliedUpgrade) {
+        return NextResponse.json(
+          {
+            error:
+              appliedUpgrade === productType
+                ? 'This upgrade is already applied to the release'
+                : 'This release already has a different distribution upgrade applied',
+          },
+          { status: 400 },
+        )
       }
 
       // Check if user has credits — brand-scope first, else account-level.
@@ -237,16 +304,23 @@ export async function POST(
         notes: `Used for PR: ${release.title?.substring(0, 30) || release.uuid}`,
       })
 
-      // Update release distribution (append to existing)
-      const currentDistribution = release.distribution ? release.distribution.split(',').filter(Boolean) : []
-      if (!currentDistribution.includes(productType)) {
-        currentDistribution.push(productType)
+      // Yahoo and enhanced both live in the single distribution column and
+      // cannot coexist. Other upgrades (ads, concierge) are recorded by the
+      // credit ledger entry above and never touch the column.
+      let newDistribution = release.distribution || STANDARD_DISTRIBUTION
+      if (isDistributionUpgrade(productType)) {
+        newDistribution = productType
+        await db.update(releases)
+          .set({ distribution: newDistribution })
+          .where(eq(releases.id, release.id))
       }
-      const newDistribution = currentDistribution.join(',')
 
-      await db.update(releases)
-        .set({ distribution: newDistribution })
-        .where(eq(releases.id, release.id))
+      notifyAdminsOfUpgrade({
+        upgradeNames: [product.displayName || product.shortName || productType],
+        releaseTitle: release.title,
+        customerName: session.user.name || session.user.email || `User #${userId}`,
+        paidWith: 'credit',
+      })
 
       return NextResponse.json({ success: true, distribution: newDistribution })
     }
@@ -352,22 +426,27 @@ export async function POST(
       }
 
       // Get product types from payment metadata
-      const distribution = paymentIntent.metadata?.productTypes
+      const purchasedTypes = (paymentIntent.metadata?.productTypes || '')
+        .split(',')
+        .filter(Boolean)
 
-      if (!distribution) {
+      if (purchasedTypes.length === 0) {
         return NextResponse.json({ error: 'No products in payment' }, { status: 400 })
       }
 
-      // Update release distribution (exclude 'ads' from distribution string)
-      const distributionTypes = distribution.split(',').filter((t: string) => t !== 'ads')
-      const distributionStr = distributionTypes.length > 0 ? distributionTypes.join(',') : 'standard'
+      // Only a distribution upgrade lands in the column, and only one can:
+      // an ads- or concierge-only payment leaves the stored value alone.
+      const purchasedUpgrade = pickDistributionUpgrade(purchasedTypes)
+      const distributionStr = purchasedUpgrade || release.distribution || STANDARD_DISTRIBUTION
 
-      await db.update(releases)
-        .set({ distribution: distributionStr })
-        .where(eq(releases.id, release.id))
+      if (purchasedUpgrade) {
+        await db.update(releases)
+          .set({ distribution: purchasedUpgrade })
+          .where(eq(releases.id, release.id))
+      }
 
       // If 'ads' was purchased, create an ad_campaigns record
-      if (distribution.includes('ads')) {
+      if (purchasedTypes.includes('ads')) {
         const adsProduct = availableProducts.find(p => p.productType === 'ads')
         // Budget = product price minus 25% markup, minimum $10
         const adBudget = adsProduct ? Math.max(10, Math.round((adsProduct.price / 100) * 0.75)) : 10
@@ -392,8 +471,15 @@ export async function POST(
       const userEmail = session.user.email
       const userName = session.user.name || 'Customer'
       const releaseTitle = paymentIntent.metadata?.releaseTitle || release.title || 'Press Release'
-      const productNamesStr = paymentIntent.metadata?.productNames || distribution
+      const productNamesStr = paymentIntent.metadata?.productNames || purchasedTypes.join(',')
       const productNames = productNamesStr.split(',').map((s: string) => s.trim()).filter(Boolean)
+
+      notifyAdminsOfUpgrade({
+        upgradeNames: productNames,
+        releaseTitle: release.title,
+        customerName: userName,
+        paidWith: 'card',
+      })
 
       if (userEmail) {
         try {
@@ -412,17 +498,21 @@ export async function POST(
         }
       }
 
-      return NextResponse.json({ success: true, distribution })
+      return NextResponse.json({ success: true, distribution: distributionStr })
     }
 
     if (action === 'skip') {
-      // User chose not to use premium distribution - set to standard and
-      // drop any selection deferred to the finalize checkout
+      // User chose not to buy any (further) upgrades: drop only the selection
+      // that was deferred to the finalize checkout. Whatever distribution the
+      // release already carries is left untouched — upgrades paid by card or
+      // redeemed with a credit must survive this step.
+      const distribution = release.distribution || STANDARD_DISTRIBUTION
+
       await db.update(releases)
-        .set({ distribution: 'standard', pendingUpgrades: null })
+        .set({ distribution, pendingUpgrades: null })
         .where(eq(releases.id, release.id))
 
-      return NextResponse.json({ success: true, distribution: 'standard' })
+      return NextResponse.json({ success: true, distribution })
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

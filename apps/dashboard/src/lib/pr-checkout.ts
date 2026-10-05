@@ -3,8 +3,11 @@ import { brandCredits, products, releases } from '@/db/schema'
 import { and, asc, eq, inArray, isNull, notInArray, or, sql } from 'drizzle-orm'
 import { creditBalance } from './brand-credits'
 import { getBoolSetting, FREE_FIRST_PR_KEY } from './app-settings'
+import { sendSmsNotification } from './twilio'
 
 const DRAFT_STATUSES = ['draftnxt', 'draft', 'start']
+
+export const STANDARD_DISTRIBUTION = 'standard'
 
 // First-press-release-free offer (toggled at /admin/settings): while enabled,
 // ANY registered user with zero PR credits and no press releases submits
@@ -144,4 +147,56 @@ export async function getPendingUpgradeProducts(
   return types
     .map((t) => rows.find((r) => r.productType === t))
     .filter((p): p is NonNullable<typeof p> => !!p)
+}
+
+// releases.distribution holds exactly one value, never a list: 'standard'
+// (implied by yahoo and enhanced, and the default when neither applies), or
+// the single distribution upgrade the release was bought. Yahoo and enhanced
+// are mutually exclusive. Every other upgrade product — ads, concierge — is
+// recorded against the release in brand_credits or ad_campaigns and must
+// never be written to this column.
+export const DISTRIBUTION_UPGRADES = ['yahoo', 'enhanced'] as const
+
+export function isDistributionUpgrade(type: string): boolean {
+  return (DISTRIBUTION_UPGRADES as readonly string[]).includes(type)
+}
+
+// The distribution upgrade among a set of purchased product types, if any.
+export function pickDistributionUpgrade(types: string[]): string | null {
+  return types.find(isDistributionUpgrade) ?? null
+}
+
+// Display name for the distribution upgrade applied to a release. Looked up
+// without the active/partner filters used when selling — an upgrade that was
+// paid for must still render after the product is retired — and falling back
+// to the raw type so it never displays as nothing.
+export async function getDistributionUpgradeName(
+  distribution: string | null,
+): Promise<string | null> {
+  const type = distribution?.trim()
+  if (!type || !isDistributionUpgrade(type)) return null
+
+  const product = await db.query.products.findFirst({
+    where: and(eq(products.isUpgrade, true), eq(products.productType, type)),
+  })
+
+  return product?.displayName || product?.shortName || type
+}
+
+// Text the site admins whenever a release gains an upgrade, however it was
+// paid for. Best-effort — sendSmsNotification never throws.
+export function notifyAdminsOfUpgrade(params: {
+  upgradeNames: string[]
+  releaseTitle: string | null
+  customerName: string
+  paidWith: 'card' | 'credit'
+}): void {
+  if (params.upgradeNames.length === 0) return
+
+  const verb = params.paidWith === 'credit' ? 'redeemed with a credit' : 'purchased'
+  sendSmsNotification(
+    `Upgrade ${verb}: ${params.upgradeNames.join(', ')} by ${params.customerName} for "${
+      params.releaseTitle || 'Untitled Press Release'
+    }"`,
+  )
 }

@@ -12,6 +12,7 @@ import {
   releaseNeedsPrCredit,
   getPrCreditProduct,
   getPendingUpgradeProducts,
+  getDistributionUpgradeName,
 } from '@/lib/pr-checkout'
 import { VerifyEmailBanner } from '@/components/layout/verify-email-banner'
 
@@ -181,6 +182,8 @@ export default async function FinalizePage({
     }
   }
 
+  const distributionUpgrade = await getDistributionUpgradeName(release.distribution)
+
   // Serialize dates for client component
   const serializedApprovals = releaseApprovals.map((a) => ({
     ...a,
@@ -204,7 +207,7 @@ export default async function FinalizePage({
         releaseTitle={release.title || 'Untitled Release'}
         releaseAt={release.releaseAt?.toISOString() ?? null}
         releaseTimezone={normalizeTimezone(release.timezone)}
-        distribution={release.distribution}
+        distributionUpgrade={distributionUpgrade}
         initialApprovals={serializedApprovals}
         priorApprovers={priorApprovers.filter((p) => p.email)}
         initialClipRecipients={serializedClipRecipients}

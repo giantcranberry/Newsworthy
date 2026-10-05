@@ -1,11 +1,12 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, releaseOptions, releaseImages, brandCredits } from '@/db/schema'
+import { releases, releaseOptions, releaseImages, brandCredits, adCampaigns } from '@/db/schema'
 import { eq, and, sql, asc, or, isNull } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { UpgradesForm } from './upgrades-form'
 import { WizardNav } from '@/components/pr-wizard/wizard-nav'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { isDistributionUpgrade } from '@/lib/pr-checkout'
 
 async function getReleaseWithDetails(uuid: string) {
   const release = await db.query.releases.findFirst({
@@ -28,6 +29,32 @@ async function getReleaseOptions(prId: number) {
   return await db.query.releaseOptions.findFirst({
     where: eq(releaseOptions.prId, prId),
   })
+}
+
+// Upgrades already applied to a release. The distribution column only ever
+// holds 'standard', 'yahoo' or 'enhanced'; every other upgrade is recorded by
+// the credit ledger entry or the ad campaign it created.
+async function getAppliedUpgrades(release: { id: number; distribution: string | null }) {
+  const redeemed = await db
+    .select({ productType: brandCredits.productType })
+    .from(brandCredits)
+    .where(and(eq(brandCredits.prId, release.id), sql`${brandCredits.credits} < 0`))
+
+  const campaign = await db
+    .select({ id: adCampaigns.id })
+    .from(adCampaigns)
+    .where(eq(adCampaigns.releaseId, release.id))
+    .limit(1)
+
+  return Array.from(
+    new Set([
+      ...(isDistributionUpgrade(release.distribution || '') ? [release.distribution!] : []),
+      ...redeemed
+        .map((r) => r.productType)
+        .filter((t): t is string => !!t && t !== 'pr' && t !== 'credits'),
+      ...(campaign.length > 0 ? ['ads'] : []),
+    ]),
+  )
 }
 
 async function getCreditBalance(userId: number, companyId: number) {
@@ -85,11 +112,12 @@ export default async function UpgradesPage({
 
   const options = release.id ? await getReleaseOptions(release.id) : null
   const creditBalance = await getCreditBalance(userId, release.companyId)
+  const appliedUpgrades = await getAppliedUpgrades(release)
 
   return (
     <UpgradesForm
       releaseUuid={uuid}
-      distribution={release.distribution || null}
+      appliedUpgrades={appliedUpgrades}
       creditBalance={creditBalance}
       paymentSuccess={success === 'true'}
       paymentCanceled={canceled === 'true'}

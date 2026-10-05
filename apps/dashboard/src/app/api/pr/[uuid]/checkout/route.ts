@@ -12,6 +12,8 @@ import {
   releaseNeedsPrCredit,
   getPrCreditProduct,
   getPendingUpgradeProducts,
+  pickDistributionUpgrade,
+  notifyAdminsOfUpgrade,
 } from '@/lib/pr-checkout'
 
 // Combined checkout for the finalize (Submit) step: one payment covering the
@@ -179,25 +181,24 @@ export async function POST(
         }
       }
 
-      // Apply the paid upgrades: append to distribution (preserving upgrades
-      // already redeemed with credits) and clear the pending selection.
+      // Apply the paid upgrades and clear the pending selection. Only a
+      // distribution upgrade (yahoo or enhanced, never both) goes in the
+      // distribution column; ads is tracked as a campaign below.
       const upgradeTypes = (paymentIntent.metadata.upgradeTypes || '')
         .split(',')
         .filter(Boolean)
-      const distributionTypes = upgradeTypes.filter((t) => t !== 'ads')
-
-      const currentDistribution =
-        release.distribution && release.distribution !== 'standard'
-          ? release.distribution.split(',').filter(Boolean)
+      const paidUpgradeProducts =
+        upgradeTypes.length > 0
+          ? await getPendingUpgradeProducts({ pendingUpgrades: upgradeTypes.join(',') }, partnerId)
           : []
-      for (const t of distributionTypes) {
-        if (!currentDistribution.includes(t)) currentDistribution.push(t)
-      }
-      const newDistribution =
-        currentDistribution.length > 0 ? currentDistribution.join(',') : release.distribution
+
+      const purchasedUpgrade = pickDistributionUpgrade(upgradeTypes)
 
       await db.update(releases)
-        .set({ distribution: newDistribution, pendingUpgrades: null })
+        .set({
+          ...(purchasedUpgrade ? { distribution: purchasedUpgrade } : {}),
+          pendingUpgrades: null,
+        })
         .where(eq(releases.id, release.id))
 
       // If 'ads' was purchased, create an ad_campaigns record (same budget
@@ -210,11 +211,7 @@ export async function POST(
           .limit(1)
 
         if (existingCampaign.length === 0) {
-          const paidProducts = await getPendingUpgradeProducts(
-            { pendingUpgrades: upgradeTypes.join(',') },
-            partnerId
-          )
-          const adsProduct = paidProducts.find((p) => p.productType === 'ads')
+          const adsProduct = paidUpgradeProducts.find((p) => p.productType === 'ads')
           const adBudget = adsProduct
             ? Math.max(10, Math.round((adsProduct.price / 100) * 0.75))
             : 10
@@ -244,6 +241,15 @@ export async function POST(
         .split(',')
         .map((s: string) => s.trim())
         .filter(Boolean)
+
+      notifyAdminsOfUpgrade({
+        upgradeNames: paidUpgradeProducts.map(
+          (p) => p.displayName || p.shortName || p.productType || 'Upgrade'
+        ),
+        releaseTitle: release.title,
+        customerName: userName,
+        paidWith: 'card',
+      })
 
       if (userEmail) {
         try {
