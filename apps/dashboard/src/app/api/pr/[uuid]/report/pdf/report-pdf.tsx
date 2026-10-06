@@ -1,6 +1,6 @@
 import React from 'react'
 import { Document, Page, View, Text, Image, Link, StyleSheet, Svg, Path, Circle, Line as SvgLine } from '@react-pdf/renderer'
-import type { ReportData, ClipRecord, TimeBucket } from '@/services/report'
+import type { ReportData, ClipRecord, TimeBucket, CrawlerGroup } from '@/services/report'
 
 // --- Colors ---
 const C = {
@@ -123,6 +123,11 @@ function fmtReportDate(iso: string) {
     year: 'numeric', month: 'long', day: 'numeric',
     hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York',
   })
+}
+
+function fmtShortDate(iso: string | null) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'America/New_York' })
 }
 
 // --- SVG Chart Components ---
@@ -305,6 +310,58 @@ function SectionCardPdf({ borderColor, children }: { borderColor: string; childr
   return <View style={[s.sectionCard, { borderLeftColor: borderColor }]}>{children}</View>
 }
 
+function VisibilityCardPdf({ title, subtitle, unit, color, group, emptyText }: {
+  title: string
+  subtitle: string
+  unit: string
+  color: string
+  group: CrawlerGroup
+  emptyText: string
+}) {
+  const topBots = group.bots.slice(0, 6)
+  const otherBots = group.bots.slice(6)
+  const otherHits = otherBots.reduce((sum, b) => sum + b.hits, 0)
+  return (
+    <View style={{ flex: 1, backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 3, borderLeftColor: color, padding: 10 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <View style={{ flex: 1, paddingRight: 6 }}>
+          <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: C.gray800 }}>{title}</Text>
+          <Text style={{ fontSize: 6.5, color: C.gray500, marginTop: 1 }}>{subtitle}</Text>
+        </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <Text style={{ fontSize: 16, fontFamily: 'Helvetica-Bold', color: C.gray900 }}>{group.total.toLocaleString()}</Text>
+          <Text style={{ fontSize: 6, color: C.gray500, textTransform: 'uppercase', letterSpacing: 0.5 }}>{unit}</Text>
+        </View>
+      </View>
+      {group.total === 0 ? (
+        <Text style={{ fontSize: 7, color: C.gray500 }}>{emptyText}</Text>
+      ) : (
+        <View>
+          {topBots.map((b) => (
+            <View key={b.botName} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2, borderBottomWidth: 0.5, borderBottomColor: C.gray100 }}>
+              <Text style={{ fontSize: 7.5, color: C.gray700 }}>{b.botName}</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: color }}>{b.hits.toLocaleString()}</Text>
+            </View>
+          ))}
+          {otherBots.length > 0 && (
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+              <Text style={{ fontSize: 7.5, color: C.gray500 }}>{otherBots.length} other {otherBots.length === 1 ? 'bot' : 'bots'}</Text>
+              <Text style={{ fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: C.gray500 }}>{otherHits.toLocaleString()}</Text>
+            </View>
+          )}
+          {(group.firstSeen || group.lastSeen) && (
+            <Text style={{ fontSize: 6.5, color: C.gray500, marginTop: 4 }}>
+              {group.firstSeen ? `First visit ${fmtShortDate(group.firstSeen)}` : ''}
+              {group.firstSeen && group.lastSeen ? '  ·  ' : ''}
+              {group.lastSeen ? `Most recent ${fmtShortDate(group.lastSeen)}` : ''}
+            </Text>
+          )}
+        </View>
+      )}
+    </View>
+  )
+}
+
 // --- Main PDF Document ---
 export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; imageMap?: Record<string, string> }) {
   const { release, company, clips, totalPv, totalSh, ecpc, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
@@ -313,6 +370,11 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
   const hasCircuits = circuits.hr || circuits.cannabis || circuits.cannadelic || circuits.psychedelics
   const reportDate = fmtReportDate(data.fetchedAt)
   const hasStats = data.combStats.length > 0
+  const crawlerStats = data.crawlerStats
+  const citations = data.aiGrounding?.citations ?? []
+  const hasVisibilityData = !!crawlerStats && (
+    crawlerStats.aiTraining.total > 0 || crawlerStats.aiGrounding.total > 0 || crawlerStats.seo.total > 0 || citations.length > 0
+  )
 
   const rawCompanyLogo = company.logoUrl
     ? company.logoUrl.includes('cdn.filestac')
@@ -388,9 +450,26 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
               {resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
               {resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
             </View>
-            <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 2 }}>AIO / SEO?</Text>
-            <Text style={{ fontSize: 7, color: C.gray500, textTransform: 'uppercase' }}>We&apos;ve got you covered.</Text>
-            <Text style={{ fontSize: 7, color: C.gray500, marginTop: 2 }}>Your Press Release is optimized for AI and Search.</Text>
+            {hasVisibilityData && crawlerStats ? (
+              <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 2 }}>
+                {[
+                  ['AI Training', crawlerStats.aiTraining.total],
+                  ['AI Grounding', crawlerStats.aiGrounding.total],
+                  ['SEO Indexing', crawlerStats.seo.total],
+                ].map(([label, value]) => (
+                  <View key={String(label)} style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray900 }}>{Number(value).toLocaleString()}</Text>
+                    <Text style={s.metricLabel}>{String(label)}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <>
+                <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 2 }}>AIO / SEO?</Text>
+                <Text style={{ fontSize: 7, color: C.gray500, textTransform: 'uppercase' }}>We&apos;ve got you covered.</Text>
+                <Text style={{ fontSize: 7, color: C.gray500, marginTop: 2 }}>Your Press Release is optimized for AI and Search.</Text>
+              </>
+            )}
           </View>
         </View>
 
@@ -479,6 +558,70 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                   ))}
                 </View>
               )}
+          </View>
+        )}
+
+        {/* AI & Search Visibility */}
+        {hasVisibilityData && crawlerStats && (
+          <View style={{ marginBottom: 12 }}>
+            <View wrap={false}>
+              <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray700, marginBottom: 2 }}>AI &amp; Search Visibility</Text>
+              <Text style={{ fontSize: 7.5, color: C.gray500, marginBottom: 8 }}>
+                Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
+              </Text>
+            </View>
+            <View wrap={false} style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+              <VisibilityCardPdf
+                title="AI Training"
+                subtitle="Crawlers building model training data"
+                unit="Fetches"
+                color="#a855f7"
+                group={crawlerStats.aiTraining}
+                emptyText="No AI training crawlers have fetched this release yet."
+              />
+              <VisibilityCardPdf
+                title="AI Grounding"
+                subtitle="Live fetches by AI assistants answering questions"
+                unit="Fetches"
+                color="#10b981"
+                group={crawlerStats.aiGrounding}
+                emptyText="No AI assistants have retrieved this release to answer a question yet."
+              />
+              <VisibilityCardPdf
+                title="SEO Crawling & Indexing"
+                subtitle="Search engine indexers"
+                unit="Crawls"
+                color={C.blue}
+                group={crawlerStats.seo}
+                emptyText="No search engine crawlers have visited this release yet."
+              />
+            </View>
+
+            {citations.length > 0 && (
+              <View style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 3, borderLeftColor: '#10b981', padding: 10 }}>
+                <View wrap={false}>
+                  <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: C.gray800 }}>AI Search Citations</Text>
+                  <Text style={{ fontSize: 6.5, color: C.gray500, marginBottom: 6 }}>
+                    Queries where an AI search product cited your release or its syndicated copies as a source.
+                  </Text>
+                </View>
+                <View style={{ flexDirection: 'row', paddingBottom: 3, borderBottomWidth: 1, borderBottomColor: C.gray200, marginBottom: 2 }}>
+                  <Text style={{ width: '24%', fontSize: 6.5, color: C.gray500, textTransform: 'uppercase' }}>Source</Text>
+                  <Text style={{ width: '58%', fontSize: 6.5, color: C.gray500, textTransform: 'uppercase' }}>Query</Text>
+                  <Text style={{ width: '18%', fontSize: 6.5, color: C.gray500, textTransform: 'uppercase', textAlign: 'right' }}>Verified</Text>
+                </View>
+                {citations.slice(0, 25).map((c, i) => (
+                  <View key={`${c.source}-${i}`} wrap={false} style={{ flexDirection: 'row', paddingVertical: 3, borderBottomWidth: 0.5, borderBottomColor: C.gray100 }}>
+                    <Text style={{ width: '24%', fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#047857', paddingRight: 4 }}>{c.sourceLabel}</Text>
+                    <Text style={{ width: '58%', fontSize: 7.5, color: C.gray700, paddingRight: 4 }}>{c.query}</Text>
+                    <Text style={{ width: '18%', fontSize: 7, color: C.gray500, textAlign: 'right' }}>{fmtShortDate(c.createdAt)}</Text>
+                  </View>
+                ))}
+                {citations.length > 25 && (
+                  <Text style={{ fontSize: 6.5, color: C.gray500, marginTop: 4 }}>Showing 25 of {citations.length} citations. The full list is in the XLS export.</Text>
+                )}
+              </View>
+            )}
           </View>
         )}
 

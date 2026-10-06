@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import type { ReportData, ClipRecord } from '@/services/report'
+import type { ReportData, ClipRecord, CrawlerGroup, CrawlerStats, AiGroundingData } from '@/services/report'
 import {
   Chart as ChartJS,
   ArcElement,
@@ -60,6 +60,49 @@ function formatCityBuzzDate(iso: string | null) {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}/${m}/${day}`
 }
+
+function formatShortDateTime(iso: string | null) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })
+}
+
+/** 'YYYY-MM-DD' -> 'MM/DD' without timezone shifting */
+function formatDailyLabel(ymd: string) {
+  const [, m, d] = ymd.split('-')
+  return m && d ? `${m}/${d}` : ymd
+}
+
+const ACTIVITY_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+/**
+ * Crawler totals aligned to the Daily Activity chart labels.
+ * Those labels are MM/dd/yyyy (day), "Month yyyy" (month), or "MM/dd h:00 a" (hour).
+ */
+function crawlerTotalsForLabels(labels: string[], daily: CrawlerStats['daily']): number[] {
+  const byDay = new Map<string, number>()
+  const byMonth = new Map<string, number>()
+  const byMonthDay = new Map<string, number>()
+  for (const bucket of daily) {
+    const [y, m, day] = bucket.date.split('-')
+    if (!y || !m || !day) continue
+    const total = bucket.aiTraining + bucket.aiGrounding + bucket.seo
+    byDay.set(`${m}/${day}/${y}`, (byDay.get(`${m}/${day}/${y}`) || 0) + total)
+    const monthKey = `${ACTIVITY_MONTHS[Number(m)]} ${y}`
+    byMonth.set(monthKey, (byMonth.get(monthKey) || 0) + total)
+    byMonthDay.set(`${m}/${day}`, (byMonthDay.get(`${m}/${day}`) || 0) + total)
+  }
+  return labels.map((label) => {
+    if (byDay.has(label)) return byDay.get(label)!
+    if (byMonth.has(label)) return byMonth.get(label)!
+    const hour = label.match(/^(\d{2}\/\d{2})\b/)
+    if (hour && byMonthDay.has(hour[1])) return byMonthDay.get(hour[1])!
+    return 0
+  })
+}
+
+const EMPTY_CRAWLER_GROUP: CrawlerGroup = { total: 0, bots: [], firstSeen: null, lastSeen: null }
+const EMPTY_CRAWLER_STATS: CrawlerStats = { aiTraining: EMPTY_CRAWLER_GROUP, aiGrounding: EMPTY_CRAWLER_GROUP, seo: EMPTY_CRAWLER_GROUP, daily: [] }
+const EMPTY_AI_GROUNDING: AiGroundingData = { citations: [], sources: [] }
 
 function buildNewsUrl(release: ReportData['release']) {
   if (!release.releaseAt) return '#'
@@ -187,6 +230,85 @@ function CircuitClipCard({ thumbnail, name, link, city, state }: { thumbnail: st
   )
 }
 
+// --- Visibility Card (AI training / AI grounding / SEO crawler summary) ---
+const VISIBILITY_TONES = {
+  purple: { icon: 'text-purple-600 dark:text-purple-400', border: 'border-l-purple-500', pill: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300' },
+  emerald: { icon: 'text-emerald-600 dark:text-emerald-400', border: 'border-l-emerald-500', pill: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' },
+  blue: { icon: 'text-blue-600 dark:text-blue-400', border: 'border-l-blue-500', pill: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' },
+} as const
+
+function VisibilityCard({
+  icon,
+  tone,
+  title,
+  subtitle,
+  unit,
+  group,
+  emptyText,
+  footer,
+}: {
+  icon: string
+  tone: keyof typeof VISIBILITY_TONES
+  title: string
+  subtitle: string
+  unit: string
+  group: CrawlerGroup
+  emptyText: string
+  footer?: React.ReactNode
+}) {
+  const t = VISIBILITY_TONES[tone]
+  const topBots = group.bots.slice(0, 6)
+  const otherBots = group.bots.slice(6)
+  const otherHits = otherBots.reduce((sum, b) => sum + b.hits, 0)
+  return (
+    <div className={`rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 border-l-4 ${t.border} h-full`}>
+      <div className="p-5 flex flex-col h-full">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3">
+            <i className={`${icon} ${t.icon} text-xl`} aria-hidden="true" />
+            <div>
+              <h6 className="font-semibold text-gray-800 dark:text-gray-200 mb-0">{title}</h6>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-0">{subtitle}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-[1.75rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{group.total.toLocaleString()}</div>
+            <div className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 mt-1">{unit}</div>
+          </div>
+        </div>
+
+        {group.total === 0 ? (
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-0">{emptyText}</p>
+        ) : (
+          <>
+            <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+              {topBots.map((b) => (
+                <li key={b.botName} className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="text-gray-700 dark:text-gray-300 truncate" title={b.lastSeen ? `Last seen ${formatShortDateTime(b.lastSeen)}` : undefined}>{b.botName}</span>
+                  <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${t.pill}`}>{b.hits.toLocaleString()}</span>
+                </li>
+              ))}
+              {otherBots.length > 0 && (
+                <li className="flex items-center justify-between py-1.5 text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">{otherBots.length} other {otherBots.length === 1 ? 'bot' : 'bots'}</span>
+                  <span className="ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{otherHits.toLocaleString()}</span>
+                </li>
+              )}
+            </ul>
+            {(group.firstSeen || group.lastSeen) && (
+              <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                {group.firstSeen && <div>First visit: {formatShortDateTime(group.firstSeen)}</div>}
+                {group.lastSeen && <div>Most recent: {formatShortDateTime(group.lastSeen)}</div>}
+              </div>
+            )}
+          </>
+        )}
+        {footer && <div className="mt-auto pt-3">{footer}</div>}
+      </div>
+    </div>
+  )
+}
+
 // --- Main Component ---
 export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolean }) {
   const [data, setData] = useState<ReportData | null>(null)
@@ -297,6 +419,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
   const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, shStatsMultiplier, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
   // May be missing on reports cached before this field existed
   const shareListCount = data.shareListCount ?? 0
+  const crawlerStats = data.crawlerStats ?? EMPTY_CRAWLER_STATS
+  const aiGrounding = data.aiGrounding ?? EMPTY_AI_GROUNDING
+  const totalAiHits = crawlerStats.aiTraining.total + crawlerStats.aiGrounding.total
+  const hasVisibilityData = totalAiHits > 0 || crawlerStats.seo.total > 0 || aiGrounding.citations.length > 0
+  const newsUrl = buildNewsUrl(release)
+  const dailyCrawlerSeries = crawlerTotalsForLabels(combStats.map((s) => s.key_as_string), crawlerStats.daily)
+  const hasDailyCrawlers = dailyCrawlerSeries.some((n) => n > 0)
 
   const marketClips = [...clips.fcmarkets, ...clips.marketminute]
   const hasDistNetwork = clips.gomedia.length > 0 || clips.synacor.length > 0 || marketClips.length > 0
@@ -463,18 +592,47 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         </div>
         {/* AIO / SEO */}
         <div className="md:col-span-2 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
-          <div className="text-center py-4 flex flex-col justify-center items-center">
-            <div className="flex justify-center items-center gap-5 mb-3">
-              <img src="/img/ai/openai.svg" alt="OpenAI" className="h-7 w-auto opacity-85" />
-              <img src="/img/ai/gemini.svg" alt="Google Gemini" className="h-7 w-auto opacity-85" />
-              <img src="/img/ai/google.svg" alt="Google" className="h-7 w-auto opacity-85" />
+          {hasVisibilityData ? (
+            <a href="#ai-search-visibility" className="block text-center py-4 px-4 h-full no-underline text-inherit">
+              <div className="flex justify-center items-center gap-5 mb-3">
+                <img src="/img/ai/openai.svg" alt="OpenAI" className="h-6 w-auto opacity-85" />
+                <img src="/img/ai/gemini.svg" alt="Google Gemini" className="h-6 w-auto opacity-85" />
+                <img src="/img/ai/google.svg" alt="Google" className="h-6 w-auto opacity-85" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.aiTraining.total.toLocaleString()}</div>
+                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">AI Training</div>
+                </div>
+                <div>
+                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.aiGrounding.total.toLocaleString()}</div>
+                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">AI Grounding</div>
+                </div>
+                <div>
+                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.seo.total.toLocaleString()}</div>
+                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">SEO Indexing</div>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 mb-0 leading-tight">
+                {aiGrounding.citations.length > 0
+                  ? `Cited by ${aiGrounding.sources.map((src) => aiGrounding.citations.find((c) => c.source === src)?.sourceLabel || src).join(', ')}.`
+                  : 'AI Training, Grounding and SEO activity is detailed below.'}
+              </p>
+            </a>
+          ) : (
+            <div className="text-center py-4 flex flex-col justify-center items-center">
+              <div className="flex justify-center items-center gap-5 mb-3">
+                <img src="/img/ai/openai.svg" alt="OpenAI" className="h-7 w-auto opacity-85" />
+                <img src="/img/ai/gemini.svg" alt="Google Gemini" className="h-7 w-auto opacity-85" />
+                <img src="/img/ai/google.svg" alt="Google" className="h-7 w-auto opacity-85" />
+              </div>
+              <div className="text-[1.4rem] font-bold text-gray-900 dark:text-gray-100">AIO / SEO?</div>
+              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-1">We&apos;ve got you covered.</div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 mb-0 leading-tight">
+                Your Press Release is optimized for AI and Search.
+              </p>
             </div>
-            <div className="text-[1.4rem] font-bold text-gray-900 dark:text-gray-100">AIO / SEO?</div>
-            <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-1">We&apos;ve got you covered.</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 mb-0 leading-tight">
-              Your Press Release is optimized for AI and Search.
-            </p>
-          </div>
+          )}
         </div>
       </div>
 
@@ -611,7 +769,11 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h6 className="font-semibold text-gray-800 dark:text-gray-200">Daily Activity</h6>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Day-by-day breakdown of views and shares</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {hasDailyCrawlers
+                          ? 'Day-by-day breakdown of views, shares, and crawler activity'
+                          : 'Day-by-day breakdown of views and shares'}
+                      </p>
                     </div>
                     <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5 text-gray-500 dark:text-gray-400">UTC</span>
                   </div>
@@ -624,18 +786,42 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                             label: 'Views',
                             data: combStats.map((s) => s.views),
                             backgroundColor: '#3b82f6',
+                            yAxisID: 'y',
                           },
                           {
                             label: shStatsMultiplier > 1 ? `Shares (x${shStatsMultiplier})` : 'Shares',
                             data: combStats.map((s) => s.shares_multiplied ?? s.shares),
                             backgroundColor: '#22c55e',
+                            yAxisID: 'y',
                           },
+                          ...(hasDailyCrawlers
+                            ? [{
+                                label: 'AI and SEO Activity',
+                                data: dailyCrawlerSeries,
+                                backgroundColor: '#a855f7',
+                                yAxisID: 'y1',
+                              }]
+                            : []),
                         ],
                       }}
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: { x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } } },
+                        scales: {
+                          x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+                          y: { position: 'left', beginAtZero: true, ticks: { precision: 0 } },
+                          ...(hasDailyCrawlers
+                            ? {
+                                y1: {
+                                  position: 'right' as const,
+                                  beginAtZero: true,
+                                  title: { display: true, text: 'AI and SEO Activity', color: '#a855f7' },
+                                  ticks: { color: '#a855f7', precision: 0 },
+                                  grid: { drawOnChartArea: false },
+                                },
+                              }
+                            : {}),
+                        },
                         plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
                       }}
                     />
@@ -764,6 +950,146 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           </div>
         )}
       </div>
+
+      {/* AI & Search Visibility */}
+      {hasVisibilityData && (
+        <div id="ai-search-visibility" className="mt-8 scroll-mt-6">
+          <div className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-3">
+            <i className="fa-solid fa-robot text-purple-600 dark:text-purple-400 text-xl" aria-hidden="true" />
+            <span>AI &amp; Search Visibility</span>
+          </div>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+            Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-stretch">
+            <VisibilityCard
+              icon="fa-solid fa-brain"
+              tone="purple"
+              title="AI Training"
+              subtitle="Crawlers building model training data"
+              unit="Fetches"
+              group={crawlerStats.aiTraining}
+              emptyText="No AI training crawlers have fetched this release yet."
+            />
+            <VisibilityCard
+              icon="fa-solid fa-comments"
+              tone="emerald"
+              title="AI Grounding"
+              subtitle="Live fetches by AI assistants answering questions"
+              unit="Fetches"
+              group={crawlerStats.aiGrounding}
+              emptyText="No AI assistants have retrieved this release to answer a question yet."
+              footer={
+                aiGrounding.citations.length > 0 ? (
+                  <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+                    <i className="fa-solid fa-circle-check" aria-hidden="true" />
+                    <span>
+                      Cited {aiGrounding.citations.length} {aiGrounding.citations.length === 1 ? 'time' : 'times'} in AI search answers
+                    </span>
+                  </div>
+                ) : undefined
+              }
+            />
+            <VisibilityCard
+              icon="fa-solid fa-magnifying-glass"
+              tone="blue"
+              title="SEO Crawling & Indexing"
+              subtitle="Search engine indexers"
+              unit="Crawls"
+              group={crawlerStats.seo}
+              emptyText="No search engine crawlers have visited this release yet."
+              footer={
+                newsUrl !== '#' ? (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:${newsUrl.replace(/^https?:\/\//, '')}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                      <i className="fa-brands fa-google mr-1" aria-hidden="true" />Check Google index
+                    </a>
+                    <a href={`https://www.bing.com/search?q=${encodeURIComponent(`url:${newsUrl}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                      <i className="fa-brands fa-microsoft mr-1" aria-hidden="true" />Check Bing index
+                    </a>
+                  </div>
+                ) : undefined
+              }
+            />
+          </div>
+
+          {/* Daily crawler activity */}
+          {crawlerStats.daily.length > 1 && (
+            <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4">
+              <div className="p-5">
+                <div className="flex justify-between items-start mb-1">
+                  <div>
+                    <h6 className="font-semibold text-gray-800 dark:text-gray-200">Crawler Activity</h6>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Daily bot fetches by purpose</p>
+                  </div>
+                  <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5 text-gray-500 dark:text-gray-400">UTC</span>
+                </div>
+                <div className="h-[260px]">
+                  <Bar
+                    data={{
+                      labels: crawlerStats.daily.map((d) => formatDailyLabel(d.date)),
+                      datasets: [
+                        { label: 'AI Training', data: crawlerStats.daily.map((d) => d.aiTraining), backgroundColor: '#a855f7' },
+                        { label: 'AI Grounding', data: crawlerStats.daily.map((d) => d.aiGrounding), backgroundColor: '#10b981' },
+                        { label: 'SEO', data: crawlerStats.daily.map((d) => d.seo), backgroundColor: '#3b82f6' },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                        x: { stacked: true, ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+                        y: { stacked: true, ticks: { precision: 0 } },
+                      },
+                      plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AI search citations */}
+          {aiGrounding.citations.length > 0 && (
+            <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4 border-l-4 border-l-emerald-500">
+              <div className="p-5">
+                <div className="flex items-center gap-3 mb-1">
+                  <i className="fa-solid fa-quote-left text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <h6 className="font-semibold text-gray-800 dark:text-gray-200 mb-0">AI Search Citations</h6>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                  Queries where an AI search product cited your release or its syndicated copies as a source.
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+                        <th className="py-2 pr-4 font-semibold">Source</th>
+                        <th className="py-2 pr-4 font-semibold">Query</th>
+                        <th className="py-2 font-semibold whitespace-nowrap">Verified</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {aiGrounding.citations.map((c, i) => (
+                        <tr key={`${c.source}-${i}`}>
+                          <td className="py-2 pr-4 whitespace-nowrap">
+                            <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2.5 py-0.5 text-xs font-semibold">
+                              {c.sourceLabel}
+                            </span>
+                          </td>
+                          <td className="py-2 pr-4 text-gray-700 dark:text-gray-300">{c.query}</td>
+                          <td className="py-2 text-gray-500 dark:text-gray-400 whitespace-nowrap">{formatDate(c.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Section Divider */}
       <div className="h-0.5 my-12 bg-gradient-to-r from-transparent via-gray-200 to-transparent" />

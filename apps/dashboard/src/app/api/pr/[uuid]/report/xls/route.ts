@@ -24,9 +24,61 @@ function buildSummarySheet(data: ReportData) {
     ['Total Engagement', data.totalPv + data.totalSh],
     ['PDF Downloads', data.pdfDownloadCount],
   ]
+
+  if (data.crawlerStats) {
+    rows.push(
+      [],
+      ['AI & Search Visibility'],
+      ['AI Training Fetches', data.crawlerStats.aiTraining.total],
+      ['AI Grounding Fetches', data.crawlerStats.aiGrounding.total],
+      ['SEO Indexing', data.crawlerStats.seo.total],
+      ['AI Search Citations', data.aiGrounding?.citations.length ?? 0],
+    )
+  }
+
   const ws = XLSX.utils.aoa_to_sheet(rows)
   // Widen columns
   ws['!cols'] = [{ wch: 20 }, { wch: 60 }]
+  return ws
+}
+
+function fmtIsoDateTime(iso: string | null): string {
+  if (!iso) return ''
+  return new Date(iso).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })
+}
+
+function buildCrawlerSheet(stats: NonNullable<ReportData['crawlerStats']>) {
+  const rows: (string | number)[][] = [['Category', 'Bot', 'Fetches', 'First Visit', 'Most Recent Visit']]
+  const groups: [string, (typeof stats)['aiTraining']][] = [
+    ['AI Training', stats.aiTraining],
+    ['AI Grounding', stats.aiGrounding],
+    ['SEO Crawling & Indexing', stats.seo],
+  ]
+  for (const [label, group] of groups) {
+    for (const b of group.bots) {
+      rows.push([label, b.botName, b.hits, fmtIsoDateTime(b.firstSeen), fmtIsoDateTime(b.lastSeen)])
+    }
+  }
+
+  if (stats.daily.length > 0) {
+    rows.push([], ['Daily Activity (UTC)'], ['Date', 'AI Training', 'AI Grounding', 'SEO'])
+    for (const d of stats.daily) {
+      rows.push([d.date, d.aiTraining, d.aiGrounding, d.seo])
+    }
+  }
+
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [{ wch: 24 }, { wch: 26 }, { wch: 12 }, { wch: 24 }, { wch: 24 }]
+  return ws
+}
+
+function buildCitationsSheet(grounding: NonNullable<ReportData['aiGrounding']>) {
+  const rows: string[][] = [['Source', 'Query', 'Verified']]
+  for (const c of grounding.citations) {
+    rows.push([c.sourceLabel, c.query, fmtIsoDateTime(c.createdAt)])
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  ws['!cols'] = [{ wch: 22 }, { wch: 80 }, { wch: 24 }]
   return ws
 }
 
@@ -246,6 +298,14 @@ export async function GET(
     XLSX.utils.book_append_sheet(wb, buildSummarySheet(data), 'Summary')
     XLSX.utils.book_append_sheet(wb, buildClipsSheet(data), 'Distribution Clips')
     XLSX.utils.book_append_sheet(wb, buildTimeSeriesSheet(data), 'Time Series')
+
+    const cs = data.crawlerStats
+    if (cs && (cs.aiTraining.total > 0 || cs.aiGrounding.total > 0 || cs.seo.total > 0)) {
+      XLSX.utils.book_append_sheet(wb, buildCrawlerSheet(cs), 'AI & SEO Crawlers')
+    }
+    if (data.aiGrounding && data.aiGrounding.citations.length > 0) {
+      XLSX.utils.book_append_sheet(wb, buildCitationsSheet(data.aiGrounding), 'AI Search Citations')
+    }
 
     if (data.enhancedPublications.length > 0) {
       XLSX.utils.book_append_sheet(wb, buildEnhancedSheet(data), 'Enhanced Publications')

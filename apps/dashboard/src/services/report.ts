@@ -2,8 +2,8 @@ import { db } from '@/db'
 import { releases, releaseEnhanced, releasePlacements, releaseOptions, releaseCategories } from '@/db/schema'
 import { clipReport, pdfDownloads, crmContacts } from '@/db/schema'
 import { circuits, circuitCategories } from '@/db/schema'
-import { users } from '@/db/schema'
-import { eq, and, inArray, count, sql } from 'drizzle-orm'
+import { users, pageHits, releaseGrounding } from '@/db/schema'
+import { eq, and, inArray, count, sql, min, max, desc, asc } from 'drizzle-orm'
 import { queryIndex } from '@/lib/opensearch'
 
 // --- 4-hour in-memory cache ---
@@ -50,6 +50,54 @@ export interface EnhancedPublication {
   logo_url: string
 }
 
+/** One crawler (by bot name) and how often it fetched this release */
+export interface CrawlerBotStat {
+  botName: string
+  hits: number
+  firstSeen: string | null
+  lastSeen: string | null
+}
+
+export interface CrawlerGroup {
+  total: number
+  bots: CrawlerBotStat[]
+  firstSeen: string | null
+  lastSeen: string | null
+}
+
+export interface CrawlerDailyBucket {
+  date: string // YYYY-MM-DD (UTC)
+  aiTraining: number
+  aiGrounding: number
+  seo: number
+}
+
+/**
+ * Crawler traffic on the release's public article pages (newsworthy.ai),
+ * split into AI training crawlers, AI grounding / answer-engine fetchers,
+ * and classic search-engine indexers.
+ */
+export interface CrawlerStats {
+  aiTraining: CrawlerGroup
+  aiGrounding: CrawlerGroup
+  seo: CrawlerGroup
+  daily: CrawlerDailyBucket[]
+}
+
+/** A confirmed citation of our distribution network by an AI search product */
+export interface GroundingCitation {
+  source: string // google_ai_overview | openai | perplexity
+  sourceLabel: string
+  query: string
+  createdAt: string
+}
+
+export interface AiGroundingData {
+  citations: GroundingCitation[]
+  /** Distinct sources that have cited the release */
+  sources: string[]
+}
+
 export interface ReportData {
   release: {
     id: number
@@ -94,6 +142,10 @@ export interface ReportData {
   yahooFinanceUrls: string[]
   circuits: CircuitsData
   pdfDownloadCount: number
+  // Crawler + AI visibility. Optional because reports cached before these
+  // fields existed will not have them.
+  crawlerStats?: CrawlerStats
+  aiGrounding?: AiGroundingData
   encodedTitle: string
   fetchedAt: string
 }
@@ -360,6 +412,150 @@ async function getCircuitsForRelease(releaseId: number, releaseSlug: string | nu
   return result
 }
 
+// --- Crawler / AI visibility ---
+
+/**
+ * AI bots that fetch pages live to answer a user's question (grounding /
+ * retrieval). Everything else classified as `ai` by the website is treated as
+ * a training / dataset crawler. Names match apps/website/lib/classify-user-agent.ts.
+ */
+const AI_GROUNDING_BOTS = new Set([
+  'ChatGPT-User',
+  'OAI-SearchBot',
+  'Claude-SearchBot',
+  'Claude-User',
+  'PerplexityBot',
+  'Perplexity-User',
+  'YouBot',
+  'Google-CloudVertexBot',
+  'Firecrawl',
+])
+
+export const GROUNDING_SOURCE_LABELS: Record<string, string> = {
+  google_ai_overview: 'Google AI Overview',
+  openai: 'ChatGPT Search',
+  perplexity: 'Perplexity',
+}
+
+export function groundingSourceLabel(source: string): string {
+  return GROUNDING_SOURCE_LABELS[source] || source
+}
+
+function emptyCrawlerGroup(): CrawlerGroup {
+  return { total: 0, bots: [], firstSeen: null, lastSeen: null }
+}
+
+function addToGroup(group: CrawlerGroup, stat: CrawlerBotStat) {
+  group.total += stat.hits
+  group.bots.push(stat)
+  if (stat.firstSeen && (!group.firstSeen || stat.firstSeen < group.firstSeen)) group.firstSeen = stat.firstSeen
+  if (stat.lastSeen && (!group.lastSeen || stat.lastSeen > group.lastSeen)) group.lastSeen = stat.lastSeen
+}
+
+async function getCrawlerStats(releaseId: number): Promise<CrawlerStats> {
+  const stats: CrawlerStats = {
+    aiTraining: emptyCrawlerGroup(),
+    aiGrounding: emptyCrawlerGroup(),
+    seo: emptyCrawlerGroup(),
+    daily: [],
+  }
+
+  try {
+    const rows = await db
+      .select({
+        visitor: pageHits.visitor,
+        botName: pageHits.botName,
+        hits: count(),
+        firstSeen: min(pageHits.createdAt),
+        lastSeen: max(pageHits.createdAt),
+      })
+      .from(pageHits)
+      .where(and(eq(pageHits.prId, releaseId), inArray(pageHits.visitor, ['ai', 'seo'])))
+      .groupBy(pageHits.visitor, pageHits.botName)
+      .orderBy(desc(count()))
+
+    for (const row of rows) {
+      const stat: CrawlerBotStat = {
+        botName: row.botName || (row.visitor === 'ai' ? 'Unknown AI bot' : 'Unknown crawler'),
+        hits: Number(row.hits),
+        firstSeen: row.firstSeen ? new Date(row.firstSeen).toISOString() : null,
+        lastSeen: row.lastSeen ? new Date(row.lastSeen).toISOString() : null,
+      }
+      if (row.visitor === 'seo') {
+        addToGroup(stats.seo, stat)
+      } else if (row.botName && AI_GROUNDING_BOTS.has(row.botName)) {
+        addToGroup(stats.aiGrounding, stat)
+      } else {
+        addToGroup(stats.aiTraining, stat)
+      }
+    }
+
+    // Daily series (UTC), one row per (day, visitor, bot) so we can bucket
+    // AI hits into training vs grounding
+    const day = sql<string>`to_char(date_trunc('day', ${pageHits.createdAt}), 'YYYY-MM-DD')`
+    const dailyRows = await db
+      .select({
+        date: day,
+        visitor: pageHits.visitor,
+        botName: pageHits.botName,
+        hits: count(),
+      })
+      .from(pageHits)
+      .where(and(eq(pageHits.prId, releaseId), inArray(pageHits.visitor, ['ai', 'seo'])))
+      .groupBy(day, pageHits.visitor, pageHits.botName)
+      .orderBy(asc(day))
+
+    const byDate = new Map<string, CrawlerDailyBucket>()
+    for (const row of dailyRows) {
+      let bucket = byDate.get(row.date)
+      if (!bucket) {
+        bucket = { date: row.date, aiTraining: 0, aiGrounding: 0, seo: 0 }
+        byDate.set(row.date, bucket)
+      }
+      const n = Number(row.hits)
+      if (row.visitor === 'seo') bucket.seo += n
+      else if (row.botName && AI_GROUNDING_BOTS.has(row.botName)) bucket.aiGrounding += n
+      else bucket.aiTraining += n
+    }
+    stats.daily = Array.from(byDate.values())
+  } catch (err) {
+    // page_hits may not exist yet in every environment; the report must still render
+    console.error('getCrawlerStats error:', err)
+  }
+
+  return stats
+}
+
+async function getAiGrounding(releaseId: number): Promise<AiGroundingData> {
+  const result: AiGroundingData = { citations: [], sources: [] }
+  try {
+    const rows = await db
+      .select({
+        source: releaseGrounding.groundingSource,
+        query: releaseGrounding.groundingQuery,
+        createdAt: releaseGrounding.createdAt,
+      })
+      .from(releaseGrounding)
+      .where(eq(releaseGrounding.prId, releaseId))
+      .orderBy(desc(releaseGrounding.createdAt))
+
+    const sources = new Set<string>()
+    for (const row of rows) {
+      sources.add(row.source)
+      result.citations.push({
+        source: row.source,
+        sourceLabel: groundingSourceLabel(row.source),
+        query: row.query,
+        createdAt: row.createdAt.toISOString(),
+      })
+    }
+    result.sources = Array.from(sources)
+  } catch (err) {
+    console.error('getAiGrounding error:', err)
+  }
+  return result
+}
+
 export function reportReady(releasedAt: Date | null): boolean {
   if (!releasedAt) return false
   return Date.now() - releasedAt.getTime() > 24 * 60 * 60 * 1000
@@ -547,6 +743,12 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     // table may not exist yet
   }
 
+  // Crawler traffic (AI training / AI grounding / SEO) and confirmed AI citations
+  const [crawlerStats, aiGrounding] = await Promise.all([
+    getCrawlerStats(release.id),
+    getAiGrounding(release.id),
+  ])
+
   const encodedTitle = encodeURIComponent(`"${release.title || ''}"`)
 
   const data: ReportData = {
@@ -591,6 +793,8 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     yahooFinanceUrls,
     circuits: circuitsData,
     pdfDownloadCount,
+    crawlerStats,
+    aiGrounding,
     encodedTitle,
     fetchedAt: new Date().toISOString(),
   }
