@@ -250,16 +250,16 @@ export async function PATCH(
       const type = creditType || 'pr'
       const companyIdNum = creditCompanyId ? parseInt(creditCompanyId, 10) : null
 
-      if (type === 'podcast_pr' && (!companyIdNum || Number.isNaN(companyIdNum))) {
+      if ((type === 'podcast_pr' || type === 'blog_pr') && (!companyIdNum || Number.isNaN(companyIdNum))) {
         return NextResponse.json(
-          { error: 'A brand must be selected to apply Podcast PR credits' },
+          { error: `A brand must be selected to apply ${type === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits` },
           { status: 400 }
         )
       }
 
-      // Podcast PR credits expire 2 years from issue. Other types are perpetual.
+      // Podcast and Blog PR credits expire 2 years from issue. Other types are perpetual.
       const expiresAt =
-        type === 'podcast_pr'
+        type === 'podcast_pr' || type === 'blog_pr'
           ? new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000)
           : null
 
@@ -280,6 +280,8 @@ export async function PATCH(
             ? 'PR'
             : type === 'podcast_pr'
             ? 'Podcast PR'
+            : type === 'blog_pr'
+            ? 'Blog PR'
             : type
         await createSystemMessage(
           userId,

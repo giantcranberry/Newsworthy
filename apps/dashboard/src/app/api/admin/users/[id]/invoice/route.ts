@@ -6,7 +6,7 @@ import { eq, sql, or, isNull, ne, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const CREDIT_TYPES = new Set(['pr', 'yahoo', 'enhanced', 'podcast_pr'])
+const CREDIT_TYPES = new Set(['pr', 'yahoo', 'enhanced', 'podcast_pr', 'blog_pr'])
 
 /** Admin invoicing always uses live Stripe (same as /api/admin/sales). */
 function getLiveStripe(): Stripe {
@@ -361,9 +361,9 @@ export async function POST(
   const companyId =
     companyIdRaw && Number.isFinite(companyIdRaw) ? companyIdRaw : null
 
-  if (grantCredits && creditType === 'podcast_pr' && !companyId) {
+  if (grantCredits && (creditType === 'podcast_pr' || creditType === 'blog_pr') && !companyId) {
     return NextResponse.json(
-      { error: 'Podcast PR credits must be assigned to a brand' },
+      { error: `${creditType === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits must be assigned to a brand` },
       { status: 400 },
     )
   }

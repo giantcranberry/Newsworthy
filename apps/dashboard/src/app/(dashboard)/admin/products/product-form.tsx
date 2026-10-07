@@ -49,6 +49,7 @@ const DISTRIBUTION_TAGS = [
   { value: 'addon', label: 'Add-on' },
   { value: 'service', label: 'Service' },
   { value: 'podcast_pr', label: 'Podcast PR' },
+  { value: 'blog_pr', label: 'Blog PR' },
 ]
 
 export function ProductForm({ product, partners, onSuccess, onCancel }: ProductFormProps) {

@@ -10,6 +10,7 @@ import {
   releases,
   brandCredits,
   podcastFeeds,
+  blogFeeds,
   approvals,
   adCampaigns,
   contentCalendar,
@@ -87,6 +88,8 @@ export async function POST(
         .where(eq(brandCredits.companyId, brand.id)).returning({ id: brandCredits.id })
       const movedPodcastFeeds = await tx.update(podcastFeeds).set({ userId: newOwnerId })
         .where(eq(podcastFeeds.companyId, brand.id)).returning({ id: podcastFeeds.id })
+      const movedBlogFeeds = await tx.update(blogFeeds).set({ userId: newOwnerId })
+        .where(eq(blogFeeds.companyId, brand.id)).returning({ id: blogFeeds.id })
       const movedApprovals = await tx.update(approvals).set({ userId: newOwnerId })
         .where(eq(approvals.companyId, brand.id)).returning({ id: approvals.id })
       const movedAdCampaigns = await tx.update(adCampaigns).set({ userId: newOwnerId })
@@ -118,6 +121,7 @@ export async function POST(
         releases: movedReleases.length,
         creditEntries: movedCredits.length,
         podcastFeeds: movedPodcastFeeds.length,
+        blogFeeds: movedBlogFeeds.length,
         approvals: movedApprovals.length,
         adCampaigns: movedAdCampaigns.length,
         calendarEvents: movedCalendar.length,

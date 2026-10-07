@@ -48,15 +48,18 @@ export async function POST(
     // so drafts normally carry no deduction; a 'pr'/'credits' row here means
     // the release was submitted and later returned by editorial — deleting it
     // instead of resubmitting returns that credit (and any upgrade credits)
-    // to the user's balance. Exclude product_type='podcast_pr': podcast
-    // submits are deliberately non-refundable, so those rows must remain on
-    // the ledger.
+    // to the user's balance. Exclude product_type podcast_pr and blog_pr:
+    // those submits are deliberately non-refundable, so those rows must remain
+    // on the ledger.
     await db.delete(brandCredits).where(
       and(
         eq(brandCredits.prId, release.id),
         eq(brandCredits.userId, userId),
         or(
-          ne(brandCredits.productType, 'podcast_pr'),
+          and(
+            ne(brandCredits.productType, 'podcast_pr'),
+            ne(brandCredits.productType, 'blog_pr'),
+          ),
           isNull(brandCredits.productType),
         ),
       )

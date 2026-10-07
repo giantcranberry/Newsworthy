@@ -8,6 +8,7 @@ import { getPostHog } from '@/lib/posthog'
 import { sendSmsNotification } from '@/lib/twilio'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { getPodcastCreditsForCompany } from '@/lib/podcasts/access'
+import { getBlogCreditsForCompany } from '@/lib/blogs/access'
 import { sendVerificationEmail } from '@/lib/email'
 import { isInsufficientCreditsDbError } from '@/lib/brand-credits'
 import { prCreditScopes, qualifiesForFreeFirstPr } from '@/lib/pr-checkout'
@@ -72,10 +73,11 @@ export async function POST(
       )
     }
 
-    // Podcast-sourced PRs consume a podcast_pr credit at editorial submit.
-    const isPodcastSourced = release.source === 'podcast'
+    // Feed-sourced PRs consume their own credit type at editorial submit.
+    const feedProductType =
+      release.source === 'podcast' ? 'podcast_pr' : release.source === 'blog' ? 'blog_pr' : null
 
-    if (isPodcastSourced) {
+    if (feedProductType === 'podcast_pr') {
       const { totalCredits } = await getPodcastCreditsForCompany(release.companyId)
       if (totalCredits <= 0) {
         return NextResponse.json(
@@ -83,11 +85,19 @@ export async function POST(
           { status: 402 }
         )
       }
+    } else if (feedProductType === 'blog_pr') {
+      const { totalCredits } = await getBlogCreditsForCompany(release.companyId)
+      if (totalCredits <= 0) {
+        return NextResponse.json(
+          { error: 'No blog PR credits available. Add credits before submitting.' },
+          { status: 402 }
+        )
+      }
     }
 
     // Upgrades selected at the wizard but not yet paid must be settled (or
     // removed) in the finalize checkout before the release can be submitted.
-    if (!isPodcastSourced && release.pendingUpgrades) {
+    if (!feedProductType && release.pendingUpgrades) {
       return NextResponse.json(
         {
           error: 'Selected upgrades have not been paid for yet. Complete the checkout or remove the upgrades before submitting.',
@@ -124,7 +134,7 @@ export async function POST(
     // (drizzle/manual/2026-05-27-brand-credits-nonnegative.sql) is a backstop.
     try {
       await db.transaction(async (tx) => {
-        if (isPodcastSourced) {
+        if (feedProductType) {
           const now = new Date()
           const lockedRows = await tx
             .select({ credits: brandCredits.credits })
@@ -132,7 +142,7 @@ export async function POST(
             .where(
               and(
                 eq(brandCredits.companyId, release.companyId),
-                eq(brandCredits.productType, 'podcast_pr'),
+                eq(brandCredits.productType, feedProductType),
                 or(isNull(brandCredits.expiresAt), gt(brandCredits.expiresAt, now)),
               ),
             )
@@ -235,13 +245,13 @@ export async function POST(
           .set(updateData)
           .where(eq(releases.id, release.id))
 
-        if (isPodcastSourced) {
+        if (feedProductType) {
           await tx.insert(brandCredits).values({
             userId,
             companyId: release.companyId,
             prId: release.id,
             credits: -1,
-            productType: 'podcast_pr',
+            productType: feedProductType,
             notes: 'editorial submit',
           })
         }
@@ -249,8 +259,10 @@ export async function POST(
     } catch (err) {
       if (err instanceof InsufficientCreditsError || isInsufficientCreditsDbError(err)) {
         return NextResponse.json(
-          isPodcastSourced
+          feedProductType === 'podcast_pr'
             ? { error: 'No podcast PR credits available. Add credits before submitting.' }
+            : feedProductType === 'blog_pr'
+            ? { error: 'No blog PR credits available. Add credits before submitting.' }
             : {
                 error: 'No press release credits available. Purchase a credit to submit this release.',
                 code: 'no_pr_credit',

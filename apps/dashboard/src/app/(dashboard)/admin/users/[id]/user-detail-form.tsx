@@ -137,8 +137,8 @@ export function UserDetailForm({
       setIsSubmitting(false)
       return
     }
-    if (prCreditsNum !== 0 && formData.creditType === 'podcast_pr' && !formData.creditCompanyId) {
-      setError('Select a brand to apply Podcast PR credits to')
+    if (prCreditsNum !== 0 && (formData.creditType === 'podcast_pr' || formData.creditType === 'blog_pr') && !formData.creditCompanyId) {
+      setError(`Select a brand to apply ${formData.creditType === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits to`)
       setIsSubmitting(false)
       return
     }
@@ -354,10 +354,11 @@ export function UserDetailForm({
                 <option value="yahoo">Yahoo News</option>
                 <option value="enhanced">Enhanced Distribution</option>
                 <option value="podcast_pr">Podcast PR Credits</option>
+                <option value="blog_pr">Blog PR Credits</option>
               </Select>
             </div>
 
-            {formData.creditType === 'podcast_pr' && (
+            {(formData.creditType === 'podcast_pr' || formData.creditType === 'blog_pr') && (
               <div>
                 <Label htmlFor="creditCompanyId">Apply to Brand</Label>
                 <Select
@@ -374,11 +375,11 @@ export function UserDetailForm({
                   ))}
                 </Select>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Podcast PR credits are brand-scoped and expire 2 years after issue.
+                  {formData.creditType === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits are brand-scoped and expire 2 years after issue.
                 </p>
                 {userBrands.length === 0 && (
                   <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    This user has no brands — they can't receive podcast PR credits.
+                    This user has no brands. They can&apos;t receive {formData.creditType === 'blog_pr' ? 'blog' : 'podcast'} PR credits.
                   </p>
                 )}
               </div>

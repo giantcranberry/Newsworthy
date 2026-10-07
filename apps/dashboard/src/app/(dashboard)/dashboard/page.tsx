@@ -42,6 +42,7 @@ interface CreditsByType {
   enhanced: number
   concierge: number
   podcast: number
+  blog: number
 }
 
 interface BrandCreditsBreakdown {
@@ -68,6 +69,7 @@ function sumCredits(rows: { productType: string | null; balance: number }[]): Cr
     enhanced: totals['enhanced'] || 0,
     concierge: totals['concierge'] || 0,
     podcast: totals['podcast_pr'] || 0,
+    blog: totals['blog_pr'] || 0,
   };
 }
 

@@ -160,8 +160,8 @@ export function InvoiceUserDialog({
       toast.error('Enter how many credits to grant, or set credit type to None')
       return
     }
-    if (grantCredits && creditType === 'podcast_pr' && !companyId) {
-      toast.error('Podcast PR credits must be assigned to a brand')
+    if (grantCredits && (creditType === 'podcast_pr' || creditType === 'blog_pr') && !companyId) {
+      toast.error(`${creditType === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits must be assigned to a brand`)
       return
     }
 
@@ -372,6 +372,7 @@ export function InvoiceUserDialog({
                   <option value="yahoo">Yahoo News</option>
                   <option value="enhanced">Enhanced Distribution</option>
                   <option value="podcast_pr">Podcast PR</option>
+                  <option value="blog_pr">Blog PR</option>
                 </Select>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Choose None for consulting, writing, or other ad-hoc work. Payment is still recorded
@@ -407,9 +408,9 @@ export function InvoiceUserDialog({
                         </option>
                       ))}
                     </Select>
-                    {creditType === 'podcast_pr' && (
+                    {(creditType === 'podcast_pr' || creditType === 'blog_pr') && (
                       <p className="text-xs text-amber-600 dark:text-amber-400">
-                        Podcast PR credits require a brand.
+                        {creditType === 'blog_pr' ? 'Blog' : 'Podcast'} PR credits require a brand.
                       </p>
                     )}
                   </div>

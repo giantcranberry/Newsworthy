@@ -14,6 +14,7 @@ async function getProducts(partnerId: number) {
       ne(products.productType, 'newsdb'),
       ne(products.productType, 'addon'),
       ne(products.productType, 'podcast_pr'),
+      ne(products.productType, 'blog_pr'),
       or(
         eq(products.partnerId, partnerId),
         isNull(products.partnerId)

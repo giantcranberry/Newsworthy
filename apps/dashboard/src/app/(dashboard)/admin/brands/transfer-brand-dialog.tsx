@@ -31,6 +31,7 @@ interface TransferCounts {
   releases: number
   creditEntries: number
   podcastFeeds: number
+  blogFeeds: number
   approvals: number
   adCampaigns: number
   calendarEvents: number
@@ -142,6 +143,7 @@ export function TransferBrandDialog({
         result.contacts > 0 && `${result.contacts} contact${result.contacts === 1 ? '' : 's'}`,
         result.socials > 0 && `${result.socials} social profile${result.socials === 1 ? '' : 's'}`,
         result.podcastFeeds > 0 && `${result.podcastFeeds} podcast feed${result.podcastFeeds === 1 ? '' : 's'}`,
+        result.blogFeeds > 0 && `${result.blogFeeds} blog feed${result.blogFeeds === 1 ? '' : 's'}`,
         result.adCampaigns > 0 && `${result.adCampaigns} ad campaign${result.adCampaigns === 1 ? '' : 's'}`,
         result.calendarEvents > 0 && `${result.calendarEvents} calendar event${result.calendarEvents === 1 ? '' : 's'}`,
       ].filter(Boolean)

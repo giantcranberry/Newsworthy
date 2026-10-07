@@ -27,7 +27,7 @@ interface PreviewMessage {
 export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
   const { data: session } = useSession()
   const pathname = usePathname()
-  const inPodcastFlow = pathname.startsWith('/pr/podcast')
+  const inFeedCreditFlow = pathname.startsWith('/pr/podcast') || pathname.startsWith('/pr/blog')
   const isAdminSpace = pathname.startsWith('/admin') || pathname.startsWith('/editorial')
   const [unreadCount, setUnreadCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
@@ -178,7 +178,7 @@ export function Header({ onMenuClick, canCreateContent = true }: HeaderProps) {
             </Link>
 
             {/* Credits */}
-            {!inPodcastFlow && (
+            {!inFeedCreditFlow && (
               <Link href="/payment/paygo">
                 <Button variant="outline" size="sm" className="gap-2 text-gray-700 dark:text-gray-300">
                   <CreditCard className="h-4 w-4" />

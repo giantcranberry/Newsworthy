@@ -64,6 +64,7 @@ import {
   crmContacts,
   a2aApiKeys,
   podcastFeeds,
+  blogFeeds,
   podcastEpisodes,
   adCampaigns,
   communityPosts,
@@ -375,6 +376,11 @@ export async function permanentlyDeleteUser(userId: number): Promise<{
         (ids) => tx.delete(podcastFeeds).where(inArray(podcastFeeds.companyId, ids)),
         companyIds,
       )
+      // Blog feeds → posts cascade from feed
+      await deleteByIds(
+        (ids) => tx.delete(blogFeeds).where(inArray(blogFeeds.companyId, ids)),
+        companyIds,
+      )
 
       await deleteByIds(
         (ids) => tx.delete(consolidatedReports).where(inArray(consolidatedReports.companyId, ids)),
@@ -613,6 +619,7 @@ export async function permanentlyDeleteUser(userId: number): Promise<{
     await tx.delete(crmContacts).where(eq(crmContacts.userId, userId))
     await tx.delete(a2aApiKeys).where(eq(a2aApiKeys.userId, userId))
     await tx.delete(podcastFeeds).where(eq(podcastFeeds.userId, userId))
+    await tx.delete(blogFeeds).where(eq(blogFeeds.userId, userId))
     await tx.delete(adCampaigns).where(eq(adCampaigns.userId, userId))
     await tx.delete(nwaiAssets).where(eq(nwaiAssets.userId, userId))
     await tx.delete(oauthAuthorizationCodes).where(eq(oauthAuthorizationCodes.userId, userId))

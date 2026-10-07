@@ -262,6 +262,7 @@ export default async function UserDetailPage({
             <p><span className="text-gray-500 dark:text-gray-400">Yahoo:</span> <strong>{(creditTotals['yahoo'] || 0).toLocaleString()}</strong></p>
             <p><span className="text-gray-500 dark:text-gray-400">Enhanced:</span> <strong>{(creditTotals['enhanced'] || 0).toLocaleString()}</strong></p>
             <p><span className="text-gray-500 dark:text-gray-400">Podcast PR:</span> <strong>{(creditTotals['podcast_pr'] || 0).toLocaleString()}</strong></p>
+            <p><span className="text-gray-500 dark:text-gray-400">Blog PR:</span> <strong>{(creditTotals['blog_pr'] || 0).toLocaleString()}</strong></p>
             {podcastCreditsByBrand.length > 0 && (
               <div className="pt-1 space-y-1">
                 {podcastCreditsByBrand.map((row) => (
