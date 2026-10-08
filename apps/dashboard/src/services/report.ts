@@ -72,6 +72,14 @@ export interface CrawlerDailyBucket {
   seo: number
 }
 
+/** One bucket on the views/shares chart. `label` matches that chart's key. */
+export interface CrawlerActivityBucket {
+  label: string
+  aiTraining: number
+  aiGrounding: number
+  seo: number
+}
+
 /**
  * Crawler traffic on the release's public article pages (newsworthy.ai),
  * split into AI training crawlers, AI grounding / answer-engine fetchers,
@@ -82,6 +90,8 @@ export interface CrawlerStats {
   aiGrounding: CrawlerGroup
   seo: CrawlerGroup
   daily: CrawlerDailyBucket[]
+  /** Same interval as views and shares: hour, day, or month. Hourly counts come from page_hits.created_at. */
+  activity: CrawlerActivityBucket[]
 }
 
 /** A confirmed citation of our distribution network by an AI search product */
@@ -219,26 +229,23 @@ export async function getClipsTotalStats(prhashIds: string[]): Promise<{ pagevie
   return { pageviews, shares }
 }
 
-async function getClipStatistics(prhashId: string, releasedAt: Date) {
+type StatsInterval = 'hour' | 'day' | 'month'
+
+/** Same buckets as the views and shares chart: hour for the first 3 days, then day, then month. */
+function statsInterval(releasedAt: Date): StatsInterval {
   const now = new Date()
   const threeMonthsAgo = new Date(now)
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
   const threeDaysAgo = new Date(now)
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
+  if (releasedAt < threeMonthsAgo) return 'month'
+  if (releasedAt < threeDaysAgo) return 'day'
+  return 'hour'
+}
 
-  let interval: string
-  let timeFormat: string
-
-  if (releasedAt < threeMonthsAgo) {
-    interval = 'month'
-    timeFormat = 'MM/yyyy'
-  } else if (releasedAt < threeDaysAgo) {
-    interval = 'day'
-    timeFormat = 'MM/dd/yyyy'
-  } else {
-    interval = 'hour'
-    timeFormat = 'MM/dd h:00 a'
-  }
+async function getClipStatistics(prhashId: string, releasedAt: Date) {
+  const interval = statsInterval(releasedAt)
+  const timeFormat = interval === 'month' ? 'MM/yyyy' : interval === 'day' ? 'MM/dd/yyyy' : 'MM/dd h:00 a'
 
   // Pageviews time series
   const pvQuery = {
@@ -452,12 +459,78 @@ function addToGroup(group: CrawlerGroup, stat: CrawlerBotStat) {
   if (stat.lastSeen && (!group.lastSeen || stat.lastSeen > group.lastSeen)) group.lastSeen = stat.lastSeen
 }
 
-async function getCrawlerStats(releaseId: number): Promise<CrawlerStats> {
+const ACTIVITY_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+/** 'YYYY-MM-DD HH24' (UTC) -> 'MM/dd h:00 a', matching the OpenSearch hour histogram. */
+function hourChartLabel(stamp: string): string {
+  const match = stamp.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2})$/)
+  if (!match) return stamp
+  const hour24 = Number(match[4])
+  const h12 = hour24 % 12 || 12
+  const ampm = hour24 < 12 ? 'AM' : 'PM'
+  return `${match[2]}/${match[3]} ${h12}:00 ${ampm}`
+}
+
+function activityFromDaily(daily: CrawlerDailyBucket[], interval: 'day' | 'month'): CrawlerActivityBucket[] {
+  if (interval === 'day') {
+    return daily.map((bucket) => {
+      const [y, m, d] = bucket.date.split('-')
+      return {
+        label: `${m}/${d}/${y}`,
+        aiTraining: bucket.aiTraining,
+        aiGrounding: bucket.aiGrounding,
+        seo: bucket.seo,
+      }
+    })
+  }
+  const byMonth = new Map<string, CrawlerActivityBucket>()
+  for (const bucket of daily) {
+    const [y, m] = bucket.date.split('-')
+    const label = `${ACTIVITY_MONTHS[Number(m)] || m} ${y}`
+    const current = byMonth.get(label) ?? { label, aiTraining: 0, aiGrounding: 0, seo: 0 }
+    current.aiTraining += bucket.aiTraining
+    current.aiGrounding += bucket.aiGrounding
+    current.seo += bucket.seo
+    byMonth.set(label, current)
+  }
+  return Array.from(byMonth.values())
+}
+
+async function hourlyCrawlerActivity(releaseId: number): Promise<CrawlerActivityBucket[]> {
+  // page_hits.created_at is a timestamp. Truncate in UTC so the label matches the chart.
+  const bucket = sql<string>`to_char((date_trunc('hour', (${pageHits.createdAt} AT TIME ZONE 'UTC') AT TIME ZONE 'UTC')), 'YYYY-MM-DD HH24')`
+  const rows = await db
+    .select({
+      bucket,
+      visitor: pageHits.visitor,
+      botName: pageHits.botName,
+      hits: count(),
+    })
+    .from(pageHits)
+    .where(and(eq(pageHits.prId, releaseId), inArray(pageHits.visitor, ['ai', 'seo'])))
+    .groupBy(bucket, pageHits.visitor, pageHits.botName)
+    .orderBy(asc(bucket))
+
+  const byHour = new Map<string, CrawlerActivityBucket>()
+  for (const row of rows) {
+    const label = hourChartLabel(row.bucket)
+    const current = byHour.get(label) ?? { label, aiTraining: 0, aiGrounding: 0, seo: 0 }
+    const n = Number(row.hits)
+    if (row.visitor === 'seo') current.seo += n
+    else if (row.botName && AI_GROUNDING_BOTS.has(row.botName)) current.aiGrounding += n
+    else current.aiTraining += n
+    byHour.set(label, current)
+  }
+  return Array.from(byHour.values())
+}
+
+async function getCrawlerStats(releaseId: number, releasedAt: Date | null): Promise<CrawlerStats> {
   const stats: CrawlerStats = {
     aiTraining: emptyCrawlerGroup(),
     aiGrounding: emptyCrawlerGroup(),
     seo: emptyCrawlerGroup(),
     daily: [],
+    activity: [],
   }
 
   try {
@@ -518,6 +591,10 @@ async function getCrawlerStats(releaseId: number): Promise<CrawlerStats> {
       else bucket.aiTraining += n
     }
     stats.daily = Array.from(byDate.values())
+    const interval = releasedAt ? statsInterval(releasedAt) : 'day'
+    stats.activity = interval === 'hour'
+      ? await hourlyCrawlerActivity(releaseId)
+      : activityFromDaily(stats.daily, interval)
   } catch (err) {
     // page_hits may not exist yet in every environment; the report must still render
     console.error('getCrawlerStats error:', err)
@@ -745,7 +822,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
 
   // Crawler traffic (AI training / AI grounding / SEO) and confirmed AI citations
   const [crawlerStats, aiGrounding] = await Promise.all([
-    getCrawlerStats(release.id),
+    getCrawlerStats(release.id, release.releasedAt),
     getAiGrounding(release.id),
   ])
 

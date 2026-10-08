@@ -18,7 +18,7 @@ import {
   Filler,
 } from 'chart.js'
 import type { ChartOptions } from 'chart.js'
-import { Line } from 'react-chartjs-2'
+import { Bar, Line } from 'react-chartjs-2'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler)
 
@@ -60,6 +60,26 @@ function parseStatKey(key: string, fallbackYear: number): number | null {
 function formatReleaseDate(iso: string | null) {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+function formatDayLabel(ymd: string) {
+  const [y, m, d] = ymd.split('-').map(Number)
+  if (!y || !m || !d) return ymd
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
+function formatSeriesList(items: string[]) {
+  if (items.length <= 1) return items[0] || ''
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
+}
+
+function crawlerTotals(data: ReportData) {
+  return {
+    aiTraining: data.crawlerStats?.aiTraining.total ?? 0,
+    aiGrounding: data.crawlerStats?.aiGrounding.total ?? 0,
+    seo: data.crawlerStats?.seo.total ?? 0,
+  }
 }
 
 // On load error (404, broken URL, blocked), the <img> is removed and `fallback` is rendered instead.
@@ -161,11 +181,39 @@ export function ConsolidatedReport({
     const totalPv = reports.reduce((s, r) => s + r.data.totalPv, 0)
     const totalSh = reports.reduce((s, r) => s + r.data.totalSh, 0)
     const totalPdf = reports.reduce((s, r) => s + (r.data.pdfDownloadCount || 0), 0)
+    const activity = reports.reduce(
+      (sum, r) => {
+        const totals = crawlerTotals(r.data)
+        sum.aiTraining += totals.aiTraining
+        sum.aiGrounding += totals.aiGrounding
+        sum.seo += totals.seo
+        return sum
+      },
+      { aiTraining: 0, aiGrounding: 0, seo: 0 },
+    )
     const totalEng = totalPv + totalSh
     // Each release carries a standard $129 distribution cost; consolidated eCPC
     // spreads the combined cost over combined engagement.
     const ecpc = totalEng > 0 ? (Math.floor((129 * reports.length) / totalEng * 100) / 100).toFixed(2) : '0.00'
-    return { totalPv, totalSh, totalPdf, totalEng, ecpc, count: reports.length }
+    return { totalPv, totalSh, totalPdf, totalEng, ecpc, count: reports.length, ...activity }
+  }, [reports])
+
+  // Combined daily crawler fetches. A category is omitted from the chart when
+  // its total across every selected release is zero.
+  const crawlerDaily = useMemo(() => {
+    const byDate = new Map<string, { aiTraining: number; aiGrounding: number; seo: number }>()
+    for (const report of reports) {
+      for (const bucket of report.data.crawlerStats?.daily ?? []) {
+        const current = byDate.get(bucket.date) ?? { aiTraining: 0, aiGrounding: 0, seo: 0 }
+        current.aiTraining += bucket.aiTraining
+        current.aiGrounding += bucket.aiGrounding
+        current.seo += bucket.seo
+        byDate.set(bucket.date, current)
+      }
+    }
+    return Array.from(byDate.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, counts]) => ({ date, ...counts }))
   }, [reports])
 
   // Freshest data timestamp across all loaded reports (data is fetched live on
@@ -401,11 +449,24 @@ export function ConsolidatedReport({
         </div>
       </div>
 
-      {/* Aggregate metric cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-stretch">
+      {/* Aggregate metric cards. Shares and crawler activity are omitted when their total is 0. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 items-stretch">
         <MetricCard icon="fa-eye" iconColor="text-blue-600 dark:text-blue-400" value={agg.totalPv.toLocaleString()} label="Total Views" />
-        <MetricCard icon="fa-share-nodes" iconColor="text-green-500" value={agg.totalSh.toLocaleString()} label="Total Shares" />
-        <MetricCard icon="fa-file-pdf" iconColor="text-red-500" value={agg.totalPdf.toLocaleString()} label="PDF Downloads" />
+        {agg.totalSh > 0 && (
+          <MetricCard icon="fa-share-nodes" iconColor="text-green-500" value={agg.totalSh.toLocaleString()} label="Total Shares" />
+        )}
+        {agg.totalPdf > 0 && (
+          <MetricCard icon="fa-file-pdf" iconColor="text-red-500" value={agg.totalPdf.toLocaleString()} label="PDF Downloads" />
+        )}
+        {agg.aiTraining > 0 && (
+          <MetricCard icon="fa-brain" iconColor="text-purple-600 dark:text-purple-400" value={agg.aiTraining.toLocaleString()} label="AI Training" />
+        )}
+        {agg.aiGrounding > 0 && (
+          <MetricCard icon="fa-comments" iconColor="text-orange-600 dark:text-orange-400" value={agg.aiGrounding.toLocaleString()} label="AI Grounding" />
+        )}
+        {agg.seo > 0 && (
+          <MetricCard icon="fa-magnifying-glass" iconColor="text-blue-600 dark:text-blue-400" value={agg.seo.toLocaleString()} label="SEO Indexing" />
+        )}
         <MetricCard icon="fa-layer-group" iconColor="text-[#764ba2]" value={agg.count.toLocaleString()} label="Releases" />
       </div>
 
@@ -458,6 +519,54 @@ export function ConsolidatedReport({
                 No time-series data yet for: {noLineTitles.join('; ')}
               </p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Combined crawler activity. Each series is omitted when its total is 0. */}
+      {crawlerDaily.length > 0 && (agg.aiTraining > 0 || agg.aiGrounding > 0 || agg.seo > 0) && (
+        <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900">
+          <div className="p-5">
+            <div className="flex justify-between items-start mb-1">
+              <div>
+                <h6 className="font-semibold text-gray-800 dark:text-gray-200">AI and SEO Activity</h6>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Combined {formatSeriesList([
+                    agg.aiTraining > 0 ? 'AI training' : '',
+                    agg.aiGrounding > 0 ? 'AI grounding' : '',
+                    agg.seo > 0 ? 'SEO' : '',
+                  ].filter((name): name is string => Boolean(name)))} across these releases
+                </p>
+              </div>
+              <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5 text-gray-500 dark:text-gray-400">UTC</span>
+            </div>
+            <div className="h-[280px]">
+              <Bar
+                data={{
+                  labels: crawlerDaily.map((bucket) => formatDayLabel(bucket.date)),
+                  datasets: [
+                    ...(agg.aiTraining > 0
+                      ? [{ label: 'AI Training', data: crawlerDaily.map((bucket) => bucket.aiTraining), backgroundColor: '#a855f7' }]
+                      : []),
+                    ...(agg.aiGrounding > 0
+                      ? [{ label: 'AI Grounding', data: crawlerDaily.map((bucket) => bucket.aiGrounding), backgroundColor: '#f97316' }]
+                      : []),
+                    ...(agg.seo > 0
+                      ? [{ label: 'SEO', data: crawlerDaily.map((bucket) => bucket.seo), backgroundColor: '#6366f1' }]
+                      : []),
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { stacked: true, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
+                    y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
+                  },
+                  plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -616,6 +725,15 @@ function MetricCard({ icon, iconColor, value, label }: { icon: string; iconColor
 function ReleaseCard({ loaded, isPublic }: { loaded: Loaded; isPublic: boolean }) {
   const { data, color } = loaded
   const { release, company, totalPv, totalSh, ecpc, constGrowthStats } = data
+  const activity = crawlerTotals(data)
+  const cardMetrics = [
+    { label: 'Views', value: totalPv.toLocaleString() },
+    totalSh > 0 ? { label: 'Shares', value: totalSh.toLocaleString() } : null,
+    { label: 'eCPC', value: `$${ecpc}` },
+    activity.aiTraining > 0 ? { label: 'AI Training', value: activity.aiTraining.toLocaleString() } : null,
+    activity.aiGrounding > 0 ? { label: 'AI Grounding', value: activity.aiGrounding.toLocaleString() } : null,
+    activity.seo > 0 ? { label: 'SEO', value: activity.seo.toLocaleString() } : null,
+  ].filter((metric): metric is { label: string; value: string } => metric !== null)
   const year = release.releasedAt ? new Date(release.releasedAt).getFullYear() : new Date().getFullYear()
 
   const sparkData = useMemo(() => {
@@ -678,20 +796,14 @@ function ReleaseCard({ loaded, isPublic }: { loaded: Loaded; isPublic: boolean }
           )}
         </div>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-3 gap-2 text-center border-t border-gray-100 dark:border-gray-800 pt-3">
-          <div>
-            <div className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-none">{totalPv.toLocaleString()}</div>
-            <div className="text-[0.65rem] uppercase tracking-wider text-gray-400 mt-1">Views</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-none">{totalSh.toLocaleString()}</div>
-            <div className="text-[0.65rem] uppercase tracking-wider text-gray-400 mt-1">Shares</div>
-          </div>
-          <div>
-            <div className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-none">${ecpc}</div>
-            <div className="text-[0.65rem] uppercase tracking-wider text-gray-400 mt-1">eCPC</div>
-          </div>
+        {/* Metrics. Shares and crawler activity are omitted when that release's total is 0. */}
+        <div className={`grid gap-2 text-center border-t border-gray-100 dark:border-gray-800 pt-3 ${cardMetrics.length === 2 ? 'grid-cols-2' : cardMetrics.length === 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          {cardMetrics.map((metric) => (
+            <div key={metric.label}>
+              <div className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-none">{metric.value}</div>
+              <div className="text-[0.65rem] uppercase tracking-wide text-gray-400 mt-1 leading-tight">{metric.label}</div>
+            </div>
+          ))}
         </div>
       </div>
 

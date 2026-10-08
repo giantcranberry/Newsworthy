@@ -182,22 +182,24 @@ function PieChartSvg({ views, shares }: { views: number; shares: number }) {
   )
 }
 
-function LineChartSvg({ data, multiplier }: { data: TimeBucket[]; multiplier: number }) {
+function LineChartSvg({ data }: { data: TimeBucket[] }) {
   if (data.length < 2) return null
   const w = 340, h = 180
   const pad = { top: 10, right: 10, bottom: 10, left: 10 }
   const chartW = w - pad.left - pad.right
   const chartH = h - pad.top - pad.bottom
 
-  const maxVal = Math.max(...data.map(d => Math.max(d.views, d.shares_multiplied ?? d.shares)), 1)
+  const maxViews = Math.max(...data.map(d => d.views), 1)
+  const maxShares = Math.max(...data.map(d => d.shares), 0)
+  const showShares = maxShares > 0
 
   const viewsPoints = data.map((d, i) => ({
     x: pad.left + (i / (data.length - 1)) * chartW,
-    y: pad.top + chartH - (d.views / maxVal) * chartH,
+    y: pad.top + chartH - (d.views / maxViews) * chartH,
   }))
   const sharesPoints = data.map((d, i) => ({
     x: pad.left + (i / (data.length - 1)) * chartW,
-    y: pad.top + chartH - ((d.shares_multiplied ?? d.shares) / maxVal) * chartH,
+    y: pad.top + chartH - (showShares ? (d.shares / maxShares) * chartH : chartH),
   }))
 
   const viewsLine = viewsPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
@@ -212,14 +214,19 @@ function LineChartSvg({ data, multiplier }: { data: TimeBucket[]; multiplier: nu
           <SvgLine key={pct} x1={pad.left} y1={pad.top + chartH * (1 - pct)} x2={pad.left + chartW} y2={pad.top + chartH * (1 - pct)} stroke={C.gray100} strokeWidth={0.5} />
         ))}
         <Path d={viewsFill} fill={C.blue} fillOpacity={0.15} />
-        <Path d={sharesFill} fill={C.green} fillOpacity={0.15} />
+        {showShares && <Path d={sharesFill} fill={C.green} fillOpacity={0.15} />}
         <Path d={viewsLine} fill="none" stroke={C.blue} strokeWidth={1.5} />
-        <Path d={sharesLine} fill="none" stroke={C.green} strokeWidth={1.5} />
+        {showShares && <Path d={sharesLine} fill="none" stroke={C.green} strokeWidth={1.5} />}
       </Svg>
       <ChartLegend items={[
         { color: C.blue, label: 'Views' },
-        { color: C.green, label: multiplier > 1 ? `Shares (x${multiplier})` : 'Shares' },
+        ...(showShares ? [{ color: C.green, label: 'Shares' }] : []),
       ]} />
+      {showShares && (
+        <Text style={{ fontSize: 6, color: C.gray500, textAlign: 'center', marginTop: 2 }}>
+          Shares use their own scale.
+        </Text>
+      )}
     </View>
   )
 }
@@ -516,7 +523,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 <View style={{ flex: 2, backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, padding: 12 }}>
                   <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.gray800, marginBottom: 4 }}>Cumulative Growth</Text>
                   <Text style={{ fontSize: 7, color: C.gray500, marginBottom: 8 }}>Track your content&apos;s momentum over time</Text>
-                  <LineChartSvg data={data.constGrowthStats} multiplier={data.shStatsMultiplier} />
+                  <LineChartSvg data={data.constGrowthStats} />
                 </View>
               )}
             </View>
@@ -566,6 +573,9 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
           <View style={{ marginBottom: 12 }}>
             <View wrap={false}>
               <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray700, marginBottom: 2 }}>AI &amp; Search Visibility</Text>
+              <Text style={{ fontSize: 8, color: C.gray700, marginBottom: 4 }}>
+                As measured on Newsworthy.ai site, Not across entire distribution network.
+              </Text>
               <Text style={{ fontSize: 7.5, color: C.gray500, marginBottom: 8 }}>
                 Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
               </Text>
@@ -583,7 +593,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 title="AI Grounding"
                 subtitle="Live fetches by AI assistants answering questions"
                 unit="Fetches"
-                color="#10b981"
+                color="#f97316"
                 group={crawlerStats.aiGrounding}
                 emptyText="No AI assistants have retrieved this release to answer a question yet."
               />
@@ -598,7 +608,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             </View>
 
             {citations.length > 0 && (
-              <View style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 3, borderLeftColor: '#10b981', padding: 10 }}>
+              <View style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 3, borderLeftColor: '#f97316', padding: 10 }}>
                 <View wrap={false}>
                   <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: C.gray800 }}>AI Search Citations</Text>
                   <Text style={{ fontSize: 6.5, color: C.gray500, marginBottom: 6 }}>
@@ -612,7 +622,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 </View>
                 {citations.slice(0, 25).map((c, i) => (
                   <View key={`${c.source}-${i}`} wrap={false} style={{ flexDirection: 'row', paddingVertical: 3, borderBottomWidth: 0.5, borderBottomColor: C.gray100 }}>
-                    <Text style={{ width: '24%', fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#047857', paddingRight: 4 }}>{c.sourceLabel}</Text>
+                    <Text style={{ width: '24%', fontSize: 7.5, fontFamily: 'Helvetica-Bold', color: '#c2410c', paddingRight: 4 }}>{c.sourceLabel}</Text>
                     <Text style={{ width: '58%', fontSize: 7.5, color: C.gray700, paddingRight: 4 }}>{c.query}</Text>
                     <Text style={{ width: '18%', fontSize: 7, color: C.gray500, textAlign: 'right' }}>{fmtShortDate(c.createdAt)}</Text>
                   </View>

@@ -74,34 +74,54 @@ function formatDailyLabel(ymd: string) {
 
 const ACTIVITY_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
+type CrawlerActivityField = 'aiTraining' | 'aiGrounding' | 'seo'
+
+function labelsAreHourly(labels: string[]) {
+  return labels.some((label) => /^\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}\s*(AM|PM)$/i.test(label))
+}
+
 /**
- * Crawler totals aligned to the Daily Activity chart labels.
- * Those labels are MM/dd/yyyy (day), "Month yyyy" (month), or "MM/dd h:00 a" (hour).
+ * Crawler series aligned to the views/shares labels.
+ * Prefer `activity`, whose labels are the real hour, day, or month of each hit.
+ * Reports cached before that field existed fall back to daily totals, and never
+ * repeat a day's total on every hour.
  */
-function crawlerTotalsForLabels(labels: string[], daily: CrawlerStats['daily']): number[] {
+function crawlerSeriesForLabels(
+  labels: string[],
+  activity: CrawlerStats['activity'] | undefined,
+  daily: CrawlerStats['daily'],
+  field: CrawlerActivityField,
+): number[] {
+  if (activity && activity.length > 0) {
+    const byLabel = new Map(activity.map((bucket) => [bucket.label, bucket[field]]))
+    return labels.map((label) => byLabel.get(label) ?? 0)
+  }
+  if (labelsAreHourly(labels)) return labels.map(() => 0)
   const byDay = new Map<string, number>()
   const byMonth = new Map<string, number>()
-  const byMonthDay = new Map<string, number>()
   for (const bucket of daily) {
     const [y, m, day] = bucket.date.split('-')
     if (!y || !m || !day) continue
-    const total = bucket.aiTraining + bucket.aiGrounding + bucket.seo
+    const total = bucket[field]
     byDay.set(`${m}/${day}/${y}`, (byDay.get(`${m}/${day}/${y}`) || 0) + total)
     const monthKey = `${ACTIVITY_MONTHS[Number(m)]} ${y}`
     byMonth.set(monthKey, (byMonth.get(monthKey) || 0) + total)
-    byMonthDay.set(`${m}/${day}`, (byMonthDay.get(`${m}/${day}`) || 0) + total)
   }
-  return labels.map((label) => {
-    if (byDay.has(label)) return byDay.get(label)!
-    if (byMonth.has(label)) return byMonth.get(label)!
-    const hour = label.match(/^(\d{2}\/\d{2})\b/)
-    if (hour && byMonthDay.has(hour[1])) return byMonthDay.get(hour[1])!
-    return 0
-  })
+  return labels.map((label) => byDay.get(label) ?? byMonth.get(label) ?? 0)
+}
+
+function seriesSum(values: number[]) {
+  return values.reduce((sum, n) => sum + n, 0)
+}
+
+function formatSeriesList(items: string[]) {
+  if (items.length <= 1) return items[0] || ''
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
 }
 
 const EMPTY_CRAWLER_GROUP: CrawlerGroup = { total: 0, bots: [], firstSeen: null, lastSeen: null }
-const EMPTY_CRAWLER_STATS: CrawlerStats = { aiTraining: EMPTY_CRAWLER_GROUP, aiGrounding: EMPTY_CRAWLER_GROUP, seo: EMPTY_CRAWLER_GROUP, daily: [] }
+const EMPTY_CRAWLER_STATS: CrawlerStats = { aiTraining: EMPTY_CRAWLER_GROUP, aiGrounding: EMPTY_CRAWLER_GROUP, seo: EMPTY_CRAWLER_GROUP, daily: [], activity: [] }
 const EMPTY_AI_GROUNDING: AiGroundingData = { citations: [], sources: [] }
 
 function buildNewsUrl(release: ReportData['release']) {
@@ -232,9 +252,9 @@ function CircuitClipCard({ thumbnail, name, link, city, state }: { thumbnail: st
 
 // --- Visibility Card (AI training / AI grounding / SEO crawler summary) ---
 const VISIBILITY_TONES = {
-  purple: { icon: 'text-purple-600 dark:text-purple-400', border: 'border-l-purple-500', pill: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300' },
-  emerald: { icon: 'text-emerald-600 dark:text-emerald-400', border: 'border-l-emerald-500', pill: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' },
-  blue: { icon: 'text-blue-600 dark:text-blue-400', border: 'border-l-blue-500', pill: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' },
+  purple: { icon: 'text-purple-600 dark:text-purple-400', border: 'border-l-purple-500', pill: 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300', link: 'text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300' },
+  orange: { icon: 'text-orange-600 dark:text-orange-400', border: 'border-l-orange-500', pill: 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300', link: 'text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300' },
+  blue: { icon: 'text-blue-600 dark:text-blue-400', border: 'border-l-blue-500', pill: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300', link: 'text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300' },
 } as const
 
 function VisibilityCard({
@@ -257,9 +277,9 @@ function VisibilityCard({
   footer?: React.ReactNode
 }) {
   const t = VISIBILITY_TONES[tone]
-  const topBots = group.bots.slice(0, 6)
-  const otherBots = group.bots.slice(6)
-  const otherHits = otherBots.reduce((sum, b) => sum + b.hits, 0)
+  const [expanded, setExpanded] = useState(false)
+  const hiddenCount = Math.max(0, group.bots.length - 6)
+  const visibleBots = expanded || hiddenCount === 0 ? group.bots : group.bots.slice(0, 6)
   return (
     <div className={`rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 border-l-4 ${t.border} h-full`}>
       <div className="p-5 flex flex-col h-full">
@@ -282,19 +302,23 @@ function VisibilityCard({
         ) : (
           <>
             <ul className="divide-y divide-gray-100 dark:divide-gray-800">
-              {topBots.map((b) => (
+              {visibleBots.map((b) => (
                 <li key={b.botName} className="flex items-center justify-between py-1.5 text-sm">
                   <span className="text-gray-700 dark:text-gray-300 truncate" title={b.lastSeen ? `Last seen ${formatShortDateTime(b.lastSeen)}` : undefined}>{b.botName}</span>
                   <span className={`ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${t.pill}`}>{b.hits.toLocaleString()}</span>
                 </li>
               ))}
-              {otherBots.length > 0 && (
-                <li className="flex items-center justify-between py-1.5 text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">{otherBots.length} other {otherBots.length === 1 ? 'bot' : 'bots'}</span>
-                  <span className="ml-3 shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">{otherHits.toLocaleString()}</span>
-                </li>
-              )}
             </ul>
+            {hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded((open) => !open)}
+                className={`mt-2 inline-flex items-center gap-1.5 text-sm font-medium cursor-pointer ${t.link}`}
+              >
+                <i className={`fa-solid ${expanded ? 'fa-chevron-up' : 'fa-chevron-down'} text-xs`} aria-hidden="true" />
+                {expanded ? 'Show less' : `Show all ${group.bots.length} bots`}
+              </button>
+            )}
             {(group.firstSeen || group.lastSeen) && (
               <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
                 {group.firstSeen && <div>First visit: {formatShortDateTime(group.firstSeen)}</div>}
@@ -416,16 +440,51 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     )
   }
 
-  const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, shStatsMultiplier, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
-  // May be missing on reports cached before this field existed
-  const shareListCount = data.shareListCount ?? 0
+  const { release, company, clips, totalPv, totalSh, ecpc, combStats, constGrowthStats, releaseIsYearOld, hasAdvGroup, nwrampReport, enhancedPublications, yahooFinanceUrls, circuits, encodedTitle, pdfDownloadCount } = data
   const crawlerStats = data.crawlerStats ?? EMPTY_CRAWLER_STATS
   const aiGrounding = data.aiGrounding ?? EMPTY_AI_GROUNDING
   const totalAiHits = crawlerStats.aiTraining.total + crawlerStats.aiGrounding.total
   const hasVisibilityData = totalAiHits > 0 || crawlerStats.seo.total > 0 || aiGrounding.citations.length > 0
   const newsUrl = buildNewsUrl(release)
-  const dailyCrawlerSeries = crawlerTotalsForLabels(combStats.map((s) => s.key_as_string), crawlerStats.daily)
-  const hasDailyCrawlers = dailyCrawlerSeries.some((n) => n > 0)
+  const visibilityMetrics = [
+    { key: 'training', label: 'AI Training', value: crawlerStats.aiTraining.total },
+    { key: 'grounding', label: 'AI Grounding', value: crawlerStats.aiGrounding.total },
+    { key: 'seo', label: 'SEO Indexing', value: crawlerStats.seo.total },
+  ].filter((metric) => metric.value > 0)
+  const activityLabels = combStats.map((s) => s.key_as_string)
+  const dailyViews = combStats.map((s) => s.views)
+  const dailyShares = combStats.map((s) => s.shares)
+  const dailyAiTraining = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'aiTraining')
+  const dailyAiGrounding = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'aiGrounding')
+  const dailySeo = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'seo')
+  const showDailyViews = seriesSum(dailyViews) > 0
+  const showDailyShares = seriesSum(dailyShares) > 0
+  const showDailyAiTraining = seriesSum(dailyAiTraining) > 0
+  const showDailyAiGrounding = seriesSum(dailyAiGrounding) > 0
+  const showDailySeo = seriesSum(dailySeo) > 0
+  const activityAxisNames = [
+    showDailyShares && 'Shares',
+    showDailyAiTraining && 'AI Training',
+    showDailyAiGrounding && 'AI Grounding',
+    showDailySeo && 'SEO',
+  ].filter((name): name is string => Boolean(name))
+  // Views stay on the left axis. Shares sit with crawler activity on the right, unscaled.
+  const activityAxis: 'y' | 'y1' = showDailyViews && activityAxisNames.length > 0 ? 'y1' : 'y'
+  const dailySeriesNames = [
+    showDailyViews ? 'views' : '',
+    showDailyShares ? 'shares' : '',
+    showDailyAiTraining ? 'AI training' : '',
+    showDailyAiGrounding ? 'AI grounding' : '',
+    showDailySeo ? 'SEO' : '',
+  ].filter((name): name is string => Boolean(name))
+  const growthShares = constGrowthStats.reduce((sum, bucket) => sum + bucket.shares, 0)
+  const showGrowthViews = constGrowthStats.some((bucket) => bucket.views > 0)
+  const showGrowthShares = growthShares > 0
+  const pieSlices = [
+    totalPv > 0 ? { label: 'Views', value: totalPv, color: '#3b82f6' } : null,
+    totalSh > 0 ? { label: 'Shares', value: totalSh, color: '#22c55e' } : null,
+  ].filter((slice): slice is { label: string; value: number; color: string } => slice !== null)
+  const visibilityCardCount = [crawlerStats.aiTraining.total, crawlerStats.aiGrounding.total, crawlerStats.seo.total].filter((n) => n > 0).length
 
   const marketClips = [...clips.fcmarkets, ...clips.marketminute]
   const hasDistNetwork = clips.gomedia.length > 0 || clips.synacor.length > 0 || marketClips.length > 0
@@ -545,7 +604,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       </div>
 
       {/* Key Metrics Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4 items-stretch">
+      <div className={`grid grid-cols-1 ${totalSh > 0 ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 mb-4 items-stretch`}>
         {/* Total Views */}
         <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
           <div className="text-center py-6 flex flex-col justify-center items-center">
@@ -554,42 +613,15 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-2">Total Views</div>
           </div>
         </div>
-        {/* Total Shares — the zero state invites the user to build a share list instead of showing a 0 */}
-        <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
-          {totalSh > 0 ? (
+        {totalSh > 0 && (
+          <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
             <div className="text-center py-6 flex flex-col justify-center items-center">
               <i className="fa-solid fa-share-nodes text-green-500 mb-3 text-[2rem]" aria-hidden="true" />
               <div className="text-[2.5rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{totalSh.toLocaleString()}</div>
               <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80 mt-2">Total Shares</div>
             </div>
-          ) : shareListCount === 0 ? (
-            <div className="text-center py-6 px-4 flex flex-col justify-center items-center h-full">
-              <i className="fa-solid fa-share-nodes text-gray-300 mb-3 text-[2rem]" aria-hidden="true" />
-              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80">Share List Not Activated</div>
-              {!isPublic && (
-                <Link
-                  href={`/company/${company.uuid}/advocacy`}
-                  className="mt-2 text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
-                >
-                  Activate Now
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-6 px-4 flex flex-col justify-center items-center h-full">
-              <i className="fa-solid fa-share-nodes text-gray-300 mb-3 text-[2rem]" aria-hidden="true" />
-              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 opacity-80">No Share Stats Yet</div>
-              {!isPublic && (
-                <Link
-                  href={`/company/${company.uuid}/advocacy`}
-                  className="mt-2 text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
-                >
-                  Grow your Share List
-                </Link>
-              )}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
         {/* AIO / SEO */}
         <div className="md:col-span-2 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.12)] hover:-translate-y-0.5 transition-all bg-white dark:bg-gray-900">
           {hasVisibilityData ? (
@@ -599,24 +631,20 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                 <img src="/img/ai/gemini.svg" alt="Google Gemini" className="h-6 w-auto opacity-85" />
                 <img src="/img/ai/google.svg" alt="Google" className="h-6 w-auto opacity-85" />
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div>
-                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.aiTraining.total.toLocaleString()}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">AI Training</div>
+              {visibilityMetrics.length > 0 && (
+                <div className={`grid gap-2 ${visibilityMetrics.length === 1 ? 'grid-cols-1' : visibilityMetrics.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                  {visibilityMetrics.map((metric) => (
+                    <div key={metric.key}>
+                      <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{metric.value.toLocaleString()}</div>
+                      <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">{metric.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div>
-                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.aiGrounding.total.toLocaleString()}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">AI Grounding</div>
-                </div>
-                <div>
-                  <div className="text-[1.6rem] font-bold text-gray-900 dark:text-gray-100 leading-none">{crawlerStats.seo.total.toLocaleString()}</div>
-                  <div className="text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1.5">SEO Indexing</div>
-                </div>
-              </div>
+              )}
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 mb-0 leading-tight">
                 {aiGrounding.citations.length > 0
                   ? `Cited by ${aiGrounding.sources.map((src) => aiGrounding.citations.find((c) => c.source === src)?.sourceLabel || src).join(', ')}.`
-                  : 'AI Training, Grounding and SEO activity is detailed below.'}
+                  : `${formatSeriesList(visibilityMetrics.map((metric) => metric.label))} activity is detailed below.`}
               </p>
             </a>
           ) : (
@@ -666,23 +694,14 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       </div>
                       <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalPv.toLocaleString()}</h4>
                     </div>
-                    <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
-                      <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-                        <i className="fa-solid fa-share-nodes text-green-500" aria-hidden="true" /> Total Shares
-                      </div>
-                      {totalSh > 0 ? (
+                    {totalSh > 0 && (
+                      <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
+                          <i className="fa-solid fa-share-nodes text-green-500" aria-hidden="true" /> Total Shares
+                        </div>
                         <h4 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-0">{totalSh.toLocaleString()}</h4>
-                      ) : shareListCount === 0 && !isPublic ? (
-                        <Link
-                          href={`/company/${company.uuid}/advocacy`}
-                          className="text-sm font-semibold text-cyan-700 dark:text-cyan-400 underline hover:text-cyan-900 dark:hover:text-cyan-300"
-                        >
-                          Activate Share List
-                        </Link>
-                      ) : (
-                        <span className="text-sm text-gray-400">No Share Stats Yet</span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     {pdfDownloadCount > 0 && (
                       <div className="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
                         <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
@@ -699,14 +718,14 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                     </div>
                   </div>
                   {/* Pie Chart */}
-                  {(totalPv > 0 || totalSh > 0) && (
+                  {pieSlices.length > 0 && (
                     <div className="h-[200px] mt-4">
                       <Pie
                         data={{
-                          labels: ['Views', 'Shares'],
+                          labels: pieSlices.map((slice) => slice.label),
                           datasets: [{
-                            data: [totalPv, totalSh],
-                            backgroundColor: ['#3b82f6', '#22c55e'],
+                            data: pieSlices.map((slice) => slice.value),
+                            backgroundColor: pieSlices.map((slice) => slice.color),
                             borderWidth: 1,
                           }],
                         }}
@@ -718,6 +737,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
               </div>
 
               {/* Cumulative Growth (col-lg-8 = 2/3) */}
+              {(showGrowthViews || showGrowthShares) && (
               <div className="lg:col-span-2 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900">
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-1">
@@ -732,47 +752,66 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       data={{
                         labels: constGrowthStats.map((s) => s.key_as_string),
                         datasets: [
-                          {
-                            label: 'Views',
-                            data: constGrowthStats.map((s) => s.views),
-                            borderColor: '#3b82f6',
-                            backgroundColor: 'rgba(59,130,246,0.1)',
-                            fill: true,
-                            tension: 0.3,
-                          },
-                          {
-                            label: shStatsMultiplier > 1 ? `Shares (x${shStatsMultiplier})` : 'Shares',
-                            data: constGrowthStats.map((s) => s.shares_multiplied ?? s.shares),
-                            borderColor: '#22c55e',
-                            backgroundColor: 'rgba(34,197,94,0.1)',
-                            fill: true,
-                            tension: 0.3,
-                          },
+                          ...(showGrowthViews
+                            ? [{
+                                label: 'Views',
+                                data: constGrowthStats.map((s) => s.views),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59,130,246,0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: 'y',
+                              }]
+                            : []),
+                          ...(showGrowthShares
+                            ? [{
+                                label: 'Shares',
+                                data: constGrowthStats.map((s) => s.shares),
+                                borderColor: '#22c55e',
+                                backgroundColor: 'rgba(34,197,94,0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                yAxisID: showGrowthViews ? 'y1' : 'y',
+                              }]
+                            : []),
                         ],
                       }}
                       options={{
                         responsive: true,
                         maintainAspectRatio: false,
-                        scales: { x: { ticks: { maxTicksLimit: 10, font: { size: 10 } } } },
+                        scales: {
+                          x: { ticks: { maxTicksLimit: 10, font: { size: 10 } } },
+                          y: { position: 'left', beginAtZero: true, ticks: { precision: 0 } },
+                          ...(showGrowthViews && showGrowthShares
+                            ? {
+                                y1: {
+                                  position: 'right' as const,
+                                  beginAtZero: true,
+                                  title: { display: true, text: 'Shares', color: '#22c55e' },
+                                  ticks: { color: '#22c55e', precision: 0 },
+                                  grid: { drawOnChartArea: false },
+                                },
+                              }
+                            : {}),
+                        },
                         plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } },
                       }}
                     />
                   </div>
                 </div>
               </div>
+              )}
             </div>
 
             {/* Daily Activity (hidden if >1 year old) */}
-            {!releaseIsYearOld && (
+            {!releaseIsYearOld && dailySeriesNames.length > 0 && (
               <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4">
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-1">
                     <div>
                       <h6 className="font-semibold text-gray-800 dark:text-gray-200">Daily Activity</h6>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {hasDailyCrawlers
-                          ? 'Day-by-day breakdown of views, shares, and crawler activity'
-                          : 'Day-by-day breakdown of views and shares'}
+                        Day-by-day breakdown of {formatSeriesList(dailySeriesNames)}
                       </p>
                     </div>
                     <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5 text-gray-500 dark:text-gray-400">UTC</span>
@@ -780,26 +819,46 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                   <div className="h-[400px]">
                     <Bar
                       data={{
-                        labels: combStats.map((s) => s.key_as_string),
+                        labels: activityLabels,
                         datasets: [
-                          {
-                            label: 'Views',
-                            data: combStats.map((s) => s.views),
-                            backgroundColor: '#3b82f6',
-                            yAxisID: 'y',
-                          },
-                          {
-                            label: shStatsMultiplier > 1 ? `Shares (x${shStatsMultiplier})` : 'Shares',
-                            data: combStats.map((s) => s.shares_multiplied ?? s.shares),
-                            backgroundColor: '#22c55e',
-                            yAxisID: 'y',
-                          },
-                          ...(hasDailyCrawlers
+                          ...(showDailyViews
                             ? [{
-                                label: 'AI and SEO Activity',
-                                data: dailyCrawlerSeries,
+                                label: 'Views',
+                                data: dailyViews,
+                                backgroundColor: '#3b82f6',
+                                yAxisID: 'y',
+                              }]
+                            : []),
+                          ...(showDailyShares
+                            ? [{
+                                label: 'Shares',
+                                data: dailyShares,
+                                backgroundColor: '#22c55e',
+                                yAxisID: activityAxis,
+                              }]
+                            : []),
+                          ...(showDailyAiTraining
+                            ? [{
+                                label: 'AI Training',
+                                data: dailyAiTraining,
                                 backgroundColor: '#a855f7',
-                                yAxisID: 'y1',
+                                yAxisID: activityAxis,
+                              }]
+                            : []),
+                          ...(showDailyAiGrounding
+                            ? [{
+                                label: 'AI Grounding',
+                                data: dailyAiGrounding,
+                                backgroundColor: '#f97316',
+                                yAxisID: activityAxis,
+                              }]
+                            : []),
+                          ...(showDailySeo
+                            ? [{
+                                label: 'SEO',
+                                data: dailySeo,
+                                backgroundColor: '#6366f1',
+                                yAxisID: activityAxis,
                               }]
                             : []),
                         ],
@@ -810,13 +869,17 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                         scales: {
                           x: { ticks: { maxTicksLimit: 12, font: { size: 10 } } },
                           y: { position: 'left', beginAtZero: true, ticks: { precision: 0 } },
-                          ...(hasDailyCrawlers
+                          ...(activityAxis === 'y1'
                             ? {
                                 y1: {
                                   position: 'right' as const,
                                   beginAtZero: true,
-                                  title: { display: true, text: 'AI and SEO Activity', color: '#a855f7' },
-                                  ticks: { color: '#a855f7', precision: 0 },
+                                  title: {
+                                    display: true,
+                                    text: activityAxisNames.length === 1 ? activityAxisNames[0] : 'Activity',
+                                    color: '#6b7280',
+                                  },
+                                  ticks: { color: '#6b7280', precision: 0 },
                                   grid: { drawOnChartArea: false },
                                 },
                               }
@@ -958,64 +1021,78 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             <i className="fa-solid fa-robot text-purple-600 dark:text-purple-400 text-xl" aria-hidden="true" />
             <span>AI &amp; Search Visibility</span>
           </div>
+          <div className="rounded-lg border-l-4 border-l-blue-600 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 px-4 py-3 mb-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-0 text-sm">
+              <i className="fa-solid fa-circle-info text-blue-600 dark:text-blue-400 mr-2" aria-hidden="true" />
+              As measured on Newsworthy.ai site, Not across entire distribution network.
+            </p>
+          </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
           </p>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 items-stretch">
-            <VisibilityCard
-              icon="fa-solid fa-brain"
-              tone="purple"
-              title="AI Training"
-              subtitle="Crawlers building model training data"
-              unit="Fetches"
-              group={crawlerStats.aiTraining}
-              emptyText="No AI training crawlers have fetched this release yet."
-            />
-            <VisibilityCard
-              icon="fa-solid fa-comments"
-              tone="emerald"
-              title="AI Grounding"
-              subtitle="Live fetches by AI assistants answering questions"
-              unit="Fetches"
-              group={crawlerStats.aiGrounding}
-              emptyText="No AI assistants have retrieved this release to answer a question yet."
-              footer={
-                aiGrounding.citations.length > 0 ? (
-                  <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900 px-3 py-2 text-sm text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-                    <i className="fa-solid fa-circle-check" aria-hidden="true" />
-                    <span>
-                      Cited {aiGrounding.citations.length} {aiGrounding.citations.length === 1 ? 'time' : 'times'} in AI search answers
-                    </span>
-                  </div>
-                ) : undefined
-              }
-            />
-            <VisibilityCard
-              icon="fa-solid fa-magnifying-glass"
-              tone="blue"
-              title="SEO Crawling & Indexing"
-              subtitle="Search engine indexers"
-              unit="Crawls"
-              group={crawlerStats.seo}
-              emptyText="No search engine crawlers have visited this release yet."
-              footer={
-                newsUrl !== '#' ? (
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                    <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:${newsUrl.replace(/^https?:\/\//, '')}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
-                      <i className="fa-brands fa-google mr-1" aria-hidden="true" />Check Google index
-                    </a>
-                    <a href={`https://www.bing.com/search?q=${encodeURIComponent(`url:${newsUrl}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
-                      <i className="fa-brands fa-microsoft mr-1" aria-hidden="true" />Check Bing index
-                    </a>
-                  </div>
-                ) : undefined
-              }
-            />
-          </div>
+          {visibilityCardCount > 0 && (
+            <div className={`grid grid-cols-1 ${visibilityCardCount >= 3 ? 'lg:grid-cols-3' : visibilityCardCount === 2 ? 'lg:grid-cols-2' : ''} gap-4 mb-4 items-stretch`}>
+              {crawlerStats.aiTraining.total > 0 && (
+                <VisibilityCard
+                  icon="fa-solid fa-brain"
+                  tone="purple"
+                  title="AI Training"
+                  subtitle="Crawlers building model training data"
+                  unit="Fetches"
+                  group={crawlerStats.aiTraining}
+                  emptyText="No AI training crawlers have fetched this release yet."
+                />
+              )}
+              {crawlerStats.aiGrounding.total > 0 && (
+                <VisibilityCard
+                  icon="fa-solid fa-comments"
+                  tone="orange"
+                  title="AI Grounding"
+                  subtitle="Live fetches by AI assistants answering questions"
+                  unit="Fetches"
+                  group={crawlerStats.aiGrounding}
+                  emptyText="No AI assistants have retrieved this release to answer a question yet."
+                  footer={
+                    aiGrounding.citations.length > 0 ? (
+                      <div className="rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900 px-3 py-2 text-sm text-orange-800 dark:text-orange-300 flex items-center gap-2">
+                        <i className="fa-solid fa-circle-check" aria-hidden="true" />
+                        <span>
+                          Cited {aiGrounding.citations.length} {aiGrounding.citations.length === 1 ? 'time' : 'times'} in AI search answers
+                        </span>
+                      </div>
+                    ) : undefined
+                  }
+                />
+              )}
+              {crawlerStats.seo.total > 0 && (
+                <VisibilityCard
+                  icon="fa-solid fa-magnifying-glass"
+                  tone="blue"
+                  title="SEO Crawling & Indexing"
+                  subtitle="Search engine indexers"
+                  unit="Crawls"
+                  group={crawlerStats.seo}
+                  emptyText="No search engine crawlers have visited this release yet."
+                  footer={
+                    newsUrl !== '#' ? (
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                        <a href={`https://www.google.com/search?q=${encodeURIComponent(`site:${newsUrl.replace(/^https?:\/\//, '')}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                          <i className="fa-brands fa-google mr-1" aria-hidden="true" />Check Google index
+                        </a>
+                        <a href={`https://www.bing.com/search?q=${encodeURIComponent(`url:${newsUrl}`)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+                          <i className="fa-brands fa-microsoft mr-1" aria-hidden="true" />Check Bing index
+                        </a>
+                      </div>
+                    ) : undefined
+                  }
+                />
+              )}
+            </div>
+          )}
 
           {/* Daily crawler activity */}
-          {crawlerStats.daily.length > 1 && (
+          {crawlerStats.daily.length > 1 && visibilityCardCount > 0 && (
             <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4">
               <div className="p-5">
                 <div className="flex justify-between items-start mb-1">
@@ -1030,9 +1107,15 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                     data={{
                       labels: crawlerStats.daily.map((d) => formatDailyLabel(d.date)),
                       datasets: [
-                        { label: 'AI Training', data: crawlerStats.daily.map((d) => d.aiTraining), backgroundColor: '#a855f7' },
-                        { label: 'AI Grounding', data: crawlerStats.daily.map((d) => d.aiGrounding), backgroundColor: '#10b981' },
-                        { label: 'SEO', data: crawlerStats.daily.map((d) => d.seo), backgroundColor: '#3b82f6' },
+                        ...(crawlerStats.aiTraining.total > 0
+                          ? [{ label: 'AI Training', data: crawlerStats.daily.map((d) => d.aiTraining), backgroundColor: '#a855f7' }]
+                          : []),
+                        ...(crawlerStats.aiGrounding.total > 0
+                          ? [{ label: 'AI Grounding', data: crawlerStats.daily.map((d) => d.aiGrounding), backgroundColor: '#f97316' }]
+                          : []),
+                        ...(crawlerStats.seo.total > 0
+                          ? [{ label: 'SEO', data: crawlerStats.daily.map((d) => d.seo), backgroundColor: '#3b82f6' }]
+                          : []),
                       ],
                     }}
                     options={{
@@ -1052,10 +1135,10 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
 
           {/* AI search citations */}
           {aiGrounding.citations.length > 0 && (
-            <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4 border-l-4 border-l-emerald-500">
+            <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4 border-l-4 border-l-orange-500">
               <div className="p-5">
                 <div className="flex items-center gap-3 mb-1">
-                  <i className="fa-solid fa-quote-left text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                  <i className="fa-solid fa-quote-left text-orange-600 dark:text-orange-400" aria-hidden="true" />
                   <h6 className="font-semibold text-gray-800 dark:text-gray-200 mb-0">AI Search Citations</h6>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
@@ -1074,7 +1157,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                       {aiGrounding.citations.map((c, i) => (
                         <tr key={`${c.source}-${i}`}>
                           <td className="py-2 pr-4 whitespace-nowrap">
-                            <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 px-2.5 py-0.5 text-xs font-semibold">
+                            <span className="inline-flex items-center rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 px-2.5 py-0.5 text-xs font-semibold">
                               {c.sourceLabel}
                             </span>
                           </td>
