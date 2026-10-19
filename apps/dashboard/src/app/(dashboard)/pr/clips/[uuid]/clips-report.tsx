@@ -1209,9 +1209,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       {enhancedPublications.length > 0 && (
         <SectionCard borderColor="border-l-[#667eea]">
           <SectionTitle icon="fa-solid fa-bullhorn" iconColor="text-blue-600 dark:text-blue-400">Enhanced Distribution</SectionTitle>
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of {enhancedPublications.length} endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release.</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(48, enhancedPublications.length)} of 330 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {enhancedPublications.slice(0, 36).map((pub, i) => (
+            {enhancedPublications.slice(0, 48).map((pub, i) => (
               <LogoCard key={i} logo={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} />
             ))}
           </div>

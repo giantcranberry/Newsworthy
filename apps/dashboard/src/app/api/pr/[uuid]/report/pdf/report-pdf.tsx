@@ -808,10 +808,10 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
           <SectionCardPdf borderColor={C.primary}>
             <View wrap={false}>
               <Text style={s.sectionTitle}>Enhanced Distribution</Text>
-              <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(36, enhancedPublications.length)} of 354 endpoints.</Text>
+              <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(48, enhancedPublications.length)} of 330 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</Text>
             </View>
             <View style={s.logoGrid}>
-              {enhancedPublications.slice(0, 36).map((pub, i) => (
+              {enhancedPublications.slice(0, 48).map((pub, i) => (
                 <LogoCardPdf key={i} src={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} imageMap={imageMap} />
               ))}
             </View>

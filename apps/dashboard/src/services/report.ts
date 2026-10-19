@@ -3,7 +3,7 @@ import { releases, releaseEnhanced, releasePlacements, releaseOptions, releaseCa
 import { clipReport, pdfDownloads, crmContacts } from '@/db/schema'
 import { circuits, circuitCategories } from '@/db/schema'
 import { users, pageHits, releaseGrounding } from '@/db/schema'
-import { eq, and, inArray, count, sql, min, max, desc, asc } from 'drizzle-orm'
+import { eq, and, or, inArray, count, sql, min, max, desc, asc } from 'drizzle-orm'
 import { queryIndex } from '@/lib/opensearch'
 
 // --- 4-hour in-memory cache ---
@@ -349,6 +349,24 @@ async function getClipStatistics(prhashId: string, releasedAt: Date) {
 
   return { combStats, constGrowthStats, multiplier }
 }
+
+// Enhanced distribution: target placements hidden from the clip report (lowercased names)
+const EXCLUDED_ENHANCED_PUBLICATIONS = new Set(['marketwatch'])
+
+// Enhanced distribution: non-target placements also shown on the clip report.
+// `placementName` matches release_placements.name; the link comes from that
+// release's stored placement, so releases without the row skip it.
+const CLIPREPORT_CDN = 'https://cdn1.newsworthy.ai/images/clipreport'
+const PROMOTED_ENHANCED_PUBLICATIONS: { placementName: string; name: string; logoUrl: string }[] = [
+  { placementName: 'Barchart.com', name: 'Barchart', logoUrl: `${CLIPREPORT_CDN}/barchart.png` },
+  { placementName: 'WAOW', name: 'WAOW', logoUrl: `${CLIPREPORT_CDN}/fc/waow.png` },
+  { placementName: 'WEEK/HOIABC', name: '25 News', logoUrl: `${CLIPREPORT_CDN}/fc/week.png` },
+  { placementName: 'WQOW', name: 'News 18 WQOW', logoUrl: `${CLIPREPORT_CDN}/fc/wqow.png` },
+  { placementName: 'WVVA', name: 'WVVA', logoUrl: `${CLIPREPORT_CDN}/fc/wvva.png` },
+  { placementName: 'WXOW', name: 'WXOW News 19', logoUrl: `${CLIPREPORT_CDN}/fc/wxow.png` },
+  { placementName: 'The Globe and Mail', name: 'The Globe and Mail', logoUrl: `${CLIPREPORT_CDN}/globe-and-mail.png` },
+  { placementName: 'CRWE World', name: 'CRWE World', logoUrl: `${CLIPREPORT_CDN}/crwe-world.png` },
+]
 
 async function getClipNewsrampReport(prhashId: string): Promise<any | false> {
   try {
@@ -757,15 +775,21 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
 
   }
 
-  const targetPlacements = await db
+  const placementRows = await db
     .select()
     .from(releasePlacements)
     .where(and(
       eq(releasePlacements.prid, release.id),
-      eq(releasePlacements.isTarget, true),
+      or(
+        eq(releasePlacements.isTarget, true),
+        inArray(releasePlacements.name, PROMOTED_ENHANCED_PUBLICATIONS.map((p) => p.placementName)),
+      ),
     ))
 
+  const targetPlacements = placementRows.filter((p) => p.isTarget)
+
   for (const p of targetPlacements) {
+    if (EXCLUDED_ENHANCED_PUBLICATIONS.has((p.name || '').toLowerCase())) continue
     let logoUrl = p.imageUrl || ''
     if (logoUrl) {
       if (logoUrl.startsWith('http')) {
@@ -777,6 +801,14 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
       }
     }
     enhancedPublications.push({ name: p.name || '', link: p.link || '', logo_url: logoUrl })
+  }
+
+  // Promoted placements use the release's own stored link, in config order
+  const existingNames = new Set(enhancedPublications.map((p) => p.name.toLowerCase()))
+  for (const promo of PROMOTED_ENHANCED_PUBLICATIONS) {
+    const row = placementRows.find((p) => !p.isTarget && p.name === promo.placementName && p.link)
+    if (!row || existingNames.has(promo.name.toLowerCase())) continue
+    enhancedPublications.push({ name: promo.name, link: row.link!, logo_url: promo.logoUrl })
   }
 
   // Circuits
