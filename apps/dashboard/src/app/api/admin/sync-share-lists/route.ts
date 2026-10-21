@@ -5,6 +5,8 @@ import { eq, and, sql, inArray } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { randomUUID, createHash } from 'crypto'
 import { sendEmail } from '@/lib/email'
+import { buildShareListWelcomeEmail } from '@/lib/share-list-welcome-email'
+import { getPrimaryContactName } from '@/lib/primary-contact'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
@@ -161,27 +163,18 @@ export async function POST(request: Request) {
 
   // Send welcome emails to newly added contacts
   const inviteMsg = group.inviteMsg || DEFAULT_INVITE_MSG
+  const addedBy = newContacts.length ? await getPrimaryContactName(brand.id) : null
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://app.newsworthyai.com'
 
   for (const contact of newContacts) {
     try {
-      const name = [contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'there'
-      await sendEmail({
-        to: contact.email,
-        subject: `You've been added to the ${brand.companyName} Share List`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <p>Hi ${name},</p>
-            <p>You have been added to the <strong>${brand.companyName}</strong> Share List on Newsworthy.ai.</p>
-            <p style="color: #333; background: #f9f9f9; padding: 12px; border-radius: 6px;">${inviteMsg}</p>
-            <p>Sincerely,<br/>${brand.companyName}</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
-            <p style="font-size: 12px; color: #999;">
-              You can unsubscribe from this list at any time by clicking the unsubscribe link in future emails.
-            </p>
-          </div>
-        `,
+      const email = buildShareListWelcomeEmail({
+        companyName: brand.companyName,
+        inviteMsg,
+        recipientName: [contact.firstName, contact.lastName].filter(Boolean).join(' '),
+        addedBy,
       })
+      await sendEmail({ to: contact.email, ...email })
       emailsSent++
     } catch (err) {
       console.error(`[SyncShareList] Failed to send welcome email to ${contact.email}:`, err)

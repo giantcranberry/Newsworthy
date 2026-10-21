@@ -5,7 +5,7 @@ import { eq, desc, and, or, isNull, inArray } from "drizzle-orm";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink } from "lucide-react";
+import { FileText, Plus, Eye, Edit, BarChart3, ExternalLink, Users } from "lucide-react";
 import { DeleteReleaseButton } from "./delete-release-button";
 import { RetractReleaseButton } from "./retract-release-button";
 import { ContactAdminButton } from "./contact-admin-button";
@@ -373,6 +373,12 @@ export default async function PressReleasesPage({
                               <Link href={`/pr/clips/${release.uuid}`} className="inline-flex items-center gap-1 text-xs text-purple-700 dark:text-purple-400 hover:underline">
                                 <BarChart3 className="h-3 w-3" />
                                 View Report
+                              </Link>
+                            )}
+                            {release.company?.uuid && (
+                              <Link href={`/company/${release.company.uuid}/advocacy/manage`} className="inline-flex items-center gap-1 text-xs text-cyan-700 dark:text-cyan-400 hover:underline">
+                                <Users className="h-3 w-3" />
+                                Share List
                               </Link>
                             )}
                           </div>

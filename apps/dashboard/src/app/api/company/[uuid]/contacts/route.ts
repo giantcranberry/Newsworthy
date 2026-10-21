@@ -6,6 +6,13 @@ import { eq, and, sql } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 
+// Clear the default flag on every other live contact of the brand
+async function clearPrimary(tx: Pick<typeof db, 'update'>, companyId: number) {
+  await tx.update(contact)
+    .set({ isPrimary: false })
+    .where(and(eq(contact.companyId, companyId), eq(contact.isPrimary, true)))
+}
+
 // GET: List contacts for a company
 export async function GET(
   request: NextRequest,
@@ -64,21 +71,34 @@ export async function POST(
   const co = access.company
 
   const body = await request.json()
-  const { name, title, email, phone } = body
+  const { name, title, email, phone, isPrimary } = body
 
   if (!name || name.trim() === '') {
     return NextResponse.json({ error: 'Contact name is required' }, { status: 400 })
   }
 
-  const [newContact] = await db.insert(contact).values({
-    uuid: randomUUID(),
-    userId,
-    companyId: co.id,
-    name: name.trim(),
-    title: title?.trim() || null,
-    email: email?.trim() || null,
-    phone: phone?.trim() || null,
-  }).returning()
+  const newContact = await db.transaction(async (tx) => {
+    // The brand's first contact is always the default
+    const [live] = await tx
+      .select({ count: sql<number>`count(*)` })
+      .from(contact)
+      .where(and(eq(contact.companyId, co.id), sql`${contact.isDeleted} IS NOT TRUE`))
+    const makePrimary = !!isPrimary || Number(live?.count || 0) === 0
+
+    if (makePrimary) await clearPrimary(tx, co.id)
+
+    const [row] = await tx.insert(contact).values({
+      uuid: randomUUID(),
+      userId,
+      companyId: co.id,
+      name: name.trim(),
+      title: title?.trim() || null,
+      email: email?.trim() || null,
+      phone: phone?.trim() || null,
+      isPrimary: makePrimary,
+    }).returning()
+    return row
+  })
 
   return NextResponse.json(newContact)
 }
@@ -110,7 +130,7 @@ export async function PUT(
   const co = access.company
 
   const body = await request.json()
-  const { contactUuid, name, title, email, phone } = body
+  const { contactUuid, name, title, email, phone, isPrimary } = body
 
   if (!contactUuid) {
     return NextResponse.json({ error: 'contactUuid is required' }, { status: 400 })
@@ -128,16 +148,24 @@ export async function PUT(
     return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
   }
 
-  await db.update(contact)
-    .set({
-      name: name.trim(),
-      title: title?.trim() || null,
-      email: email?.trim() || null,
-      phone: phone?.trim() || null,
-    })
-    .where(eq(contact.id, existing.id))
+  // Default can only be moved to another contact, not switched off
+  const makePrimary = !!isPrimary && !existing.isPrimary
 
-  return NextResponse.json({ success: true })
+  await db.transaction(async (tx) => {
+    if (makePrimary) await clearPrimary(tx, co.id)
+
+    await tx.update(contact)
+      .set({
+        name: name.trim(),
+        title: title?.trim() || null,
+        email: email?.trim() || null,
+        phone: phone?.trim() || null,
+        ...(makePrimary ? { isPrimary: true } : {}),
+      })
+      .where(eq(contact.id, existing.id))
+  })
+
+  return NextResponse.json({ success: true, isPrimary: makePrimary || existing.isPrimary })
 }
 
 // DELETE: Soft-delete a contact
@@ -198,7 +226,7 @@ export async function DELETE(
   }
 
   await db.update(contact)
-    .set({ isDeleted: true })
+    .set({ isDeleted: true, isPrimary: false })
     .where(eq(contact.id, existing.id))
 
   return NextResponse.json({ success: true })

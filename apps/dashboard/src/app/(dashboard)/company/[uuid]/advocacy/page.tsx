@@ -8,6 +8,7 @@ import { CompanyNav } from '@/components/company/company-nav'
 import { getBrandNavState } from '@/lib/brand-setup'
 import { ShareListForm } from './advocacy-form'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { getPrimaryContactName } from '@/lib/primary-contact'
 
 const DEFAULT_INVITE_MSG =
   'You have been added to our Share List. As a member, you will be notified via email when we distribute a new press release — with an invitation to share the news with your social networks.'
@@ -62,6 +63,7 @@ export default async function ShareListPage({
 
   const group = await getOrCreateGroup(co.id, userId, co.companyName)
   const totalSubscribers = await getTotalSubscribers(co.id)
+  const primaryContactName = await getPrimaryContactName(co.id)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -76,6 +78,7 @@ export default async function ShareListPage({
         readOnly={isReadOnly}
         companyUuid={co.uuid}
         companyName={co.companyName}
+        primaryContactName={primaryContactName}
         group={{
           id: group.id,
           inviteMsg: group.inviteMsg || DEFAULT_INVITE_MSG,

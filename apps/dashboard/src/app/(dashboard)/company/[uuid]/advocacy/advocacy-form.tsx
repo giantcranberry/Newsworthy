@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { buildShareListWelcomeEmail } from '@/lib/share-list-welcome-email'
 import {
   Info,
   Mail,
@@ -22,6 +23,7 @@ interface ShareListFormProps {
   readOnly?: boolean
   companyUuid: string
   companyName: string
+  primaryContactName: string | null
   group: {
     id: number
     inviteMsg: string
@@ -33,11 +35,13 @@ export function ShareListForm({
   readOnly,
   companyUuid,
   companyName,
+  primaryContactName,
   group,
   totalSubscribers,
 }: ShareListFormProps) {
   const router = useRouter()
   const [inviteMsg, setInviteMsg] = useState(group.inviteMsg)
+  const previewEmail = buildShareListWelcomeEmail({ companyName, inviteMsg, addedBy: primaryContactName, highlightMessage: true })
   const [emails, setEmails] = useState('')
   const [isSavingMsg, setIsSavingMsg] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
@@ -92,7 +96,11 @@ export function ShareListForm({
       }
 
       const data = await response.json()
-      setSuccess(`Added ${data.added} subscriber${data.added !== 1 ? 's' : ''}${data.skipped ? ` (${data.skipped} skipped — duplicates or invalid)` : ''}.`)
+      setSuccess(
+        `Added ${data.added} subscriber${data.added !== 1 ? 's' : ''}${data.skipped ? ` (${data.skipped} skipped — duplicates or invalid)` : ''}.` +
+        (data.emailsSent ? ` Welcome email sent to ${data.emailsSent}.` : '') +
+        (data.emailErrors ? ` ${data.emailErrors} welcome email${data.emailErrors !== 1 ? 's' : ''} failed to send.` : '')
+      )
       setEmails('')
       router.refresh()
     } catch (err) {
@@ -154,19 +162,14 @@ export function ShareListForm({
 
           <div>
             <Label className="font-semibold">Email Preview</Label>
-            <div className="mt-1 bg-gray-50 dark:bg-gray-950 border rounded-lg p-4 text-sm text-gray-700 dark:text-gray-300 space-y-3">
-              <p>
-                You have been added to the <u>{companyName}</u> Share List on Newsworthy.ai.
-              </p>
-              <p className="text-red-600 dark:text-red-400">{inviteMsg}</p>
-              <p>
-                Sincerely,<br />
-                {companyName}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                You can unsubscribe from this list at anytime by clicking the unsubscribe link below.
-              </p>
-            </div>
+            {/* Rendered from the same template the welcome email is sent with */}
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Subject: {previewEmail.subject}
+            </p>
+            <div
+              className="mt-1 bg-white text-gray-900 border rounded-lg text-sm"
+              dangerouslySetInnerHTML={{ __html: previewEmail.html }}
+            />
           </div>
 
           <div>

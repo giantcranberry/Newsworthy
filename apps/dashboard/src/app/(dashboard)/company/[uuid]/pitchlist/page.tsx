@@ -8,6 +8,7 @@ import { CompanyNav } from '@/components/company/company-nav'
 import { getBrandNavState } from '@/lib/brand-setup'
 import { DistributionTabs } from './distribution-tabs'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { getPrimaryContactName } from '@/lib/primary-contact'
 
 const DEFAULT_INVITE_MSG =
   'You have been added to our Share List. As a member, you will be notified via email when we distribute a new press release — with an invitation to share the news with your social networks.'
@@ -114,6 +115,7 @@ export default async function PitchListPage({
         readOnly={isReadOnly}
         companyUuid={co.uuid}
         companyName={co.companyName}
+        primaryContactName={await getPrimaryContactName(co.id)}
         totalContacts={totalContacts}
         shareGroup={{
           id: advocacyGroup.id,

@@ -15,6 +15,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
 import { ArrowRight, Loader2, UserPlus, Pencil, Trash2, Users, Camera, User } from 'lucide-react'
 
 interface ContactData {
@@ -24,6 +26,7 @@ interface ContactData {
   email: string
   phone: string
   avatar: string
+  isPrimary: boolean
 }
 
 interface ContactsFormProps {
@@ -38,7 +41,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
   const [contactsList, setContactsList] = useState<ContactData[]>(initialContacts)
   const [showContactModal, setShowContactModal] = useState(false)
   const [editingContact, setEditingContact] = useState<ContactData | null>(null)
-  const [contactForm, setContactForm] = useState({ name: '', title: '', email: '', phone: '', avatar: '' })
+  const [contactForm, setContactForm] = useState({ name: '', title: '', email: '', phone: '', avatar: '', isPrimary: false })
   const [isSavingContact, setIsSavingContact] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [contactError, setContactError] = useState<string | null>(null)
@@ -83,14 +86,15 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
 
   const openAddContact = () => {
     setEditingContact(null)
-    setContactForm({ name: '', title: '', email: '', phone: '', avatar: '' })
+    // The brand's first contact is always the default
+    setContactForm({ name: '', title: '', email: '', phone: '', avatar: '', isPrimary: contactsList.length === 0 })
     setContactError(null)
     setShowContactModal(true)
   }
 
   const openEditContact = (c: ContactData) => {
     setEditingContact(c)
-    setContactForm({ name: c.name, title: c.title, email: c.email, phone: c.phone, avatar: c.avatar })
+    setContactForm({ name: c.name, title: c.title, email: c.email, phone: c.phone, avatar: c.avatar, isPrimary: c.isPrimary })
     setContactError(null)
     setShowContactModal(true)
   }
@@ -153,6 +157,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
           title: contactForm.title,
           email: contactForm.email,
           phone: contactForm.phone,
+          isPrimary: contactForm.isPrimary,
         }),
       })
 
@@ -164,11 +169,12 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
       router.refresh()
 
       if (isEdit) {
+        const { isPrimary } = await response.json()
         setContactsList((prev) =>
           prev.map((c) =>
             c.uuid === editingContact.uuid
-              ? { ...c, name: contactForm.name, title: contactForm.title, email: contactForm.email, phone: contactForm.phone, avatar: contactForm.avatar }
-              : c
+              ? { ...c, name: contactForm.name, title: contactForm.title, email: contactForm.email, phone: contactForm.phone, avatar: contactForm.avatar, isPrimary }
+              : isPrimary ? { ...c, isPrimary: false } : c
           )
         )
       } else {
@@ -198,14 +204,18 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
           }
         }
 
-        setContactsList((prev) => [...prev, {
-          uuid: newContact.uuid,
-          name: newContact.name,
-          title: newContact.title || '',
-          email: newContact.email || '',
-          phone: newContact.phone || '',
-          avatar: avatarUrl,
-        }])
+        setContactsList((prev) => [
+          ...prev.map((c) => newContact.isPrimary ? { ...c, isPrimary: false } : c),
+          {
+            uuid: newContact.uuid,
+            name: newContact.name,
+            title: newContact.title || '',
+            email: newContact.email || '',
+            phone: newContact.phone || '',
+            avatar: avatarUrl,
+            isPrimary: !!newContact.isPrimary,
+          },
+        ])
       }
     } catch (err) {
       setContactError(err instanceof Error ? err.message : 'Failed to save contact')
@@ -284,6 +294,7 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
                             </div>
                           )}
                           {c.name}
+                          {c.isPrimary && <Badge variant="secondary">Primary</Badge>}
                         </div>
                       </td>
                       <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{c.title || '\u2014'}</td>
@@ -452,6 +463,26 @@ export function ContactsForm({ readOnly, companyUuid, contacts: initialContacts 
                   Enter a valid US number (10 digits) or international number (+country code)
                 </p>
               )}
+            </div>
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-3">
+              <div>
+                <Label htmlFor="contact-primary" className="cursor-pointer">Primary Contact</Label>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {!editingContact && contactsList.length === 0
+                    ? 'The first contact for a brand is the primary contact.'
+                    : editingContact?.isPrimary
+                      ? 'This is the brand\u2019s primary contact. Make another contact primary to change it.'
+                      : 'Replaces the brand\u2019s current primary contact.'}
+                </p>
+              </div>
+              {/* Locked states are always "on": primary can only move to another contact */}
+              <Switch
+                id="contact-primary"
+                checked={contactForm.isPrimary}
+                onCheckedChange={(checked) => setContactForm((f) => ({ ...f, isPrimary: checked }))}
+                disabled={editingContact ? editingContact.isPrimary : contactsList.length === 0}
+                className="disabled:opacity-100"
+              />
             </div>
           </div>
 

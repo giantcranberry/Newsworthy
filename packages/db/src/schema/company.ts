@@ -63,6 +63,8 @@ export const contact = pgTable('contact', {
   phone: varchar('phone', { length: 30 }),
   email: varchar('email', { length: 128 }),
   avatar: text('avatar'),
+  // Brand's default PR contact; at most one live contact per company
+  isPrimary: boolean('is_primary').notNull().default(false),
   isArchived: boolean('is_archived').default(false),
   isDeleted: boolean('is_deleted').default(false),
 })

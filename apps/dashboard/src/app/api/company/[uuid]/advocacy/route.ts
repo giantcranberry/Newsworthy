@@ -6,6 +6,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createHash } from 'crypto'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { sendEmail } from '@/lib/email'
+import { buildShareListWelcomeEmail } from '@/lib/share-list-welcome-email'
+import { getPrimaryContactName } from '@/lib/primary-contact'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
@@ -116,6 +119,10 @@ export async function POST(
     return NextResponse.json({ error: 'Company not found' }, { status: 404 })
   }
 
+  if (!hasMinRole(access.role, 'brand_admin')) {
+    return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
+  }
+
   const co = access.company
 
   const { emails } = await request.json()
@@ -135,6 +142,8 @@ export async function POST(
   let added = 0
   let skipped = 0
   const seenInBatch = new Set<string>()
+  // Contacts newly on the Share List; they get the welcome email
+  const welcome: { email: string; name: string }[] = []
 
   for (const line of lines) {
     const parts = line.split(',').map((s: string) => s.trim())
@@ -173,6 +182,10 @@ export async function POST(
           .set({ contactType: 'both', updatedAt: new Date() })
           .where(eq(crmContacts.id, existing.id))
         added++
+        welcome.push({
+          email,
+          name: [existing.firstName, existing.lastName].filter(Boolean).join(' '),
+        })
       } else {
         skipped++
       }
@@ -193,9 +206,35 @@ export async function POST(
     })
 
     added++
+    welcome.push({ email, name: [firstName, lastName].filter(Boolean).join(' ') })
   }
 
-  return NextResponse.json({ success: true, added, skipped })
+  // Send welcome emails to newly added contacts
+  let emailsSent = 0
+  let emailErrors = 0
+  if (welcome.length) {
+    const group = await getOrCreateGroup(co.id, userId, co.companyName)
+    const inviteMsg = group.inviteMsg || DEFAULT_INVITE_MSG
+    const addedBy = await getPrimaryContactName(co.id)
+
+    for (const w of welcome) {
+      try {
+        const message = buildShareListWelcomeEmail({
+          companyName: co.companyName,
+          inviteMsg,
+          recipientName: w.name,
+          addedBy,
+        })
+        await sendEmail({ to: w.email, ...message })
+        emailsSent++
+      } catch (err) {
+        console.error(`[ShareList] Failed to send welcome email to ${w.email}:`, err)
+        emailErrors++
+      }
+    }
+  }
+
+  return NextResponse.json({ success: true, added, skipped, emailsSent, emailErrors })
 }
 
 // PUT: Update invite message

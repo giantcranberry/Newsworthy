@@ -30,6 +30,9 @@ import {
   ArrowLeft,
   Search,
   X,
+  ArrowDown,
+  ArrowUp,
+  ExternalLink,
 } from 'lucide-react'
 
 interface Subscriber {
@@ -41,6 +44,8 @@ interface Subscriber {
   lastOpenAt: Date | string | null
   bouncedAt: Date | string | null
   unsubscribeAt: Date | string | null
+  clicks: number
+  uniqueVisitors: number
 }
 
 interface SubscriberListProps {
@@ -59,6 +64,16 @@ interface SubscriberListProps {
   perPage: number
   query: string
   status: string
+  sort: string
+}
+
+interface ReleaseClicks {
+  id: number
+  title: string | null
+  url: string | null
+  releasedAt: string | null
+  clicks: number
+  uniqueVisitors: number
 }
 
 function formatDate(dateStr: Date | string | null) {
@@ -88,6 +103,7 @@ export function AdvocateList({
   perPage,
   query,
   status,
+  sort,
 }: SubscriberListProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -118,10 +134,16 @@ export function AdvocateList({
   const [deleteSubscriber, setDeleteSubscriber] = useState<Subscriber | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Clicks detail state
+  const [clicksSubscriber, setClicksSubscriber] = useState<Subscriber | null>(null)
+  const [clicksReleases, setClicksReleases] = useState<ReleaseClicks[]>([])
+  const [isLoadingClicks, setIsLoadingClicks] = useState(false)
+  const [clicksError, setClicksError] = useState<string | null>(null)
+
   // Clear selection when page/filters change
   useEffect(() => {
     setSelected(new Set())
-  }, [currentPage, query, status, perPage])
+  }, [currentPage, query, status, perPage, sort])
 
   const allOnPageSelected = advocates.length > 0 && advocates.every((a) => selected.has(a.id))
   const someSelected = selected.size > 0
@@ -180,6 +202,11 @@ export function AdvocateList({
 
   const handleStatusFilter = (value: string) => {
     router.push(buildUrl({ status: status === value ? undefined : value, page: '1' }))
+  }
+
+  // Toggle most clicks (default, no param) ↔ fewest clicks
+  const handleClicksSort = () => {
+    router.push(buildUrl({ sort: sort === 'clicks_asc' ? undefined : 'clicks_asc', page: '1' }))
   }
 
   const handleBulkDelete = async () => {
@@ -250,6 +277,24 @@ export function AdvocateList({
       setEditError(err instanceof Error ? err.message : 'Failed to update')
     } finally {
       setIsSavingEdit(false)
+    }
+  }
+
+  const openClicks = async (a: Subscriber) => {
+    setClicksSubscriber(a)
+    setClicksReleases([])
+    setClicksError(null)
+    setIsLoadingClicks(true)
+
+    try {
+      const response = await fetch(`/api/company/${companyUuid}/advocacy/clicks?contactId=${a.id}`)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to load clicks')
+      setClicksReleases(data.releases)
+    } catch (err) {
+      setClicksError(err instanceof Error ? err.message : 'Failed to load clicks')
+    } finally {
+      setIsLoadingClicks(false)
     }
   }
 
@@ -432,6 +477,21 @@ export function AdvocateList({
                       <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Subscriber</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Member Since</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Last Open</th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400 text-right">
+                        <button
+                          onClick={handleClicksSort}
+                          className="inline-flex items-center gap-1 text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                          title="Sort by clicks"
+                        >
+                          Clicks
+                          {sort === 'clicks_asc' ? (
+                            <ArrowUp className="h-3.5 w-3.5" />
+                          ) : (
+                            <ArrowDown className="h-3.5 w-3.5" />
+                          )}
+                        </button>
+                      </th>
+                      <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400 text-right" title="Distinct visitors by IP + device">Unique</th>
                       <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Status</th>
                       {!readOnly && <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right">Actions</th>}
                     </tr>
@@ -464,6 +524,20 @@ export function AdvocateList({
                           </td>
                           <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{formatDate(a.createdAt)}</td>
                           <td className="py-2 pr-4 text-gray-600 dark:text-gray-400">{formatDate(a.lastOpenAt)}</td>
+                          <td className="py-2 pr-4 text-right tabular-nums text-gray-600 dark:text-gray-400">
+                            {a.clicks > 1 ? (
+                              <button
+                                onClick={() => openClicks(a)}
+                                className="text-blue-600 dark:text-blue-400 hover:underline"
+                                title="View clicked releases"
+                              >
+                                {a.clicks.toLocaleString()}
+                              </button>
+                            ) : a.clicks > 0 ? a.clicks.toLocaleString() : '—'}
+                          </td>
+                          <td className="py-2 pr-4 text-right tabular-nums text-gray-600 dark:text-gray-400">
+                            {a.uniqueVisitors > 0 ? a.uniqueVisitors.toLocaleString() : '—'}
+                          </td>
                           <td className="py-2 pr-4">
                             {rowStatus === 'active' && (
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
@@ -661,6 +735,76 @@ export function AdvocateList({
                 <Pencil className="h-4 w-4" />
               )}
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clicks Modal */}
+      <Dialog open={!!clicksSubscriber} onOpenChange={(open) => !open && setClicksSubscriber(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Share Link Clicks</DialogTitle>
+            <DialogDescription>
+              {clicksSubscriber && (
+                [clicksSubscriber.firstName, clicksSubscriber.lastName].filter(Boolean).join(' ') || clicksSubscriber.email
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {clicksError && (
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 p-3 rounded-lg">{clicksError}</div>
+          )}
+
+          {isLoadingClicks ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+            </div>
+          ) : clicksReleases.length > 0 ? (
+            <div className="max-h-96 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400">Release</th>
+                    <th className="pb-2 pr-4 font-medium text-gray-500 dark:text-gray-400 text-right">Clicks</th>
+                    <th className="pb-2 font-medium text-gray-500 dark:text-gray-400 text-right" title="Distinct visitors by IP + device">Unique</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clicksReleases.map((r) => (
+                    <tr key={r.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4">
+                        {r.url ? (
+                          <a
+                            href={r.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-start gap-1 font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400"
+                          >
+                            {r.title || 'Untitled release'}
+                            <ExternalLink className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                          </a>
+                        ) : (
+                          <span className="font-medium text-gray-900 dark:text-gray-100">{r.title || 'Untitled release'}</span>
+                        )}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{formatDate(r.releasedAt)}</p>
+                      </td>
+                      <td className="py-2 pr-4 text-right tabular-nums text-gray-600 dark:text-gray-400">{r.clicks.toLocaleString()}</td>
+                      <td className="py-2 text-right tabular-nums text-gray-600 dark:text-gray-400">
+                        {r.uniqueVisitors > 0 ? r.uniqueVisitors.toLocaleString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : !clicksError && (
+            <p className="text-sm text-gray-400 text-center py-8">No release clicks found.</p>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClicksSubscriber(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

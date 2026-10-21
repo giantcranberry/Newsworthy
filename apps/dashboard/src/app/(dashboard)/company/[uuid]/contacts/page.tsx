@@ -56,6 +56,7 @@ export default async function ContactsPage({
           email: c.email || '',
           phone: c.phone || '',
           avatar: c.avatar || '',
+          isPrimary: c.isPrimary,
         }))}
       />
     </div>

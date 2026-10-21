@@ -9,6 +9,7 @@ interface DistributionTabsProps {
   readOnly?: boolean
   companyUuid: string
   companyName: string
+  primaryContactName: string | null
   totalContacts: number
   shareGroup: {
     id: number
@@ -21,6 +22,7 @@ export function DistributionTabs({
   readOnly,
   companyUuid,
   companyName,
+  primaryContactName,
   totalContacts,
   shareGroup,
   totalSubscribers,
@@ -68,6 +70,7 @@ export function DistributionTabs({
           readOnly={readOnly}
           companyUuid={companyUuid}
           companyName={companyName}
+          primaryContactName={primaryContactName}
           group={shareGroup}
           totalSubscribers={totalSubscribers}
         />

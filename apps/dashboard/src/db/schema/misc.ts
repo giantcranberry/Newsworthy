@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core'
+import { pgTable, serial, varchar, text, boolean, timestamp, integer, bigint, json, pgEnum, index, uniqueIndex, bigserial, char } from 'drizzle-orm/pg-core'
 import { users } from './users'
 import { company } from './company'
 import { releases } from './releases'
@@ -61,6 +61,20 @@ export const tinyUrl = pgTable('tiny_url', {
   target: varchar('target', { length: 128 }),
   createdAt: timestamp('created_at').defaultNow(),
 })
+
+// One row per tiny_url hit (tiny_url.hits is only a counter). Written by the
+// short-link redirect; visitor_hash = sha256(request_ip + '|' + user_agent).
+export const tinyUrlClicks = pgTable('tiny_url_clicks', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  tinyUrlId: integer('tiny_url_id').notNull().references(() => tinyUrl.id, { onDelete: 'cascade' }),
+  requestIp: varchar('request_ip', { length: 64 }),
+  userAgent: text('user_agent'),
+  referrer: text('referrer'),
+  visitorHash: char('visitor_hash', { length: 64 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => [
+  index('tiny_url_clicks_tiny_url_id_idx').on(table.tinyUrlId, table.visitorHash),
+])
 
 // Messages and notes
 export const messages = pgTable('messages', {
