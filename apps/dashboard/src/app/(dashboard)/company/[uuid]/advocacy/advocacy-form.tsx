@@ -147,6 +147,31 @@ export function ShareListForm({
         </CardContent>
       </Card>
 
+      {/* Manage Subscribers */}
+      <Card>
+        <CardContent className="py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-gray-400" />
+              <div>
+                <p className="font-medium text-gray-900 dark:text-gray-100">
+                  {totalSubscribers} Subscriber{totalSubscribers !== 1 ? 's' : ''}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  View, edit, and manage your Share List members
+                </p>
+              </div>
+            </div>
+            <Link href={`/company/${companyUuid}/advocacy/manage`}>
+              <Button variant="outline">
+                Manage Subscribers
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Step 1: Customize Welcome Email */}
       {!readOnly && <Card>
         <CardHeader className="bg-blue-50 border-b rounded-t-lg">
@@ -252,31 +277,6 @@ export function ShareListForm({
           </div>
         </CardContent>
       </Card>}
-
-      {/* Manage Subscribers */}
-      <Card>
-        <CardContent className="py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-gray-400" />
-              <div>
-                <p className="font-medium text-gray-900 dark:text-gray-100">
-                  {totalSubscribers} Subscriber{totalSubscribers !== 1 ? 's' : ''}
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  View, edit, and manage your Share List members
-                </p>
-              </div>
-            </div>
-            <Link href={`/company/${companyUuid}/advocacy/manage`}>
-              <Button variant="outline">
-                Manage Subscribers
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

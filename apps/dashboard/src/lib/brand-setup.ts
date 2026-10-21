@@ -8,7 +8,8 @@ import { and, eq, isNull, or, sql } from 'drizzle-orm'
 // Lists, and Brand Assets are optional and not required (saving the newsroom
 // seeds the SEO/AIO meta defaults). While incomplete, the brand nav runs in
 // setup mode (last step "Create PR" instead of "Brand Assets") and release
-// creation is blocked.
+// creation is blocked. The Lists tab only needs the newsroom title, not the
+// description (see getBrandNavState).
 
 export interface BrandSetupItem {
   label: string
@@ -30,14 +31,18 @@ type CompanyLike = {
   nrDesc: string | null
 }
 
-export function evaluateBrandSetup(co: CompanyLike, contactCount: number): BrandSetupStatus {
+export function evaluateBrandSetup(
+  co: CompanyLike,
+  contactCount: number,
+  { requireNrDesc = true }: { requireNrDesc?: boolean } = {},
+): BrandSetupStatus {
   const base = `/company/${co.uuid}`
   const missing: BrandSetupItem[] = []
 
   if (!co.website) missing.push({ label: 'Add your website to the brand details', href: base })
   if (!co.logoUrl) missing.push({ label: 'Upload your logo', href: `${base}/logo` })
   if (contactCount === 0) missing.push({ label: 'Add a PR contact', href: `${base}/contacts` })
-  if (!co.nrTitle || !co.nrDesc) missing.push({ label: 'Set up your newsroom (title and description)', href: `${base}/newsroom` })
+  if (!co.nrTitle || (requireNrDesc && !co.nrDesc)) missing.push({ label: 'Set up your newsroom (title and description)', href: `${base}/newsroom` })
 
   return {
     complete: missing.length === 0,
@@ -69,21 +74,31 @@ export async function hasBrandAssets(companyId: number): Promise<boolean> {
 }
 
 // Props for CompanyNav, computed in one place for every brand page.
-export async function getBrandNavState(co: CompanyLike): Promise<{ setupMode: boolean; hasAssets: boolean }> {
-  const [status, assets] = await Promise.all([getBrandSetupStatus(co), hasBrandAssets(co.id)])
-  return { setupMode: !status.complete, hasAssets: assets }
+export async function getBrandNavState(
+  co: CompanyLike,
+): Promise<{ setupMode: boolean; showLists: boolean; hasAssets: boolean }> {
+  const [contactCount, assets] = await Promise.all([countActiveContacts(co.id), hasBrandAssets(co.id)])
+  return {
+    setupMode: !evaluateBrandSetup(co, contactCount).complete,
+    showLists: evaluateBrandSetup(co, contactCount, { requireNrDesc: false }).complete,
+    hasAssets: assets,
+  }
 }
 
 export async function getBrandSetupStatus(co: CompanyLike): Promise<BrandSetupStatus> {
+  return evaluateBrandSetup(co, await countActiveContacts(co.id))
+}
+
+async function countActiveContacts(companyId: number): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)` })
     .from(contact)
     .where(
       and(
-        eq(contact.companyId, co.id),
+        eq(contact.companyId, companyId),
         or(eq(contact.isDeleted, false), isNull(contact.isDeleted)),
         or(eq(contact.isArchived, false), isNull(contact.isArchived)),
       ),
     )
-  return evaluateBrandSetup(co, Number(row?.count || 0))
+  return Number(row?.count || 0)
 }

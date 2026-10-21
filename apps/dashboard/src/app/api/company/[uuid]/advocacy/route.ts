@@ -226,6 +226,10 @@ export async function POST(
           addedBy,
         })
         await sendEmail({ to: w.email, ...message })
+        // Mark as welcomed so the Flask advocacy_invite cron doesn't send it again
+        await db.update(crmContacts)
+          .set({ latest: new Date() })
+          .where(and(eq(crmContacts.companyId, co.id), eq(crmContacts.md5, getMd5(w.email))))
         emailsSent++
       } catch (err) {
         console.error(`[ShareList] Failed to send welcome email to ${w.email}:`, err)

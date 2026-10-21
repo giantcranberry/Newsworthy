@@ -19,9 +19,12 @@ interface CompanyNavProps {
   companyUuid: string
   companyName: string
   disabled?: boolean
-  // Brand-setup mode (profile not yet complete): Lists and Brand Assets are
-  // hidden until setup is done. Create PR is the final step in both modes.
+  // Brand-setup mode (profile not yet complete): Brand Assets is hidden until
+  // setup is done. Create PR is the final step in both modes.
   setupMode?: boolean
+  // Lists is shown during setup once everything but the newsroom description
+  // is in place.
+  showLists?: boolean
   // Brand Assets stays hidden until the brand has media assets to manage
   // (pass true to show the tab). Setup mode always omits it.
   hasAssets?: boolean
@@ -39,16 +42,16 @@ const NAV_ITEMS = [
 
 const CREATE_PR_ITEM = { label: 'Create PR', href: '/pr/create', icon: FilePlus, absolute: true }
 
-export function CompanyNav({ companyUuid, companyName, disabled, setupMode, hasAssets }: CompanyNavProps) {
+export function CompanyNav({ companyUuid, companyName, disabled, setupMode, showLists, hasAssets }: CompanyNavProps) {
   const pathname = usePathname()
   const basePath = disabled ? '/company/add' : `/company/${companyUuid}`
 
-  // Setup mode trims the wizard to the required steps: Lists and Brand
-  // Assets are omitted (both remain in the manage flow). Create PR is
-  // always the final step in both modes.
+  // Setup mode trims the wizard to the required steps: Brand Assets is
+  // omitted, and Lists too until showLists. Create PR is always the final
+  // step in both modes.
   const navItems: { label: string; href: string; icon: typeof Building2; absolute?: boolean }[] =
     setupMode
-      ? [...NAV_ITEMS.filter((i) => i.href !== '/pitchlist').slice(0, -1), CREATE_PR_ITEM]
+      ? [...NAV_ITEMS.filter((i) => i.href !== '/pitchlist' || showLists).slice(0, -1), CREATE_PR_ITEM]
       : [...NAV_ITEMS.filter((i) => i.href !== '/assets' || hasAssets), CREATE_PR_ITEM]
 
   const activeIndex = navItems.findIndex((item) => {
