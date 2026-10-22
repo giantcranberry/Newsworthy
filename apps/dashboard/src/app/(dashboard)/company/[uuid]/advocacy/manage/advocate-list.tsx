@@ -34,6 +34,7 @@ import {
   ArrowUp,
   ExternalLink,
 } from 'lucide-react'
+import { AddSubscribersDialog } from './add-subscribers-dialog'
 
 interface Subscriber {
   id: number
@@ -431,22 +432,25 @@ export function AdvocateList({
             <CardTitle className="text-base">
               Subscribers ({stats.total})
             </CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by email..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 pr-8 h-9"
-              />
-              {searchInput && (
-                <button
-                  onClick={clearSearch}
-                  className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600 dark:text-gray-400"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+            <div className="flex items-center gap-2">
+              {!readOnly && <AddSubscribersDialog companyUuid={companyUuid} />}
+              <div className="relative w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by email..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="pl-9 pr-8 h-9"
+                />
+                {searchInput && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600 dark:text-gray-400"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
