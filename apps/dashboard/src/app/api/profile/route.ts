@@ -29,6 +29,13 @@ export async function PUT(request: NextRequest) {
       isAgency,
     } = body
 
+    if (postalCode && String(postalCode).length > 10) {
+      return NextResponse.json(
+        { error: 'Postal code must be 10 characters or fewer' },
+        { status: 400 }
+      )
+    }
+
     // Check if profile exists
     const existingProfile = await db.query.userProfiles.findFirst({
       where: eq(userProfiles.userId, userId),

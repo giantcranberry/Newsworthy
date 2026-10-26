@@ -136,7 +136,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
         alert('Profile updated successfully')
       } else {
         const error = await response.json()
-        alert(error.message || 'Failed to update profile')
+        alert(error.error || 'Failed to update profile')
       }
     } catch (error) {
       console.error('Error updating profile:', error)
@@ -251,6 +251,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
               <Label htmlFor="firstName">First Name</Label>
               <Input
                 id="firstName"
+                autoComplete="given-name"
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 className="mt-1"
@@ -260,6 +261,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
               <Label htmlFor="lastName">Last Name</Label>
               <Input
                 id="lastName"
+                autoComplete="family-name"
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 className="mt-1"
@@ -271,6 +273,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
             <Label htmlFor="company">Company</Label>
             <Input
               id="company"
+              autoComplete="organization"
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               className="mt-1"
@@ -282,6 +285,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
+                autoComplete="tel"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handlePhoneChange(e.target.value, 'phone', formData, setFormData)}
@@ -294,6 +298,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
               <Label htmlFor="mobile">Mobile</Label>
               <Input
                 id="mobile"
+                autoComplete="tel"
                 type="tel"
                 value={formData.mobile}
                 onChange={(e) => handlePhoneChange(e.target.value, 'mobile', formData, setFormData)}
@@ -313,6 +318,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                 <Label htmlFor="addr1">Address Line 1</Label>
                 <Input
                   id="addr1"
+                  autoComplete="address-line1"
                   value={formData.addr1}
                   onChange={(e) => setFormData({ ...formData, addr1: e.target.value })}
                   className="mt-1"
@@ -323,6 +329,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                 <Label htmlFor="addr2">Address Line 2</Label>
                 <Input
                   id="addr2"
+                  autoComplete="address-line2"
                   value={formData.addr2}
                   onChange={(e) => setFormData({ ...formData, addr2: e.target.value })}
                   className="mt-1"
@@ -334,6 +341,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                   <Label htmlFor="city">City</Label>
                   <Input
                     id="city"
+                    autoComplete="address-level2"
                     value={formData.city}
                     onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     className="mt-1"
@@ -343,6 +351,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                   <Label htmlFor="state">State / Province</Label>
                   <Input
                     id="state"
+                    autoComplete="address-level1"
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                     maxLength={32}
@@ -356,6 +365,8 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                   <Label htmlFor="postalCode">Postal Code</Label>
                   <Input
                     id="postalCode"
+                    autoComplete="postal-code"
+                    maxLength={10}
                     value={formData.postalCode}
                     onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
                     className="mt-1"
@@ -365,6 +376,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
                   <Label htmlFor="countryCode">Country</Label>
                   <select
                     id="countryCode"
+                    autoComplete="country"
                     value={formData.countryCode}
                     onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
                     className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-3 py-2 shadow-sm dark:shadow-gray-900/50 focus:border-cyan-700 focus:outline-none focus:ring-1 focus:ring-cyan-700"
@@ -469,7 +481,7 @@ export function ProfileForm({ email, hasPassword, avatar: initialAvatar, gravata
         </Card>
 
         <div data-tour="profile-password">
-          <PasswordSection hasPassword={hasPassword} />
+          <PasswordSection email={email} hasPassword={hasPassword} />
         </div>
       </div>
 
@@ -781,7 +793,7 @@ function IntegrationsSection() {
   )
 }
 
-function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
+function PasswordSection({ email, hasPassword }: { email: string; hasPassword: boolean }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -850,6 +862,9 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
         )}
 
         <div className="space-y-4">
+          {/* Lets password managers associate the password fields with the account email
+              instead of autofilling it into the nearest text input (e.g. Postal Code) */}
+          <input type="text" name="username" autoComplete="username" value={email} readOnly hidden />
           {error && (
             <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 rounded-lg">{error}</div>
           )}
@@ -863,6 +878,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
               <div className="relative mt-1">
                 <Input
                   id="currentPassword"
+                  autoComplete="current-password"
                   type={showCurrent ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
@@ -884,6 +900,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
             <div className="relative mt-1">
               <Input
                 id="newPassword"
+                autoComplete="new-password"
                 type={showNew ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -904,6 +921,7 @@ function PasswordSection({ hasPassword }: { hasPassword: boolean }) {
             <Label htmlFor="confirmPassword">Confirm New Password</Label>
             <Input
               id="confirmPassword"
+              autoComplete="new-password"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
