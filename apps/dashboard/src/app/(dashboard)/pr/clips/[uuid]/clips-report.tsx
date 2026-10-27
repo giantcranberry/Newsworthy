@@ -66,6 +66,13 @@ function formatShortDateTime(iso: string | null) {
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })
 }
 
+/** ['newsworthy.ai', 'newsramp.com'] -> 'newsworthy.ai and newsramp.com' */
+function formatSiteList(sites: string[] | undefined) {
+  const list = sites && sites.length > 0 ? sites : ['newsworthy.ai']
+  if (list.length === 1) return list[0]
+  return `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`
+}
+
 /** 'YYYY-MM-DD' -> 'MM/DD' without timezone shifting */
 function formatDailyLabel(ymd: string) {
   const [, m, d] = ymd.split('-')
@@ -1024,11 +1031,11 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <div className="rounded-lg border-l-4 border-l-blue-600 bg-gray-50 dark:bg-gray-950 border border-gray-200 dark:border-gray-800 px-4 py-3 mb-4">
             <p className="text-gray-700 dark:text-gray-300 mb-0 text-sm">
               <i className="fa-solid fa-circle-info text-blue-600 dark:text-blue-400 mr-2" aria-hidden="true" />
-              As measured on Newsworthy.ai site, Not across entire distribution network.
+              As measured on Newsworthy.ai site and Newsramp network, Not across the entire distribution network or the enhanced networks.
             </p>
           </div>
           <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
+            Verified bot traffic to your press release on {formatSiteList(crawlerStats.sites)}, broken out by what each crawler is doing with your content.
           </p>
 
           {visibilityCardCount > 0 && (
@@ -1098,7 +1105,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                 <div className="flex justify-between items-start mb-1">
                   <div>
                     <h6 className="font-semibold text-gray-800 dark:text-gray-200">Crawler Activity</h6>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Daily bot fetches by purpose</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Daily bot fetches by purpose{(crawlerStats.sites?.length ?? 0) > 1 ? ' on newsworthy.ai' : ''}</p>
                   </div>
                   <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-0.5 text-gray-500 dark:text-gray-400">UTC</span>
                 </div>

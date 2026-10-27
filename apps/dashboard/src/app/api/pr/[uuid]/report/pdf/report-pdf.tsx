@@ -87,6 +87,13 @@ const s = StyleSheet.create({
   tabBadge: { fontSize: 7, backgroundColor: C.primary, color: C.white, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 },
 })
 
+/** ['newsworthy.ai', 'newsramp.com'] -> 'newsworthy.ai and newsramp.com' */
+function formatSiteList(sites: string[] | undefined) {
+  const list = sites && sites.length > 0 ? sites : ['newsworthy.ai']
+  if (list.length === 1) return list[0]
+  return `${list.slice(0, -1).join(', ')} and ${list[list.length - 1]}`
+}
+
 // --- Image URL validation ---
 function isValidPdfImageUrl(url: string | null | undefined): boolean {
   if (!url) return false
@@ -574,10 +581,10 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             <View wrap={false}>
               <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray700, marginBottom: 2 }}>AI &amp; Search Visibility</Text>
               <Text style={{ fontSize: 8, color: C.gray700, marginBottom: 4 }}>
-                As measured on Newsworthy.ai site, Not across entire distribution network.
+                As measured on Newsworthy.ai site and Newsramp network, Not across the entire distribution network or the enhanced networks.
               </Text>
               <Text style={{ fontSize: 7.5, color: C.gray500, marginBottom: 8 }}>
-                Verified bot traffic to your press release on newsworthy.ai, broken out by what each crawler is doing with your content.
+                Verified bot traffic to your press release on {formatSiteList(crawlerStats.sites)}, broken out by what each crawler is doing with your content.
               </Text>
             </View>
             <View wrap={false} style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>

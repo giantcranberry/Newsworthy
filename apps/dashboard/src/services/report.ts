@@ -81,7 +81,8 @@ export interface CrawlerActivityBucket {
 }
 
 /**
- * Crawler traffic on the release's public article pages (newsworthy.ai),
+ * Crawler traffic on the release's public article pages (newsworthy.ai from
+ * page_hits, plus newsramp.com etc. from the Newsramp report's crawl_activity),
  * split into AI training crawlers, AI grounding / answer-engine fetchers,
  * and classic search-engine indexers.
  */
@@ -89,9 +90,12 @@ export interface CrawlerStats {
   aiTraining: CrawlerGroup
   aiGrounding: CrawlerGroup
   seo: CrawlerGroup
+  /** page_hits only: Newsramp's crawl_activity has no time series. */
   daily: CrawlerDailyBucket[]
-  /** Same interval as views and shares: hour, day, or month. Hourly counts come from page_hits.created_at. */
+  /** Same interval as views and shares: hour, day, or month. Hourly counts come from page_hits.created_at. page_hits only. */
   activity: CrawlerActivityBucket[]
+  /** Hosts the counts were measured on. Optional because reports cached before Newsramp crawl_activity was merged lack it. */
+  sites?: string[]
 }
 
 /** A confirmed citation of our distribution network by an AI search product */
@@ -609,6 +613,7 @@ async function getCrawlerStats(releaseId: number, releasedAt: Date | null): Prom
       else bucket.aiTraining += n
     }
     stats.daily = Array.from(byDate.values())
+    if (rows.length > 0) stats.sites = ['newsworthy.ai']
     const interval = releasedAt ? statsInterval(releasedAt) : 'day'
     stats.activity = interval === 'hour'
       ? await hourlyCrawlerActivity(releaseId)
@@ -619,6 +624,57 @@ async function getCrawlerStats(releaseId: number, releasedAt: Date | null): Prom
   }
 
   return stats
+}
+
+/** Newsramp timestamps are naive UTC ('2026-10-22T12:51:29.391618') */
+function newsrampTimestamp(value: unknown): string | null {
+  if (typeof value !== 'string' || !value) return null
+  const d = new Date(/[zZ]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`)
+  return Number.isNaN(d.getTime()) ? null : d.toISOString()
+}
+
+/**
+ * Add the Newsramp report's crawl_activity (bot hits on newsramp.com and other
+ * Newsramp sites) on top of the page_hits counts. Newsramp's own ai_purpose
+ * decides training vs grounding; `other` visitors are skipped, matching page_hits.
+ * Bots seen on both sides are merged by name within a group.
+ */
+function mergeNewsrampCrawlActivity(stats: CrawlerStats, crawl: any) {
+  if (!crawl || !Array.isArray(crawl.bots)) return
+
+  for (const bot of crawl.bots) {
+    const hits = Number(bot?.hits) || 0
+    if (hits <= 0) continue
+    let group: CrawlerGroup
+    if (bot.visitor === 'seo') group = stats.seo
+    else if (bot.visitor === 'ai') group = bot.ai_purpose === 'grounding' ? stats.aiGrounding : stats.aiTraining
+    else continue
+
+    const botName = bot.bot_name || (bot.visitor === 'ai' ? 'Unknown AI bot' : 'Unknown crawler')
+    const lastSeen = newsrampTimestamp(bot.last_seen)
+    const existing = group.bots.find((b) => b.botName === botName)
+    if (existing) {
+      existing.hits += hits
+      if (lastSeen && (!existing.lastSeen || lastSeen > existing.lastSeen)) existing.lastSeen = lastSeen
+      group.total += hits
+      if (lastSeen && (!group.lastSeen || lastSeen > group.lastSeen)) group.lastSeen = lastSeen
+    } else {
+      // Newsramp only gives a per-bot last_seen, so firstSeen stays null
+      addToGroup(group, { botName, hits, firstSeen: null, lastSeen })
+    }
+  }
+
+  for (const group of [stats.aiTraining, stats.aiGrounding, stats.seo]) {
+    group.bots.sort((a, b) => b.hits - a.hits)
+  }
+
+  if (Array.isArray(crawl.sites)) {
+    const sites = new Set(stats.sites ?? [])
+    for (const site of crawl.sites) {
+      if (site?.host && Number(site.hits) > 0) sites.add(String(site.host))
+    }
+    stats.sites = Array.from(sites)
+  }
 }
 
 async function getAiGrounding(releaseId: number): Promise<AiGroundingData> {
@@ -857,6 +913,7 @@ export async function getReportData(uuid: string, refresh = false): Promise<Repo
     getCrawlerStats(release.id, release.releasedAt),
     getAiGrounding(release.id),
   ])
+  mergeNewsrampCrawlActivity(crawlerStats, nwrampReport ? nwrampReport.crawl_activity : null)
 
   const encodedTitle = encodeURIComponent(`"${release.title || ''}"`)
 
