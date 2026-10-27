@@ -133,3 +133,9 @@ body {
     box-shadow: 0 0 0 3px transparent;
   }
 }
+
+/* Authors type their own quote marks in blockquotes; don't let prose add a second set. */
+.prose :where(blockquote p:first-of-type):not(:where([class~="not-prose"], [class~="not-prose"] *))::before,
+.prose :where(blockquote p:last-of-type):not(:where([class~="not-prose"], [class~="not-prose"] *))::after {
+  content: none;
+}

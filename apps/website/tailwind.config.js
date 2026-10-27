@@ -16,6 +16,15 @@ module.exports = {
 			},
 		},
 		extend: {
+			// Authors type their own quote marks in blockquotes; don't let prose add a second set.
+			typography: {
+				DEFAULT: {
+					css: {
+						"blockquote p:first-of-type::before": { content: "none" },
+						"blockquote p:last-of-type::after": { content: "none" },
+					},
+				},
+			},
 			fontFamily: {
 				serif: ["var(--font-display)"],
 				sans: ["var(--font-body)"],
