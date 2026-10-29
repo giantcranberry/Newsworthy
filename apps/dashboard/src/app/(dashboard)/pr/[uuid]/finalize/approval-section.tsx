@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Check,
   CheckCircle2,
+  PencilLine,
   XCircle,
   Clock,
   Copy,
@@ -30,6 +31,7 @@ export interface Approval {
   signedAt: string | null
   feedback: string | null
   approved: boolean
+  withChanges: boolean
   notes: string | null
 }
 
@@ -239,6 +241,9 @@ export function ApprovalSection({
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Approved
               </span>
               <span className="flex items-center gap-1">
+                <PencilLine className="h-3.5 w-3.5 text-amber-500" /> Approved with Changes
+              </span>
+              <span className="flex items-center gap-1">
                 <XCircle className="h-3.5 w-3.5 text-red-500" /> Not Approved
               </span>
               <span className="flex items-center gap-1">
@@ -258,7 +263,9 @@ export function ApprovalSection({
                   <div key={approval.uuid} className="p-3 space-y-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        {isApproved ? (
+                        {isApproved && approval.withChanges ? (
+                          <PencilLine className="h-4 w-4 text-amber-500" />
+                        ) : isApproved ? (
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
                         ) : isPending ? (
                           <Clock className="h-4 w-4 text-blue-500" />
@@ -348,8 +355,13 @@ export function ApprovalSection({
                           <p>Signature: {approval.signature}</p>
                         )}
                         <p>Responded: {formatDate(approval.signedAt)}</p>
+                        {approval.withChanges && (
+                          <p className="font-medium text-amber-700 dark:text-amber-400">Approved with changes</p>
+                        )}
                         {approval.feedback && (
-                          <p>Feedback: {approval.feedback}</p>
+                          <p className="whitespace-pre-line">
+                            {approval.withChanges ? 'Requested changes' : 'Feedback'}: {approval.feedback}
+                          </p>
                         )}
                       </div>
                     )}

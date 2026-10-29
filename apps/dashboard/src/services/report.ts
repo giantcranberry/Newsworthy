@@ -12,7 +12,11 @@ interface CacheEntry {
   data: ReportData
   fetchedAt: number
 }
-const reportCache = new Map<string, CacheEntry>()
+// Kept on globalThis so the report API and the PDF / XLS export routes share one
+// cache even when Next.js bundles them separately; otherwise an export can serve
+// an older snapshot than the page is showing.
+const globalForReport = globalThis as unknown as { __clipReportCache?: Map<string, CacheEntry> }
+const reportCache = (globalForReport.__clipReportCache ??= new Map<string, CacheEntry>())
 
 // --- Types ---
 export interface ClipRecord {
@@ -714,11 +718,18 @@ export function reportReady(releasedAt: Date | null): boolean {
 
 // --- Main report data orchestrator ---
 
-export async function getReportData(uuid: string, refresh = false): Promise<ReportData | null> {
+/**
+ * `notOlderThan` is the `fetchedAt` of the data a viewer has on screen; exports pass
+ * it so they never render an older snapshot than the page (e.g. after ?refresh=true
+ * was served by another server instance).
+ */
+export async function getReportData(uuid: string, refresh = false, notOlderThan?: string | null): Promise<ReportData | null> {
   // Check cache
   if (!refresh) {
     const cached = reportCache.get(uuid)
-    if (cached && Date.now() - cached.fetchedAt < CACHE_TTL) {
+    const fresh = cached && Date.now() - cached.fetchedAt < CACHE_TTL
+    const coversViewer = !notOlderThan || (cached && cached.data.fetchedAt >= notOlderThan)
+    if (cached && fresh && coversViewer) {
       // Always refresh pdfDownloadCount from DB (cheap query, should be live)
       try {
         const rel = await db.query.releases.findFirst({

@@ -1,6 +1,6 @@
 import { auth } from '@/lib/auth'
 import { db } from '@/db'
-import { releases, company, contact, category, region, releaseCategories, releaseRegions, releaseImages, banners, images, users } from '@/db/schema'
+import { releases, company, contact, category, region, releaseCategories, releaseRegions, releaseImages, releaseFiles, banners, images, users } from '@/db/schema'
 import { eq, asc } from 'drizzle-orm'
 import { redirect, notFound } from 'next/navigation'
 import { EditorialEditForm } from './editorial-edit-form'
@@ -126,6 +126,24 @@ export default async function EditorialEditPage({ params }: PageProps) {
     }
   }
 
+  // Fetch file attachments
+  const releaseFilesData = await db.query.releaseFiles.findMany({
+    where: eq(releaseFiles.releaseId, prId),
+    orderBy: [asc(releaseFiles.sortOrder)],
+    with: { file: true },
+  })
+
+  const formReleaseFiles = releaseFilesData.map((rf) => ({
+    fileId: rf.fileId,
+    title: rf.file.title,
+    description: rf.file.description || null,
+    filename: rf.file.filename || null,
+    url: rf.file.url,
+    mimeType: rf.file.mimeType || null,
+    filesize: rf.file.filesize || null,
+    source: rf.file.source || null,
+  }))
+
   // Fetch banner if one exists
   let bannerData = null
   if (release.bannerId) {
@@ -193,6 +211,7 @@ export default async function EditorialEditPage({ params }: PageProps) {
         selectedCategoryIds={currentCategories.map((c) => c.categoryId)}
         selectedRegionIds={currentRegions.map((r) => r.regionId)}
         releaseImages={formReleaseImages}
+        releaseFiles={formReleaseFiles}
         banner={bannerData}
         owner={releaseOwner ? { id: releaseOwner.id, email: releaseOwner.email } : null}
       />

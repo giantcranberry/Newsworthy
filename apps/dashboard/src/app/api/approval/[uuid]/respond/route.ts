@@ -4,6 +4,10 @@ import { eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { getAppBaseUrl, sendEmail } from '@/lib/email'
 
+function escapeHtml(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> }
@@ -26,10 +30,16 @@ export async function POST(
     }
 
     const body = await request.json()
-    const { signature, feedback, approved } = body
+    const { signature, feedback } = body
+    const withChanges = body.withChanges === true
+    const approved = body.approved === true || withChanges
 
     if (!signature || typeof signature !== 'string') {
       return NextResponse.json({ error: 'Signature is required' }, { status: 400 })
+    }
+
+    if (withChanges && (typeof feedback !== 'string' || !feedback.trim())) {
+      return NextResponse.json({ error: 'Please describe your changes in the Feedback area' }, { status: 400 })
     }
 
     // Update the approval
@@ -37,7 +47,8 @@ export async function POST(
       .set({
         signature,
         feedback: feedback || null,
-        approved: approved === true,
+        approved,
+        withChanges,
         signedAt: new Date(),
       })
       .where(eq(approvals.uuid, uuid))
@@ -54,11 +65,14 @@ export async function POST(
     // Send notification email to the release owner via Resend
     if (user?.email && release) {
       const appUrl = getAppBaseUrl()
+      const verb = withChanges ? 'approved with changes' : approved ? 'approved' : 'declined'
+      const heading = withChanges ? '✓ Approved with Changes' : approved ? '✓ Approval Received' : 'Response Received'
+      const safeFeedback = typeof feedback === 'string' ? escapeHtml(feedback) : ''
 
       try {
         await sendEmail({
           to: user.email,
-          subject: `Approval ${approved ? 'Received' : 'Response'}: ${release.title || 'Your Press Release'}`,
+          subject: `${withChanges ? 'Approved with Changes' : `Approval ${approved ? 'Received' : 'Response'}`}: ${release.title || 'Your Press Release'}`,
           html: `
             <!DOCTYPE html>
             <html>
@@ -69,11 +83,11 @@ export async function POST(
               <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background-color: #f8f9fa; padding: 30px; border-radius: 8px;">
                   <h1 style="color: #1a1a1a; margin-bottom: 20px;">
-                    ${approved ? '✓ Approval Received' : 'Response Received'}
+                    ${heading}
                   </h1>
 
                   <p style="margin-bottom: 20px;">
-                    <strong>${approval.emailTo || signature}</strong> has ${approved ? 'approved' : 'declined'} your press release.
+                    <strong>${approval.emailTo || signature}</strong> has ${verb} your press release.
                   </p>
 
                   <div style="background-color: #fff; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
@@ -83,8 +97,8 @@ export async function POST(
 
                   ${feedback ? `
                   <div style="background-color: #fff; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
-                    <p style="margin: 0 0 5px 0; color: #666;">Feedback:</p>
-                    <p style="margin: 0; font-style: italic;">"${feedback}"</p>
+                    <p style="margin: 0 0 5px 0; color: #666;">${withChanges ? 'Requested changes:' : 'Feedback:'}</p>
+                    <p style="margin: 0; font-style: italic; white-space: pre-line;">"${safeFeedback}"</p>
                   </div>
                   ` : ''}
 
@@ -93,7 +107,7 @@ export async function POST(
               </body>
             </html>
           `,
-          text: `${approved ? 'Approval' : 'Response'} received from ${approval.emailTo || signature} for "${release.title || 'your press release'}". ${feedback ? `Feedback: "${feedback}"` : ''}`,
+          text: `${approval.emailTo || signature} ${verb} "${release.title || 'your press release'}". ${feedback ? `${withChanges ? 'Requested changes' : 'Feedback'}: "${feedback}"` : ''}`,
         })
       } catch (emailError) {
         console.error('[API] Error sending notification email via Resend:', emailError)

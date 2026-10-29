@@ -4,6 +4,15 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import type { ReportData, ClipRecord, CrawlerGroup, CrawlerStats, AiGroundingData } from '@/services/report'
 import {
+  dailyActivity,
+  searchPortals,
+  boostifyItems,
+  circuitItems,
+  RESEARCH_DATABASES,
+  ENHANCED_DISPLAY_LIMIT,
+  ENHANCED_TOTAL_ENDPOINTS,
+} from '@/lib/clip-report-view'
+import {
   Chart as ChartJS,
   ArcElement,
   CategoryScale,
@@ -52,15 +61,6 @@ function formatReleaseDateFull(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function formatCityBuzzDate(iso: string | null) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}/${m}/${day}`
-}
-
 function formatShortDateTime(iso: string | null) {
   if (!iso) return ''
   return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/New_York' })
@@ -79,47 +79,13 @@ function formatDailyLabel(ymd: string) {
   return m && d ? `${m}/${d}` : ymd
 }
 
-const ACTIVITY_MONTHS = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-
-type CrawlerActivityField = 'aiTraining' | 'aiGrounding' | 'seo'
-
-function labelsAreHourly(labels: string[]) {
-  return labels.some((label) => /^\d{1,2}\/\d{1,2}\s+\d{1,2}:\d{2}\s*(AM|PM)$/i.test(label))
-}
-
-/**
- * Crawler series aligned to the views/shares labels.
- * Prefer `activity`, whose labels are the real hour, day, or month of each hit.
- * Reports cached before that field existed fall back to daily totals, and never
- * repeat a day's total on every hour.
- */
-function crawlerSeriesForLabels(
-  labels: string[],
-  activity: CrawlerStats['activity'] | undefined,
-  daily: CrawlerStats['daily'],
-  field: CrawlerActivityField,
-): number[] {
-  if (activity && activity.length > 0) {
-    const byLabel = new Map(activity.map((bucket) => [bucket.label, bucket[field]]))
-    return labels.map((label) => byLabel.get(label) ?? 0)
-  }
-  if (labelsAreHourly(labels)) return labels.map(() => 0)
-  const byDay = new Map<string, number>()
-  const byMonth = new Map<string, number>()
-  for (const bucket of daily) {
-    const [y, m, day] = bucket.date.split('-')
-    if (!y || !m || !day) continue
-    const total = bucket[field]
-    byDay.set(`${m}/${day}/${y}`, (byDay.get(`${m}/${day}/${y}`) || 0) + total)
-    const monthKey = `${ACTIVITY_MONTHS[Number(m)]} ${y}`
-    byMonth.set(monthKey, (byMonth.get(monthKey) || 0) + total)
-  }
-  return labels.map((label) => byDay.get(label) ?? byMonth.get(label) ?? 0)
-}
-
-function seriesSum(values: number[]) {
-  return values.reduce((sum, n) => sum + n, 0)
-}
+const DAILY_SERIES_PHRASES = {
+  views: 'views',
+  shares: 'shares',
+  aiTraining: 'AI training',
+  aiGrounding: 'AI grounding',
+  seo: 'SEO',
+} as const
 
 function formatSeriesList(items: string[]) {
   if (items.length <= 1) return items[0] || ''
@@ -388,7 +354,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     if (!data) return
     setPdfGenerating(true)
     try {
-      const res = await fetch(`/api/pr/${uuid}/report/pdf`)
+      const res = await fetch(`/api/pr/${uuid}/report/pdf?fetchedAt=${encodeURIComponent(data.fetchedAt)}`)
       if (!res.ok) throw new Error('PDF generation failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -408,7 +374,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     if (!data) return
     setXlsGenerating(true)
     try {
-      const res = await fetch(`/api/pr/${uuid}/report/xls`)
+      const res = await fetch(`/api/pr/${uuid}/report/xls?fetchedAt=${encodeURIComponent(data.fetchedAt)}`)
       if (!res.ok) throw new Error('XLS generation failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -458,32 +424,12 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
     { key: 'grounding', label: 'AI Grounding', value: crawlerStats.aiGrounding.total },
     { key: 'seo', label: 'SEO Indexing', value: crawlerStats.seo.total },
   ].filter((metric) => metric.value > 0)
-  const activityLabels = combStats.map((s) => s.key_as_string)
-  const dailyViews = combStats.map((s) => s.views)
-  const dailyShares = combStats.map((s) => s.shares)
-  const dailyAiTraining = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'aiTraining')
-  const dailyAiGrounding = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'aiGrounding')
-  const dailySeo = crawlerSeriesForLabels(activityLabels, crawlerStats.activity, crawlerStats.daily, 'seo')
-  const showDailyViews = seriesSum(dailyViews) > 0
-  const showDailyShares = seriesSum(dailyShares) > 0
-  const showDailyAiTraining = seriesSum(dailyAiTraining) > 0
-  const showDailyAiGrounding = seriesSum(dailyAiGrounding) > 0
-  const showDailySeo = seriesSum(dailySeo) > 0
-  const activityAxisNames = [
-    showDailyShares && 'Shares',
-    showDailyAiTraining && 'AI Training',
-    showDailyAiGrounding && 'AI Grounding',
-    showDailySeo && 'SEO',
-  ].filter((name): name is string => Boolean(name))
+  const daily = dailyActivity(data)
+  const dailyByKey = new Map(daily.series.map((series) => [series.key, series]))
+  const activityAxisNames = daily.series.filter((series) => series.key !== 'views').map((series) => series.label)
   // Views stay on the left axis. Shares sit with crawler activity on the right, unscaled.
-  const activityAxis: 'y' | 'y1' = showDailyViews && activityAxisNames.length > 0 ? 'y1' : 'y'
-  const dailySeriesNames = [
-    showDailyViews ? 'views' : '',
-    showDailyShares ? 'shares' : '',
-    showDailyAiTraining ? 'AI training' : '',
-    showDailyAiGrounding ? 'AI grounding' : '',
-    showDailySeo ? 'SEO' : '',
-  ].filter((name): name is string => Boolean(name))
+  const activityAxis: 'y' | 'y1' = dailyByKey.has('views') && activityAxisNames.length > 0 ? 'y1' : 'y'
+  const dailySeriesNames = daily.series.map((series) => DAILY_SERIES_PHRASES[series.key])
   const growthShares = constGrowthStats.reduce((sum, bucket) => sum + bucket.shares, 0)
   const showGrowthViews = constGrowthStats.some((bucket) => bucket.views > 0)
   const showGrowthShares = growthShares > 0
@@ -811,7 +757,7 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
             </div>
 
             {/* Daily Activity (hidden if >1 year old) */}
-            {!releaseIsYearOld && dailySeriesNames.length > 0 && (
+            {daily.series.length > 0 && (
               <div className="rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] bg-white dark:bg-gray-900 mb-4">
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-1">
@@ -826,49 +772,13 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
                   <div className="h-[400px]">
                     <Bar
                       data={{
-                        labels: activityLabels,
-                        datasets: [
-                          ...(showDailyViews
-                            ? [{
-                                label: 'Views',
-                                data: dailyViews,
-                                backgroundColor: '#3b82f6',
-                                yAxisID: 'y',
-                              }]
-                            : []),
-                          ...(showDailyShares
-                            ? [{
-                                label: 'Shares',
-                                data: dailyShares,
-                                backgroundColor: '#22c55e',
-                                yAxisID: activityAxis,
-                              }]
-                            : []),
-                          ...(showDailyAiTraining
-                            ? [{
-                                label: 'AI Training',
-                                data: dailyAiTraining,
-                                backgroundColor: '#a855f7',
-                                yAxisID: activityAxis,
-                              }]
-                            : []),
-                          ...(showDailyAiGrounding
-                            ? [{
-                                label: 'AI Grounding',
-                                data: dailyAiGrounding,
-                                backgroundColor: '#f97316',
-                                yAxisID: activityAxis,
-                              }]
-                            : []),
-                          ...(showDailySeo
-                            ? [{
-                                label: 'SEO',
-                                data: dailySeo,
-                                backgroundColor: '#6366f1',
-                                yAxisID: activityAxis,
-                              }]
-                            : []),
-                        ],
+                        labels: daily.labels,
+                        datasets: daily.series.map((series) => ({
+                          label: series.label,
+                          data: series.values,
+                          backgroundColor: series.color,
+                          yAxisID: series.key === 'views' ? 'y' : activityAxis,
+                        })),
                       }}
                       options={{
                         responsive: true,
@@ -1200,15 +1110,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-globe" iconColor="text-blue-600 dark:text-blue-400">Search &amp; News Portals</SectionTitle>
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Your press release is discoverable across major search engines and news aggregators</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="/img/logos/google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} />
-          <LogoCard logo="/img/logos/microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} />
-          <LogoCard logo="https://cdn.newsramp.app/logos/duckduckgo.png" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} />
-          <LogoCard logo="/img/logos/citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${formatCityBuzzDate(release.releasedAt)}/${release.slug}/`} />
-          {yahooFinanceUrls.map((url, i) => (
-            <LogoCard key={`yahoo-${i}`} logo="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} />
+          {searchPortals(data).map((item, i) => (
+            <LogoCard key={`portal-${i}`} logo={item.logo} name={item.name} link={item.link || undefined} />
           ))}
-          <LogoCard logo="https://us-southeast-1.linodeobjects.com/cdn.newsramp.app/nwai-assets/1786077136988-streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl || 'https://www.streetinsider.com/Newsworthy'} />
-          <LogoCard logo="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} />
         </div>
       </SectionCard>
 
@@ -1216,9 +1120,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
       {enhancedPublications.length > 0 && (
         <SectionCard borderColor="border-l-[#667eea]">
           <SectionTitle icon="fa-solid fa-bullhorn" iconColor="text-blue-600 dark:text-blue-400">Enhanced Distribution</SectionTitle>
-          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(48, enhancedPublications.length)} of 330 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</p>
+          <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Representative distribution sample. Showing {Math.min(ENHANCED_DISPLAY_LIMIT, enhancedPublications.length)} of {ENHANCED_TOTAL_ENDPOINTS} endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-            {enhancedPublications.slice(0, 48).map((pub, i) => (
+            {enhancedPublications.slice(0, ENHANCED_DISPLAY_LIMIT).map((pub, i) => (
               <LogoCard key={i} logo={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} />
             ))}
           </div>
@@ -1233,46 +1137,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
 
           {/* Placements + Social Cards in same grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5 mb-6">
-            {nwrampReport.placements && nwrampReport.placements.filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads' && p.handle !== 'x').map((p: any, i: number) => {
-              const logoUrl = p.logo && p.logo.includes('http')
-                ? toPngUrl(p.logo)
-                : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
-              return <LogoCard key={`pl-${i}`} logo={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} />
-            })}
-
-            {/* Social media cards (same card format) */}
-            {nwrampReport.linkedin && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} />
-            )}
-            {(nwrampReport.x || nwrampReport.placements?.find((p: any) => p.handle === 'x')?.url) && (
-              <LogoCard
-                logo="https://cdn.newsramp.app/nwai-assets/1786373283056-logo-black.png"
-                name="X"
-                link={nwrampReport.x || nwrampReport.placements.find((p: any) => p.handle === 'x')?.url}
-              />
-            )}
-            {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} />
-            )}
-            {nwrampReport.bluesky && (
-              <LogoCard logo="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} />
-            )}
-            {nwrampReport.mastodon && (
-              <LogoCard logo="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} />
-            )}
-            {(nwrampReport.threads || nwrampReport.placements?.find((p: any) => p.handle === 'threads')?.url) && (
-              <LogoCard
-                logo="https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png"
-                name="Threads"
-                link={nwrampReport.threads || nwrampReport.placements.find((p: any) => p.handle === 'threads')?.url}
-              />
-            )}
-            {nwrampReport.github && (
-              <LogoCard logo="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} />
-            )}
-            {nwrampReport.substack && (
-              <LogoCard logo="https://cdn1.newsworthy.ai/images/clip_report/newsramp/substack.png" name="Substack" link={nwrampReport.substack} />
-            )}
+            {boostifyItems(nwrampReport).map((item, i) => (
+              <LogoCard key={`boost-${i}`} logo={toPngUrl(item.logo)} name={item.name} link={item.link || undefined} />
+            ))}
           </div>
 
           {/* Podcasts */}
@@ -1350,12 +1217,9 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
         <SectionTitle icon="fa-solid fa-database" iconColor="text-cyan-500">Subscription Research Databases</SectionTitle>
         <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Your content is indexed in premium research and analytics platforms</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" />
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" />
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" />
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" />
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" />
-          <LogoCard logo="https://cdn.newsramp.app/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" />
+          {RESEARCH_DATABASES.map((item) => (
+            <LogoCard key={item.name} logo={item.logo} name={item.name} link={item.link || undefined} />
+          ))}
         </div>
       </SectionCard>
 
@@ -1365,91 +1229,26 @@ export function ClipsReport({ uuid, isPublic }: { uuid: string; isPublic: boolea
           <SectionTitle icon="fa-solid fa-broadcast-tower" iconColor="text-pink-500">Specialized Circuits</SectionTitle>
           <p className="text-gray-500 dark:text-gray-400 mb-4 text-sm">Targeted distribution to industry-specific platforms and communities</p>
 
-          {/* HR Circuit */}
-          {circuits.hr && (
-            <div className="mb-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hcmtechnologyreport.jpg"
-                  name="HCM Technology Report"
-                  link={`https://www.hcmtechnologyreport.com/${release.slug}`}
-                  city="Shelton" state="CT"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/talentculture.png"
-                  name="TalentCulture"
-                  link={`https://www.talentculture.com/${release.slug}`}
-                  city="Portland" state="OR"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrtechalliances.png"
-                  name="HR Tech Alliances"
-                  link={`https://www.hrtechalliances.com/wordpress/${release.slug}`}
-                  city="West Chester" state="PA"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrotoday.png"
-                  name="HRO Today"
-                  link="https://www.hrotoday.com/hr-industry-news"
-                  city="Philadelphia" state="PA"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrmarketer.png"
-                  name="HR Marketer"
-                  link="https://hrmarketer.com"
-                  city="Aptos" state="CA"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/reddit.png"
-                  name="HR News on Reddit"
-                  link={circuits.data.reddit && circuits.data.reddit.link ? circuits.data.reddit.link : 'https://www.reddit.com/r/HRnews'}
-                  city="San Francisco" state="CA"
-                />
-                {circuits.data.hrtechfeed && (
-                  <CircuitClipCard
-                    thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/hrtechfeed.png"
-                    name="HR Tech Feed"
-                    link={circuits.data.hrtechfeed.link || 'https://hrtechfeed.com/press-releases'}
-                    city="Trumbull" state="CT"
-                  />
-                )}
+          {(['HR', 'Cannabis'] as const).map((circuit) => {
+            const items = circuitItems(data).filter((item) => item.circuit === circuit)
+            if (items.length === 0) return null
+            return (
+              <div key={circuit} className="mb-6 last:mb-0">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {items.map((item) => (
+                    <CircuitClipCard
+                      key={item.name}
+                      thumbnail={item.thumbnail}
+                      name={item.name}
+                      link={item.link}
+                      city={item.city}
+                      state={item.state}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Cannabis/Cannadelic/Psychedelics Circuit */}
-          {(circuits.cannabis || circuits.cannadelic || circuits.psychedelics) && (
-            <div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {circuits.data.weedweek && (
-                  <CircuitClipCard
-                    thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/weedweek.png"
-                    name="WeedWeek"
-                    link={`https://www.weedweek.com/${release.slug}`}
-                    city="Long Beach" state="CA"
-                  />
-                )}
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/axiswire.png"
-                  name="AxisWire"
-                  link={`https://www.axiswire.com/${release.slug}`}
-                  city="Santa Monica" state="CA"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/cannabisradio.png"
-                  name="Cannabis Radio"
-                  link="https://www.cannabisradio.com"
-                  city="Scottsdale" state="AZ"
-                />
-                <CircuitClipCard
-                  thumbnail="https://cdn1.newsworthy.ai/images/clipreport/circuits/reddit.png"
-                  name="Cannabis News on Reddit"
-                  link={circuits.data.reddit && circuits.data.reddit.link ? circuits.data.reddit.link : 'https://www.reddit.com/r/CannabisNewsInfo'}
-                  city="San Francisco" state="CA"
-                />
-              </div>
-            </div>
-          )}
+            )
+          })}
         </SectionCard>
       )}
 

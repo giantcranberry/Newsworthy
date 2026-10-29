@@ -16,6 +16,7 @@ import { MultiSelect } from '@/components/ui/multi-select'
 import { TIMEZONES, normalizeTimezone } from '@/lib/timezones'
 import { AdCampaignCard } from '@/components/ads/ad-campaign-card'
 import { IMPERSONATION_CHANGED_EVENT } from '@/components/layout/impersonation-banner'
+import { fileTypeLabel, formatFileSize } from '@/lib/file-attachments'
 import Cropper, { Area } from 'react-easy-crop'
 import {
   Dialog,
@@ -56,6 +57,11 @@ import {
   CalendarDays,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
+  FileArchive,
+  FileAudio,
+  FileText,
+  FileVideo,
 } from 'lucide-react'
 
 interface ImageRecord {
@@ -79,6 +85,26 @@ interface ReleaseImageRecord {
   imageId: number
   sortOrder: number
   image: ImageRecord
+}
+
+interface ReleaseFileRecord {
+  fileId: number
+  title: string
+  description: string | null
+  filename: string | null
+  url: string
+  mimeType: string | null
+  filesize: number | null
+  source: string | null
+}
+
+function FileTypeIcon({ mimeType, filename }: { mimeType: string | null; filename: string | null }) {
+  const label = fileTypeLabel(mimeType, filename)
+  if (label === 'MP3' || mimeType?.startsWith('audio/')) return <FileAudio className="h-6 w-6 text-cyan-700" />
+  if (label === 'MP4' || mimeType?.startsWith('video/')) return <FileVideo className="h-6 w-6 text-cyan-700" />
+  if (label === 'ZIP' || mimeType?.includes('zip')) return <FileArchive className="h-6 w-6 text-cyan-700" />
+  if (mimeType === 'text/uri-list') return <ExternalLink className="h-6 w-6 text-cyan-700" />
+  return <FileText className="h-6 w-6 text-cyan-700" />
 }
 
 interface EditorialEditFormProps {
@@ -127,6 +153,7 @@ interface EditorialEditFormProps {
   selectedCategoryIds: number[]
   selectedRegionIds: number[]
   releaseImages: ReleaseImageRecord[]
+  releaseFiles: ReleaseFileRecord[]
   banner: BannerRecord | null
   owner: { id: number; email: string } | null
 }
@@ -302,6 +329,7 @@ export function EditorialEditForm({
   selectedCategoryIds,
   selectedRegionIds,
   releaseImages: initialImages,
+  releaseFiles,
   banner: initialBanner,
   owner,
 }: EditorialEditFormProps) {
@@ -1676,6 +1704,51 @@ export function EditorialEditForm({
                   JPEG, PNG, or WebP up to 5MB
                 </p>
               </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* File Attachments */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>File Attachments</CardTitle>
+            <CardDescription>Files the customer attached to this press release.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {releaseFiles.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400">No files attached.</p>
+            ) : (
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700">
+                {releaseFiles.map((f) => (
+                  <li key={f.fileId} className="flex items-start gap-3 p-3">
+                    <div className="shrink-0 mt-0.5">
+                      <FileTypeIcon mimeType={f.mimeType} filename={f.filename} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{f.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        <span className="inline-flex items-center rounded bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 font-medium mr-1.5">
+                          {f.source === 'external' ? 'LINK' : fileTypeLabel(f.mimeType, f.filename)}
+                        </span>
+                        {f.filesize ? formatFileSize(f.filesize) : null}
+                        {f.filename && f.source !== 'external' && <span className="ml-1.5 break-all">{f.filename}</span>}
+                      </p>
+                      {f.description && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{f.description}</p>
+                      )}
+                    </div>
+                    <a
+                      href={f.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 inline-flex items-center gap-1 text-sm text-cyan-700 hover:underline"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open
+                    </a>
+                  </li>
+                ))}
+              </ul>
             )}
           </CardContent>
         </Card>

@@ -5,6 +5,7 @@ import { releases, users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { getUserCompanyIds } from '@/lib/team-auth'
 import { getReportData, type ReportData } from '@/services/report'
+import { searchPortals, boostifyItems, circuitItems } from '@/lib/clip-report-view'
 import { renderToBuffer } from '@react-pdf/renderer'
 import { ReportPdfDocument } from './report-pdf'
 import React from 'react'
@@ -153,6 +154,15 @@ async function prefetchRemoteImages(data: ReportData, staticMap: Record<string, 
     }
   }
 
+  // Logos the shared report lists point at (the PDF renders the same lists as the page)
+  for (const item of [...searchPortals(data), ...boostifyItems(data.nwrampReport)]) {
+    const url = toPngUrl(item.logo)
+    if (isValidImageUrl(url)) urls.add(url)
+  }
+  for (const item of circuitItems(data)) {
+    if (isValidImageUrl(item.thumbnail)) urls.add(item.thumbnail)
+  }
+
   // Research DB logos
   const researchLogos = ['gale', 'lexis-nexis', 'moodys', 'pro-quest', 'refinitive', 'thomson-reuters']
   for (const name of researchLogos) {
@@ -241,7 +251,7 @@ export async function GET(
   }
 
   try {
-    const data = await getReportData(uuid, false)
+    const data = await getReportData(uuid, false, request.nextUrl.searchParams.get('fetchedAt'))
     if (!data) {
       return NextResponse.json({ error: 'Report not found' }, { status: 404 })
     }

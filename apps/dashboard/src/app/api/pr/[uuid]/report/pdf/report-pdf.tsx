@@ -1,6 +1,20 @@
 import React from 'react'
-import { Document, Page, View, Text, Image, Link, StyleSheet, Svg, Path, Circle, Line as SvgLine } from '@react-pdf/renderer'
+import { Document, Page, View, Text, Image, Link, StyleSheet, Svg, Path, Circle, Rect, Line as SvgLine } from '@react-pdf/renderer'
 import type { ReportData, ClipRecord, TimeBucket, CrawlerGroup } from '@/services/report'
+import {
+  dailyActivity,
+  visibilityGroups,
+  hasVisibilityData as reportHasVisibilityData,
+  searchPortals,
+  boostifyItems,
+  podcastItems,
+  translationItems,
+  circuitItems,
+  RESEARCH_DATABASES,
+  ENHANCED_DISPLAY_LIMIT,
+  ENHANCED_TOTAL_ENDPOINTS,
+  type ActivitySeries,
+} from '@/lib/clip-report-view'
 
 // --- Colors ---
 const C = {
@@ -238,6 +252,75 @@ function LineChartSvg({ data }: { data: TimeBucket[] }) {
   )
 }
 
+/**
+ * Bars per label, mirroring the web report's Chart.js bar charts. `stacked` stacks
+ * every series (Crawler Activity). Otherwise bars are grouped and, as on the page,
+ * views get their own scale while the other series share one.
+ */
+function BarChartSvg({ labels, series, stacked = false }: { labels: string[]; series: ActivitySeries[]; stacked?: boolean }) {
+  if (labels.length === 0 || series.length === 0) return null
+  const w = 515, h = 150
+  const pad = { top: 6, right: 6, bottom: 14, left: 6 }
+  const chartW = w - pad.left - pad.right
+  const chartH = h - pad.top - pad.bottom
+  const slot = chartW / labels.length
+  const barGap = Math.min(2, slot * 0.15)
+
+  const viewsOwnScale = !stacked && series[0]?.key === 'views' && series.length > 1
+  const maxOf = (list: ActivitySeries[]) => Math.max(1, ...list.flatMap((s) => s.values))
+  const stackedMax = Math.max(1, ...labels.map((_, i) => series.reduce((sum, s) => sum + (s.values[i] || 0), 0)))
+  const viewsMax = viewsOwnScale ? maxOf([series[0]]) : 0
+  const otherMax = maxOf(viewsOwnScale ? series.slice(1) : series)
+
+  const bars: React.ReactNode[] = []
+  labels.forEach((_, i) => {
+    const x0 = pad.left + i * slot + barGap / 2
+    const slotW = slot - barGap
+    if (stacked) {
+      let y = pad.top + chartH
+      for (const s of series) {
+        const bh = ((s.values[i] || 0) / stackedMax) * chartH
+        if (bh <= 0) continue
+        y -= bh
+        bars.push(<Rect key={`${s.key}-${i}`} x={x0} y={y} width={slotW} height={bh} fill={s.color} />)
+      }
+    } else {
+      const bw = slotW / series.length
+      series.forEach((s, j) => {
+        const max = viewsOwnScale && j === 0 ? viewsMax : otherMax
+        const bh = ((s.values[i] || 0) / max) * chartH
+        if (bh <= 0) return
+        bars.push(<Rect key={`${s.key}-${i}`} x={x0 + j * bw} y={pad.top + chartH - bh} width={bw} height={bh} fill={s.color} />)
+      })
+    }
+  })
+
+  const tickEvery = Math.max(1, Math.ceil(labels.length / 8))
+  return (
+    <View>
+      <Svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+        {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
+          <SvgLine key={pct} x1={pad.left} y1={pad.top + chartH * (1 - pct)} x2={pad.left + chartW} y2={pad.top + chartH * (1 - pct)} stroke={C.gray100} strokeWidth={0.5} />
+        ))}
+        {bars}
+      </Svg>
+      <View style={{ flexDirection: 'row', width: w, paddingHorizontal: pad.left }}>
+        {labels.map((label, i) => (
+          <Text key={i} style={{ width: slot, fontSize: 5.5, color: C.gray500, textAlign: 'center' }}>
+            {i % tickEvery === 0 ? label : ''}
+          </Text>
+        ))}
+      </View>
+      <ChartLegend items={series.map((s) => ({ color: s.color, label: s.label }))} />
+      {viewsOwnScale && (
+        <Text style={{ fontSize: 6, color: C.gray500, textAlign: 'center', marginTop: 2 }}>
+          Views use their own scale.
+        </Text>
+      )}
+    </View>
+  )
+}
+
 function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: 4 }}>
@@ -249,6 +332,38 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
       ))}
     </View>
   )
+}
+
+const VISIBILITY_CARD_COPY = {
+  aiTraining: { title: 'AI Training', subtitle: 'Crawlers building model training data', unit: 'Fetches', color: '#a855f7', emptyText: 'No AI training crawlers have fetched this release yet.' },
+  aiGrounding: { title: 'AI Grounding', subtitle: 'Live fetches by AI assistants answering questions', unit: 'Fetches', color: '#f97316', emptyText: 'No AI assistants have retrieved this release to answer a question yet.' },
+  seo: { title: 'SEO Crawling & Indexing', subtitle: 'Search engine indexers', unit: 'Crawls', color: C.blue, emptyText: 'No search engine crawlers have visited this release yet.' },
+} as const
+
+const PODCAST_BADGES = [
+  { name: 'Apple Podcasts', src: 'https://cdn.newsramp.app/badges/apple-badge.png' },
+  { name: 'iHeart Radio', src: 'https://cdn.newsramp.app/badges/iheart-badge.png' },
+  { name: 'Spotify', src: 'https://cdn.newsramp.app/badges/spotify-badge.png' },
+  { name: 'Pandora', src: 'https://cdn.newsramp.app/badges/pandora-badge.png' },
+  { name: 'YouTube', src: 'https://cdn.newsramp.app/badges/youtube-badge.png' },
+  { name: 'Castbox', src: 'https://cdn.newsramp.app/badges/castbox-badge.png' },
+  { name: 'Android', src: 'https://cdn.newsramp.app/badges/android-badge.png' },
+  { name: 'PodcastIndex', src: 'https://cdn.newsramp.app/badges/podcast-index-badge.png' },
+  { name: 'Deezer', src: 'https://cdn.newsramp.app/badges/deezer.png' },
+]
+
+const DAILY_SERIES_PHRASES = {
+  views: 'views',
+  shares: 'shares',
+  aiTraining: 'AI training',
+  aiGrounding: 'AI grounding',
+  seo: 'SEO',
+} as const
+
+function formatSeriesList(items: string[]) {
+  if (items.length <= 1) return items[0] || ''
+  if (items.length === 2) return `${items[0]} and ${items[1]}`
+  return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`
 }
 
 // --- Sub-components ---
@@ -301,9 +416,9 @@ function ClipCardPdf({ clip, imageMap }: { clip: ClipRecord; imageMap: Record<st
   )
 }
 
-function CircuitCardPdf({ thumbnail, name, city, state, imageMap }: { thumbnail: string; name: string; city: string; state: string; imageMap: Record<string, string> }) {
+function CircuitCardPdf({ thumbnail, name, link, city, state, imageMap }: { thumbnail: string; name: string; link?: string; city: string; state: string; imageMap: Record<string, string> }) {
   const resolvedImg = resolveImage(thumbnail, imageMap)
-  return (
+  const card = (
     <View style={s.circuitCard}>
       {resolvedImg ? (
         <Image src={resolvedImg} style={s.circuitImg} />
@@ -318,6 +433,7 @@ function CircuitCardPdf({ thumbnail, name, city, state, imageMap }: { thumbnail:
       </View>
     </View>
   )
+  return link ? <Link src={link}>{card}</Link> : card
 }
 
 function SectionCardPdf({ borderColor, children }: { borderColor: string; children: React.ReactNode }) {
@@ -386,9 +502,12 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
   const hasStats = data.combStats.length > 0
   const crawlerStats = data.crawlerStats
   const citations = data.aiGrounding?.citations ?? []
-  const hasVisibilityData = !!crawlerStats && (
-    crawlerStats.aiTraining.total > 0 || crawlerStats.aiGrounding.total > 0 || crawlerStats.seo.total > 0 || citations.length > 0
-  )
+  const hasVisibilityData = !!crawlerStats && reportHasVisibilityData(data)
+  const shownVisibility = visibilityGroups(data)
+  const daily = dailyActivity(data)
+  const circuitList = circuitItems(data)
+  const podcasts = podcastItems(nwrampReport)
+  const translations = translationItems(nwrampReport)
 
   const rawCompanyLogo = company.logoUrl
     ? company.logoUrl.includes('cdn.filestac')
@@ -405,12 +524,6 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
     const m = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `https://www.newsworthy.ai/news/${y}${m}${day}${release.id}/${release.slug}`
-  })()
-
-  const cityBuzzDate = (() => {
-    if (!release.releasedAt) return ''
-    const d = new Date(release.releasedAt)
-    return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
   })()
 
   return (
@@ -454,29 +567,34 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             <Text style={[s.metricValue, { color: C.blue }]}>{totalPv.toLocaleString()}</Text>
             <Text style={s.metricLabel}>Total Views</Text>
           </View>
-          <View style={s.metricCard}>
-            <Text style={[s.metricValue, { color: C.green }]}>{totalSh.toLocaleString()}</Text>
-            <Text style={s.metricLabel}>Total Shares</Text>
-          </View>
+          {totalSh > 0 && (
+            <View style={s.metricCard}>
+              <Text style={[s.metricValue, { color: C.green }]}>{totalSh.toLocaleString()}</Text>
+              <Text style={s.metricLabel}>Total Shares</Text>
+            </View>
+          )}
           <View style={s.metricWide}>
             <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 4 }}>
               {resolveImage('https://cdn.newsramp.app/logos/openai.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/openai.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
               {resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/gemini.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
               {resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap) && <Image src={resolveImage('https://cdn.newsramp.app/logos/google.png', imageMap)!} style={{ width: 22, height: 22, objectFit: 'contain' }} />}
             </View>
-            {hasVisibilityData && crawlerStats ? (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 2 }}>
-                {[
-                  ['AI Training', crawlerStats.aiTraining.total],
-                  ['AI Grounding', crawlerStats.aiGrounding.total],
-                  ['SEO Indexing', crawlerStats.seo.total],
-                ].map(([label, value]) => (
-                  <View key={String(label)} style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray900 }}>{Number(value).toLocaleString()}</Text>
-                    <Text style={s.metricLabel}>{String(label)}</Text>
-                  </View>
-                ))}
-              </View>
+            {hasVisibilityData ? (
+              <>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 2 }}>
+                  {shownVisibility.map((g) => (
+                    <View key={g.key} style={{ alignItems: 'center' }}>
+                      <Text style={{ fontSize: 14, fontFamily: 'Helvetica-Bold', color: C.gray900 }}>{g.group.total.toLocaleString()}</Text>
+                      <Text style={s.metricLabel}>{g.label}</Text>
+                    </View>
+                  ))}
+                </View>
+                <Text style={{ fontSize: 6.5, color: C.gray500, marginTop: 4, textAlign: 'center' }}>
+                  {citations.length > 0
+                    ? `Cited by ${(data.aiGrounding?.sources ?? []).map((src) => citations.find((c) => c.source === src)?.sourceLabel || src).join(', ')}.`
+                    : `${formatSeriesList(shownVisibility.map((g) => g.label))} activity is detailed below.`}
+                </Text>
+              </>
             ) : (
               <>
                 <Text style={{ fontSize: 12, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 2 }}>AIO / SEO?</Text>
@@ -505,12 +623,12 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                   <Text style={s.engLabel}>Total Views</Text>
                   <Text style={s.engValue}>{totalPv.toLocaleString()}</Text>
                 </View>
-                <View style={s.engRow}>
-                  <Text style={s.engLabel}>Total Shares</Text>
-                  <Text style={s.engValue}>
-                    {totalSh > 0 ? totalSh.toLocaleString() : 'Activate Share List'}
-                  </Text>
-                </View>
+                {totalSh > 0 && (
+                  <View style={s.engRow}>
+                    <Text style={s.engLabel}>Total Shares</Text>
+                    <Text style={s.engValue}>{totalSh.toLocaleString()}</Text>
+                  </View>
+                )}
                 {pdfDownloadCount > 0 && (
                   <View style={s.engRow}>
                     <Text style={s.engLabel}>PDF Downloads</Text>
@@ -526,7 +644,7 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 )}
               </View>
               {/* Cumulative Growth */}
-              {data.constGrowthStats.length >= 2 && (
+              {data.constGrowthStats.length >= 2 && data.constGrowthStats.some((b) => b.views > 0 || b.shares > 0) && (
                 <View style={{ flex: 2, backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, padding: 12 }}>
                   <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.gray800, marginBottom: 4 }}>Cumulative Growth</Text>
                   <Text style={{ fontSize: 7, color: C.gray500, marginBottom: 8 }}>Track your content&apos;s momentum over time</Text>
@@ -534,6 +652,16 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
                 </View>
               )}
             </View>
+          </View>
+        )}
+
+        {daily.series.length > 0 && (
+          <View wrap={false} style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, padding: 12, marginBottom: 12 }}>
+            <Text style={{ fontSize: 10, fontFamily: 'Helvetica-Bold', color: C.gray800, marginBottom: 2 }}>Daily Activity</Text>
+            <Text style={{ fontSize: 7, color: C.gray500, marginBottom: 8 }}>
+              Day-by-day breakdown of {formatSeriesList(daily.series.map((ser) => DAILY_SERIES_PHRASES[ser.key]))} (UTC)
+            </Text>
+            <BarChartSvg labels={daily.labels} series={daily.series} />
           </View>
         )}
 
@@ -588,31 +716,33 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
               </Text>
             </View>
             <View wrap={false} style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-              <VisibilityCardPdf
-                title="AI Training"
-                subtitle="Crawlers building model training data"
-                unit="Fetches"
-                color="#a855f7"
-                group={crawlerStats.aiTraining}
-                emptyText="No AI training crawlers have fetched this release yet."
-              />
-              <VisibilityCardPdf
-                title="AI Grounding"
-                subtitle="Live fetches by AI assistants answering questions"
-                unit="Fetches"
-                color="#f97316"
-                group={crawlerStats.aiGrounding}
-                emptyText="No AI assistants have retrieved this release to answer a question yet."
-              />
-              <VisibilityCardPdf
-                title="SEO Crawling & Indexing"
-                subtitle="Search engine indexers"
-                unit="Crawls"
-                color={C.blue}
-                group={crawlerStats.seo}
-                emptyText="No search engine crawlers have visited this release yet."
-              />
+              {shownVisibility.map((g) => (
+                <VisibilityCardPdf
+                  key={g.key}
+                  {...VISIBILITY_CARD_COPY[g.key]}
+                  group={g.group}
+                />
+              ))}
             </View>
+
+            {crawlerStats.daily.length > 1 && shownVisibility.length > 0 && (
+              <View wrap={false} style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, padding: 10, marginBottom: 8 }}>
+                <Text style={{ fontSize: 9.5, fontFamily: 'Helvetica-Bold', color: C.gray800 }}>Crawler Activity</Text>
+                <Text style={{ fontSize: 6.5, color: C.gray500, marginBottom: 6 }}>
+                  Daily bot fetches by purpose{(crawlerStats.sites?.length ?? 0) > 1 ? ' on newsworthy.ai' : ''} (UTC)
+                </Text>
+                <BarChartSvg
+                  stacked
+                  labels={crawlerStats.daily.map((d) => { const [, m, day] = d.date.split('-'); return m && day ? `${m}/${day}` : d.date })}
+                  series={shownVisibility.map((g) => ({
+                    key: g.key,
+                    label: g.key === 'seo' ? 'SEO' : g.label,
+                    color: VISIBILITY_CARD_COPY[g.key].color,
+                    values: crawlerStats.daily.map((d) => d[g.key]),
+                  }))}
+                />
+              </View>
+            )}
 
             {citations.length > 0 && (
               <View style={{ backgroundColor: C.white, borderRadius: 8, borderWidth: 1, borderColor: C.gray200, borderLeftWidth: 3, borderLeftColor: '#f97316', padding: 10 }}>
@@ -677,83 +807,11 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             <Text style={s.sectionDesc}>Your press release is discoverable across major search engines and news aggregators</Text>
           </View>
           <View style={s.logoGrid}>
-            <LogoCardPdf src="google.png" name="Google" link={`https://google.com/search?q=${encodedTitle}`} imageMap={imageMap} />
-            <LogoCardPdf src="microsoft.jpg" name="Microsoft Bing" link={`https://bing.com/search?q=${encodedTitle}`} imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/logos/duckduckgo.png" name="DuckDuckGo" link={`https://duckduckgo.com/?q=${encodedTitle}&t=h_&ia=web`} imageMap={imageMap} />
-            <LogoCardPdf src="citybuzz.png" name="CityBuzz" link={`https://www.citybuzz.co/${cityBuzzDate}/${release.slug}/`} imageMap={imageMap} />
-            {yahooFinanceUrls.map((url, i) => (
-              <LogoCardPdf key={`y-${i}`} src="https://cdn.newsramp.app/newsworthy/yahoo_news_1.jpg" name="Yahoo Finance" link={url} imageMap={imageMap} />
+            {searchPortals(data).map((item, i) => (
+              <LogoCardPdf key={`portal-${i}`} src={item.logo} name={item.name} link={item.link || undefined} imageMap={imageMap} />
             ))}
-            {clips.streetinsiderUrl && (
-              <LogoCardPdf src="streetinsider.png" name="StreetInsider" link={clips.streetinsiderUrl} imageMap={imageMap} />
-            )}
-            <LogoCardPdf src="https://cdn.newsramp.app/logos/Ground_News.png" name="Ground News" link={`https://ground.news/article/${release.slug}`} imageMap={imageMap} />
           </View>
         </SectionCardPdf>
-
-        {/* Newsramp Podcasts */}
-        {nwrampReport && nwrampReport.podcasts && nwrampReport.podcasts.length > 0 && (
-          <SectionCardPdf borderColor={C.green}>
-            <View wrap={false}>
-              <Text style={s.sectionTitle}>Podcasts</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-              {nwrampReport.podcasts.map((pod: any, i: number) => {
-                const artSrc = resolveImage(pod.artwork, imageMap)
-                if (!artSrc) return null
-                return (
-                  <View key={i} style={s.podcastCard}>
-                    <Image src={artSrc} style={s.podcastImg} />
-                  </View>
-                )
-              })}
-            </View>
-            <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 6 }}>Listen On:</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
-              {[
-                { name: 'Apple Podcasts', src: 'https://cdn.newsramp.app/badges/apple-badge.png' },
-                { name: 'iHeart Radio', src: 'https://cdn.newsramp.app/badges/iheart-badge.png' },
-                { name: 'Spotify', src: 'https://cdn.newsramp.app/badges/spotify-badge.png' },
-                { name: 'Pandora', src: 'https://cdn.newsramp.app/badges/pandora-badge.png' },
-                { name: 'YouTube', src: 'https://cdn.newsramp.app/badges/youtube-badge.png' },
-                { name: 'Castbox', src: 'https://cdn.newsramp.app/badges/castbox-badge.png' },
-                { name: 'Android', src: 'https://cdn.newsramp.app/badges/android-badge.png' },
-                { name: 'PodcastIndex', src: 'https://cdn.newsramp.app/badges/podcast-index-badge.png' },
-                { name: 'Deezer', src: 'https://cdn.newsramp.app/badges/deezer.png' },
-              ].map((badge) => {
-                const badgeSrc = resolveImage(badge.src, imageMap)
-                if (!badgeSrc) return null
-                return <Image key={badge.name} src={badgeSrc} style={{ width: 80, height: 24, objectFit: 'contain' }} />
-              })}
-            </View>
-          </SectionCardPdf>
-        )}
-
-        {/* Newsramp Translations */}
-        {nwrampReport && nwrampReport.translations && nwrampReport.translations.length > 0 && (
-          <SectionCardPdf borderColor={C.green}>
-            <View wrap={false}>
-              <Text style={s.sectionTitle}>Language Translations</Text>
-            </View>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {nwrampReport.translations.map((t: any, i: number) => {
-                const entries = Object.entries(t)
-                if (entries.length === 0) return null
-                const [langName, langLink] = entries[0]
-                const flagUrl = `https://cdn.newsramp.app/images/clip_report/translations/${langName.replace(/ /g, '-')}.png`
-                const flagSrc = resolveImage(flagUrl, imageMap)
-                return (
-                  <Link key={i} src={langLink as string}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      {flagSrc && <Image src={flagSrc} style={{ width: 18, height: 18, objectFit: 'contain' }} />}
-                      <Text style={{ fontSize: 9, color: C.blue }}>{langName}</Text>
-                    </View>
-                  </Link>
-                )
-              })}
-            </View>
-          </SectionCardPdf>
-        )}
 
         {/* Subscription Research Databases */}
         <SectionCardPdf borderColor={C.cyan}>
@@ -762,49 +820,31 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
             <Text style={s.sectionDesc}>Your content is indexed in premium research and analytics platforms</Text>
           </View>
           <View style={s.logoGrid}>
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/gale.png" name="Gale" link="https://www.gale.com" imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/lexis-nexis.png" name="LexisNexis" link="https://www.lexisnexis.com/en-us/gateway.page" imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/moodys.png" name="Moody's Analytics" link="https://www.moodysanalytics.com" imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/pro-quest.png" name="ProQuest" link="https://www.proquest.com" imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/refinitive.png" name="Refinitiv / LSEG" link="https://www.lseg.com/en/data-analytics" imageMap={imageMap} />
-            <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/thomson-reuters.png" name="Thomson Reuters" link="https://www.thomsonreuters.com/en.html" imageMap={imageMap} />
+            {RESEARCH_DATABASES.map((item) => (
+              <LogoCardPdf key={item.name} src={item.logo} name={item.name} link={item.link || undefined} imageMap={imageMap} />
+            ))}
           </View>
         </SectionCardPdf>
 
         {/* Circuits */}
-        {hasCircuits && (
+        {circuitList.length > 0 && (
           <SectionCardPdf borderColor={C.pink}>
             <View wrap={false}>
               <Text style={s.sectionTitle}>Specialized Circuits</Text>
               <Text style={s.sectionDesc}>Targeted distribution to industry-specific platforms and communities</Text>
             </View>
 
-            {circuits.hr && (
-              <View style={{ marginBottom: 10 }}>
-                <View style={s.logoGrid}>
-                  <CircuitCardPdf thumbnail="hcmtechnologyreport.jpg" name="HCM Technology Report" city="Shelton" state="CT" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="talentculture.png" name="TalentCulture" city="Portland" state="OR" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="hrtechalliances.png" name="HR Tech Alliances" city="West Chester" state="PA" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="hrotoday.png" name="HRO Today" city="Philadelphia" state="PA" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="" name="HR Marketer" city="Aptos" state="CA" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="reddit.png" name="HR News on Reddit" city="San Francisco" state="CA" imageMap={imageMap} />
-                  {circuits.data.hrtechfeed && (
-                    <CircuitCardPdf thumbnail="hrtechfeed.png" name="HR Tech Feed" city="Trumbull" state="CT" imageMap={imageMap} />
-                  )}
+            {(['HR', 'Cannabis'] as const).map((circuit) => {
+              const items = circuitList.filter((item) => item.circuit === circuit)
+              if (items.length === 0) return null
+              return (
+                <View key={circuit} style={[s.logoGrid, { marginBottom: 10 }]}>
+                  {items.map((item) => (
+                    <CircuitCardPdf key={item.name} thumbnail={item.thumbnail} name={item.name} link={item.link} city={item.city} state={item.state} imageMap={imageMap} />
+                  ))}
                 </View>
-              </View>
-            )}
-
-            {(circuits.cannabis || circuits.cannadelic || circuits.psychedelics) && (
-              <View>
-                <View style={s.logoGrid}>
-                  {circuits.data.weedweek && <CircuitCardPdf thumbnail="weedweek.png" name="WeedWeek" city="Long Beach" state="CA" imageMap={imageMap} />}
-                  <CircuitCardPdf thumbnail="axiswire.png" name="AxisWire" city="Santa Monica" state="CA" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="cannabisradio.png" name="Cannabis Radio" city="Scottsdale" state="AZ" imageMap={imageMap} />
-                  <CircuitCardPdf thumbnail="reddit.png" name="Cannabis News on Reddit" city="San Francisco" state="CA" imageMap={imageMap} />
-                </View>
-              </View>
-            )}
+              )
+            })}
           </SectionCardPdf>
         )}
       </Page>
@@ -815,10 +855,10 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
           <SectionCardPdf borderColor={C.primary}>
             <View wrap={false}>
               <Text style={s.sectionTitle}>Enhanced Distribution</Text>
-              <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(48, enhancedPublications.length)} of 330 endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</Text>
+              <Text style={s.sectionDesc}>Representative distribution sample. Showing {Math.min(ENHANCED_DISPLAY_LIMIT, enhancedPublications.length)} of {ENHANCED_TOTAL_ENDPOINTS} endpoints. Some of the endpoints below require publication subscriptions that prevent linking directly to your press release. If you would like a full listing please contact us.</Text>
             </View>
             <View style={s.logoGrid}>
-              {enhancedPublications.slice(0, 48).map((pub, i) => (
+              {enhancedPublications.slice(0, ENHANCED_DISPLAY_LIMIT).map((pub, i) => (
                 <LogoCardPdf key={i} src={toPngUrl(pub.logo_url)} name={pub.name} link={pub.link || undefined} imageMap={imageMap} />
               ))}
             </View>
@@ -835,37 +875,56 @@ export function ReportPdfDocument({ data, imageMap = {} }: { data: ReportData; i
               <Text style={s.sectionDesc}>Extended distribution network amplifying your message across specialized platforms</Text>
             </View>
             <View style={s.logoGrid}>
-              {nwrampReport.placements && nwrampReport.placements
-                .filter((p: any) => p.placement !== 'https://newswriter.ai/news' && p.handle !== 'threads' && p.handle !== 'x')
-                .map((p: any, i: number) => {
-                  const logoUrl = p.logo && p.logo.includes('http')
-                    ? toPngUrl(p.logo)
-                    : `https://cdn1.newsworthy.ai/images/clip_report/newsramp/${(p.placement || '').split('.')[0]}.png`
-                  return <LogoCardPdf key={`pl-${i}`} src={logoUrl} name={p.placement?.split('.')[0] || ''} link={p.url || undefined} imageMap={imageMap} />
-                })}
-              {nwrampReport.linkedin && <LogoCardPdf src="linkedin.png" name="LinkedIn" link={nwrampReport.linkedin} imageMap={imageMap} />}
-              {(nwrampReport.x || nwrampReport.placements?.find((p: any) => p.handle === 'x')?.url) && (
-                <LogoCardPdf
-                  src="https://cdn.newsramp.app/nwai-assets/1786373283056-logo-black.png"
-                  name="X"
-                  link={nwrampReport.x || nwrampReport.placements.find((p: any) => p.handle === 'x')?.url}
-                  imageMap={imageMap}
-                />
-              )}
-              {nwrampReport.telegram_posts && nwrampReport.telegram_posts.length > 0 && <LogoCardPdf src="https://cdn1.newsworthy.ai/images/clip_report/newsramp/telegram.png" name="Telegram" link={nwrampReport.telegram_posts[0]} imageMap={imageMap} />}
-              {nwrampReport.bluesky && <LogoCardPdf src="https://cdn.newsramp.app/bluesky.png" name="Bluesky" link={nwrampReport.bluesky} imageMap={imageMap} />}
-              {nwrampReport.mastodon && <LogoCardPdf src="https://cdn.newsramp.app/mastodon.png" name="Mastodon" link={nwrampReport.mastodon} imageMap={imageMap} />}
-              {(nwrampReport.threads || nwrampReport.placements?.find((p: any) => p.handle === 'threads')?.url) && (
-                <LogoCardPdf
-                  src="https://cdn.newsramp.app/nwai-assets/1786339237413-Threads-app-Logo.png"
-                  name="Threads"
-                  link={nwrampReport.threads || nwrampReport.placements.find((p: any) => p.handle === 'threads')?.url}
-                  imageMap={imageMap}
-                />
-              )}
-              {nwrampReport.github && <LogoCardPdf src="https://cdn.newsramp.app/images/clip_report/newsramp/github.png" name="GitHub" link={nwrampReport.github} imageMap={imageMap} />}
-              {nwrampReport.substack && <LogoCardPdf src="substack.png" name="Substack" link={nwrampReport.substack} imageMap={imageMap} />}
+              {boostifyItems(nwrampReport).map((item, i) => (
+                <LogoCardPdf key={`boost-${i}`} src={toPngUrl(item.logo)} name={item.name} link={item.link || undefined} imageMap={imageMap} />
+              ))}
             </View>
+
+            {podcasts.length > 0 && (
+              <View style={{ marginTop: 14 }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 6 }}>Podcasts</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                  {podcasts.map((pod, i) => {
+                    const artSrc = pod.artwork ? resolveImage(pod.artwork, imageMap) : null
+                    if (!artSrc) return null
+                    return (
+                      <Link key={i} src={pod.link}>
+                        <View style={s.podcastCard}>
+                          <Image src={artSrc} style={s.podcastImg} />
+                        </View>
+                      </Link>
+                    )
+                  })}
+                </View>
+                <Text style={{ fontSize: 9, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 6 }}>Listen On:</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                  {PODCAST_BADGES.map((badge) => {
+                    const badgeSrc = resolveImage(badge.src, imageMap)
+                    if (!badgeSrc) return null
+                    return <Image key={badge.name} src={badgeSrc} style={{ width: 80, height: 24, objectFit: 'contain' }} />
+                  })}
+                </View>
+              </View>
+            )}
+
+            {translations.length > 0 && (
+              <View style={{ marginTop: 14 }}>
+                <Text style={{ fontSize: 11, fontFamily: 'Helvetica-Bold', color: C.gray900, marginBottom: 6 }}>Language Translations</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {translations.map((t, i) => {
+                    const flagSrc = resolveImage(t.flag, imageMap)
+                    return (
+                      <Link key={i} src={t.link}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          {flagSrc && <Image src={flagSrc} style={{ width: 18, height: 18, objectFit: 'contain' }} />}
+                          <Text style={{ fontSize: 9, color: C.blue }}>{t.language}</Text>
+                        </View>
+                      </Link>
+                    )
+                  })}
+                </View>
+              </View>
+            )}
           </SectionCardPdf>
         </Page>
       )}

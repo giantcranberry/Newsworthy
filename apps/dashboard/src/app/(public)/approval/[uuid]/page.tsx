@@ -1,6 +1,6 @@
 import { db } from '@/db'
-import { approvals, releases, releaseImages } from '@/db/schema'
-import { asc, eq } from 'drizzle-orm'
+import { approvals, releases, releaseImages, releaseFiles } from '@/db/schema'
+import { and, asc, desc, eq, lte, ne } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { ApprovalResponse } from './approval-response'
 
@@ -23,10 +23,33 @@ async function getApprovalWithRelease(approvalUuid: string) {
         orderBy: [asc(releaseImages.sortOrder)],
         with: { image: true },
       },
+      // Everything below mirrors what the public article page renders
+      primaryContact: true,
+      releaseFiles: {
+        orderBy: [asc(releaseFiles.sortOrder)],
+        with: { file: true },
+      },
+      faqs: true,
+      releaseCategories: { with: { category: true } },
     },
   })
 
-  return { approval, release }
+  if (!release) return { approval, release: null, recent: [] }
+
+  // "Other Recent News" uses the same query as the article page
+  const recent = await db.query.releases.findMany({
+    limit: 5,
+    columns: { title: true },
+    where: and(
+      eq(releases.isDeleted, false),
+      eq(releases.companyId, release.companyId),
+      ne(releases.id, release.id),
+      lte(releases.releasedAt, new Date()),
+    ),
+    orderBy: desc(releases.releasedAt),
+  })
+
+  return { approval, release, recent }
 }
 
 export default async function ApprovalPage({
@@ -42,7 +65,7 @@ export default async function ApprovalPage({
     notFound()
   }
 
-  const { approval, release } = data
+  const { approval, release, recent } = data
 
   // If already signed, show appropriate message
   if (approval.signedAt) {
@@ -65,7 +88,7 @@ export default async function ApprovalPage({
             )}
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {approval.approved ? 'Already Approved' : 'Already Responded'}
+            {approval.withChanges ? 'Already Approved with Changes' : approval.approved ? 'Already Approved' : 'Already Responded'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
             {approval.approved
@@ -80,41 +103,88 @@ export default async function ApprovalPage({
   return (
     <ApprovalResponse
       approvalUuid={approval.uuid}
-      release={{
-        title: release.title || 'Untitled Press Release',
-        abstract: release.abstract || '',
-        body: release.body || '',
-        location: release.location || '',
-        pullquote: release.pullquote || null,
-        videoUrl: release.videoUrl || null,
-      }}
       company={{
         name: release.company?.companyName || '',
         logoUrl: release.company?.logoUrl || null,
       }}
-      banner={release.banner ? { url: release.banner.url, caption: release.banner.caption } : null}
-      carouselImages={(() => {
-        const fromRelease = (release.releaseImages || [])
-          .filter((ri) => ri.image)
-          .map((ri) => ({
-            id: ri.image!.id,
-            url: ri.image!.url.replace('RESIZE/', ''),
-            title: ri.image!.title,
-            caption: ri.image!.caption,
-            imgCredits: ri.image!.imgCredits,
-          }))
-        if (fromRelease.length > 0) return fromRelease
-        if (release.primaryImage?.url) {
-          return [{
-            id: 0,
-            url: release.primaryImage.url.replace('RESIZE/', ''),
-            title: null,
-            caption: release.primaryImage.caption ?? null,
-            imgCredits: release.primaryImage.imgCredits ?? null,
-          }]
-        }
-        return []
-      })()}
+      preview={{
+        release: {
+          title: release.title || 'Untitled Press Release',
+          abstract: release.abstract || '',
+          body: release.body || '',
+          location: release.location || '',
+          pullquote: release.pullquote || null,
+          videoUrl: release.videoUrl || null,
+          landingPage: release.landingPage || null,
+          publicDrive: release.publicDrive || null,
+          releaseAt: release.releaseAt?.toISOString() ?? null,
+          timezone: release.timezone || null,
+        },
+        company: {
+          name: release.company?.companyName || '',
+          logoUrl: release.company?.logoUrl || null,
+          website: release.company?.website || null,
+          phone: release.company?.phone || null,
+          nrUri: release.company?.nrUri || null,
+          uuid: release.company?.uuid || null,
+          linkedinUrl: release.company?.linkedinUrl || null,
+          xUrl: release.company?.xUrl || null,
+          facebookUrl: release.company?.facebookUrl || null,
+          instagramUrl: release.company?.instagramUrl || null,
+          youtubeUrl: release.company?.youtubeUrl || null,
+        },
+        contact: release.primaryContact
+          ? {
+              name: release.primaryContact.name,
+              title: release.primaryContact.title || null,
+              hasEmail: !!release.primaryContact.email,
+              phone: release.primaryContact.phone || null,
+              avatar: release.primaryContact.avatar || null,
+            }
+          : null,
+        bannerUrl: release.banner?.url || null,
+        images: (() => {
+          const fromRelease = (release.releaseImages || [])
+            .filter((ri) => ri.image)
+            .map((ri) => ({
+              id: ri.image!.id,
+              url: ri.image!.url.replace('RESIZE/', ''),
+              title: ri.image!.title,
+              caption: ri.image!.caption,
+              imgCredits: ri.image!.imgCredits,
+            }))
+          if (fromRelease.length > 0) return fromRelease
+          if (release.primaryImage?.url) {
+            return [{
+              id: 0,
+              url: release.primaryImage.url.replace('RESIZE/', ''),
+              title: null,
+              caption: release.primaryImage.caption ?? null,
+              imgCredits: release.primaryImage.imgCredits ?? null,
+            }]
+          }
+          return []
+        })(),
+        files: (release.releaseFiles || [])
+          .filter((rf) => rf.file && !rf.file.isDeleted)
+          .map((rf) => ({
+            id: rf.file.id,
+            title: rf.file.title,
+            description: rf.file.description || null,
+            filename: rf.file.filename || null,
+            url: rf.file.url,
+            mimeType: rf.file.mimeType || null,
+            filesize: rf.file.filesize || null,
+            source: rf.file.source || null,
+          })),
+        faqs: [...(release.faqs || [])]
+          .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+          .map((f) => ({ question: f.question, answer: f.answer })),
+        categories: (release.releaseCategories || [])
+          .map((rc) => rc.category?.name)
+          .filter((name): name is string => !!name),
+        recentTitles: recent.map((r) => r.title || '').filter(Boolean),
+      }}
       approverName={approval.emailTo || ''}
       notes={approval.notes || null}
     />

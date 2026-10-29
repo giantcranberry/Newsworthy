@@ -136,6 +136,8 @@ export const approvals = pgTable('approvals', {
   signedAt: timestamp('signed_at'),
   feedback: text('feedback'),
   approved: boolean('approved').default(false).notNull(),
+  // Approved, with the requested changes in feedback
+  withChanges: boolean('with_changes').default(false).notNull(),
   notes: text('notes'),
   companyId: integer('company_id').notNull().references(() => company.id).default(0),
   userId: integer('user_id').notNull().references(() => users.id),

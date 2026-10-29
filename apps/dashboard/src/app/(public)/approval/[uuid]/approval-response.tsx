@@ -7,73 +7,42 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
-import { ImageCarousel } from '@/components/pr-wizard/image-carousel'
-import { getEmbedInfo } from '@/components/pr-wizard/preview-panel'
-import { InstagramEmbed } from '@/components/pr-wizard/instagram-embed'
+import { CheckCircle2, XCircle, Loader2, PencilLine } from 'lucide-react'
+import { ReleaseSitePreview, type SitePreviewProps } from './release-site-preview'
 
-interface CarouselImage {
-  id: number
-  url: string
-  title?: string | null
-  caption?: string | null
-  imgCredits?: string | null
-}
+type Decision = 'approved' | 'changes' | 'declined'
 
 interface ApprovalResponseProps {
   approvalUuid: string
-  release: {
-    title: string
-    abstract: string
-    body: string
-    location: string
-    pullquote: string | null
-    videoUrl: string | null
-  }
   company: {
     name: string
     logoUrl: string | null
   }
-  banner: {
-    url: string
-    caption: string | null
-  } | null
-  carouselImages: CarouselImage[]
+  preview: SitePreviewProps
   approverName: string
   notes: string | null
 }
 
-function formatDate() {
-  const now = new Date()
-  return now.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
-
 export function ApprovalResponse({
   approvalUuid,
-  release,
   company,
-  banner,
-  carouselImages,
+  preview,
   approverName,
   notes,
 }: ApprovalResponseProps) {
   const [signature, setSignature] = useState('')
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState<'approved' | 'declined' | null>(null)
+  const [submitted, setSubmitted] = useState<Decision | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const embedInfo = release.videoUrl ? getEmbedInfo(release.videoUrl) : null
-  const isVideoFile = !!release.videoUrl && /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(release.videoUrl)
-
-  const handleSubmit = async (approved: boolean) => {
+  const handleSubmit = async (decision: Decision) => {
     if (!signature.trim()) {
       setError('Please enter your name as signature')
+      return
+    }
+    if (decision === 'changes' && !feedback.trim()) {
+      setError('Please describe your changes in the Feedback area, then click Approve with Changes')
       return
     }
 
@@ -87,7 +56,8 @@ export function ApprovalResponse({
         body: JSON.stringify({
           signature: signature.trim(),
           feedback: feedback.trim() || null,
-          approved,
+          approved: decision !== 'declined',
+          withChanges: decision === 'changes',
         }),
       })
 
@@ -97,7 +67,7 @@ export function ApprovalResponse({
         throw new Error(data.error || 'Failed to submit response')
       }
 
-      setSubmitted(approved ? 'approved' : 'declined')
+      setSubmitted(decision)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -114,6 +84,10 @@ export function ApprovalResponse({
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
+            ) : submitted === 'changes' ? (
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mx-auto">
+                <PencilLine className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+              </div>
             ) : (
               <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto">
                 <XCircle className="w-8 h-8 text-red-600 dark:text-red-400" />
@@ -126,6 +100,8 @@ export function ApprovalResponse({
           <p className="text-gray-600 dark:text-gray-400">
             {submitted === 'approved'
               ? 'Your approval has been recorded. The press release author has been notified.'
+              : submitted === 'changes'
+              ? 'Your approval and requested changes have been recorded. The press release author has been notified.'
               : 'Your response has been recorded. The press release author has been notified.'}
           </p>
         </div>
@@ -210,11 +186,15 @@ export function ApprovalResponse({
               />
             </div>
 
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              You can provide changes in the Feedback area below and then <span className="font-medium text-gray-900 dark:text-gray-100">Approve with Changes</span>.
+            </p>
+
             <div className="space-y-2">
               <Label htmlFor="feedback">Feedback (Optional)</Label>
               <Textarea
                 id="feedback"
-                placeholder="Add any comments or feedback..."
+                placeholder="Add any comments, or list the changes you need..."
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 rows={4}
@@ -223,7 +203,7 @@ export function ApprovalResponse({
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button
-                onClick={() => handleSubmit(true)}
+                onClick={() => handleSubmit('approved')}
                 disabled={isSubmitting}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
@@ -237,7 +217,21 @@ export function ApprovalResponse({
                 )}
               </Button>
               <Button
-                onClick={() => handleSubmit(false)}
+                onClick={() => handleSubmit('changes')}
+                disabled={isSubmitting}
+                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <PencilLine className="h-4 w-4 mr-2" />
+                    Approve with Changes
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={() => handleSubmit('declined')}
                 disabled={isSubmitting}
                 variant="outline"
                 className="flex-1 border-red-300 text-red-600 dark:text-red-400 hover:bg-red-50"
@@ -254,99 +248,20 @@ export function ApprovalResponse({
             </div>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-              By clicking Approve, you confirm that you have reviewed the press release
+              By clicking Approve or Approve with Changes, you confirm that you have reviewed the press release
               and authorize its distribution.
             </p>
           </CardContent>
         </Card>
-
-        {/* Press Release Preview */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-sm text-gray-500 dark:text-gray-400 font-normal">Press Release Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <article className="space-y-6">
-              {/* Banner */}
-              {banner && (
-                <div className="relative aspect-[1200/630] w-full rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                  <Image
-                    src={banner.url}
-                    alt={banner.caption || 'Press release banner'}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-
-              {/* Title */}
-              <h1 className="font-serif text-2xl lg:text-3xl font-medium text-gray-900 dark:text-gray-100">
-                {release.title}
-              </h1>
-
-              {/* Abstract */}
-              <p className="text-lg font-light text-gray-700 dark:text-gray-300">
-                {release.abstract}
-              </p>
-
-              {/* Video */}
-              {embedInfo?.type === 'youtube' && (
-                <div className="flex justify-center">
-                  <iframe
-                    title="Embedded video"
-                    src={embedInfo.embedUrl}
-                    className="aspect-video w-full rounded h-[200px] md:h-[400px] lg:w-[600px] lg:h-[350px]"
-                    loading="lazy"
-                    allowFullScreen
-                  />
-                </div>
-              )}
-              {embedInfo?.type === 'instagram' && (
-                <InstagramEmbed url={embedInfo.url} />
-              )}
-              {!embedInfo && isVideoFile && (
-                <div className="flex justify-center">
-                  <video
-                    src={release.videoUrl!}
-                    controls
-                    className="w-full rounded lg:w-[600px]"
-                  />
-                </div>
-              )}
-
-              {/* Dateline */}
-              <p className="text-gray-600 dark:text-gray-400">
-                {release.location} (Newsworthy.ai) {formatDate()}
-              </p>
-
-              {/* Body wraps around carousel + pullquote */}
-              <div className="prose prose-sm max-w-none prose-p:text-gray-800 dark:text-gray-200 prose-headings:text-gray-900 dark:text-gray-100 prose-a:text-blue-600 dark:text-blue-400">
-                {(carouselImages.length > 0 || release.pullquote) && (
-                  <aside className="float-none lg:float-right lg:ml-6 lg:mb-4 lg:w-[450px] not-prose mb-6">
-                    {carouselImages.length > 0 && (
-                      <ImageCarousel images={carouselImages} />
-                    )}
-                    {release.pullquote && (
-                      <blockquote className="mt-4 border-l-4 border-cyan-700 bg-gray-50 italic text-gray-700 px-5 py-4 text-base leading-relaxed">
-                        <p>{(() => {
-                          const text = release.pullquote.trim()
-                          if (/^["“\u201C]/.test(text)) return text
-                          const match = text.match(/^([\s\S]*?)\s*(--\s*|—\s*|-\s+)([\s\S]+)$/)
-                          if (match) return <>{`\u201C${match[1].trimEnd()}\u201D `}<span className="not-italic">{match[2]}{match[3]}</span></>
-                          return `\u201C${text}\u201D`
-                        })()}</p>
-                      </blockquote>
-                    )}
-                  </aside>
-                )}
-                <div dangerouslySetInnerHTML={{ __html: release.body }} />
-              </div>
-            </article>
-          </CardContent>
-        </Card>
-
       </main>
+
+      {/* Press Release Preview: full page width, sized like the article page container on newsworthy.ai */}
+      <section className="bg-white border-y border-gray-200">
+        <div className="mx-auto max-w-screen-xl xl:max-w-screen-2xl px-5 pt-6 pb-5 lg:pb-10">
+          <p className="text-sm text-gray-500 mb-6">Press Release Preview</p>
+          <ReleaseSitePreview {...preview} />
+        </div>
+      </section>
 
       {/* Footer */}
       <footer className="bg-slate-800 text-white mt-12">
