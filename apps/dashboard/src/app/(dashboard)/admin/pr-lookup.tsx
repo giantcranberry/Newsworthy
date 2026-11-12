@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon, Trash2 } from 'lucide-react'
+import { Search, FileText, User, Building2, ExternalLink, Pencil, BarChart3, ArrowUpCircle, LinkIcon, Trash2, ImageIcon, Upload, X } from 'lucide-react'
 import { SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface LookupResult {
@@ -39,7 +39,26 @@ interface LookupResult {
     logoUrl: string | null
   } | null
   reportUrl: string | null
+  banner: {
+    id: number
+    url: string | null
+    title: string | null
+    imgCredits: string | null
+  } | null
+  images: {
+    imageId: number
+    url: string | null
+    title: string | null
+    imgCredits: string | null
+  }[]
 }
+
+function displayImageUrl(url: string | null | undefined): string {
+  if (!url) return ''
+  return url.replace('RESIZE/', '')
+}
+
+const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 
 function extractPrId(input: string): string {
   const trimmed = input.trim()
@@ -88,6 +107,15 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
   const [takingDown, setTakingDown] = useState(false)
   const [takedownConfirm, setTakedownConfirm] = useState(false)
   const [takedownMessage, setTakedownMessage] = useState('')
+  const bannerInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const [bannerBusy, setBannerBusy] = useState(false)
+  const [bannerConfirmRemove, setBannerConfirmRemove] = useState(false)
+  const [newImageFile, setNewImageFile] = useState<File | null>(null)
+  const [newImageAlt, setNewImageAlt] = useState('')
+  const [imageBusy, setImageBusy] = useState(false)
+  const [removingImageId, setRemovingImageId] = useState<number | null>(null)
+  const [mediaMessage, setMediaMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -108,6 +136,10 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
     setReportUrlMessage('')
     setTakedownConfirm(false)
     setTakedownMessage('')
+    setBannerConfirmRemove(false)
+    setNewImageFile(null)
+    setNewImageAlt('')
+    setMediaMessage(null)
 
     try {
       const res = await fetch(`/api/admin/lookup?prId=${resolvedId}`)
@@ -225,6 +257,135 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
       setTakedownMessage('Failed to take down release')
     } finally {
       setTakingDown(false)
+    }
+  }
+
+  const handleBannerFile = async (file: File | undefined) => {
+    if (!result || !file) return
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+      setMediaMessage({ type: 'error', text: 'Invalid file type. Please upload PNG, JPEG, or WebP.' })
+      return
+    }
+
+    setBannerBusy(true)
+    setMediaMessage(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('banner', file)
+      formData.append('title', result.banner?.title || result.release.title || '')
+      if (result.banner?.imgCredits) formData.append('imgCredits', result.banner.imgCredits)
+
+      const res = await fetch(`/api/pr/${result.release.uuid}/social`, { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({
+          ...result,
+          banner: {
+            id: data.banner.id,
+            url: data.banner.url,
+            title: data.banner.title,
+            imgCredits: data.banner.imgCredits,
+          },
+        })
+        setMediaMessage({ type: 'success', text: result.banner ? 'Social banner replaced' : 'Social banner added' })
+      } else {
+        setMediaMessage({ type: 'error', text: data.error || 'Failed to upload banner' })
+      }
+    } catch {
+      setMediaMessage({ type: 'error', text: 'Failed to upload banner' })
+    } finally {
+      setBannerBusy(false)
+      if (bannerInputRef.current) bannerInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveBanner = async () => {
+    if (!result) return
+
+    setBannerBusy(true)
+    setMediaMessage(null)
+
+    try {
+      const res = await fetch(`/api/pr/${result.release.uuid}/social`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({ ...result, banner: null })
+        setMediaMessage({ type: 'success', text: 'Social banner removed' })
+        setBannerConfirmRemove(false)
+      } else {
+        setMediaMessage({ type: 'error', text: data.error || 'Failed to remove banner' })
+      }
+    } catch {
+      setMediaMessage({ type: 'error', text: 'Failed to remove banner' })
+    } finally {
+      setBannerBusy(false)
+    }
+  }
+
+  const handleAddImage = async () => {
+    if (!result || !newImageFile || !newImageAlt.trim()) return
+    if (!ACCEPTED_IMAGE_TYPES.includes(newImageFile.type)) {
+      setMediaMessage({ type: 'error', text: 'Invalid file type. Please upload PNG, JPEG, or WebP.' })
+      return
+    }
+
+    setImageBusy(true)
+    setMediaMessage(null)
+
+    try {
+      const formData = new FormData()
+      formData.append('image', newImageFile)
+      formData.append('title', newImageAlt.trim())
+
+      const res = await fetch(`/api/pr/${result.release.uuid}/image`, { method: 'POST', body: formData })
+      const data = await res.json()
+
+      if (res.ok) {
+        const img = data.releaseImage.image
+        setResult({
+          ...result,
+          images: [
+            ...result.images,
+            { imageId: data.releaseImage.imageId, url: img?.url ?? null, title: img?.title ?? null, imgCredits: img?.imgCredits ?? null },
+          ],
+        })
+        setNewImageFile(null)
+        setNewImageAlt('')
+        if (imageInputRef.current) imageInputRef.current.value = ''
+        setMediaMessage({ type: 'success', text: 'Image added' })
+      } else {
+        setMediaMessage({ type: 'error', text: data.error || 'Failed to add image' })
+      }
+    } catch {
+      setMediaMessage({ type: 'error', text: 'Failed to add image' })
+    } finally {
+      setImageBusy(false)
+    }
+  }
+
+  const handleRemoveImage = async (imageId: number) => {
+    if (!result) return
+
+    setRemovingImageId(imageId)
+    setMediaMessage(null)
+
+    try {
+      const res = await fetch(`/api/pr/${result.release.uuid}/image?imageId=${imageId}`, { method: 'DELETE' })
+      const data = await res.json()
+
+      if (res.ok) {
+        setResult({ ...result, images: result.images.filter((i) => i.imageId !== imageId) })
+        setMediaMessage({ type: 'success', text: 'Image removed' })
+      } else {
+        setMediaMessage({ type: 'error', text: data.error || 'Failed to remove image' })
+      }
+    } catch {
+      setMediaMessage({ type: 'error', text: 'Failed to remove image' })
+    } finally {
+      setRemovingImageId(null)
     }
   }
 
@@ -439,6 +600,162 @@ export function PRLookup({ isAdmin = false }: { isAdmin?: boolean }) {
                     </div>
                     {upgradeSuccess && (
                       <p className="text-xs text-green-700 dark:text-green-400 mt-2 font-medium">{upgradeSuccess}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Images & Social Banner - Admin Only */}
+            {isAdmin && (
+              <div className="rounded-lg border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/30 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <ImageIcon className="h-4 w-4 text-violet-700 dark:text-violet-400" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-4">
+                    <p className="text-sm font-medium text-violet-900 dark:text-violet-200">Images &amp; Social Banner</p>
+
+                    {/* Social Banner */}
+                    <div>
+                      <p className="text-xs font-medium text-violet-800 dark:text-violet-300 mb-1.5">Social Banner</p>
+                      <div className="flex items-start gap-3">
+                        {result.banner?.url ? (
+                          <a href={displayImageUrl(result.banner.url)} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                            <img
+                              src={displayImageUrl(result.banner.url)}
+                              alt={result.banner.title || 'Social banner'}
+                              className="h-20 w-[152px] rounded-md object-cover border border-violet-200 dark:border-violet-800 bg-white dark:bg-gray-900"
+                            />
+                          </a>
+                        ) : (
+                          <div className="h-20 w-[152px] rounded-md border border-dashed border-violet-300 dark:border-violet-800 flex items-center justify-center text-xs text-violet-600 dark:text-violet-400 flex-shrink-0">
+                            No banner
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          <input
+                            ref={bannerInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            className="hidden"
+                            onChange={(e) => handleBannerFile(e.target.files?.[0])}
+                          />
+                          <Button
+                            size="sm"
+                            className="h-8 bg-violet-700 text-white hover:bg-violet-800 text-xs gap-1.5"
+                            disabled={bannerBusy}
+                            onClick={() => bannerInputRef.current?.click()}
+                          >
+                            <Upload className="h-3 w-3" />
+                            {bannerBusy ? 'Working...' : result.banner ? 'Replace Banner' : 'Upload Banner'}
+                          </Button>
+                          {result.banner && (
+                            !bannerConfirmRemove ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs"
+                                disabled={bannerBusy}
+                                onClick={() => setBannerConfirmRemove(true)}
+                              >
+                                Remove Banner
+                              </Button>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  className="h-8 bg-red-700 text-white hover:bg-red-800 text-xs"
+                                  disabled={bannerBusy}
+                                  onClick={handleRemoveBanner}
+                                >
+                                  Confirm remove
+                                </Button>
+                                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setBannerConfirmRemove(false)}>
+                                  Cancel
+                                </Button>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-violet-700/80 dark:text-violet-400/80 mt-1.5">Recommended 1200×630. Uploaded as-is (no cropping).</p>
+                    </div>
+
+                    {/* News Images */}
+                    <div>
+                      <p className="text-xs font-medium text-violet-800 dark:text-violet-300 mb-1.5">
+                        News Images ({result.images.length})
+                      </p>
+                      {result.images.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {result.images.map((img, idx) => (
+                            <div key={img.imageId} className="relative group">
+                              <a href={displayImageUrl(img.url)} target="_blank" rel="noopener noreferrer">
+                                <img
+                                  src={displayImageUrl(img.url)}
+                                  alt={img.title || 'Release image'}
+                                  title={img.title || undefined}
+                                  className="h-20 w-20 rounded-md object-cover border border-violet-200 dark:border-violet-800 bg-white dark:bg-gray-900"
+                                />
+                              </a>
+                              {idx === 0 && (
+                                <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1 text-[9px] font-medium text-white">Primary</span>
+                              )}
+                              <button
+                                type="button"
+                                aria-label="Remove image"
+                                className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center shadow hover:bg-red-700 disabled:opacity-50"
+                                disabled={removingImageId === img.imageId}
+                                onClick={() => {
+                                  if (window.confirm('Remove this image from the release?')) handleRemoveImage(img.imageId)
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-violet-700 dark:text-violet-400">No images attached</p>
+                      )}
+
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <input
+                          ref={imageInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          className="text-xs file:mr-2 file:rounded-md file:border-0 file:bg-violet-100 dark:file:bg-violet-900/40 file:px-2 file:py-1 file:text-xs file:text-violet-800 dark:file:text-violet-200 max-w-[220px]"
+                          onChange={(e) => setNewImageFile(e.target.files?.[0] || null)}
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Alt description (required)"
+                          value={newImageAlt}
+                          onChange={(e) => setNewImageAlt(e.target.value)}
+                          className="flex-1 min-w-[180px] h-8 text-xs bg-white dark:bg-gray-900"
+                        />
+                        <Button
+                          size="sm"
+                          className="h-8 bg-violet-700 text-white hover:bg-violet-800 text-xs gap-1.5"
+                          disabled={imageBusy || !newImageFile || !newImageAlt.trim()}
+                          onClick={handleAddImage}
+                        >
+                          <Upload className="h-3 w-3" />
+                          {imageBusy ? 'Uploading...' : 'Add Image'}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {mediaMessage && (
+                      <p className={`text-xs font-medium ${mediaMessage.type === 'success' ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>
+                        {mediaMessage.text}
+                      </p>
+                    )}
+                    {result.release.status === 'sent' && (
+                      <p className="text-[11px] text-violet-700/80 dark:text-violet-400/80">
+                        Live page is cached for up to 4 hours, so changes may not appear on newsworthy.ai immediately.
+                      </p>
                     )}
                   </div>
                 </div>
