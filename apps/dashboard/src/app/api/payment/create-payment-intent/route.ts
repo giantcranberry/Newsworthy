@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { carts, products, userProfiles } from '@/db/schema'
+import { carts, products } from '@/db/schema'
 import { eq, and, isNull } from 'drizzle-orm'
-import { getStripe } from '@/lib/stripe'
+import { getOrCreateStripeCustomer, getStripe } from '@/lib/stripe'
 
 export async function POST(request: NextRequest) {
   const stripe = await getStripe()
@@ -66,38 +66,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cart total is zero' }, { status: 400 })
     }
 
-    // Get or create Stripe customer
-    const profile = await db.query.userProfiles.findFirst({
-      where: eq(userProfiles.userId, userId),
+    // Get or create Stripe customer (saved to the profile only in live mode)
+    const stripeCustomerId = await getOrCreateStripeCustomer(stripe, {
+      userId,
+      email: session.user.email,
+      name: session.user.name,
     })
-
-    let stripeCustomerId = profile?.stripe || null
-
-    if (stripeCustomerId) {
-      // Verify customer still exists in Stripe
-      try {
-        await stripe.customers.retrieve(stripeCustomerId)
-      } catch {
-        stripeCustomerId = null
-      }
-    }
-
-    if (!stripeCustomerId) {
-      const customer = await stripe.customers.create({
-        email: session.user.email || undefined,
-        name: session.user.name || undefined,
-        metadata: { user_id: userId.toString() },
-      })
-      stripeCustomerId = customer.id
-
-      // Save to profile
-      if (profile) {
-        await db
-          .update(userProfiles)
-          .set({ stripe: stripeCustomerId })
-          .where(eq(userProfiles.userId, userId))
-      }
-    }
 
     // Create Payment Intent
     const intent = await stripe.paymentIntents.create({
@@ -106,7 +80,7 @@ export async function POST(request: NextRequest) {
       automatic_payment_methods: { enabled: true },
       receipt_email: session.user.email || undefined,
       description: productNames.slice(0, 3).join(', '),
-      customer: stripeCustomerId,
+      customer: stripeCustomerId ?? undefined,
       metadata: {
         cart_uuid: cartUuid,
         user_id: userId.toString(),
