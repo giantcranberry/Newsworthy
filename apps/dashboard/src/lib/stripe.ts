@@ -61,3 +61,88 @@ export async function getWebhookSecret(): Promise<string> {
   }
   return secret
 }
+
+export interface PayingUser {
+  userId: number
+  email?: string | null
+  name?: string | null
+}
+
+/**
+ * The Stripe customer for a signed-in user, so payments show their email in
+ * Stripe, Stripe can send the receipt, and the charge appears in the user's
+ * purchase history (which lists charges by customer).
+ *
+ * Reuses user_profiles.stripe when it exists in this Stripe mode, otherwise
+ * finds a customer by email or creates one. Only live-mode customer ids are
+ * saved to the profile, so a sandbox run never overwrites the live id.
+ * Returns null instead of throwing, so a Stripe customer problem never blocks
+ * a payment.
+ */
+export async function getOrCreateStripeCustomer(stripe: Stripe, user: PayingUser): Promise<string | null> {
+  try {
+    const { db } = await import('@/db')
+    const { userProfiles } = await import('@/db/schema')
+    const { eq } = await import('drizzle-orm')
+
+    const profile = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, user.userId),
+    })
+
+    if (profile?.stripe) {
+      try {
+        const existing = await stripe.customers.retrieve(profile.stripe)
+        if (!('deleted' in existing && existing.deleted)) return existing.id
+      } catch {
+        // Not in this Stripe mode (e.g. live id in sandbox) or deleted
+      }
+    }
+
+    const email = user.email?.trim() || undefined
+    let customer: Stripe.Customer | null = null
+    if (email) {
+      const found = await stripe.customers.list({ email, limit: 1 })
+      customer = found.data[0] ?? null
+    }
+    if (!customer) {
+      customer = await stripe.customers.create({
+        email,
+        name: user.name?.trim() || undefined,
+        metadata: { user_id: user.userId.toString() },
+      })
+    }
+
+    if (profile && customer.livemode && profile.stripe !== customer.id) {
+      await db.update(userProfiles).set({ stripe: customer.id }).where(eq(userProfiles.userId, user.userId))
+    }
+    return customer.id
+  } catch (error) {
+    console.error('[stripe] could not get or create customer:', error)
+    return null
+  }
+}
+
+/**
+ * Add the paying user to PaymentIntent params: Stripe customer, receipt email,
+ * and the user's email in metadata. Existing params win where they're set.
+ *
+ *   stripe.paymentIntents.create(await withPayingUser(stripe, user, { amount, ... }))
+ */
+export async function withPayingUser(
+  stripe: Stripe,
+  user: PayingUser,
+  params: Stripe.PaymentIntentCreateParams,
+): Promise<Stripe.PaymentIntentCreateParams> {
+  const customer = params.customer ?? (await getOrCreateStripeCustomer(stripe, user))
+  const email = user.email?.trim() || undefined
+  return {
+    ...params,
+    ...(customer ? { customer } : {}),
+    ...(params.receipt_email ?? email ? { receipt_email: params.receipt_email ?? email } : {}),
+    metadata: {
+      userId: user.userId.toString(),
+      ...(email ? { userEmail: email.slice(0, 500) } : {}),
+      ...(params.metadata || {}),
+    },
+  }
+}

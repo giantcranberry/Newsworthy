@@ -1,4 +1,5 @@
 import { getEffectiveSession } from '@/lib/auth'
+import { withPayingUser } from '@/lib/stripe'
 import { db } from '@/db'
 import { releases, brandCredits, products, adCampaigns } from '@/db/schema'
 import { eq, and, sql, isNull, or } from 'drizzle-orm'
@@ -368,7 +369,7 @@ export async function POST(
       const description = `${productNames} for "${releaseTitle}" (${uuid})`
 
       // Create a PaymentIntent (receipt sent via Resend after confirmation)
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripe.paymentIntents.create(await withPayingUser(stripe, { userId, email: session.user.email, name: session.user.name }, {
         amount: totalAmount,
         currency: 'usd',
         automatic_payment_methods: {
@@ -384,7 +385,7 @@ export async function POST(
           productNames: productNames.substring(0, 500), // Stripe metadata limit
         },
         description,
-      })
+      }))
 
       return NextResponse.json({
         success: true,

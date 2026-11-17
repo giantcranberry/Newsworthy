@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { withPayingUser } from '@/lib/stripe'
 import { headers } from 'next/headers'
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
@@ -127,7 +128,7 @@ export async function POST(
     }
 
     const description = `Podcast PR credits — ${product.displayName || product.shortName}`
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await stripe.paymentIntents.create(await withPayingUser(stripe, { userId, email: session.user.email, name: session.user.name }, {
       amount: product.price,
       currency: 'usd',
       automatic_payment_methods: { enabled: true },
@@ -140,7 +141,7 @@ export async function POST(
         productNames: (product.displayName || product.shortName || '').substring(0, 500),
       },
       description,
-    })
+    }))
 
     return NextResponse.json({
       success: true,

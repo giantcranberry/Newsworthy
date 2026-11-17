@@ -1,4 +1,5 @@
 import { getEffectiveSession } from '@/lib/auth'
+import { withPayingUser } from '@/lib/stripe'
 import { db } from '@/db'
 import { brandCredits, products, company, companyMembers } from '@/db/schema'
 import { eq, and, or, isNull, inArray } from 'drizzle-orm'
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
       const productNames = selectedProducts.map(p => p.displayName || p.shortName).join(', ')
       const description = `Add-on purchase: ${productNames}`
 
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripe.paymentIntents.create(await withPayingUser(stripe, { userId, email: session.user.email, name: session.user.name }, {
         amount: totalAmount,
         currency: 'usd',
         automatic_payment_methods: { enabled: true },
@@ -170,7 +171,7 @@ export async function POST(request: Request) {
           productNames: productNames.substring(0, 500),
         },
         description,
-      })
+      }))
 
       return NextResponse.json({
         success: true,
