@@ -1,11 +1,12 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { company, pitchGroups, crmContacts } from '@/db/schema'
+import { company, pitchGroups, crmContacts, mediaListMembers } from '@/db/schema'
 import { eq, and, desc, sql, isNotNull, isNull, inArray } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createHash } from 'crypto'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { addContactIdsToList, getMediaList, getOrCreateDefaultMediaList } from '@/lib/media-lists'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
@@ -46,22 +47,27 @@ function parseCSVLine(line: string): string[] {
   return fields
 }
 
-async function getOrCreateGroup(companyId: number, userId: number, companyName: string) {
-  let group = await db.query.pitchGroups.findFirst({
-    where: eq(pitchGroups.coId, companyId),
-  })
+// The brand's default user media list (never the Newsworthy Curated list).
+const getOrCreateGroup = getOrCreateDefaultMediaList
 
-  if (!group) {
-    const [newGroup] = await db.insert(pitchGroups).values({
-      uuid: randomUUID().replace(/-/g, ''),
-      userId,
-      coId: companyId,
-      groupName: companyName,
-    }).returning()
-    group = newGroup
+/**
+ * The user list new contacts should go on: the requested list, or the brand's
+ * default list. Returns null if the requested list is missing or curated.
+ */
+async function resolveTargetList(companyId: number, userId: number, companyName: string, listUuid: unknown) {
+  if (typeof listUuid === 'string' && listUuid) {
+    const list = await getMediaList(companyId, listUuid)
+    if (!list || list.isCurated) return null
+    return list
   }
+  return getOrCreateDefaultMediaList(companyId, userId, companyName)
+}
 
-  return group
+async function isOnList(listId: number, contactId: number) {
+  const row = await db.query.mediaListMembers.findFirst({
+    where: and(eq(mediaListMembers.pitchGroupId, listId), eq(mediaListMembers.crmContactId, contactId)),
+  })
+  return !!row
 }
 
 // GET: Fetch pitch group + paginated contacts from crm_contacts + stats
@@ -164,6 +170,12 @@ export async function POST(
 
   const body = await request.json()
 
+  // New contacts always go on a user list (requested via listUuid, else the default list).
+  const targetList = await resolveTargetList(co.id, userId, co.companyName, body.listUuid)
+  if (!targetList) {
+    return NextResponse.json({ error: 'List not found or not editable' }, { status: 400 })
+  }
+
   // Single contact add
   if (body.mode === 'single') {
     const { firstName, lastName, email, tld, publication, qurl, phone, notes } = body
@@ -208,9 +220,15 @@ export async function POST(
           })
           .where(eq(crmContacts.id, existing.id))
 
+        await addContactIdsToList(targetList.id, [existing.id])
         return NextResponse.json({ success: true, contact: existing })
       }
-      return NextResponse.json({ error: 'A contact with this email already exists in your pitch list' }, { status: 409 })
+      // Already a media contact: put it on the target list if it isn't there yet.
+      if (!(await isOnList(targetList.id, existing.id))) {
+        await addContactIdsToList(targetList.id, [existing.id])
+        return NextResponse.json({ success: true, contact: existing, existing: true })
+      }
+      return NextResponse.json({ error: 'A contact with this email is already on this list' }, { status: 409 })
     }
 
     const [newContact] = await db.insert(crmContacts).values({
@@ -231,6 +249,7 @@ export async function POST(
       source: 'single',
     }).returning()
 
+    await addContactIdsToList(targetList.id, [newContact.id])
     return NextResponse.json({ success: true, contact: newContact })
   }
 
@@ -292,6 +311,11 @@ export async function POST(
         await db.update(crmContacts)
           .set({ contactType: 'both', updatedAt: new Date() })
           .where(eq(crmContacts.id, existing.id))
+        await addContactIdsToList(targetList.id, [existing.id])
+        added++
+      } else if (!(await isOnList(targetList.id, existing.id))) {
+        // Existing media contact: add it to the target list
+        await addContactIdsToList(targetList.id, [existing.id])
         added++
       } else {
         skipped++
@@ -299,7 +323,7 @@ export async function POST(
       continue
     }
 
-    await db.insert(crmContacts).values({
+    const [inserted] = await db.insert(crmContacts).values({
       uuid: randomUUID().replace(/-/g, ''),
       userId,
       companyId: co.id,
@@ -312,8 +336,9 @@ export async function POST(
       publication,
       qurl,
       source: 'upload',
-    })
+    }).returning({ id: crmContacts.id })
 
+    await addContactIdsToList(targetList.id, [inserted.id])
     added++
   }
 

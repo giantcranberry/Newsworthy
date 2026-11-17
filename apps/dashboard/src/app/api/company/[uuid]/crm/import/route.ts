@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createHash } from 'crypto'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { ensureMediaContactsListed } from '@/lib/media-lists'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
@@ -87,7 +88,7 @@ export async function POST(
     const lastName = row.lastName?.trim() || null
 
     try {
-      await db.insert(crmContacts).values({
+      const [inserted] = await db.insert(crmContacts).values({
         uuid: randomUUID().replace(/-/g, ''),
         userId,
         companyId: co.id,
@@ -102,7 +103,8 @@ export async function POST(
         tld: row.tld?.trim()?.toLowerCase() || null,
         notes: row.notes?.trim() || null,
         source: 'import',
-      })
+      }).returning()
+      await ensureMediaContactsListed(co, [inserted])
       added++
     } catch {
       errors.push(`Row ${i + 1}: Failed to import ${email}`)

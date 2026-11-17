@@ -4,6 +4,7 @@ import { releases, releaseOptions } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { getUserCompanyIds } from '@/lib/team-auth'
+import { getReleaseListSelection, setReleaseListSelection } from '@/lib/media-lists'
 
 export async function PUT(
   request: Request,
@@ -34,7 +35,15 @@ export async function PUT(
       }
     }
 
-    const { advocacy, pitchlist } = await request.json()
+    const { advocacy, pitchlist: pitchlistRequested, mediaListUuids } = await request.json()
+
+    // Which media lists receive this release. Lists must belong to the release's brand.
+    let pitchlist = pitchlistRequested
+    if (Array.isArray(mediaListUuids)) {
+      const uuids = mediaListUuids.filter((u: unknown): u is string => typeof u === 'string' && u.length > 0)
+      const kept = await setReleaseListSelection(release.id, release.companyId, pitchlist ? uuids : [])
+      if (pitchlist && kept.length === 0) pitchlist = false
+    }
 
     // Check if release options exist
     const existingOptions = await db.query.releaseOptions.findFirst({
@@ -100,9 +109,12 @@ export async function GET(
       where: eq(releaseOptions.prId, release.id),
     })
 
+    const lists = await getReleaseListSelection(release.id, release.companyId)
+
     return NextResponse.json({
       advocacy: options?.advocacy || false,
       pitchlist: options?.pitchlist || false,
+      mediaListUuids: lists.map((l) => l.uuid),
     })
   } catch (error) {
     console.error('[API] Error fetching advocacy:', error)

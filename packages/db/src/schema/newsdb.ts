@@ -108,6 +108,9 @@ export const pitchGroups = pgTable('pitch_groups', {
   uuid: varchar('uuid', { length: 36 }).unique(),
   coId: integer('co_id'),
   groupName: varchar('group_name', { length: 48 }),
+  // Newsworthy Curated list (written only by the journalist hunter; read-only and masked for users)
+  isCurated: boolean('is_curated').notNull().default(false),
+  description: text('description'),
   isDeleted: boolean('is_deleted').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

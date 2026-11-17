@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
+import { MediaListsPanel, type MediaListItem } from './media-lists-panel'
 import {
   Dialog,
   DialogContent,
@@ -32,6 +34,7 @@ interface PitchListFormProps {
   companyUuid: string
   companyName: string
   totalContacts: number
+  mediaLists: MediaListItem[]
 }
 
 const emptyContactForm = {
@@ -50,8 +53,13 @@ export function PitchListForm({
   companyUuid,
   companyName,
   totalContacts,
+  mediaLists,
 }: PitchListFormProps) {
   const router = useRouter()
+  // Contacts can only be added to user-created lists, never the Newsworthy Curated list.
+  const editableLists = mediaLists.filter((l) => !l.isCurated)
+  const [targetListUuid, setTargetListUuid] = useState(editableLists[0]?.uuid || '')
+  const targetListName = editableLists.find((l) => l.uuid === targetListUuid)?.name
   const [emails, setEmails] = useState('')
   const [isBulkAdding, setIsBulkAdding] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,7 +85,7 @@ export function PitchListForm({
       const response = await fetch(`/api/company/${companyUuid}/pitchlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails }),
+        body: JSON.stringify({ emails, listUuid: targetListUuid || undefined }),
       })
 
       if (!response.ok) {
@@ -106,7 +114,7 @@ export function PitchListForm({
       const response = await fetch(`/api/company/${companyUuid}/pitchlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: 'single', ...contactForm }),
+        body: JSON.stringify({ mode: 'single', ...contactForm, listUuid: targetListUuid || undefined }),
       })
 
       if (!response.ok) {
@@ -149,14 +157,16 @@ export function PitchListForm({
           <div>
             <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">How it works:</h4>
             <ol className="list-decimal list-inside text-sm text-gray-600 dark:text-gray-400 space-y-1">
-              <li>Add media contacts individually or import in bulk</li>
-              <li>Include publication domain and name for better organization</li>
-              <li>Use your pitch list when distributing press releases</li>
+              <li>Create as many media lists as you need (for example by beat or region)</li>
+              <li>Add media contacts individually or import in bulk into any of your lists</li>
+              <li>Choose which lists receive each press release when you publish</li>
               <li>Track email opens, bounces, and unsubscribes</li>
             </ol>
           </div>
         </CardContent>
       </Card>
+
+      <MediaListsPanel readOnly={readOnly} companyUuid={companyUuid} lists={mediaLists} />
 
       {/* Add Contacts Section */}
       {!readOnly && <Card>
@@ -204,6 +214,22 @@ export function PitchListForm({
               Add Single Contact
             </Button>
           </div>
+
+          {editableLists.length > 0 && (
+            <div className="max-w-sm">
+              <Label htmlFor="target-list" className="font-semibold">Add to list</Label>
+              <Select
+                id="target-list"
+                value={targetListUuid}
+                onChange={(e) => setTargetListUuid(e.target.value)}
+                className="mt-1"
+              >
+                {editableLists.map((l) => (
+                  <option key={l.uuid} value={l.uuid}>{l.name} ({l.contactCount})</option>
+                ))}
+              </Select>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="emails" className="font-semibold">Enter Email Addresses</Label>
@@ -264,7 +290,7 @@ export function PitchListForm({
           <DialogHeader>
             <DialogTitle>Add Media Contact</DialogTitle>
             <DialogDescription>
-              Add a single media contact to your pitch list.
+              Add a single media contact to {targetListName ? <>&ldquo;{targetListName}&rdquo;</> : 'your pitch list'}.
             </DialogDescription>
           </DialogHeader>
 

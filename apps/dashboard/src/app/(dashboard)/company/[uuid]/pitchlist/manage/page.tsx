@@ -7,14 +7,16 @@ import { CompanyNav } from '@/components/company/company-nav'
 import { getBrandNavState } from '@/lib/brand-setup'
 import { ContactList } from './contact-list'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { contactOnList, getBrandMediaLists, getOrCreateDefaultMediaList } from '@/lib/media-lists'
 
-async function getContacts(companyId: number, page: number, perPage: number, query: string, status: string) {
+async function getContacts(companyId: number, page: number, perPage: number, query: string, status: string, listId: number | null) {
   const offset = (page - 1) * perPage
 
   const baseFilter = and(
     eq(crmContacts.companyId, companyId),
     inArray(crmContacts.contactType, ['media', 'both']),
-    sql`${crmContacts.isDeleted} IS NOT TRUE`
+    sql`${crmContacts.isDeleted} IS NOT TRUE`,
+    listId ? contactOnList(listId) : undefined
   )
 
   let combinedFilter = baseFilter
@@ -86,10 +88,10 @@ export default async function ManageContactsPage({
   searchParams,
 }: {
   params: Promise<{ uuid: string }>
-  searchParams: Promise<{ page?: string; perPage?: string; q?: string; status?: string }>
+  searchParams: Promise<{ page?: string; perPage?: string; q?: string; status?: string; list?: string }>
 }) {
   const { uuid } = await params
-  const { page: pageStr, perPage: perPageStr, q, status: statusParam } = await searchParams
+  const { page: pageStr, perPage: perPageStr, q, status: statusParam, list: listParam } = await searchParams
   const page = Math.max(1, parseInt(pageStr || '1'))
   const perPage = [10, 20, 50].includes(Number(perPageStr)) ? Number(perPageStr) : 20
   const query = q?.trim() || ''
@@ -104,7 +106,12 @@ export default async function ManageContactsPage({
   const co = access.company
   const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
-  const data = await getContacts(co.id, page, perPage, query, status)
+  await getOrCreateDefaultMediaList(co.id, userId, co.companyName)
+  // Only user lists are browsable here; the curated list has its own masked view.
+  const lists = (await getBrandMediaLists(co.id)).filter((l) => !l.isCurated)
+  const activeList = lists.find((l) => l.uuid === listParam) || null
+
+  const data = await getContacts(co.id, page, perPage, query, status, activeList?.id ?? null)
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -126,6 +133,8 @@ export default async function ManageContactsPage({
         perPage={data.perPage}
         query={query}
         status={status}
+        lists={lists.map((l) => ({ uuid: l.uuid, name: l.name, contactCount: l.contactCount }))}
+        activeListUuid={activeList?.uuid || ''}
       />
     </div>
   )

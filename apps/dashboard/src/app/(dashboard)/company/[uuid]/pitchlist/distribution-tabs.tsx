@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Newspaper, Users } from 'lucide-react'
 import { PitchListForm } from './pitchlist-form'
 import { ShareListForm } from '../advocacy/advocacy-form'
+import type { MediaListItem } from './media-lists-panel'
 
 interface DistributionTabsProps {
   readOnly?: boolean
@@ -11,6 +12,7 @@ interface DistributionTabsProps {
   companyName: string
   primaryContactName: string | null
   totalContacts: number
+  mediaLists: MediaListItem[]
   shareGroup: {
     id: number
     inviteMsg: string
@@ -24,6 +26,7 @@ export function DistributionTabs({
   companyName,
   primaryContactName,
   totalContacts,
+  mediaLists,
   shareGroup,
   totalSubscribers,
 }: DistributionTabsProps) {
@@ -64,6 +67,7 @@ export function DistributionTabs({
           companyUuid={companyUuid}
           companyName={companyName}
           totalContacts={totalContacts}
+          mediaLists={mediaLists}
         />
       ) : (
         <ShareListForm
