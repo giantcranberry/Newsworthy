@@ -33,6 +33,8 @@ import {
   X,
   Eye,
   Newspaper,
+  ListPlus,
+  ListMinus,
 } from 'lucide-react'
 
 interface Contact {
@@ -76,6 +78,8 @@ interface ContactListProps {
   perPage: number
   query: string
   status: string
+  lists: { uuid: string; name: string; contactCount: number }[]
+  activeListUuid: string
 }
 
 function formatDate(dateStr: Date | string | null) {
@@ -105,6 +109,8 @@ export function ContactList({
   perPage,
   query,
   status,
+  lists,
+  activeListUuid,
 }: ContactListProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -115,6 +121,11 @@ export function ContactList({
 
   // Selection state — use uuid strings
   const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  // List membership (user lists only; the Newsworthy Curated list is never offered here)
+  const activeList = lists.find((l) => l.uuid === activeListUuid) || null
+  const [addToListUuid, setAddToListUuid] = useState('')
+  const [isUpdatingList, setIsUpdatingList] = useState(false)
 
   // Bulk delete state
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
@@ -147,7 +158,7 @@ export function ContactList({
   // Clear selection when page/filters change
   useEffect(() => {
     setSelected(new Set())
-  }, [currentPage, query, status, perPage])
+  }, [currentPage, query, status, perPage, activeListUuid])
 
   const allOnPageSelected = contacts.length > 0 && contacts.every((c) => c.uuid && selected.has(c.uuid))
   const someSelected = selected.size > 0
@@ -206,6 +217,39 @@ export function ContactList({
 
   const handleStatusFilter = (value: string) => {
     router.push(buildUrl({ status: status === value ? undefined : value, page: '1' }))
+  }
+
+  const handleListFilter = (value: string) => {
+    router.push(buildUrl({ list: value || undefined, page: '1' }))
+  }
+
+  const updateListMembership = async (listUuid: string, method: 'POST' | 'DELETE') => {
+    if (!listUuid || selected.size === 0) return
+    setIsUpdatingList(true)
+    setError(null)
+    setSuccess(null)
+    try {
+      const res = await fetch(`/api/company/${companyUuid}/media-lists/${listUuid}/members`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contactUuids: Array.from(selected) }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Failed to update list')
+      const listName = lists.find((l) => l.uuid === listUuid)?.name || 'list'
+      if (method === 'POST') {
+        setSuccess(`Added ${data.added} contact${data.added !== 1 ? 's' : ''} to "${listName}"${data.skipped ? ` (${data.skipped} already on it or missing an email)` : ''}.`)
+      } else {
+        setSuccess(`Removed ${data.removed} contact${data.removed !== 1 ? 's' : ''} from "${listName}". They are still in your media contacts.`)
+      }
+      setSelected(new Set())
+      setAddToListUuid('')
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update list')
+    } finally {
+      setIsUpdatingList(false)
+    }
   }
 
   // Bulk delete
@@ -404,7 +448,7 @@ export function ContactList({
           <span className="text-sm font-medium text-red-800 dark:text-red-400">
             {selected.size} contact{selected.size !== 1 ? 's' : ''} selected
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -412,6 +456,37 @@ export function ContactList({
             >
               Clear Selection
             </Button>
+            <Select
+              aria-label="Add selected contacts to list"
+              value={addToListUuid}
+              onChange={(e) => setAddToListUuid(e.target.value)}
+              className="w-48 h-8"
+            >
+              <option value="">Add to list…</option>
+              {lists.filter((l) => l.uuid !== activeListUuid).map((l) => (
+                <option key={l.uuid} value={l.uuid}>{l.name}</option>
+              ))}
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!addToListUuid || isUpdatingList}
+              onClick={() => updateListMembership(addToListUuid, 'POST')}
+            >
+              {isUpdatingList ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListPlus className="h-4 w-4" />}
+              Add
+            </Button>
+            {activeList && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUpdatingList}
+                onClick={() => updateListMembership(activeList.uuid, 'DELETE')}
+              >
+                <ListMinus className="h-4 w-4" />
+                Remove from &ldquo;{activeList.name}&rdquo;
+              </Button>
+            )}
             <Button
               variant="destructive"
               size="sm"
@@ -428,9 +503,22 @@ export function ContactList({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
-            <CardTitle className="text-base">
-              Media Contacts ({stats.total})
-            </CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-base">
+                {activeList ? activeList.name : 'All Media Contacts'} ({stats.total})
+              </CardTitle>
+              <Select
+                aria-label="Filter by list"
+                value={activeListUuid}
+                onChange={(e) => handleListFilter(e.target.value)}
+                className="w-48 h-8"
+              >
+                <option value="">All media contacts</option>
+                {lists.map((l) => (
+                  <option key={l.uuid} value={l.uuid}>{l.name} ({l.contactCount})</option>
+                ))}
+              </Select>
+            </div>
             <div className="relative w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
               <Input

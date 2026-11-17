@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { randomUUID } from 'crypto'
 import { createHash } from 'crypto'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
+import { ensureMediaContactsListed } from '@/lib/media-lists'
 
 function getMd5(email: string) {
   return createHash('md5').update(email.toLowerCase()).digest('hex')
@@ -204,6 +205,7 @@ export async function POST(
       source: 'single',
     }).returning()
 
+    await ensureMediaContactsListed(co, [newContact])
     return NextResponse.json({ success: true, contact: newContact })
   }
 
@@ -261,7 +263,7 @@ export async function POST(
       continue
     }
 
-    await db.insert(crmContacts).values({
+    const [inserted] = await db.insert(crmContacts).values({
       uuid: randomUUID().replace(/-/g, ''),
       userId,
       companyId: co.id,
@@ -272,8 +274,9 @@ export async function POST(
       email,
       md5: emailMd5,
       source: 'upload',
-    })
+    }).returning()
 
+    await ensureMediaContactsListed(co, [inserted])
     added++
   }
 
@@ -371,6 +374,12 @@ export async function PUT(
       updatedAt: new Date(),
     })
     .where(eq(crmContacts.id, contact.id))
+
+  // Became a media contact (e.g. advocate -> both): make sure it is on a media list
+  const newType = contactType ?? contact.contactType
+  if (newType !== contact.contactType) {
+    await ensureMediaContactsListed(co, [{ id: contact.id, contactType: newType, email: normalizedEmail }])
+  }
 
   return NextResponse.json({ success: true })
 }

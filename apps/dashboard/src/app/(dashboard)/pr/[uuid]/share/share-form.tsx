@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { WizardHeader } from '@/components/pr-wizard/wizard-header'
-import { Share2, X, Check, Users, Plus, Loader2, Newspaper, Info } from 'lucide-react'
+import { Share2, X, Check, Users, Plus, Loader2, Newspaper, Info, Lock } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 
 interface ShareFormProps {
@@ -18,7 +19,20 @@ interface ShareFormProps {
   companyName: string
   listCount: number
   mediaListCount: number
+  mediaLists: ShareMediaList[]
+  selectedListUuids: string[]
   children?: React.ReactNode
+}
+
+export interface ShareMediaList {
+  uuid: string
+  name: string
+  isCurated: boolean
+  contactCount: number
+  /** Contacts on this list that would receive the release if sent now. */
+  reachable: number
+  /** Curated only: journalists skipped because this brand emailed them in the last 28 days. */
+  recentlyEmailed: number
 }
 
 // Sharing with your list is optional, but activating it requires a minimum
@@ -33,6 +47,8 @@ export function ShareForm({
   companyName,
   listCount: initialListCount,
   mediaListCount,
+  mediaLists,
+  selectedListUuids: initialSelectedListUuids,
   children,
 }: ShareFormProps) {
   const router = useRouter()
@@ -47,6 +63,17 @@ export function ShareForm({
 
   const [shareWithList, setShareWithList] = useState(initialShareWithList)
   const [sendToPitchList, setSendToPitchList] = useState(initialSendToPitchList)
+  const [selectedLists, setSelectedLists] = useState<Set<string>>(new Set(initialSelectedListUuids))
+  const selectedMediaLists = mediaLists.filter((l) => selectedLists.has(l.uuid))
+  const selectedReach = selectedMediaLists.reduce((n, l) => n + l.reachable, 0)
+  const toggleList = (uuid: string) => {
+    setSelectedLists((prev) => {
+      const next = new Set(prev)
+      if (next.has(uuid)) next.delete(uuid)
+      else next.add(uuid)
+      return next
+    })
+  }
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,6 +85,10 @@ export function ShareForm({
   const [listCount, setListCount] = useState(initialListCount)
 
   const handleSubmit = async () => {
+    if (sendToPitchList && mediaListCount > 0 && selectedLists.size === 0) {
+      setError('Select at least one media list, or skip the media pitch list.')
+      return
+    }
     setIsLoading(true)
     setError(null)
 
@@ -65,7 +96,11 @@ export function ShareForm({
       const response = await fetch(`/api/pr/${releaseUuid}/share`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ advocacy: shareWithList && listCount >= MIN_SHARE_LIST, pitchlist: sendToPitchList }),
+        body: JSON.stringify({
+          advocacy: shareWithList && listCount >= MIN_SHARE_LIST,
+          pitchlist: sendToPitchList && selectedLists.size > 0,
+          mediaListUuids: sendToPitchList ? Array.from(selectedLists) : [],
+        }),
       })
 
       if (!response.ok) {
@@ -394,7 +429,7 @@ export function ShareForm({
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {mediaListCount === 0
                   ? 'Add media contacts to your pitch list to enable this'
-                  : `Send this release to ${mediaListCount} media contact${mediaListCount === 1 ? '' : 's'} when published`
+                  : 'Send this release to the media lists you choose when published'
                 }
               </p>
             </button>
@@ -436,10 +471,59 @@ export function ShareForm({
           </div>
 
           {sendToPitchList && mediaListCount > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">Choose media lists</h4>
+              <ul className="divide-y divide-gray-200 dark:divide-gray-800 rounded-lg border border-gray-200 dark:border-gray-800">
+                {mediaLists.map((l) => {
+                  const disabled = l.reachable === 0
+                  return (
+                    <li key={l.uuid}>
+                      <label
+                        className={cn(
+                          'flex items-start gap-3 p-3',
+                          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900'
+                        )}
+                      >
+                        <Checkbox
+                          checked={selectedLists.has(l.uuid)}
+                          disabled={disabled}
+                          onCheckedChange={() => toggleList(l.uuid)}
+                          className="mt-0.5"
+                        />
+                        <span className="min-w-0">
+                          <span className="flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
+                            {l.name}
+                            {l.isCurated && (
+                              <span className="inline-flex items-center gap-1 text-xs font-normal text-cyan-700 dark:text-cyan-400">
+                                <Lock className="h-3 w-3" />
+                                Managed by Newsworthy
+                              </span>
+                            )}
+                          </span>
+                          <span className="block text-sm text-gray-500 dark:text-gray-400">
+                            {l.isCurated
+                              ? `${l.reachable} of ${l.contactCount} journalist${l.contactCount === 1 ? '' : 's'} available` +
+                                (l.recentlyEmailed ? ` · ${l.recentlyEmailed} emailed by you in the last 28 days` : '')
+                              : `${l.reachable} contact${l.reachable === 1 ? '' : 's'}`}
+                          </span>
+                        </span>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )}
+
+          {sendToPitchList && mediaListCount > 0 && (
             <div className="p-4 bg-gray-50 dark:bg-gray-950 rounded-lg">
               <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">What happens next?</h4>
               <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li>• Your {mediaListCount} media contact{mediaListCount === 1 ? '' : 's'} will receive the press release when published</li>
+                <li>• Up to {selectedReach} media contact{selectedReach === 1 ? '' : 's'} on {selectedMediaLists.length} list{selectedMediaLists.length === 1 ? '' : 's'} will receive the press release when published</li>
+                <li>• Anyone on more than one list receives it only once</li>
+                {selectedMediaLists.some((l) => l.isCurated) && (
+                  <li>• Newsworthy Curated journalists receive at most one release from you every 28 days</li>
+                )}
                 <li>• Track email opens, bounces, and engagement from your dashboard</li>
               </ul>
             </div>

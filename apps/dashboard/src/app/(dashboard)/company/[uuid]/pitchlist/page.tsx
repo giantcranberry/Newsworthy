@@ -1,6 +1,6 @@
 import { getEffectiveSession } from '@/lib/auth'
 import { db } from '@/db'
-import { pitchGroups, advocacyGroups, crmContacts } from '@/db/schema'
+import { advocacyGroups, crmContacts } from '@/db/schema'
 import { eq, and, sql, inArray } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { randomUUID } from 'crypto'
@@ -9,27 +9,10 @@ import { getBrandNavState } from '@/lib/brand-setup'
 import { DistributionTabs } from './distribution-tabs'
 import { getCompanyAccess, hasMinRole } from '@/lib/team-auth'
 import { getPrimaryContactName } from '@/lib/primary-contact'
+import { getBrandMediaLists, getOrCreateDefaultMediaList } from '@/lib/media-lists'
 
 const DEFAULT_INVITE_MSG =
   'You have been added to our Share List. As a member, you will be notified via email when we distribute a new press release — with an invitation to share the news with your social networks.'
-
-async function getOrCreatePitchGroup(companyId: number, userId: number, companyName: string) {
-  let group = await db.query.pitchGroups.findFirst({
-    where: eq(pitchGroups.coId, companyId),
-  })
-
-  if (!group) {
-    const [newGroup] = await db.insert(pitchGroups).values({
-      uuid: randomUUID().replace(/-/g, ''),
-      userId,
-      coId: companyId,
-      groupName: companyName,
-    }).returning()
-    group = newGroup
-  }
-
-  return group
-}
 
 async function getTotalPitchContacts(companyId: number) {
   const [countRow] = await db
@@ -93,13 +76,14 @@ export default async function PitchListPage({
   const isReadOnly = !hasMinRole(access.role, 'brand_admin')
 
   const [_pitchGroup, advocacyGroup] = await Promise.all([
-    getOrCreatePitchGroup(co.id, userId, co.companyName),
+    getOrCreateDefaultMediaList(co.id, userId, co.companyName),
     getOrCreateAdvocacyGroup(co.id, userId, co.companyName),
   ])
 
-  const [totalContacts, totalSubscribers] = await Promise.all([
+  const [totalContacts, totalSubscribers, mediaLists] = await Promise.all([
     getTotalPitchContacts(co.id),
     getTotalSubscribers(co.id),
+    getBrandMediaLists(co.id),
   ])
 
   return (
@@ -117,6 +101,9 @@ export default async function PitchListPage({
         companyName={co.companyName}
         primaryContactName={await getPrimaryContactName(co.id)}
         totalContacts={totalContacts}
+        mediaLists={mediaLists.map(({ uuid, name, description, isCurated, contactCount }) => ({
+          uuid, name, description, isCurated, contactCount,
+        }))}
         shareGroup={{
           id: advocacyGroup.id,
           inviteMsg: advocacyGroup.inviteMsg || DEFAULT_INVITE_MSG,
