@@ -8,6 +8,8 @@ from typing import TypeVar
 
 from dotenv import load_dotenv
 from openai import OpenAI
+
+from media_lists.usage import USAGE
 from pydantic import BaseModel, ValidationError
 
 from media_lists.prompts import BRIEF_SYSTEM, HUNTER_JUDGE_SYSTEM, JUDGE_SYSTEM, PLAN_SYSTEM
@@ -68,6 +70,7 @@ def _json_object(text: str) -> dict:
 class Model:
     def __init__(self, config: ModelConfig) -> None:
         self.config = config
+        USAGE.model = config.model
         self.client = OpenAI(api_key=config.api_key, base_url=config.base_url, timeout=120)
 
     def _complete(self, system: str, user: str, schema: type[T]) -> T:
@@ -92,6 +95,7 @@ class Model:
                     last_error = exc
                     continue
                 raise
+            USAGE.add_llm(getattr(response, "usage", None))
             text = response.choices[0].message.content or ""
             try:
                 return schema.model_validate(_json_object(text))

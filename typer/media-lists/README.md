@@ -45,6 +45,14 @@ two journalists per outlet on different beats (`--per-outlet 2`). Re-running is
 cheap: fetched pages and Hunter results are cached, and publishing only adds
 (`publish --prune` removes journalists who dropped out).
 
+### Cost estimate
+
+Every run ends with an estimated cost (also saved as `cost_estimate` in
+`report.json`): model tokens at list price (grok-4: $3 / $15 per 1M in / out),
+plus the share of the Firecrawl and Hunter.io subscriptions the run used.
+Override prices in `.env` with `MEDIA_LIST_PRICE_IN`, `MEDIA_LIST_PRICE_OUT`,
+`FIRECRAWL_CREDIT_USD` and `HUNTER_CREDIT_USD`.
+
 ### What `run` does
 
 1. Reads the brand and its 8 most recent distributed releases from the releases

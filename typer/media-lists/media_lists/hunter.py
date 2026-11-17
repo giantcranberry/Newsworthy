@@ -28,6 +28,7 @@ from pathlib import Path
 import httpx
 
 from media_lists.emails import local_block_reason
+from media_lists.usage import USAGE
 
 API = "https://api.hunter.io/v2"
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -129,7 +130,10 @@ class Hunter:
             raise BudgetExceeded(f"Hunter budget of {self.budget:g} credits reached")
         resp = self.client.get(f"{API}/{path}", params={**params, "api_key": self.key})
         self.calls += 1
-        self.spent += float(resp.headers.get("x-credits-used") or 0)
+        credits = float(resp.headers.get("x-credits-used") or 0)
+        self.spent += credits
+        USAGE.hunter_calls += 1
+        USAGE.hunter_credits += credits
         if resp.status_code == 202:  # verifier still running; treat as unknown
             return {"data": {"status": "unknown"}}
         if resp.status_code >= 400:

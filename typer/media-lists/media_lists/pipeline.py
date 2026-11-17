@@ -22,6 +22,7 @@ from media_lists.fetch import (
     search_same_site,
 )
 from media_lists.llm import Model
+from media_lists.usage import USAGE
 from media_lists.newsroom import collect_from_database, collect_newsroom
 from media_lists.schema import Brief, Decision, PagePlan, Plan, host_of, is_aggregator, url_key
 from media_lists.db import store_list
@@ -486,6 +487,7 @@ class Runner:
             "csv": str(self.out) if self.out is not None else None,
             "model": self.model.config.model,
             "hunter": self.hunter_report or None,
+            "cost_estimate": USAGE.estimate(),
             "dropped": [drop.__dict__ for drop in dropped],
             "fetch_errors": [
                 {"url": page.url, "error": page.error}

@@ -14,6 +14,8 @@ from urllib.parse import urlsplit
 import httpx
 from dotenv import load_dotenv
 
+from media_lists.usage import USAGE
+
 API = "https://api.firecrawl.dev/v2"
 
 
@@ -51,9 +53,11 @@ def scrape(url: str, *, timeout: float = 60) -> dict | None:
     if response.status_code >= 400:
         return None
     body = response.json()
+    data = body.get("data")
+    metadata = (data or {}).get("metadata") or {} if isinstance(data, dict) else {}
+    USAGE.add_firecrawl("scrape", float(metadata.get("creditsUsed") or body.get("creditsUsed") or 1))
     if not body.get("success"):
         return None
-    data = body.get("data")
     return data if isinstance(data, dict) else None
 
 
@@ -82,6 +86,7 @@ def search(query: str, host: str, *, limit: int = 4, timeout: float = 30) -> lis
     if response.status_code >= 400:
         return []
     body = response.json()
+    USAGE.add_firecrawl("search", float(body.get("creditsUsed") or 2))
     web = (body.get("data") or {}).get("web") or []
     found: list[str] = []
     seen: set[str] = set()

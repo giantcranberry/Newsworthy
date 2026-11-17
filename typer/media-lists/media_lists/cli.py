@@ -262,6 +262,10 @@ def run(
     finally:
         if hunter_client is not None:
             hunter_client.close()
+        from media_lists.usage import USAGE
+
+        for line in USAGE.summary_lines():
+            console.print(line)
     if not rows:
         raise typer.Exit(code=2)
     if publish_after:
