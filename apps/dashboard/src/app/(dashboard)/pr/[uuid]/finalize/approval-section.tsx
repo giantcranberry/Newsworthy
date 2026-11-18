@@ -21,6 +21,27 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+
+/**
+ * Parse an API response that should be JSON. A platform error page (HTML from
+ * a timeout, crash or 404) becomes a readable error instead of a JSON
+ * parse failure.
+ */
+async function readJson(response: Response): Promise<any> {
+  const text = await response.text()
+  try {
+    return text ? JSON.parse(text) : {}
+  } catch {
+    const reason =
+      response.status === 504 ? 'the server took too long to respond'
+      : response.status === 404 ? 'the approval service was not found'
+      : response.redirected || response.status === 401 || response.status === 403
+        ? 'your session has expired; please sign in again'
+      : 'the server returned an unexpected response'
+    throw new Error(`Request failed (${response.status}): ${reason}. Please try again.`)
+  }
+}
+
 export interface Approval {
   id: number
   uuid: string
@@ -132,7 +153,7 @@ export function ApprovalSection({
         }),
       })
 
-      const data = await response.json()
+      const data = await readJson(response)
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create approval request')
@@ -167,7 +188,7 @@ export function ApprovalSection({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'resend', approvalUuid }),
       })
-      const data = await response.json()
+      const data = await readJson(response)
       if (!response.ok) {
         throw new Error(data.error || 'Failed to resend approval email')
       }
@@ -192,7 +213,7 @@ export function ApprovalSection({
       })
 
       if (!response.ok) {
-        const data = await response.json()
+        const data = await readJson(response)
         throw new Error(data.error || 'Failed to delete approval')
       }
 
