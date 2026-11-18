@@ -27,7 +27,8 @@ export async function sendEmail({
     const { data, error } = await getResend().emails.send({
       from: `Newsworthy <${fromEmail}>`,
       to: [to],
-      subject,
+      // Resend rejects line breaks in the subject (release titles can contain them).
+      subject: subject.replace(/\s+/g, ' ').trim(),
       html,
       text: text || '',
     })
