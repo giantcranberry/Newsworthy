@@ -9,7 +9,7 @@ type Body = {
 }
 
 /**
- * Async beacon / middleware target for crawler hit logging.
+ * Async beacon / proxy target for crawler hit logging.
  * Classifies User-Agent server-side; only persists crawler visitors (seo / ai / other).
  */
 export async function POST(request: NextRequest) {

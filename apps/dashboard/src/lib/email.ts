@@ -23,11 +23,14 @@ export async function sendEmail({
     throw new Error('RESEND_API_KEY is not configured')
   }
 
+  // Resend rejects line breaks in the subject (release titles can contain them).
+  const cleanSubject = subject.replace(/\s+/g, ' ').trim()
+
   try {
     const { data, error } = await getResend().emails.send({
       from: `Newsworthy <${fromEmail}>`,
       to: [to],
-      subject,
+      subject: cleanSubject,
       html,
       text: text || '',
     })
@@ -41,7 +44,7 @@ export async function sendEmail({
       throw new Error(message)
     }
 
-    console.log('[Resend] Email sent', { to, subject, id: data?.id })
+    console.log('[Resend] Email sent', { to, subject: cleanSubject, id: data?.id })
     return data
   } catch (error) {
     console.error('[Resend] Failed to send email:', error)

@@ -5,7 +5,7 @@ import { LIKELY_BOT_UA } from '@/lib/likely-bot-ua'
  * For /news and /curated, async-log likely crawlers via /api/page-hit.
  * Complements the client beacon (many bots never run JS).
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (!pathname.startsWith('/news') && !pathname.startsWith('/curated')) {
